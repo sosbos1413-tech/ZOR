@@ -1,0 +1,1970 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0B0F17">
+<meta name="color-scheme" content="dark">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>HIDEOUT — سيد المخبأ</title>
+<style>
+:root{
+  --bg:#0B0F17;
+  --bg2:#0F1420;
+  --panel:#141B29;
+  --panel2:#1A2333;
+  --card:#1E2A3F;
+  --line:#2A3A54;
+  --line2:#374A69;
+  --text:#EAF0FA;
+  --muted:#8CA0C2;
+  --dim:#5C6E8C;
+  --yellow:#F4D64B;   /* power / electricity */
+  --cyan:#3FD7E0;     /* info / tech */
+  --orange:#FF9A4D;   /* production */
+  --red:#FF5E67;      /* danger / defense */
+  --green:#3FDE8F;    /* health / support */
+  --violet:#9C7CFF;   /* special / tech-deep */
+  --gold:#F0C34D;     /* economy */
+  --shadow:0 10px 26px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
+  font-family:'Segoe UI',Tajawal,system-ui,-apple-system,Arial,sans-serif;
+  overscroll-behavior:none;user-select:none;-webkit-user-select:none}
+body{display:flex;justify-content:center}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+#app{width:100%;max-width:480px;height:100dvh;display:flex;flex-direction:column;
+  background:radial-gradient(ellipse at 50% -10%,#182238 0%,var(--bg) 60%);position:relative;overflow:hidden}
+
+/* ---------- TOP RESOURCE BAR ---------- */
+#resbar{display:flex;gap:5px;padding:8px 8px 6px;flex-shrink:0}
+.res{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:11px;
+  padding:5px 2px;text-align:center;font-size:11px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:1px}
+.res .ic{font-size:14px;line-height:1}
+.res b{font-size:12.5px}
+.res.cash b{color:var(--gold)}
+.res.respect b{color:var(--violet)}
+.res.intel b{color:var(--cyan)}
+.res.parts b{color:var(--orange)}
+.res.heat b{color:var(--red)}
+.res.heat{position:relative;overflow:hidden}
+.res.heat i{position:absolute;inset:auto 0 0 0;height:3px;background:var(--red);transition:width .4s}
+
+/* ---------- STAGE / HIDEOUT VIEWPORT ---------- */
+#stage{flex:1;position:relative;overflow:hidden;margin:0 8px;border-radius:16px;
+  background:linear-gradient(180deg,#0E1522,#0A0E17 70%);border:1px solid var(--line);box-shadow:inset 0 0 40px rgba(0,0,0,.4)}
+#viewport{position:absolute;inset:0;overflow:auto;touch-action:pan-x pan-y;-webkit-overflow-scrolling:touch}
+#gridwrap{position:relative;padding:26px 14px 60px;min-width:100%;min-height:100%;display:flex;align-items:flex-start;justify-content:center}
+#grid{position:relative;display:grid}
+.cell{position:relative}
+.cell.locked{background:repeating-linear-gradient(135deg,#131A28 0 6px,#0F1420 6px 12px);
+  border-radius:5px;margin:1px;opacity:.55}
+.cell.unlocked-empty{border:1.5px dashed var(--line2);border-radius:5px;margin:1px;opacity:0;transition:opacity .2s}
+.buildmode .cell.unlocked-empty{opacity:1}
+.cell.anchor-ok{background:rgba(63,222,143,.18);border-color:var(--green)}
+.cell.anchor-bad{background:rgba(255,94,103,.18);border-color:var(--red)}
+
+.entrance{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#2A3550,#1B2333);border:1.5px solid var(--line2);border-radius:8px 8px 3px 3px;
+  font-size:16px;z-index:2;margin:1px}
+.entrance small{font-size:8px;color:var(--muted);margin-top:1px}
+
+.room{position:absolute;margin:1px;border-radius:9px;overflow:hidden;z-index:3;
+  border:1.5px solid var(--rc,var(--line2));background:linear-gradient(165deg,var(--rc2,#1E2A3F) 0%, #141B29 100%);
+  box-shadow:0 4px 10px rgba(0,0,0,.35);display:flex;flex-direction:column;transition:box-shadow .2s,transform .15s}
+.room.inactive{filter:grayscale(.7) brightness(.55)}
+.room.pulse{animation:pulseSyn 1.1s ease}
+@keyframes pulseSyn{0%{box-shadow:0 0 0 0 rgba(63,222,143,.6)}100%{box-shadow:0 0 0 14px rgba(63,222,143,0)}}
+.room.penalized{animation:pulseWarn 1.1s ease}
+@keyframes pulseWarn{0%{box-shadow:0 0 0 0 rgba(255,94,103,.55)}100%{box-shadow:0 0 0 14px rgba(255,94,103,0)}}
+.room .rhead{display:flex;align-items:center;gap:3px;padding:3px 4px 0;font-size:9.5px;font-weight:800;color:var(--rc,#cfe);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.room .ricon{font-size:13px}
+.room .rbody{flex:1;position:relative}
+.room .tok{position:absolute;font-size:15px;transform:translate(-50%,-50%);transition:left 1.1s ease,top 1.1s ease;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
+.room .lvl{position:absolute;bottom:2px;left:3px;font-size:8px;color:var(--muted);background:rgba(0,0,0,.35);padding:0 3px;border-radius:4px}
+.room .pwr{position:absolute;bottom:2px;right:3px;font-size:8px;font-weight:700}
+.room .pwr.on{color:var(--yellow)}
+.room .pwr.off{color:var(--dim)}
+.room.selected{outline:2px solid #fff;outline-offset:1px}
+.room.raid-target{outline:2px solid var(--red);animation:pulseWarn 1s infinite}
+.room.raid-clear{outline:2px solid var(--green)}
+
+.doorline{position:absolute;background:var(--line2);z-index:1;border-radius:2px}
+.doorline.locked-edge{background:var(--red);opacity:.6}
+.pathline{position:absolute;background:rgba(255,94,103,.55);z-index:2;border-radius:2px;pointer-events:none}
+
+#ghost{position:fixed;pointer-events:none;z-index:400;opacity:.85;border-radius:8px;
+  border:2px dashed #fff;display:none;transition:background .1s}
+#ghost.ok{background:rgba(63,222,143,.35);border-color:var(--green)}
+#ghost.bad{background:rgba(255,94,103,.35);border-color:var(--red)}
+
+/* floating badges */
+.floatbadge{position:absolute;z-index:60;background:rgba(10,14,22,.92);border:1px solid var(--line2);
+  border-radius:8px;padding:3px 7px;font-size:10px;font-weight:700;pointer-events:none;
+  animation:floatUp 1.4s ease forwards;white-space:nowrap}
+@keyframes floatUp{0%{opacity:0;transform:translateY(4px)}15%{opacity:1;transform:translateY(0)}80%{opacity:1}100%{opacity:0;transform:translateY(-14px)}}
+
+/* ---------- STAGE HUD (cycle / phase banner) ---------- */
+#hud{position:absolute;top:6px;left:6px;right:6px;display:flex;justify-content:space-between;
+  align-items:center;pointer-events:none;z-index:50}
+#hud .chip{pointer-events:auto;background:rgba(10,14,22,.85);border:1px solid var(--line2);border-radius:20px;
+  padding:5px 10px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:5px;backdrop-filter:blur(3px)}
+#phaseBtn{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:55;
+  background:linear-gradient(180deg,#3FDE8F,#22B06A);color:#08150E;font-weight:900;font-size:13px;
+  padding:11px 22px;border-radius:30px;box-shadow:0 8px 18px rgba(63,222,143,.35);letter-spacing:.3px}
+#phaseBtn:active{transform:translateX(-50%) scale(.96)}
+/* In build mode the tray owns the bottom edge — lift the phase button clear of it so
+   inventory cards underneath stay tappable. */
+.buildmode #phaseBtn{bottom:84px}
+#buildBar{position:absolute;left:0;right:0;bottom:0;z-index:54;background:linear-gradient(0deg,rgba(10,14,22,.97),rgba(10,14,22,.85));
+  border-top:1px solid var(--line2);padding:8px 8px 10px;display:none;gap:6px;overflow-x:auto;align-items:center}
+.buildmode #buildBar{display:flex}
+.invcard{flex-shrink:0;width:64px;background:var(--card);border:1.5px solid var(--rc,var(--line2));border-radius:10px;
+  padding:5px;text-align:center;font-size:9px;font-weight:700}
+.invcard .ic2{font-size:18px}
+.invcard.armed{outline:2px solid #fff}
+#buildExit{position:absolute;top:6px;right:6px;z-index:56;background:rgba(10,14,22,.88);border:1px solid var(--line2);
+  border-radius:16px;padding:6px 12px;font-size:11px;font-weight:800;display:none}
+.buildmode #buildExit{display:block}
+
+/* ---------- OVERLAYS (power / path / threat) ---------- */
+#overlayBar{position:absolute;left:6px;bottom:10px;z-index:56;display:flex;flex-direction:column;gap:5px}
+#overlayBar button{width:34px;height:34px;border-radius:10px;background:rgba(10,14,22,.85);
+  border:1px solid var(--line2);font-size:15px;backdrop-filter:blur(3px)}
+#overlayBar button.on{border-color:var(--cyan);background:rgba(63,215,224,.2);box-shadow:0 0 10px rgba(63,215,224,.3)}
+.buildmode #overlayBar{display:none}
+.ovlbadge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:6;
+  background:rgba(8,12,20,.9);border-radius:8px;padding:2px 6px;font-size:10px;font-weight:900;
+  border:1px solid var(--line2);white-space:nowrap}
+.ovlbadge.step{background:var(--red);color:#fff;border-color:#fff;border-radius:50%;width:20px;height:20px;
+  display:flex;align-items:center;justify-content:center;padding:0}
+.room.ovl-danger{outline:2px solid var(--red);outline-offset:-1px}
+.room.ovl-warn{outline:2px solid var(--orange);outline-offset:-1px}
+.room.ovl-ok{outline:2px solid var(--green);outline-offset:-1px}
+.room.ovl-dim{opacity:.45}
+.trapdot{position:absolute;top:2px;left:3px;font-size:9px;z-index:5;filter:drop-shadow(0 1px 1px #000)}
+
+/* ---------- BOTTOM NAV ---------- */
+#bottomnav{display:flex;flex-shrink:0;padding:6px 8px 10px;gap:4px}
+#bottomnav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;
+  border-radius:12px;font-size:9.5px;font-weight:700;color:var(--muted)}
+#bottomnav button .ic3{font-size:18px}
+#bottomnav button.active{color:var(--text);background:var(--panel2)}
+
+/* ---------- SHEET / MODAL ---------- */
+#overlay{position:absolute;inset:0;background:rgba(4,6,10,.62);z-index:200;display:none;backdrop-filter:blur(1px)}
+#overlay.show{display:block}
+#sheet{position:absolute;left:0;right:0;bottom:0;z-index:201;background:var(--bg2);border-radius:20px 20px 0 0;
+  border-top:1px solid var(--line2);max-height:82%;overflow-y:auto;transform:translateY(100%);transition:transform .25s ease;
+  padding:14px 14px 20px;box-shadow:0 -10px 30px rgba(0,0,0,.5)}
+#sheet.show{transform:translateY(0)}
+#sheet .handle{width:38px;height:4px;background:var(--line2);border-radius:3px;margin:0 auto 10px}
+#modal{position:absolute;left:10px;right:10px;top:50%;z-index:202;background:var(--bg2);border-radius:18px;
+  border:1px solid var(--line2);transform:translate(0,-50%) scale(.92);opacity:0;transition:transform .2s,opacity .2s;
+  max-height:80%;overflow-y:auto;padding:16px;pointer-events:none;box-shadow:var(--shadow)}
+#modal.show{opacity:1;transform:translate(0,-50%) scale(1);pointer-events:auto}
+
+h3.stitle{margin:0 0 10px;font-size:15px;font-weight:900}
+p.sdesc{color:var(--muted);font-size:12px;line-height:1.6;margin:0 0 10px}
+.row{display:flex;gap:8px;align-items:center}
+.wrap{display:flex;flex-wrap:wrap;gap:8px}
+.btn{background:var(--card);border:1px solid var(--line2);border-radius:11px;padding:9px 14px;font-weight:800;font-size:12.5px}
+.btn.primary{background:linear-gradient(180deg,#3FDE8F,#22B06A);color:#08150E}
+.btn.danger{background:linear-gradient(180deg,#FF6B72,#D93A44);color:#2A0508}
+.btn.gold{background:linear-gradient(180deg,#F0C34D,#C9992A);color:#2A1E02}
+.btn.ghost{background:transparent;border:1px solid var(--line2)}
+.btn.block{width:100%;text-align:center}
+.btn:disabled{opacity:.4}
+.btn:active{transform:scale(.97)}
+
+.pillrow{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.pill{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:4px 10px;font-size:10.5px;font-weight:700}
+
+.shopgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.shopcard{background:var(--card);border:1.5px solid var(--rc,var(--line2));border-radius:13px;padding:9px;position:relative}
+.shopcard .rarity{position:absolute;top:6px;right:6px;font-size:8px;font-weight:900;padding:1px 6px;border-radius:8px}
+.shopcard .icobig{font-size:26px;display:block;margin-bottom:3px}
+.shopcard .nm{font-size:11.5px;font-weight:800;margin-bottom:2px}
+.shopcard .desc{font-size:9.5px;color:var(--muted);line-height:1.4;min-height:26px}
+.shopcard .cost{margin-top:6px;font-size:11px;font-weight:800;color:var(--gold)}
+.shopcard.frozen{outline:2px solid var(--cyan)}
+.shopcard.bought{opacity:.35;pointer-events:none}
+
+.crewcard{background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:9px;margin-bottom:8px;display:flex;gap:9px}
+.crewcard .av{width:42px;height:42px;border-radius:10px;background:var(--panel);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:1px solid var(--line2)}
+.crewcard .info{flex:1;min-width:0}
+.crewcard .nm{font-weight:900;font-size:12.5px}
+.crewcard .role{font-size:9.5px;color:var(--muted);margin-bottom:3px}
+.bar{height:5px;border-radius:3px;background:#0B0F17;overflow:hidden;margin-top:2px}
+.bar i{display:block;height:100%}
+.bar.hp i{background:var(--red)}
+.bar.mo i{background:var(--cyan)}
+.bar.lo i{background:var(--violet)}
+
+.eventchoice{background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:10px;margin-bottom:8px;text-align:right}
+.eventchoice small{display:block;color:var(--muted);margin-top:3px;font-size:10px}
+
+#log{font-size:10.5px;line-height:1.7;color:var(--muted);max-height:120px;overflow-y:auto;background:#0A0E17;
+  border-radius:10px;padding:8px;border:1px solid var(--line);margin:8px 0}
+#log b{color:var(--text)}
+#log .hit{color:var(--red)}
+#log .win{color:var(--green)}
+
+.tactrow{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+.tactbtn{background:var(--card);border:1.5px solid var(--line2);border-radius:11px;padding:8px 2px;text-align:center;font-size:9px;font-weight:800}
+.tactbtn .ic4{font-size:17px;display:block;margin-bottom:2px}
+.tactbtn:disabled{opacity:.3}
+
+.districtcard{background:var(--card);border:1px solid var(--line2);border-radius:13px;padding:11px;margin-bottom:9px}
+.districtcard.locked{opacity:.45}
+.districtcard .dn{font-weight:900;font-size:13px}
+.districtcard .dt{font-size:10px;color:var(--muted);margin:3px 0 6px}
+
+#toast{position:absolute;top:44px;left:50%;transform:translateX(-50%);z-index:300;background:rgba(10,14,22,.95);
+  border:1px solid var(--line2);border-radius:20px;padding:7px 14px;font-size:11px;font-weight:800;opacity:0;
+  transition:opacity .25s,transform .25s;pointer-events:none;white-space:nowrap}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(4px)}
+
+#bootscreen{position:absolute;inset:0;z-index:500;background:var(--bg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:24px;text-align:center;gap:14px}
+#bootscreen h1{font-size:26px;margin:0;letter-spacing:1px}
+#bootscreen h1 span{color:var(--red)}
+#bootscreen p{color:var(--muted);font-size:12.5px;line-height:1.7;margin:0}
+.setupcol{width:100%;text-align:right}
+.setupcol h4{font-size:12px;color:var(--muted);margin:12px 0 6px}
+.pickcard{background:var(--card);border:2px solid var(--line2);border-radius:12px;padding:10px;margin-bottom:7px;text-align:right}
+.pickcard.sel{border-color:var(--green);background:rgba(63,222,143,.08)}
+.pickcard b{font-size:12.5px}
+.pickcard small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
+
+::-webkit-scrollbar{width:0;height:0}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="resbar">
+    <div class="res cash"><span class="ic">💵</span><b id="rCash">0</b></div>
+    <div class="res respect"><span class="ic">⭐</span><b id="rRespect">0</b></div>
+    <div class="res intel"><span class="ic">🛰️</span><b id="rIntel">0</b></div>
+    <div class="res parts"><span class="ic">⚙️</span><b id="rParts">0</b></div>
+    <div class="res heat"><span class="ic">🔥</span><b id="rHeat">0</b><i id="rHeatBar" style="width:0%"></i></div>
+  </div>
+
+  <div id="stage">
+    <div id="hud">
+      <div class="chip">🌆 <span id="hudDistrict">Old Block</span></div>
+      <div class="chip" id="hudExtra" style="display:none"></div>
+      <div class="chip">دورة <span id="hudCycle">1</span></div>
+    </div>
+    <div id="viewport">
+      <div id="gridwrap">
+        <div id="grid"></div>
+      </div>
+    </div>
+    <button id="buildExit">✕ إنهاء البناء</button>
+    <div id="overlayBar">
+      <button data-ovl="power" title="طبقة الطاقة">⚡</button>
+      <button data-ovl="path" title="مسار الهجوم المتوقع">🧭</button>
+      <button data-ovl="threat" title="نقاط الضعف">⚠️</button>
+    </div>
+    <div id="buildBar"></div>
+    <button id="phaseBtn">ابدأ ▶</button>
+    <div id="toast"></div>
+  </div>
+
+  <div id="bottomnav">
+    <button data-tab="hideout" class="active"><span class="ic3">🏚️</span>المخبأ</button>
+    <button data-tab="crew"><span class="ic3">👥</span>الطاقم</button>
+    <button data-tab="city"><span class="ic3">🏙️</span>المدينة</button>
+    <button data-tab="shop"><span class="ic3">🛒</span>المتجر</button>
+    <button data-tab="upgrades"><span class="ic3">⬆️</span>التطوير</button>
+  </div>
+
+  <div id="overlay"></div>
+  <div id="sheet"><div class="handle"></div><div id="sheetBody"></div></div>
+  <div id="modal"><div id="modalBody"></div></div>
+  <div id="ghost"></div>
+
+  <div id="bootscreen"></div>
+</div>
+
+<script>
+"use strict";
+/* ============================================================================================
+   HIDEOUT — سيد المخبأ
+   Vertical-slice prototype implementing the core loop described in the master design brief:
+   grid-based hideout construction (irregular shapes + expansions), room synergies/penalties,
+   a power grid with priorities, a living crew with roles/traits/flaws/morale/loyalty,
+   a Shop -> Build -> Crew -> Event -> Threat -> Raid -> Reward cycle loop, pathfinding-based
+   raid combat through the player's own layout with limited tactical commands, a Heat
+   risk/reward meter, a 4-currency economy, a light city/district structure, and a small
+   cross-run meta-progression layer. Single-file, no dependencies, portrait/mobile-first.
+   ============================================================================================ */
+
+/* ---------------------------------- GEOMETRY / SHAPES ---------------------------------- */
+const COLS = 7, ROWS = 11;
+const ENTRANCE = {c:3, r:0};
+
+function normalize(cells){
+  let minC=Math.min(...cells.map(p=>p[0])), minR=Math.min(...cells.map(p=>p[1]));
+  return cells.map(([c,r])=>[c-minC,r-minR]);
+}
+function rot90(cells){ return normalize(cells.map(([c,r])=>[-r,c])); }
+function rotN(cells,n){ let s=cells; for(let i=0;i<((n%4)+4)%4;i++) s=rot90(s); return s; }
+const SHAPES = {
+  S1x1:[[0,0]],
+  S1x2:[[0,0],[1,0]],
+  S2x1:[[0,0],[0,1]],
+  S2x2:[[0,0],[1,0],[0,1],[1,1]],
+  S2x3:[[0,0],[1,0],[0,1],[1,1],[0,2],[1,2]],
+  S3x2:[[0,0],[1,0],[2,0],[0,1],[1,1],[2,1]],
+  SL:  [[0,0],[0,1],[1,1]],
+  ST:  [[0,0],[1,0],[2,0],[1,1]],
+};
+const EXPANSION_POOL = ["S2x2","S1x2","S2x1","SL","ST","S2x3","S3x2"];
+
+/* ---------------------------------- ROOM CATALOG ---------------------------------- */
+// power: negative = consumes, positive = produces. rarity weight for shop draws.
+const ROOMS = [
+  {id:"generator",name:"Generator",nameAr:"المولد",cat:"UTILITY",shape:"S2x2",power:6,crewCap:1,rarity:"common",cost:60,
+    color:"#F4D64B",icon:"🔋",desc:"ينتج 6 طاقة. يسبب ضوضاء وحرارة."},
+  {id:"battery",name:"Battery Room",nameAr:"غرفة البطاريات",cat:"UTILITY",shape:"S1x2",power:-1,crewCap:0,rarity:"uncommon",cost:70,
+    color:"#F4D64B",icon:"🔌",desc:"تخزن طاقة احتياطية عند الانقطاع."},
+  {id:"ventilation",name:"Ventilation",nameAr:"التهوية",cat:"UTILITY",shape:"S1x1",power:-1,crewCap:0,rarity:"common",cost:35,
+    color:"#F4D64B",icon:"🌀",desc:"تقلل من تراكم Heat."},
+  {id:"maintenance",name:"Maintenance",nameAr:"الصيانة",cat:"UTILITY",shape:"S1x2",power:-1,crewCap:1,rarity:"common",cost:55,
+    color:"#F4D64B",icon:"🛠️",desc:"صيانة عامة. تحسن كفاءة المولدات المجاورة."},
+  {id:"bedroom",name:"Bedroom",nameAr:"غرفة النوم",cat:"SUPPORT",shape:"S2x1",power:-1,crewCap:2,rarity:"common",cost:45,
+    color:"#3FDE8F",icon:"🛏️",desc:"يستريح فيها الطاقم. تزيد المعنويات."},
+  {id:"kitchen",name:"Kitchen",nameAr:"المطبخ",cat:"SUPPORT",shape:"S2x1",power:-1,crewCap:1,rarity:"common",cost:45,
+    color:"#3FDE8F",icon:"🍳",desc:"طعام للطاقم. تحسن المعنويات تدريجيًا."},
+  {id:"lounge",name:"Lounge",nameAr:"الصالة",cat:"SUPPORT",shape:"S2x2",power:-1,crewCap:2,rarity:"uncommon",cost:75,
+    color:"#3FDE8F",icon:"🛋️",desc:"استرخاء الطاقم. معنويات + ولاء."},
+  {id:"clinic",name:"Clinic",nameAr:"العيادة",cat:"SUPPORT",shape:"S2x2",power:-2,crewCap:1,rarity:"uncommon",cost:90,
+    color:"#3FDE8F",icon:"⛑️",desc:"تعالج إصابات الطاقم بمرور الوقت."},
+  {id:"intel_room",name:"Intel Room",nameAr:"غرفة المعلومات",cat:"TECH",shape:"S2x2",power:-2,crewCap:1,rarity:"uncommon",cost:95,
+    color:"#3FD7E0",icon:"🗂️",desc:"تولّد Intel وتكشف جزءًا من التهديد القادم."},
+  {id:"server_room",name:"Server Room",nameAr:"غرفة الخوادم",cat:"TECH",shape:"S2x2",power:-3,crewCap:1,rarity:"rare",cost:140,
+    color:"#3FD7E0",icon:"🖥️",desc:"تحسّن جودة معلومات التهديد."},
+  {id:"surveillance",name:"Surveillance",nameAr:"المراقبة",cat:"TECH",shape:"S1x2",power:-2,crewCap:1,rarity:"uncommon",cost:85,
+    color:"#3FD7E0",icon:"📹",desc:"تكشف مدخل المهاجمين مبكرًا."},
+  {id:"hacker_lab",name:"Hacker Lab",nameAr:"مختبر الاختراق",cat:"TECH",shape:"S2x2",power:-3,crewCap:1,rarity:"rare",cost:150,
+    color:"#3FD7E0",icon:"💻",desc:"Intel إضافي، وتعطيل عنصر مهاجم أثناء المداهمة."},
+  {id:"workshop",name:"Workshop",nameAr:"الورشة",cat:"PRODUCTION",shape:"S2x3",power:-2,crewCap:2,rarity:"common",cost:100,
+    color:"#FF9A4D",icon:"🔧",desc:"تصنع Parts كل دورة."},
+  {id:"parts_room",name:"Parts Storage",nameAr:"مخزن القطع",cat:"PRODUCTION",shape:"S1x2",power:0,crewCap:0,rarity:"common",cost:50,
+    color:"#FF9A4D",icon:"📦",desc:"سعة تخزين أكبر. يسرّع الورشة المجاورة."},
+  {id:"repair_bay",name:"Repair Bay",nameAr:"محطة الإصلاح",cat:"PRODUCTION",shape:"S2x2",power:-2,crewCap:1,rarity:"uncommon",cost:90,
+    color:"#FF9A4D",icon:"🧰",desc:"تصلح متانة الغرف التالفة."},
+  {id:"guard_room",name:"Guard Room",nameAr:"غرفة الحراسة",cat:"DEFENSE",shape:"S2x2",power:-1,crewCap:2,rarity:"common",cost:70,
+    color:"#FF5E67",icon:"🚨",desc:"يدافع من بها. مقاومة أعلى ضد المهاجمين."},
+  {id:"security_station",name:"Security Station",nameAr:"محطة الأمن",cat:"DEFENSE",shape:"S1x2",power:-2,crewCap:1,rarity:"uncommon",cost:95,
+    color:"#FF5E67",icon:"🔒",desc:"تكشف المداهمة مبكرًا، تتيح Lockdown."},
+  {id:"armory",name:"Armory",nameAr:"مستودع السلاح",cat:"DEFENSE",shape:"S2x2",power:-1,crewCap:0,rarity:"uncommon",cost:80,
+    color:"#FF5E67",icon:"🗡️",desc:"يرفع ضرر المدافعين في الغرف المجاورة."},
+  {id:"vault",name:"Vault",nameAr:"الخزنة",cat:"ECONOMY",shape:"S2x2",power:-1,crewCap:0,rarity:"common",cost:65,
+    color:"#F0C34D",icon:"🏦",desc:"تخزن جزءًا من الكاش. القرب من المدخل = خطر أكبر."},
+  {id:"storage",name:"Storage",nameAr:"التخزين",cat:"ECONOMY",shape:"S1x2",power:0,crewCap:0,rarity:"common",cost:40,
+    color:"#F0C34D",icon:"🗄️",desc:"سعة تخزين إضافية للموارد."},
+  {id:"front_business",name:"Front Business",nameAr:"الواجهة الشرعية",cat:"ECONOMY",shape:"S2x2",power:-1,crewCap:1,rarity:"uncommon",cost:100,
+    color:"#F0C34D",icon:"🏪",desc:"دخل ثابت من الكاش كل دورة."},
+  {id:"panic_room",name:"Panic Room",nameAr:"غرفة الذعر",cat:"SPECIAL",shape:"S1x1",power:0,crewCap:0,rarity:"rare",cost:110,
+    color:"#9C7CFF",icon:"🚪",desc:"يختبئ فيها الطاقم المصاب أثناء المداهمة."},
+  {id:"war_room",name:"War Room",nameAr:"غرفة الحرب",cat:"SPECIAL",shape:"S2x2",power:-2,crewCap:1,rarity:"epic",cost:170,
+    color:"#9C7CFF",icon:"🗺️",desc:"معلومات إضافية عن التهديد القادم."},
+  {id:"control_room",name:"Control Room",nameAr:"غرفة التحكم",cat:"SPECIAL",shape:"S2x2",power:-2,crewCap:1,rarity:"epic",cost:180,
+    color:"#9C7CFF",icon:"🎛️",desc:"+1 أمر تكتيكي إضافي في كل مداهمة."},
+  {id:"black_market",name:"Black Market",nameAr:"السوق السوداء",cat:"SPECIAL",shape:"S1x2",power:-1,crewCap:1,rarity:"epic",cost:160,
+    color:"#9C7CFF",icon:"🕶️",desc:"متجر داخلي خاص. يرفع الشبهة (Heat)."},
+  {id:"secret_vault",name:"Secret Vault",nameAr:"الخزنة السرية",cat:"SPECIAL",shape:"S1x1",power:-1,crewCap:0,rarity:"legendary",cost:220,
+    color:"#9C7CFF",icon:"💎",desc:"تخزين آمن جدًا للكاش، سعة صغيرة."},
+];
+const ROOMBYID = Object.fromEntries(ROOMS.map(r=>[r.id,r]));
+
+// Synergy rules: apply between any two orthogonally-adjacent placed rooms.
+const SYN = [
+  {a:"workshop",b:"storage",kind:"bonus",label:"إنتاج سريع",pct:20,stat:"parts"},
+  {a:"workshop",b:"parts_room",kind:"bonus",label:"إنتاج سريع",pct:20,stat:"parts"},
+  {a:"workshop",b:"generator",kind:"bonus",label:"طاقة تشغيل",pct:10,stat:"parts"},
+  {a:"workshop",b:"clinic",kind:"penalty",label:"ضوضاء",pct:10,stat:"heal"},
+  {a:"clinic",b:"bedroom",kind:"bonus",label:"تعافٍ سريع",pct:15,stat:"heal"},
+  {a:"generator",b:"maintenance",kind:"bonus",label:"كفاءة أعلى",pct:15,stat:"power"},
+  {a:"generator",b:"bedroom",kind:"penalty",label:"ضوضاء تزعج النوم",pct:10,stat:"morale"},
+  {a:"generator",b:"battery",kind:"bonus",label:"مخزون طاقة",pct:0,stat:"buffer"},
+  {a:"intel_room",b:"control_room",kind:"bonus",label:"إنذار متقدم",pct:25,stat:"intel"},
+  {a:"armory",b:"guard_room",kind:"bonus",label:"تعزيز دفاعي",pct:20,stat:"defense"},
+  {a:"black_market",b:"security_station",kind:"penalty",label:"شبهة",pct:1,stat:"heat"},
+  {a:"vault",b:null,kind:"info",label:"",pct:0,stat:""}, // handled specially (distance from entrance)
+  {a:"front_business",b:"lounge",kind:"bonus",label:"أجواء جيدة",pct:15,stat:"cash"},
+];
+
+/* ---------------------------------- TRAPS / DOORS ----------------------------------
+   Attached to a placed room (max TRAPS_PER_ROOM). Every trap carries a cost, a power
+   requirement and a cooldown analogue (oneShot traps are spent for the rest of the raid),
+   per the design brief: few traps, each a real decision — never a tower-defense grid.
+   `weight` feeds the attacker's pathfinding: positive = looks dangerous, the raid routes
+   around it; NEGATIVE (Decoy Room) = looks weak, the raid is *lured* into it.            */
+const TRAPS_PER_ROOM = 2;
+const TRAPS = [
+  {id:"security_door",nameAr:"باب أمني",icon:"🚪",cost:60,power:1,weight:3,dmg:4,oneShot:false,
+    desc:"يبطئ المهاجمين ويرفع مقاومة الغرفة بشكل دائم."},
+  {id:"alarm",nameAr:"إنذار",icon:"🔔",cost:40,power:1,weight:0.5,dmg:0,oneShot:false,cmdBonus:1,
+    desc:"+1 أمر تكتيكي في كل مداهمة."},
+  {id:"smoke",nameAr:"نظام الدخان",icon:"💨",cost:55,power:1,weight:1,dmg:0,oneShot:false,dmgReduce:0.35,
+    desc:"يقلل ضرر المهاجمين داخل هذه الغرفة بنسبة 35%."},
+  {id:"barricade",nameAr:"متراس",icon:"🧱",cost:35,power:0,weight:2,dmg:6,oneShot:true,
+    desc:"مقاومة إضافية بلا طاقة، لكنه يُستهلك بعد استخدامه."},
+  {id:"emp",nameAr:"جهاز EMP",icon:"📡",cost:90,power:2,weight:2,dmg:18,oneShot:true,
+    desc:"ضربة قوية لمرة واحدة عند دخول المهاجمين للغرفة."},
+  {id:"decoy_room",nameAr:"غرفة خداع",icon:"🎭",cost:70,power:1,weight:-3,dmg:8,oneShot:false,
+    desc:"تبدو ضعيفة فتجذب المهاجمين إليها — ثم تؤذيهم. أداة توجيه مسار."},
+];
+const TRAPBYID = Object.fromEntries(TRAPS.map(t=>[t.id,t]));
+
+/* ---------------------------------- BOSSES ----------------------------------
+   A boss must change the RULES of the encounter, not just carry more HP.        */
+const BOSSES = [
+  {id:"breaker",name:"BREAKER",nameAr:"الكاسر",icon:"🔨",
+    desc:"يقصد المولد أولًا ويحطمه قبل أي شيء آخر.",forceObjective:"generator",hpMult:1.7,dmgMult:1.0},
+  {id:"twins",name:"THE TWINS",nameAr:"التوأمان",icon:"👥",
+    desc:"يدخلان من نقطتين مختلفتين في وقت واحد.",squads:2,hpMult:0.95,dmgMult:0.85},
+  {id:"grid",name:"THE GRID",nameAr:"الشبكة",icon:"🕸️",
+    desc:"كل عدة لحظات يضرب المخبأ Power Surge فتتوقف غرف مؤقتًا.",powerSurge:3,hpMult:1.5,dmgMult:1.0},
+  {id:"ghost",name:"THE GHOST",nameAr:"الشبح",icon:"👻",
+    desc:"لا يكشف مساره ولا هدفه مسبقًا — المعاينة عديمة الفائدة ضده.",hidePreview:true,hpMult:1.4,dmgMult:1.1},
+  {id:"collector",name:"THE COLLECTOR",nameAr:"الجامع",icon:"🎩",
+    desc:"يتجه دائمًا إلى أغلى غرفة في مخبأك.",targetMostValuable:true,hpMult:1.6,dmgMult:1.0},
+];
+function bossForCycle(cycle){ return BOSSES[(Math.floor(cycle/5)-1+BOSSES.length*10) % BOSSES.length]; }
+
+/* ---------------------------------- ROLES / CREW TEMPLATES ---------------------------------- */
+const ROLES = {
+  ENFORCER:{icon:"🥊",name:"Enforcer",nameAr:"منفّذ"},
+  GUARD:{icon:"🛡️",name:"Guard",nameAr:"حارس"},
+  HACKER:{icon:"⌨️",name:"Hacker",nameAr:"مخترق"},
+  MECHANIC:{icon:"🔩",name:"Mechanic",nameAr:"ميكانيكي"},
+  MEDIC:{icon:"💊",name:"Medic",nameAr:"طبيب"},
+  SCOUT:{icon:"🕵️",name:"Scout",nameAr:"كشّاف"},
+  DRIVER:{icon:"🚗",name:"Driver",nameAr:"سائق"},
+  FIXER:{icon:"💼",name:"Fixer",nameAr:"وسيط"},
+  LEADER:{icon:"👑",name:"Leader",nameAr:"زعيم"},
+};
+const ROOM_FOR_ROLE = {ENFORCER:"guard_room",GUARD:"guard_room",HACKER:"intel_room",MECHANIC:"workshop",
+  MEDIC:"clinic",SCOUT:"surveillance",DRIVER:"front_business",FIXER:"front_business",LEADER:"lounge"};
+
+const NAME_POOL = ["Rico","Byte","Doc","Wrench","Nadia","Kane","Marla","Dex","Snap","Vex","Coyote","Juno",
+  "Ash","Priya","Milo","Tex","Vera","Ozzy","Cricket","Bishop"];
+
+function makeCrew(name, role, traitName, traitDesc, flawName, flawDesc, rarity){
+  const base = {ENFORCER:[26,7,3],GUARD:[24,5,5],HACKER:[14,2,1],MECHANIC:[18,3,2],MEDIC:[16,2,2],
+    SCOUT:[17,3,2],DRIVER:[18,4,2],FIXER:[15,2,2],LEADER:[20,4,3]}[role] || [18,4,2];
+  return {
+    uid:"c"+(++UID),
+    name, role, rarity: rarity||"common",
+    hp:base[0], maxHp:base[0], dmg:base[1], def:base[2],
+    trait:{name:traitName,desc:traitDesc}, flaw:{name:flawName,desc:flawDesc},
+    morale:70, loyalty:55, level:1, room:null, injured:false, hideoutPos:{x:50,y:50},
+  };
+}
+function randomCrew(){
+  const roleKeys = Object.keys(ROLES).filter(r=>r!=="LEADER");
+  const role = roleKeys[Math.floor(Math.random()*roleKeys.length)];
+  const name = NAME_POOL[Math.floor(Math.random()*NAME_POOL.length)]+"-"+Math.floor(Math.random()*90+10);
+  const traits = {
+    ENFORCER:["Lone Wolf|+30% ضرر عند العمل وحيدًا في الغرفة","Short Temper|قائد آخر بجانبه يخفّض المعنويات"],
+    GUARD:["Watchful|+15% اكتشاف مبكر","Stubborn|بطيء التراجع"],
+    HACKER:["Overclock|+35% سرعة الاختراق في غرفة التقنية","Fragile|صحة أقل من المتوسط"],
+    MECHANIC:["Improviser|إصلاح أسرع","Messy|حرارة أعلى في الورشة"],
+    MEDIC:["Field Medicine|علاج حتى خارج العيادة أثناء المداهمة","Pacifist|ضرر قتالي منخفض"],
+    SCOUT:["Quick Eyes|كشف أبكر للتهديد","Twitchy|معنويات غير مستقرة"],
+    DRIVER:["Getaway|يقلل الخسارة عند الخسارة الجزئية","Impatient|ولاء أبطأ في التراكم"],
+    FIXER:["Silver Tongue|صفقات أرخص في المتجر","Greedy|يطلب حصة أكبر من المكافآت"],
+  }[role] || ["Steady|أداء متوازن","Plain|لا شيء مميز"];
+  const [tn,td] = traits[0].split("|"); const [fn,fd] = traits[1].split("|");
+  return makeCrew(name, role, tn, td, fn, fd, "common");
+}
+let UID = 0;
+
+/* ---------------------------------- EVENTS ---------------------------------- */
+const EVENTS = [
+  {id:"blackout",title:"BLACKOUT",titleAr:"انقطاع كهرباء",text:"جزء من الحي فقد الطاقة. يمكنك دفع Parts لإصلاح سريع أو تحمّل انخفاض الإنتاج.",
+    choices:[
+      {label:"إصلاح سريع (-20 Parts)",apply:s=>{s.resources.parts=Math.max(0,s.resources.parts-20); toast("تم الإصلاح");}},
+      {label:"تجاهل (-Heat قليل، -إنتاج مؤقت)",apply:s=>{s.heat=Math.max(0,s.heat-3); toast("تراجع بسيط في الإنتاج");}},
+    ]},
+  {id:"gangwar",title:"GANG WAR",titleAr:"حرب عصابات",text:"عصابة منافسة تتحرك في المنطقة. الهجمات القادمة ستكون أقوى، لكن هناك فرصة غنيمة.",
+    choices:[
+      {label:"استعد للدفاع (+Respect، +Heat)",apply:s=>{s.resources.respect+=15; s.heat=Math.min(100,s.heat+8); toast("+15 Respect");}},
+      {label:"ابقَ بعيدًا (آمن)",apply:s=>{toast("مررت الحدث بأمان");}},
+    ]},
+  {id:"festival",title:"STREET FESTIVAL",titleAr:"مهرجان الشارع",text:"مهرجان في الحي يرفع دخل الواجهة الشرعية.",
+    choices:[{label:"استفد من الزحام (+Cash)",apply:s=>{const has=s.rooms.some(r=>r.defId==="front_business"); s.resources.cash+=has?60:20; toast("+"+(has?60:20)+" Cash");}}]},
+  {id:"shortage",title:"PARTS SHORTAGE",titleAr:"نقص القطع",text:"أسعار القطع ترتفع في السوق هذا الأسبوع.",
+    choices:[{label:"تخزين احتياطي (-Cash، +Parts)",apply:s=>{if(s.resources.cash>=40){s.resources.cash-=40;s.resources.parts+=30;toast("+30 Parts");}else toast("لا تملك كاشًا كافيًا");}},
+             {label:"تجاهل",apply:s=>{}}]},
+  {id:"recruit",title:"NEW RECRUIT",titleAr:"عضو جديد",text:"شخص يطرق الباب يريد الانضمام إلى الطاقم.",
+    choices:[{label:"اقبله في الطاقم",apply:s=>{const c=randomCrew(); s.crew.push(c); toast("انضم "+c.name);}},
+             {label:"ارفض (+Cash صغير)",apply:s=>{s.resources.cash+=15;}}]},
+  {id:"stranger",title:"INJURED STRANGER",titleAr:"غريب مصاب",text:"شخص مصاب يطلب المساعدة عند بابك. قرار أخلاقي/استراتيجي.",
+    choices:[{label:"عالجه (-Parts، +Respect)",apply:s=>{s.resources.parts=Math.max(0,s.resources.parts-15); s.resources.respect+=20; toast("+20 Respect");}},
+             {label:"اطرده (+Cash، -Respect)",apply:s=>{s.resources.cash+=25; s.resources.respect=Math.max(0,s.resources.respect-10);}}]},
+  {id:"rivaloffer",title:"RIVAL OFFER",titleAr:"عرض من خصم",text:"عصابة منافسة تعرض صفقة معلومات مقابل الكاش.",
+    choices:[{label:"اقبل الصفقة (-Cash، +Intel)",apply:s=>{if(s.resources.cash>=50){s.resources.cash-=50;s.resources.intel+=25;toast("+25 Intel");}else toast("كاش غير كافٍ");}},
+             {label:"ارفض",apply:s=>{}}]},
+];
+
+/* ---------------------------------- DISTRICTS ---------------------------------- */
+const DISTRICTS = [
+  {id:"old_block",name:"Old Block",nameAr:"الحي القديم",threat:1,minCycle:1,desc:"بداية هادئة نسبيًا، عصابات صغيرة."},
+  {id:"neon",name:"Neon District",nameAr:"حي النيون",threat:2,minCycle:4,desc:"تقنية وقراصنة، غرف إلكترونية أكثر شيوعًا."},
+  {id:"industrial",name:"Industrial Zone",nameAr:"المنطقة الصناعية",threat:3,minCycle:8,desc:"مولدات ثقيلة، وحدات قوية، انقطاعات طاقة."},
+  {id:"docks",name:"Docks",nameAr:"المرفأ",threat:4,minCycle:12,desc:"مداخل متعددة، تهريب وأحداث خاصة."},
+  {id:"downtown",name:"Downtown",nameAr:"وسط المدينة",threat:5,minCycle:16,desc:"Heat مرتفع دائمًا، أعداء متقدمون."},
+  {id:"heights",name:"The Heights",nameAr:"المرتفعات",threat:6,minCycle:20,desc:"نهاية اللعبة. خصوم نخبة."},
+];
+
+/* ---------------------------------- LEADER / FRONT BUSINESS OPTIONS ---------------------------------- */
+const LEADERS = [
+  {id:"kane",name:"Kane",trait:"Command Presence|+10% ضرر للطاقم في نفس غرفته",flaw:"Prideful|منافسة قريبة تخفض المعنويات"},
+  {id:"marla",name:"Marla",trait:"Steady Hand|+15% ولاء أسرع للطاقم بالكامل",flaw:"Overcautious|-10% دخل الكاش"},
+  {id:"dex",name:"Dex",trait:"Hustler|+20% دخل الواجهة الشرعية",flaw:"Reckless|Heat يتراكم أسرع"},
+];
+const BUSINESSES = [
+  {id:"garage",name:"Garage",nameAr:"الكراج",bonus:"يجذب ميكانيكيين، +Parts عند البدء",startCash:0,startParts:100},
+  {id:"arcade",name:"Arcade",nameAr:"صالة الألعاب",bonus:"يجذب مخترقين، +Intel عند البدء",startIntel:50},
+  {id:"restaurant",name:"Restaurant",nameAr:"المطعم",bonus:"+معنويات ودخل كاش ثابت",startCash:80},
+  {id:"laundromat",name:"Laundromat",nameAr:"المغسلة",bonus:"دخل شرعي ثابت وهادئ",startCash:120},
+  {id:"music_shop",name:"Music Shop",nameAr:"محل الموسيقى",bonus:"+Respect عند البدء",startRespect:30},
+  {id:"gym",name:"Gym",nameAr:"النادي الرياضي",bonus:"يقوي المنفذين، +صحة الطاقم",startHpBoost:true},
+];
+
+/* ============================================================================================
+   STATE
+   ============================================================================================ */
+let S = null; // current run state
+let META = null; // cross-run meta progression
+const SAVE_KEY = "hideout_save_v1", META_KEY = "hideout_meta_v1";
+
+function freshMeta(){ return {legacy:0, unlockedRoomIds:[], unlockedCrewSlots:0}; }
+function loadMeta(){ try{ const raw=localStorage.getItem(META_KEY); META = raw?JSON.parse(raw):freshMeta(); }catch(e){ META=freshMeta(); } }
+function saveMeta(){ try{ localStorage.setItem(META_KEY, JSON.stringify(META)); }catch(e){} }
+
+function cellKey(c,r){ return c+","+r; }
+
+function freshRun(leader, business){
+  const unlocked = new Set();
+  // starting small area around entrance
+  [[2,1],[3,1],[4,1],[2,2],[3,2],[4,2]].forEach(([c,r])=>unlocked.add(cellKey(c,r)));
+  const st = {
+    cycle:1, phase:"hideout", heat:5, districtIdx:0, expansions:2, tacticalBonus:0,
+    resources:{cash:150,respect:10,intel:5,parts:60},
+    unlocked: Array.from(unlocked),
+    rooms: [], // {uid, defId, cells:[[c,r]], level, active, traps:[], priority}
+    crew: [],
+    inventory: [], // {kind:'room'|'trap', defId, rot}
+    shop: null,
+    frozen: [],
+    log: [],
+    lastRaid: null,
+    gameover:false,
+    batteryCharge: 0, // stored power, filled by surplus, drained during a deficit
+  };
+  // leader
+  const L = LEADERS.find(l=>l.id===leader) || LEADERS[0];
+  const [tn,td]=L.trait.split("|"), [fn,fd]=L.flaw.split("|");
+  const leaderCrew = makeCrew(L.name,"LEADER",tn,td,fn,fd,"epic");
+  st.crew.push(leaderCrew);
+  // 2 starter crew
+  st.crew.push(makeCrew("Rico","ENFORCER","Lone Wolf","+30% ضرر عند العمل وحيدًا","Short Temper","قائد آخر بجانبه يخفّض المعنويات","common"));
+  st.crew.push(makeCrew("Wrench","MECHANIC","Improviser","إصلاح أسرع","Messy","حرارة أعلى في الورشة","common"));
+  // business bonus
+  const B = BUSINESSES.find(b=>b.id===business) || BUSINESSES[0];
+  st.business = B.id;
+  st.resources.cash += (B.startCash||0);
+  st.resources.parts += (B.startParts||0);
+  st.resources.intel += (B.startIntel||0);
+  st.resources.respect += (B.startRespect||0);
+  if(B.startHpBoost) st.crew.forEach(c=>{c.maxHp=Math.round(c.maxHp*1.15); c.hp=c.maxHp;});
+  st.leaderId = leaderCrew.uid;
+  return st;
+}
+
+function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){} }
+function load(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY);
+    if(!raw) return null;
+    const st = JSON.parse(raw);
+    // migrate/repair saves written by older builds
+    if(!Array.isArray(st.raidClearedUids)) st.raidClearedUids = [];
+    if(typeof st.batteryCharge!=="number") st.batteryCharge = 0;
+    (st.rooms||[]).forEach(r=>{ if(!Array.isArray(r.traps)) r.traps=[]; if(!r.priority) r.priority="normal"; });
+    return st;
+  }catch(e){ return null; }
+}
+
+/* ============================================================================================
+   GRID HELPERS
+   ============================================================================================ */
+function unlockedSet(){ return new Set(S.unlocked); }
+function occupiedMap(){
+  const m = new Map();
+  S.rooms.forEach(rm=>rm.cells.forEach(([c,r])=>m.set(cellKey(c,r), rm.uid)));
+  return m;
+}
+function inBounds(c,r){ return c>=0&&c<COLS&&r>=0&&r<ROWS; }
+function canPlace(shapeCells, anchorC, anchorR, unlockedS, occMap, ignoreUid){
+  for(const [dc,dr] of shapeCells){
+    const c=anchorC+dc, r=anchorR+dr;
+    if(!inBounds(c,r)) return false;
+    if(c===ENTRANCE.c && r===ENTRANCE.r) return false;
+    if(!unlockedS.has(cellKey(c,r))) return false;
+    const occ = occMap.get(cellKey(c,r));
+    if(occ && occ!==ignoreUid) return false;
+  }
+  return true;
+}
+function roomsAdjacentPairs(){
+  const pairs=[];
+  for(let i=0;i<S.rooms.length;i++){
+    for(let j=i+1;j<S.rooms.length;j++){
+      if(cellsAdjacent(S.rooms[i].cells, S.rooms[j].cells)) pairs.push([S.rooms[i],S.rooms[j]]);
+    }
+  }
+  return pairs;
+}
+function cellsAdjacent(cellsA, cellsB){
+  for(const [c1,r1] of cellsA) for(const [c2,r2] of cellsB){
+    if((Math.abs(c1-c2)===1&&r1===r2)||(Math.abs(r1-r2)===1&&c1===c2)) return true;
+  }
+  return false;
+}
+function roomTouchesEntrance(room){
+  for(const [c,r] of room.cells){
+    if((Math.abs(c-ENTRANCE.c)===1&&r===ENTRANCE.r)||(Math.abs(r-ENTRANCE.r)===1&&c===ENTRANCE.c)) return true;
+  }
+  return false;
+}
+function distFromEntrance(room){
+  // manhattan distance from nearest cell to entrance, cheap heuristic for "depth"
+  let best=999;
+  room.cells.forEach(([c,r])=>{ const d=Math.abs(c-ENTRANCE.c)+Math.abs(r-ENTRANCE.r); if(d<best) best=d; });
+  return best;
+}
+
+/* ---------------------------------- SYNERGY / POWER / ECONOMY CALC ---------------------------------- */
+function computeRoomState(){
+  const info = new Map(); // uid -> {bonuses:[], penalties:[], mult:{}}
+  S.rooms.forEach(rm=>info.set(rm.uid,{bonuses:[],penalties:[],mult:{}}));
+  const pairs = roomsAdjacentPairs();
+  pairs.forEach(([ra,rb])=>{
+    SYN.forEach(rule=>{
+      if(!rule.b) return;
+      let hit=null;
+      if(ra.defId===rule.a&&rb.defId===rule.b) hit=[ra,rb];
+      else if(ra.defId===rule.b&&rb.defId===rule.a) hit=[rb,ra];
+      if(!hit) return;
+      const [src,tgt] = hit; // apply bonus to the "src" side that benefits (a-room)
+      const target = rule.a===src.defId ? src : tgt;
+      const rec = info.get(target.uid);
+      if(rule.kind==="bonus"){ rec.bonuses.push(rule); rec.mult[rule.stat]=(rec.mult[rule.stat]||0)+rule.pct/100; }
+      else if(rule.kind==="penalty"){ rec.penalties.push(rule); rec.mult[rule.stat]=(rec.mult[rule.stat]||0)-rule.pct/100; }
+    });
+  });
+  // vault / secret_vault risk based on distance from entrance
+  S.rooms.forEach(rm=>{
+    if(rm.defId==="vault"||rm.defId==="secret_vault"){
+      const d = distFromEntrance(rm);
+      const rec = info.get(rm.uid);
+      rec.vaultDepth = d;
+    }
+  });
+  return info;
+}
+function computePower(){
+  let produced=0, required=0;
+  const active = [];
+  S.rooms.forEach(rm=>{
+    const def = ROOMBYID[rm.defId];
+    if(def.power>0){ produced += def.power * (1+ (rm.level-1)*0.25); }
+    else required += Math.abs(def.power);
+    active.push(rm);
+  });
+  return {produced:Math.round(produced), required:Math.round(required)};
+}
+function batteryCapacity(){ return S.rooms.filter(r=>r.defId==="battery").length * 10; }
+function roomPowerNeed(rm){
+  const def = ROOMBYID[rm.defId];
+  let need = def.power<0 ? Math.abs(def.power) : 0;
+  (rm.traps||[]).forEach(tid=>{ need += (TRAPBYID[tid] ? TRAPBYID[tid].power : 0); });
+  return need;
+}
+// Lower rank = keeps its power longer. The player's per-room tier wins; category order
+// (Defense > Support > Economy > Tech > Production > Special > Utility) breaks ties.
+function powerPriorityRank(rm){
+  const TIER = {high:0, normal:1, low:2};
+  const CAT = {DEFENSE:1,SUPPORT:2,ECONOMY:3,TECH:4,PRODUCTION:5,SPECIAL:6,UTILITY:7};
+  return (TIER[rm.priority||"normal"]||1)*10 + (CAT[ROOMBYID[rm.defId].cat]||9);
+}
+// Pure view computation — never mutates the battery. Charging/draining happens once per
+// cycle in runEconomyTick(), so re-rendering can't quietly burn stored power.
+function applyPowerPriority(synInfo){
+  const pwr = computePowerFull(synInfo);
+  const consumers = S.rooms.filter(r=>roomPowerNeed(r)>0).sort((a,b)=>powerPriorityRank(a)-powerPriorityRank(b));
+  const supply = pwr.produced + Math.max(0, Math.floor(S.batteryCharge||0));
+  let used = 0;
+  S.rooms.forEach(r=>r.active=true);
+  for(const r of consumers){
+    const need = roomPowerNeed(r);
+    if(used+need<=supply){ used+=need; r.active=true; } else r.active=false;
+  }
+  pwr.used = used;
+  pwr.deficit = Math.max(0, used - pwr.produced); // covered this cycle by the battery
+  return pwr;
+}
+function computePowerFull(synInfo){
+  let produced=0, required=0;
+  S.rooms.forEach(rm=>{
+    const def = ROOMBYID[rm.defId];
+    if(def.power>0){
+      const m = synInfo ? ((synInfo.get(rm.uid)||{}).mult||{}).power||0 : 0; // Maintenance adjacency
+      produced += def.power * (1+(rm.level-1)*0.25) * (1+m);
+    }
+    required += roomPowerNeed(rm);
+  });
+  return {produced:Math.round(produced), required:Math.round(required),
+          capacity:batteryCapacity(), charge:Math.round(S.batteryCharge||0)};
+}
+
+/* ============================================================================================
+   RENDER
+   ============================================================================================ */
+let cellPx = 42;
+function computeCellPx(){
+  const vpW = document.getElementById("viewport").clientWidth - 28;
+  cellPx = Math.max(38, Math.min(52, Math.floor(vpW/COLS)));
+}
+function render(){
+  computeCellPx();
+  const grid = document.getElementById("grid");
+  grid.style.width = (COLS*cellPx)+"px";
+  grid.style.height = (ROWS*cellPx)+"px";
+  grid.innerHTML = "";
+  const uSet = unlockedSet();
+  const occ = occupiedMap();
+  // background cells
+  for(let r=0;r<ROWS;r++){
+    for(let c=0;c<COLS;c++){
+      if(c===ENTRANCE.c&&r===ENTRANCE.r) continue;
+      const key = cellKey(c,r);
+      const div = document.createElement("div");
+      div.style.position="absolute"; div.style.left=(c*cellPx)+"px"; div.style.top=(r*cellPx)+"px";
+      div.style.width=cellPx+"px"; div.style.height=cellPx+"px";
+      if(occ.has(key)) continue; // covered by a room element
+      div.className = uSet.has(key) ? "cell unlocked-empty" : "cell locked";
+      div.dataset.c=c; div.dataset.r=r;
+      grid.appendChild(div);
+    }
+  }
+  // entrance
+  const ent = document.createElement("div");
+  ent.className="entrance";
+  ent.style.left=(ENTRANCE.c*cellPx)+"px"; ent.style.top=(ENTRANCE.r*cellPx)+"px";
+  ent.style.width=cellPx+"px"; ent.style.height=cellPx+"px";
+  ent.innerHTML = "🚪<small>مدخل</small>";
+  grid.appendChild(ent);
+
+  // synergy/power info
+  const synInfo = computeRoomState();
+  const powerState = applyPowerPriority(synInfo);
+  const ovl = computeOverlayData();
+
+  S.rooms.forEach(rm=>{
+    const def = ROOMBYID[rm.defId];
+    const minC=Math.min(...rm.cells.map(p=>p[0])), minR=Math.min(...rm.cells.map(p=>p[1]));
+    const maxC=Math.max(...rm.cells.map(p=>p[0])), maxR=Math.max(...rm.cells.map(p=>p[1]));
+    const div = document.createElement("div");
+    div.className = "room"+(rm.active?"":" inactive")+(S.raidTargetUid===rm.uid?" raid-target":"")+((S.raidClearedUids||[]).indexOf(rm.uid)>=0?" raid-clear":"");
+    div.style.setProperty("--rc", def.color);
+    div.style.setProperty("--rc2", def.color+"22");
+    div.style.left=(minC*cellPx)+"px"; div.style.top=(minR*cellPx)+"px";
+    div.style.width=((maxC-minC+1)*cellPx-2)+"px"; div.style.height=((maxR-minR+1)*cellPx-2)+"px";
+    div.dataset.uid = rm.uid;
+    const rec = synInfo.get(rm.uid);
+    const nBonus = rec?rec.bonuses.length:0, nPen = rec?rec.penalties.length:0;
+    const wide = (maxC-minC+1) >= 2; // 1-cell-wide rooms are too narrow for a label; show the icon only
+    div.innerHTML = `<div class="rhead"><span class="ricon">${def.icon}</span>${wide?`<span>${def.nameAr}</span>`:""}</div>
+      <div class="rbody"></div>
+      <div class="lvl">Lv${rm.level}</div>
+      <div class="pwr ${rm.active?"on":"off"}">${def.power>0?("+"+Math.round(def.power*(1+(rm.level-1)*0.25))+"⚡"):(rm.active?"":"⛔")}</div>`;
+    if(nBonus) div.querySelector(".rhead").innerHTML += ` <span style="color:var(--green);font-size:9px">▲${nBonus}</span>`;
+    if(nPen) div.querySelector(".rhead").innerHTML += ` <span style="color:var(--red);font-size:9px">▼${nPen}</span>`;
+    // installed traps show as small icons in the corner
+    (rm.traps||[]).forEach((tid,ti)=>{
+      const t = TRAPBYID[tid]; if(!t) return;
+      const dot = document.createElement("div");
+      dot.className = "trapdot"; dot.style.left = (3+ti*11)+"px";
+      dot.textContent = t.icon; dot.title = t.nameAr;
+      div.appendChild(dot);
+    });
+    applyOverlayToRoom(div, rm, ovl, powerState);
+    div.addEventListener("click",()=>openRoomSheet(rm.uid));
+    grid.appendChild(div);
+    // crew tokens inside
+    const body = div.querySelector(".rbody");
+    const assigned = S.crew.filter(c=>c.room===rm.uid);
+    assigned.forEach((c,i)=>{
+      const tok = document.createElement("div");
+      tok.className="tok";
+      tok.textContent = ROLES[c.role].icon;
+      const seed = (rm.uid.charCodeAt(rm.uid.length-1)+i*37 + Math.floor(Date.now()/1400))%100;
+      const x = 20+((seed*7)%60), y = 30+((seed*13)%50);
+      tok.style.left=x+"%"; tok.style.top=y+"%";
+      tok.title = c.name;
+      tok.addEventListener("click",(e)=>{e.stopPropagation(); openCrewSheet(c.uid);});
+      body.appendChild(tok);
+    });
+  });
+
+  renderTop();
+  renderBuildBar();
+  renderOverlayBar(powerState);
+}
+
+/* ---------------------------------- OVERLAYS ----------------------------------
+   Power / Path / Threat map layers. The Path layer is the important one: it draws the
+   route attackers would actually take through the layout the player just built, which is
+   how the game teaches its core pillar (placement beats raw stats) without a tutorial.  */
+let OVERLAY = "none";
+function setOverlay(mode){
+  OVERLAY = (OVERLAY===mode) ? "none" : mode;
+  render();
+  if(OVERLAY==="path" && !S.rooms.length) toast("ابنِ غرفًا أولًا لرؤية المسار");
+}
+function computeOverlayData(){
+  const data = {mode:OVERLAY, pathIdx:{}, entryUid:null};
+  if(OVERLAY!=="path" && OVERLAY!=="threat") return data;
+  const objective = S._pendingObjective || pickObjective();
+  const target = resolveTargetRoom(objective);
+  if(!target) return data;
+  const path = findPath(target.uid);
+  if(path){
+    let step = 0;
+    path.forEach(n=>{ if(n!=="entrance"){ step++; data.pathIdx[n]=step; } });
+    data.entryUid = path.find(n=>n!=="entrance") || null;
+  }
+  data.targetUid = target.uid;
+  return data;
+}
+function applyOverlayToRoom(div, rm, ovl, powerState){
+  if(ovl.mode==="none") return;
+  const def = ROOMBYID[rm.defId];
+  const badge = document.createElement("div");
+  badge.className = "ovlbadge";
+  if(ovl.mode==="power"){
+    const need = roomPowerNeed(rm);
+    if(def.power>0){ badge.textContent = "+"+Math.round(def.power*(1+(rm.level-1)*0.25))+"⚡"; div.classList.add("ovl-ok"); }
+    else if(need>0){
+      badge.textContent = "-"+need+"⚡ · "+({high:"↑",normal:"•",low:"↓"}[rm.priority||"normal"]);
+      div.classList.add(rm.active?"ovl-warn":"ovl-danger");
+      if(!rm.active) div.classList.add("ovl-dim");
+    } else { badge.textContent = "0⚡"; }
+    div.appendChild(badge);
+  } else if(ovl.mode==="path"){
+    const step = ovl.pathIdx[rm.uid];
+    if(step!==undefined){
+      badge.className = "ovlbadge step";
+      badge.textContent = step;
+      div.classList.add(rm.uid===ovl.targetUid?"ovl-danger":"ovl-warn");
+      div.appendChild(badge);
+    } else div.classList.add("ovl-dim");
+  } else if(ovl.mode==="threat"){
+    const onPath = ovl.pathIdx[rm.uid]!==undefined;
+    const defenders = S.crew.filter(c=>c.room===rm.uid).length;
+    const depth = distFromEntrance(rm);
+    let label = null, cls = null;
+    if((rm.defId==="vault"||rm.defId==="secret_vault") && depth<3){ label = "⚠️ خزنة قريبة من المدخل"; cls="ovl-danger"; }
+    else if(def.cat==="DEFENSE" && !rm.active){ label = "⛔ دفاع بلا طاقة"; cls="ovl-danger"; }
+    else if(onPath && defenders===0 && !(rm.traps||[]).length){ label = "⚠️ على المسار بلا حماية"; cls="ovl-warn"; }
+    else if(onPath){ label = "🛡️ محمي"; cls="ovl-ok"; }
+    if(label){ badge.textContent = label; div.classList.add(cls); div.appendChild(badge); }
+    else div.classList.add("ovl-dim");
+  }
+}
+function renderOverlayBar(powerState){
+  document.querySelectorAll("#overlayBar button").forEach(b=>{
+    b.classList.toggle("on", b.dataset.ovl===OVERLAY);
+  });
+  const chip = document.getElementById("hudExtra");
+  if(!chip) return;
+  if(OVERLAY==="power"){
+    const p = powerState;
+    chip.style.display = "flex";
+    chip.innerHTML = `⚡ ${p.produced}/${p.used||p.required}${p.capacity?` · 🔋${p.charge}/${p.capacity}`:""}`;
+    chip.style.color = (p.used>p.produced) ? "var(--red)" : "var(--yellow)";
+  } else if(OVERLAY==="path"){
+    chip.style.display = "flex";
+    chip.innerHTML = "🧭 المسار المتوقع للمهاجمين";
+    chip.style.color = "var(--red)";
+  } else if(OVERLAY==="threat"){
+    chip.style.display = "flex";
+    chip.innerHTML = "⚠️ نقاط الضعف";
+    chip.style.color = "var(--orange)";
+  } else chip.style.display = "none";
+}
+
+function renderTop(){
+  document.getElementById("rCash").textContent = Math.floor(S.resources.cash);
+  document.getElementById("rRespect").textContent = Math.floor(S.resources.respect);
+  document.getElementById("rIntel").textContent = Math.floor(S.resources.intel);
+  document.getElementById("rParts").textContent = Math.floor(S.resources.parts);
+  document.getElementById("rHeat").textContent = Math.floor(S.heat);
+  document.getElementById("rHeatBar").style.width = Math.min(100,S.heat)+"%";
+  document.getElementById("hudCycle").textContent = S.cycle;
+  const d = DISTRICTS[S.districtIdx];
+  document.getElementById("hudDistrict").textContent = d.nameAr;
+  const btn = document.getElementById("phaseBtn");
+  const labels = {hideout:"التالي ▶",shop:"إنهاء التسوق ▶",build:"إنهاء البناء ▶",crew:"متابعة ▶",
+    event:"متابعة ▶",threatpreview:"ابدأ المداهمة ⚔️",raid:"...",reward:"التالي ▶"};
+  btn.textContent = labels[S.phase] || "التالي ▶";
+  btn.style.display = (S.phase==="raid")?"none":"block";
+}
+
+/* ---------------------------------- BUILD MODE ---------------------------------- */
+let armedItem = null; // {index, defId, rot}
+function enterBuildMode(){
+  document.getElementById("stage").classList.add("buildmode");
+  render();
+}
+function exitBuildMode(){
+  document.getElementById("stage").classList.remove("buildmode");
+  armedItem = null;
+  render();
+}
+function renderBuildBar(){
+  const bar = document.getElementById("buildBar");
+  bar.innerHTML = "";
+  if(!document.getElementById("stage").classList.contains("buildmode")) return;
+  S.inventory.forEach((it,idx)=>{
+    const isTrap = it.kind==="trap";
+    const def = isTrap ? TRAPBYID[it.defId] : ROOMBYID[it.defId];
+    if(!def) return;
+    const card = document.createElement("div");
+    card.className = "invcard"+(armedItem&&armedItem.index===idx?" armed":"");
+    card.style.setProperty("--rc", isTrap?"#FF5E67":def.color);
+    card.innerHTML = `<div class="ic2">${def.icon}</div>${def.nameAr}`;
+    card.addEventListener("click",()=>{
+      if(armedItem && armedItem.index===idx){
+        if(isTrap){ armedItem=null; renderBuildBar(); return; }
+        armedItem.rot=(armedItem.rot+1)%4; renderBuildBar(); return;
+      }
+      armedItem = {index:idx, defId:it.defId, rot:it.rot||0, kind:isTrap?"trap":"room"};
+      renderBuildBar();
+      toast(isTrap ? "اضغط على غرفة لتركيب الفخ" : "اضغط على الشبكة للوضع • اضغط البطاقة مجددًا للتدوير");
+    });
+    bar.appendChild(card);
+  });
+  const exp = document.createElement("div");
+  exp.className="invcard"; exp.style.setProperty("--rc","#3FDE8F");
+  exp.innerHTML = `<div class="ic2">🧩</div>توسعة (${S.expansions})`;
+  exp.addEventListener("click", ()=>{ if(S.expansions>0) openExpansionPicker(); else toast("لا توجد توسعات متاحة"); });
+  bar.appendChild(exp);
+  const undo = document.createElement("div");
+  undo.className="invcard"; undo.style.setProperty("--rc","#8CA0C2");
+  undo.style.opacity = UNDO.length?1:.4;
+  undo.innerHTML = `<div class="ic2">↺</div>تراجع`;
+  undo.addEventListener("click", undoBuild);
+  bar.appendChild(undo);
+}
+
+/* ---- Build-mode undo: snapshot the parts of the run a build action can change ---- */
+let UNDO = [];
+function pushUndo(){
+  UNDO.push(JSON.stringify({rooms:S.rooms, inventory:S.inventory, unlocked:S.unlocked, expansions:S.expansions,
+    crewRooms:S.crew.map(c=>({uid:c.uid, room:c.room}))}));
+  if(UNDO.length>12) UNDO.shift();
+}
+function undoBuild(){
+  if(!UNDO.length){ toast("لا يوجد ما يمكن التراجع عنه"); return; }
+  const snap = JSON.parse(UNDO.pop());
+  S.rooms = snap.rooms; S.inventory = snap.inventory; S.unlocked = snap.unlocked; S.expansions = snap.expansions;
+  snap.crewRooms.forEach(cr=>{ const c=S.crew.find(x=>x.uid===cr.uid); if(c) c.room=cr.room; });
+  armedItem = null;
+  save(); render();
+  toast("تم التراجع");
+}
+
+document.getElementById("grid").addEventListener("click",(e)=>{
+  if(!document.getElementById("stage").classList.contains("buildmode")) return;
+  if(!armedItem) return;
+  if(armedItem.kind==="trap"){
+    const roomEl = e.target.closest(".room");
+    if(!roomEl){ toast("اختر غرفة لتركيب الفخ"); return; }
+    tryPlaceTrap(roomEl.dataset.uid);
+    return;
+  }
+  const cellEl = e.target.closest(".cell");
+  if(!cellEl) return;
+  const c = parseInt(cellEl.dataset.c), r = parseInt(cellEl.dataset.r);
+  tryPlace(c,r);
+});
+function tryPlace(anchorC, anchorR){
+  const shape = rotN(SHAPES[ROOMBYID[armedItem.defId].shape], armedItem.rot);
+  if(!canPlace(shape, anchorC, anchorR, unlockedSet(), occupiedMap())){ toast("لا يمكن الوضع هنا"); return; }
+  pushUndo();
+  const cells = shape.map(([dc,dr])=>[anchorC+dc, anchorR+dr]);
+  const rm = {uid:"r"+(++UID), defId:armedItem.defId, cells, level:1, active:true, crew:[], traps:[], priority:"normal"};
+  S.rooms.push(rm);
+  S.inventory.splice(armedItem.index,1);
+  armedItem = null;
+  save(); render();
+  toast("تم بناء "+ROOMBYID[rm.defId].nameAr);
+}
+function tryPlaceTrap(uid){
+  const rm = S.rooms.find(r=>r.uid===uid);
+  if(!rm){ return; }
+  rm.traps = rm.traps || [];
+  if(rm.traps.length>=TRAPS_PER_ROOM){ toast("هذه الغرفة ممتلئة بالفخاخ"); return; }
+  const t = TRAPBYID[armedItem.defId];
+  if(rm.traps.includes(t.id)){ toast("هذا الفخ مركّب هنا بالفعل"); return; }
+  pushUndo();
+  rm.traps.push(t.id);
+  S.inventory.splice(armedItem.index,1);
+  armedItem = null;
+  save(); render();
+  toast(`${t.icon} رُكّب في ${ROOMBYID[rm.defId].nameAr}`);
+}
+document.getElementById("buildExit").addEventListener("click", exitBuildMode);
+document.querySelectorAll("#overlayBar button").forEach(b=>{
+  b.addEventListener("click",()=>setOverlay(b.dataset.ovl));
+});
+
+/* Expansion picker: choose 1 of 3 shapes, then a valid anchor */
+function openExpansionPicker(){
+  const opts = [];
+  while(opts.length<3){
+    const s = EXPANSION_POOL[Math.floor(Math.random()*EXPANSION_POOL.length)];
+    const rot = Math.floor(Math.random()*4);
+    opts.push({shapeId:s, rot});
+  }
+  const body = `<h3 class="stitle">🧩 توسعة جديدة</h3><p class="sdesc">اختر شكلًا، ثم اضغط على الشبكة لتحديد مكان التركيب.</p>
+    <div class="wrap">${opts.map((o,i)=>shapePreviewCard(o,i)).join("")}</div>`;
+  openModal(body);
+  document.querySelectorAll(".expopt").forEach(el=>{
+    el.addEventListener("click",()=>{
+      const i = parseInt(el.dataset.i);
+      closeModal();
+      armExpansion(opts[i]);
+    });
+  });
+}
+function shapePreviewCard(o,i){
+  const cells = rotN(SHAPES[o.shapeId], o.rot);
+  const maxC=Math.max(...cells.map(p=>p[0]))+1, maxR=Math.max(...cells.map(p=>p[1]))+1;
+  let grid = `<div class="expopt" data-i="${i}" style="cursor:pointer;background:var(--card);border:1px solid var(--line2);border-radius:10px;padding:8px;display:inline-block">
+    <div style="position:relative;width:${maxC*16}px;height:${maxR*16}px;margin:0 auto 4px">`;
+  cells.forEach(([c,r])=>{ grid += `<div style="position:absolute;left:${c*16}px;top:${r*16}px;width:14px;height:14px;background:var(--green);border-radius:2px"></div>`; });
+  grid += `</div><div style="font-size:10px;text-align:center;font-weight:700">${cells.length} خلايا</div></div>`;
+  return grid;
+}
+let armedExpansion = null;
+function armExpansion(o){
+  armedExpansion = o;
+  enterBuildMode();
+  toast("اضغط على الشبكة لتحديد موقع التوسعة");
+  highlightExpansionAnchors();
+}
+function highlightExpansionAnchors(){
+  document.querySelectorAll(".cell.locked").forEach(el=>{
+    el.addEventListener("click", expansionClickHandler);
+  });
+}
+function expansionClickHandler(e){
+  if(!armedExpansion) return;
+  const c=parseInt(e.target.dataset.c), r=parseInt(e.target.dataset.r);
+  const cells = rotN(SHAPES[armedExpansion.shapeId], armedExpansion.rot);
+  const uSet = unlockedSet();
+  // valid if all target cells are in-bounds, not entrance, not already unlocked, and at least one touches unlocked area
+  let touches=false, ok=true;
+  const targetCells=[];
+  cells.forEach(([dc,dr])=>{
+    const cc=c+dc, rr=r+dr;
+    targetCells.push([cc,rr]);
+    if(!inBounds(cc,rr) || (cc===ENTRANCE.c&&rr===ENTRANCE.r) || uSet.has(cellKey(cc,rr))) ok=false;
+  });
+  if(ok){
+    targetCells.forEach(([cc,rr])=>{
+      if((Math.abs(cc-ENTRANCE.c)+Math.abs(rr-ENTRANCE.r)===1)) touches=true;
+      [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{ if(uSet.has(cellKey(cc+dx,rr+dy))) touches=true; });
+    });
+  }
+  if(!ok || !touches){ toast("موقع غير صالح"); return; }
+  pushUndo();
+  targetCells.forEach(([cc,rr])=>S.unlocked.push(cellKey(cc,rr)));
+  S.expansions--;
+  armedExpansion = null;
+  document.querySelectorAll(".cell.locked").forEach(el=>el.removeEventListener("click", expansionClickHandler));
+  save(); render();
+  toast("تم توسيع المخبأ!");
+}
+
+/* ============================================================================================
+   SHEETS / MODALS
+   ============================================================================================ */
+function openSheet(html){ document.getElementById("sheetBody").innerHTML=html; document.getElementById("overlay").classList.add("show"); document.getElementById("sheet").classList.add("show"); }
+function closeSheet(){ document.getElementById("overlay").classList.remove("show"); document.getElementById("sheet").classList.remove("show"); }
+function openModal(html){ document.getElementById("modalBody").innerHTML=html; document.getElementById("overlay").classList.add("show"); document.getElementById("modal").classList.add("show"); }
+function closeModal(){ document.getElementById("overlay").classList.remove("show"); document.getElementById("modal").classList.remove("show"); }
+document.getElementById("overlay").addEventListener("click",()=>{ closeSheet(); closeModal(); });
+
+function toast(msg){
+  const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("show"),1600);
+}
+
+function openRoomSheet(uid){
+  const rm = S.rooms.find(r=>r.uid===uid); if(!rm) return;
+  const def = ROOMBYID[rm.defId];
+  const assigned = S.crew.filter(c=>c.room===uid);
+  const free = S.crew.filter(c=>!c.room);
+  const info = computeRoomState().get(uid);
+  let bonusHtml = (info.bonuses||[]).map(b=>`<div class="pill" style="color:var(--green)">▲ ${b.label} +${b.pct}%</div>`).join("");
+  let penHtml = (info.penalties||[]).map(b=>`<div class="pill" style="color:var(--red)">▼ ${b.label} -${b.pct}%</div>`).join("");
+  let vaultHtml = "";
+  if(info.vaultDepth!==undefined){
+    const safe = info.vaultDepth>=3;
+    vaultHtml = `<div class="pill" style="color:${safe?'var(--green)':'var(--red)'}">${safe?'🛡️ عمق آمن':'⚠️ قريب من المدخل — خطر سرقة'}</div>`;
+  }
+  const body = `
+    <h3 class="stitle">${def.icon} ${def.nameAr} <span style="color:var(--muted);font-weight:600;font-size:11px">Lv${rm.level}</span></h3>
+    <p class="sdesc">${def.desc}</p>
+    <div class="pillrow">
+      <div class="pill">${rm.active?"⚡ يعمل":"⛔ متوقف"}</div>
+      <div class="pill">👥 ${assigned.length}/${def.crewCap}</div>
+      ${bonusHtml}${penHtml}${vaultHtml}
+    </div>
+    ${(rm.traps&&rm.traps.length)?`<h4 style="font-size:11px;color:var(--muted);margin:10px 0 5px">الفخاخ المركّبة</h4>
+    <div class="wrap">${rm.traps.map(tid=>{const t=TRAPBYID[tid];return t?`<div class="pill" style="color:var(--red)">${t.icon} ${t.nameAr}${t.oneShot?" (لمرة واحدة)":""} <button data-rmtrap="${tid}" style="color:var(--red);font-weight:900">✕</button></div>`:"";}).join("")}</div>`:""}
+    <h4 style="font-size:11px;color:var(--muted);margin:10px 0 5px">أولوية الطاقة</h4>
+    <div class="wrap">${["high","normal","low"].map(t=>`<button class="btn ${(rm.priority||"normal")===t?"primary":"ghost"}" data-prio="${t}" style="padding:6px 12px;font-size:11px">${({high:"عالية ↑",normal:"عادية •",low:"منخفضة ↓"})[t]}</button>`).join("")}</div>
+    <p class="sdesc" style="margin-top:6px;font-size:10.5px">عند نقص الطاقة تُطفأ الغرف ذات الأولوية المنخفضة أولًا.</p>
+    <h4 style="font-size:11px;color:var(--muted);margin:10px 0 5px">الطاقم في الغرفة</h4>
+    <div class="wrap">${assigned.map(c=>`<div class="pill">${ROLES[c.role].icon} ${c.name} <button data-un="${c.uid}" style="color:var(--red);font-weight:900">✕</button></div>`).join("")||'<span style="color:var(--muted);font-size:11px">لا أحد</span>'}</div>
+    ${free.length && assigned.length<def.crewCap ? `<h4 style="font-size:11px;color:var(--muted);margin:10px 0 5px">تعيين عضو</h4>
+    <div class="wrap">${free.map(c=>`<button class="btn" data-as="${c.uid}">${ROLES[c.role].icon} ${c.name}</button>`).join("")}</div>` : ""}
+    <div class="row" style="margin-top:14px;gap:8px">
+      <button class="btn primary" id="upgradeRoomBtn">⬆️ تطوير (${upgradeCost(rm)} Parts)</button>
+      <button class="btn danger" id="sellRoomBtn">بيع</button>
+    </div>`;
+  openSheet(body);
+  document.querySelectorAll("[data-as]").forEach(b=>b.addEventListener("click",()=>{ assignCrew(b.dataset.as, uid); openRoomSheet(uid); render(); }));
+  document.querySelectorAll("[data-un]").forEach(b=>b.addEventListener("click",()=>{ unassignCrew(b.dataset.un); openRoomSheet(uid); render(); }));
+  document.querySelectorAll("[data-prio]").forEach(b=>b.addEventListener("click",()=>{
+    rm.priority = b.dataset.prio; save(); render(); openRoomSheet(uid);
+  }));
+  document.querySelectorAll("[data-rmtrap]").forEach(b=>b.addEventListener("click",()=>{
+    const tid = b.dataset.rmtrap;
+    const idx = (rm.traps||[]).indexOf(tid);
+    if(idx>=0){ rm.traps.splice(idx,1); S.resources.cash += Math.round((TRAPBYID[tid]||{cost:0}).cost*0.4); save(); render(); openRoomSheet(uid); toast("تم فك الفخ"); }
+  }));
+  document.getElementById("upgradeRoomBtn").addEventListener("click",()=>upgradeRoom(uid));
+  document.getElementById("sellRoomBtn").addEventListener("click",()=>sellRoom(uid));
+}
+function upgradeCost(rm){ return 30 + rm.level*35; }
+function upgradeRoom(uid){
+  const rm = S.rooms.find(r=>r.uid===uid);
+  const cost = upgradeCost(rm);
+  if(S.resources.parts<cost){ toast("Parts غير كافية"); return; }
+  S.resources.parts -= cost; rm.level++;
+  save(); closeSheet(); render();
+  toast("تم التطوير إلى Lv"+rm.level);
+}
+function sellRoom(uid){
+  const idx = S.rooms.findIndex(r=>r.uid===uid); if(idx<0) return;
+  const rm = S.rooms[idx];
+  S.crew.forEach(c=>{ if(c.room===uid) c.room=null; });
+  S.resources.cash += Math.round(ROOMBYID[rm.defId].cost*0.4);
+  S.rooms.splice(idx,1);
+  save(); closeSheet(); render();
+  toast("تم بيع الغرفة");
+}
+function assignCrew(cuid, ruid){
+  const c = S.crew.find(x=>x.uid===cuid); if(!c) return;
+  c.room = ruid;
+}
+function unassignCrew(cuid){ const c=S.crew.find(x=>x.uid===cuid); if(c) c.room=null; }
+
+function openCrewSheet(uid){
+  const c = S.crew.find(x=>x.uid===uid); if(!c) return;
+  const body = `
+    <h3 class="stitle">${ROLES[c.role].icon} ${c.name} <span style="color:var(--muted);font-weight:600;font-size:11px">Lv${c.level} · ${c.rarity}</span></h3>
+    <div class="pillrow"><div class="pill">${ROLES[c.role].nameAr}</div><div class="pill">${c.room?ROOMBYID[S.rooms.find(r=>r.uid===c.room)?.defId||'']?.nameAr||'—':'بلا غرفة'}</div>${c.injured?'<div class="pill" style="color:var(--red)">🩹 مصاب</div>':''}</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:8px">الصحة</div><div class="bar hp"><i style="width:${100*c.hp/c.maxHp}%"></i></div>
+    <div style="font-size:11px;color:var(--muted);margin-top:6px">المعنويات</div><div class="bar mo"><i style="width:${c.morale}%"></i></div>
+    <div style="font-size:11px;color:var(--muted);margin-top:6px">الولاء</div><div class="bar lo"><i style="width:${c.loyalty}%"></i></div>
+    <div class="pillrow" style="margin-top:10px">
+      <div class="pill" style="color:var(--green)">✨ ${c.trait.name}: ${c.trait.desc}</div>
+      <div class="pill" style="color:var(--red)">⚠️ ${c.flaw.name}: ${c.flaw.desc}</div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <div class="pill">⚔️ ${c.dmg}</div><div class="pill">🛡️ ${c.def}</div>
+    </div>`;
+  openSheet(body);
+}
+
+/* ============================================================================================
+   BOTTOM NAV
+   ============================================================================================ */
+document.querySelectorAll("#bottomnav button").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll("#bottomnav button").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    exitBuildMode();
+    const tab = btn.dataset.tab;
+    if(tab==="hideout"){ closeSheet(); closeModal(); }
+    else if(tab==="crew") openCrewTab();
+    else if(tab==="city") openCityTab();
+    else if(tab==="shop") openShopTab();
+    else if(tab==="upgrades") openUpgradesTab();
+  });
+});
+function openCrewTab(){
+  const inCrewPhase = S.phase==="crew";
+  const body = `<h3 class="stitle">👥 الطاقم (${S.crew.length})</h3>` +
+    S.crew.map(c=>`<div class="crewcard" data-cuid="${c.uid}">
+      <div class="av">${ROLES[c.role].icon}</div>
+      <div class="info">
+        <div class="nm">${c.name} ${c.uid===S.leaderId?'👑':''}</div>
+        <div class="role">${ROLES[c.role].nameAr} · ${c.room?ROOMBYID[S.rooms.find(r=>r.uid===c.room)?.defId||'']?.nameAr||'':'بلا غرفة'}</div>
+        <div class="bar hp"><i style="width:${100*c.hp/c.maxHp}%"></i></div>
+      </div></div>`).join("") +
+    (inCrewPhase?'<button class="btn primary block" id="crewDoneBtn" style="margin-top:8px">متابعة ▶</button>':"");
+  openSheet(body);
+  document.querySelectorAll("[data-cuid]").forEach(el=>el.addEventListener("click",()=>openCrewSheet(el.dataset.cuid)));
+  if(inCrewPhase) document.getElementById("crewDoneBtn").addEventListener("click",()=>{ closeSheet(); advancePhase(); });
+}
+function openCityTab(){
+  const body = `<h3 class="stitle">🏙️ المدينة — VANTA CITY</h3><p class="sdesc">مدينة خيالية مقسّمة إلى مناطق. كل منطقة ترفع مستوى التهديد والمكافآت.</p>` +
+    DISTRICTS.map((d,i)=>{
+      const unlocked = S.cycle>=d.minCycle;
+      const current = i===S.districtIdx;
+      return `<div class="districtcard ${unlocked?"":"locked"}">
+        <div class="dn">${current?"📍 ":""}${d.nameAr} <span style="float:left;font-size:10px;color:var(--muted)">Threat ${d.threat}</span></div>
+        <div class="dt">${d.desc}</div>
+        <div class="pill">${unlocked?"مفتوحة":"تُفتح عند الدورة "+d.minCycle}</div>
+      </div>`;
+    }).join("");
+  openSheet(body);
+}
+function openShopTab(){
+  if(!S.shop) rollShop(false);
+  renderShopSheet();
+}
+function openUpgradesTab(){
+  const body = `<h3 class="stitle">⬆️ التطوير طويل الأمد</h3><p class="sdesc">نقاط Legacy تُكتسب من Respect عند انتهاء كل Run وتُنفق هنا على مزايا دائمة خفيفة.</p>
+    <div class="pillrow"><div class="pill">💠 Legacy: ${META.legacy}</div></div>
+    <div class="crewcard" style="align-items:center">
+      <div class="av">🎰</div>
+      <div class="info"><div class="nm">فتحة مخزون إضافية</div><div class="role">+1 مكان في المتجر للاختيار</div></div>
+      <button class="btn gold" id="buySlot">150💠</button>
+    </div>
+    <p class="sdesc" style="margin-top:8px">Meta progression مقصودة لتكون خفيفة: لا تجعل الجولة الأولى مستحيلة مقارنة بالمتقدمة — المهارة تبقى الحاسم.</p>`;
+  openSheet(body);
+  document.getElementById("buySlot").addEventListener("click",()=>{
+    if(META.legacy>=150){ META.legacy-=150; META.unlockedCrewSlots++; saveMeta(); toast("تم الشراء"); openUpgradesTab(); }
+    else toast("Legacy غير كافٍ");
+  });
+}
+
+/* ============================================================================================
+   SHOP
+   ============================================================================================ */
+function rollShop(paid){
+  const cost = paid ? (10+ (S.shopRerolls||0)*8) : 0;
+  if(paid){
+    if(S.resources.cash<cost){ toast("كاش غير كافٍ لإعادة العرض"); return; }
+    S.resources.cash -= cost; S.shopRerolls=(S.shopRerolls||0)+1;
+  }
+  const roomPool = ROOMS.filter(r=>!S.frozenIds || !S.frozenIds.includes("keep"));
+  const picks = [];
+  // 2 rooms, 1 crew, 1 wildcard(room or expansion)
+  for(let i=0;i<2;i++) picks.push({kind:"room", defId: weightedRoom()});
+  picks.push({kind:"crew"});
+  picks.push({kind: Math.random()<0.5 ? "room" : "expansion", defId: weightedRoom()});
+  picks.push({kind:"trap", defId: TRAPS[Math.floor(Math.random()*TRAPS.length)].id});
+  // preserve frozen slots
+  const frozen = S.frozen||[];
+  S.shop = picks.map((p,i)=> frozen[i] || p);
+  save();
+}
+function weightedRoom(){
+  const weights = {common:10,uncommon:6,rare:3,epic:1.4,legendary:0.5};
+  const pool = ROOMS.flatMap(r=>Array(Math.round(weights[r.rarity]*10)).fill(r.id));
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+function shopCardCost(p){
+  if(p.kind==="crew") return 90;
+  if(p.kind==="expansion") return 55;
+  if(p.kind==="trap") return (TRAPBYID[p.defId]||{cost:50}).cost;
+  const def = ROOMBYID[p.defId];
+  const rmult = {common:1,uncommon:1.3,rare:1.8,epic:2.6,legendary:3.6}[def.rarity];
+  return Math.round(def.cost*0.9*rmult/1.6);
+}
+function renderShopSheet(){
+  const inShopPhase = S.phase==="shop";
+  const body = `<h3 class="stitle">🛒 المتجر — دورة ${S.cycle}</h3>
+    <div class="shopgrid">${S.shop.map((p,i)=>shopCard(p,i)).join("")}</div>
+    <div class="row" style="margin-top:12px;gap:8px">
+      <button class="btn ghost block" id="rerollBtn">🎲 إعادة عرض (${10+(S.shopRerolls||0)*8}💵)</button>
+    </div>
+    ${inShopPhase?'<button class="btn primary block" id="shopDoneBtn" style="margin-top:8px">متابعة إلى البناء ▶</button>':""}`;
+  openSheet(body);
+  document.querySelectorAll(".shopcard").forEach(el=>{
+    el.addEventListener("click",()=>{
+      const i = parseInt(el.dataset.i);
+      if(el.classList.contains("bought")) return;
+      buyShopItem(i);
+    });
+  });
+  document.getElementById("rerollBtn").addEventListener("click",()=>{ rollShop(true); renderShopSheet(); });
+  if(inShopPhase) document.getElementById("shopDoneBtn").addEventListener("click",()=>{ closeSheet(); advancePhase(); });
+}
+function shopCard(p,i){
+  if(p.kind==="bought"){
+    return `<div class="shopcard bought" data-i="${i}" style="--rc:#374A69">
+      <span class="icobig">✔️</span><div class="nm">تم الشراء</div>
+      <div class="desc">أُضيف إلى مخبأك أو مخزونك.</div></div>`;
+  }
+  if(p.kind==="crew"){
+    return `<div class="shopcard" data-i="${i}" style="--rc:#9C7CFF">
+      <div class="rarity" style="background:#9C7CFF33;color:#9C7CFF">CREW</div>
+      <span class="icobig">🧑</span><div class="nm">عضو طاقم جديد</div>
+      <div class="desc">دور عشوائي بصفات فريدة.</div>
+      <div class="cost">${shopCardCost(p)} 💵</div></div>`;
+  }
+  if(p.kind==="trap"){
+    const t = TRAPBYID[p.defId];
+    return `<div class="shopcard" data-i="${i}" style="--rc:#FF5E67">
+      <div class="rarity" style="background:#FF5E6733;color:#FF5E67">TRAP</div>
+      <span class="icobig">${t.icon}</span><div class="nm">${t.nameAr}</div>
+      <div class="desc">${t.desc}${t.power?` (${t.power}⚡)`:""}</div>
+      <div class="cost">${shopCardCost(p)} 💵</div></div>`;
+  }
+  if(p.kind==="expansion"){
+    return `<div class="shopcard" data-i="${i}" style="--rc:#3FDE8F">
+      <div class="rarity" style="background:#3FDE8F33;color:#3FDE8F">EXPAND</div>
+      <span class="icobig">🧩</span><div class="nm">مخطط توسعة</div>
+      <div class="desc">يمنح فرصة توسعة إضافية للمخبأ.</div>
+      <div class="cost">${shopCardCost(p)} 💵</div></div>`;
+  }
+  const def = ROOMBYID[p.defId];
+  const rc = {common:"#8CA0C2",uncommon:"#3FDE8F",rare:"#3FD7E0",epic:"#9C7CFF",legendary:"#F0C34D"}[def.rarity];
+  return `<div class="shopcard" data-i="${i}" style="--rc:${def.color}">
+    <div class="rarity" style="background:${rc}33;color:${rc}">${def.rarity.toUpperCase()}</div>
+    <span class="icobig">${def.icon}</span><div class="nm">${def.nameAr}</div>
+    <div class="desc">${def.desc}</div>
+    <div class="cost">${shopCardCost(p)} 💵</div></div>`;
+}
+function buyShopItem(i){
+  const p = S.shop[i];
+  const cost = shopCardCost(p);
+  if(S.resources.cash<cost){ toast("كاش غير كافٍ"); return; }
+  S.resources.cash -= cost;
+  if(p.kind==="crew"){ const c=randomCrew(); S.crew.push(c); toast("انضم "+c.name); }
+  else if(p.kind==="expansion"){ S.expansions++; toast("+1 توسعة"); }
+  else if(p.kind==="trap"){ S.inventory.push({kind:"trap", defId:p.defId}); toast("أُضيف الفخ — ركّبه على غرفة في وضع البناء"); }
+  else { S.inventory.push({kind:"room", defId:p.defId, rot:0}); toast("أُضيف إلى المخزون — ضعه في وضع البناء"); }
+  S.shop.splice(i,1,{kind:"bought"});
+  save(); renderShopSheet(); renderTop();
+}
+
+/* ============================================================================================
+   CYCLE LOOP
+   ============================================================================================ */
+const PHASE_ORDER = ["hideout","shop","build","crew","event","threatpreview","raid","reward"];
+document.getElementById("phaseBtn").addEventListener("click", advancePhase);
+function advancePhase(){
+  if(S.gameover) return;
+  switch(S.phase){
+    case "hideout": S.phase="shop"; rollShop(false); document.querySelector('[data-tab="shop"]').click(); break;
+    case "shop": closeSheet(); S.phase="build"; enterBuildMode(); toast("ضع الغرف التي اشتريتها"); break;
+    case "build": exitBuildMode(); S.phase="crew"; document.querySelector('[data-tab="crew"]').click(); toast("راجع تعيينات الطاقم"); break;
+    case "crew": closeSheet(); S.phase="event"; runEconomyTick(); triggerEvent(); break;
+    case "event": closeModal(); S.phase="threatpreview"; showThreatPreview(); break;
+    case "threatpreview": closeModal(); startRaid(); break;
+    case "reward": closeModal(); nextCycle(); break;
+    default: break;
+  }
+  document.querySelectorAll("#bottomnav button").forEach(b=>b.classList.toggle("active", b.dataset.tab==="hideout"));
+  render();
+}
+function runEconomyTick(){
+  const info = computeRoomState();
+  let cashGain=0, partsGain=0, intelGain=0, respectGain=1;
+  S.rooms.forEach(rm=>{
+    if(!rm.active) return;
+    const def = ROOMBYID[rm.defId];
+    const mult = info.get(rm.uid)?.mult || {};
+    const lvlMult = 1+(rm.level-1)*0.25;
+    if(def.id==="workshop") partsGain += 14*lvlMult*(1+(mult.parts||0));
+    if(def.id==="front_business") cashGain += 22*lvlMult*(1+(mult.cash||0));
+    if(def.id==="intel_room") intelGain += 6*lvlMult*(1+(mult.intel||0));
+    if(def.id==="server_room") intelGain += 8*lvlMult;
+    if(def.id==="hacker_lab") intelGain += 10*lvlMult;
+    if(def.id==="black_market") cashGain += 12*lvlMult;
+  });
+  // clinic healing for crew located in any active clinic
+  S.rooms.filter(r=>r.defId==="clinic"&&r.active).forEach(rm=>{
+    const mult = 1+((info.get(rm.uid)?.mult.heal)||0);
+    S.crew.forEach(c=>{ if(c.room===rm.uid){ c.hp=Math.min(c.maxHp, c.hp+Math.round(8*mult)); if(c.hp>=c.maxHp) c.injured=false; } });
+  });
+  // morale from support rooms
+  S.rooms.filter(r=>["bedroom","kitchen","lounge"].includes(r.defId)&&r.active).forEach(rm=>{
+    S.crew.forEach(c=>{ if(c.room===rm.uid) c.morale=Math.min(100,c.morale+5); });
+  });
+  S.crew.forEach(c=>{ if(!c.room) c.morale=Math.max(0,c.morale-2); c.loyalty=Math.min(100,c.loyalty+ (c.morale>60?1:0)); });
+  S.resources.cash += cashGain; S.resources.parts += partsGain; S.resources.intel += intelGain; S.resources.respect += respectGain;
+  // Battery bookkeeping: surplus charges the bank, a deficit drains it (this is the only
+  // place charge changes, so re-rendering never silently burns stored power).
+  const pwr = applyPowerPriority(info);
+  if(pwr.deficit>0){
+    S.batteryCharge = Math.max(0, (S.batteryCharge||0) - pwr.deficit);
+    if(S.batteryCharge<=0 && batteryCapacity()>0) toast("⚠️ نفدت البطاريات — غرف ستتوقف");
+  } else {
+    S.batteryCharge = Math.min(batteryCapacity(), (S.batteryCharge||0) + Math.max(0, pwr.produced - pwr.used));
+  }
+  // Ventilation bleeds Heat; the district keeps pushing it back up.
+  const vents = S.rooms.filter(r=>r.defId==="ventilation"&&r.active).length;
+  S.heat = Math.max(0, S.heat - 2 - vents*1.5);
+  const districtBonus = DISTRICTS[S.districtIdx].threat*0.6;
+  S.heat += districtBonus;
+  save();
+}
+function triggerEvent(){
+  const ev = EVENTS[Math.floor(Math.random()*EVENTS.length)];
+  const body = `<h3 class="stitle">📰 ${ev.titleAr}</h3><p class="sdesc">${ev.text}</p>` +
+    ev.choices.map((c,i)=>`<button class="eventchoice btn block" data-i="${i}">${c.label}</button>`).join("");
+  openModal(body);
+  document.querySelectorAll(".eventchoice").forEach(el=>{
+    el.addEventListener("click",()=>{
+      ev.choices[parseInt(el.dataset.i)].apply(S);
+      save(); render();
+      advancePhase();
+    });
+  });
+}
+function showThreatPreview(){
+  const hasSurv = S.rooms.some(r=>r.defId==="surveillance"||r.defId==="security_station");
+  const hasWar = S.rooms.some(r=>r.defId==="war_room");
+  let objective = pickObjective();
+  const isBoss = S.cycle%5===0;
+  const boss = isBoss ? bossForCycle(S.cycle) : null;
+  if(boss && boss.forceObjective && S.rooms.some(r=>r.defId===boss.forceObjective)) objective = boss.forceObjective;
+  if(boss && boss.targetMostValuable) objective = "valuables";
+
+  let hints = [];
+  if(boss && boss.hidePreview){
+    // THE GHOST: intel and surveillance buy you nothing this cycle.
+    hints = ["👻 لا معلومات. لا مسار معروف. لا هدف مؤكد.", "استعد لكل الاحتمالات."];
+  } else {
+    hints.push("نشاط مشبوه بالقرب من المخبأ...");
+    if(hasSurv) hints.push("نقطة الدخول: "+((boss&&boss.squads>1)?"⚠️ نقطتان مختلفتان":"المدخل الرئيسي"));
+    if(hasWar || S.resources.intel>=30) hints.push("الهدف المحتمل: "+objectiveLabel(objective));
+    if(S.resources.intel>=50) hints.push("قوة الهجوم: "+(isBoss?"⚠️ زعيم":(Math.min(5,1+Math.floor(S.heat/20))+"/5")));
+  }
+  const body = `<h3 class="stitle">${boss?`${boss.icon} ${boss.nameAr}`:"⚠️ تحذير مداهمة"}</h3>
+    <p class="sdesc">${boss?`<b style="color:var(--red)">${boss.name}</b> — ${boss.desc}`:"مداهمة قادمة على مخبأك."}</p>
+    <div class="pillrow">${hints.map(h=>`<div class="pill">${h}</div>`).join("")}</div>
+    <p class="sdesc">استعد الطاقم في الغرف المناسبة الآن. الأوامر التكتيكية ستكون متاحة أثناء المداهمة.</p>
+    <button class="btn ghost block" id="previewPathBtn" style="margin-bottom:8px">👁️ اعرض المسار المتوقع على المخبأ</button>
+    <button class="btn danger block" id="startRaidBtn">ابدأ المداهمة ⚔️</button>`;
+  openModal(body);
+  S._pendingObjective = objective; S._pendingBoss = isBoss;
+  document.getElementById("startRaidBtn").addEventListener("click",()=>{ closeModal(); startRaid(); });
+  document.getElementById("previewPathBtn").addEventListener("click",()=>{
+    if(boss && boss.hidePreview){ toast("👻 الشبح لا يكشف مساره"); return; }
+    closeModal(); setOverlay("path");
+    toast("هذا هو المسار المتوقع — عدّل دفاعك ثم ابدأ من الزر بالأسفل");
+  });
+}
+function objectiveLabel(o){
+  const labels={vault:"سرقة الكاش 💰",generator:"تدمير المولد 🔋",crew:"أسر عضو 🎯",intel:"سرقة المعلومات 🗂️",
+    workshop:"تخريب الورشة 🔧",control_room:"الوصول لغرفة التحكم 🎛️",valuables:"نهب أغلى غرفة 🎩"};
+  return labels[o]||o;
+}
+function pickObjective(){
+  const opts = [];
+  if(S.rooms.some(r=>r.defId==="vault"||r.defId==="secret_vault")) opts.push("vault");
+  if(S.rooms.some(r=>r.defId==="generator")) opts.push("generator");
+  if(S.crew.length) opts.push("crew");
+  if(S.rooms.some(r=>r.defId==="intel_room"||r.defId==="server_room")) opts.push("intel");
+  if(S.rooms.some(r=>r.defId==="workshop")) opts.push("workshop");
+  if(S.rooms.some(r=>r.defId==="control_room")) opts.push("control_room");
+  if(!opts.length) opts.push("generator");
+  return opts[Math.floor(Math.random()*opts.length)];
+}
+
+/* ============================================================================================
+   RAID / COMBAT
+   ============================================================================================ */
+function buildGraph(){
+  // nodes: "entrance" + room uids. edge weight = defensive resistance of destination room.
+  const nodes = {entrance:{neighbors:[]}};
+  S.rooms.forEach(rm=> nodes[rm.uid]={neighbors:[]});
+  S.rooms.forEach(rm=>{
+    if(roomTouchesEntrance(rm)) nodes.entrance.neighbors.push(rm.uid);
+  });
+  roomsAdjacentPairs().forEach(([a,b])=>{
+    nodes[a.uid].neighbors.push(b.uid);
+    nodes[b.uid].neighbors.push(a.uid);
+  });
+  return nodes;
+}
+// How dangerous a room LOOKS to an attacker choosing a route. Traps add their weight;
+// a Decoy Room has negative weight, so the route is deliberately lured through it.
+// A Decoy Room makes its whole WING read as abandoned, not just its own tile — otherwise
+// the detour through it always costs an extra hop and no attacker would ever take the bait.
+function decoyAura(){
+  const infl = {};
+  const t = TRAPBYID["decoy_room"];
+  S.rooms.forEach(d=>{
+    if(!(d.traps||[]).includes("decoy_room")) return;
+    if(t.power>0 && !d.active) return; // an unpowered decoy fools nobody
+    S.rooms.forEach(o=>{
+      if(o.uid!==d.uid && cellsAdjacent(d.cells,o.cells)) infl[o.uid] = (infl[o.uid]||0) + 1.2;
+    });
+  });
+  return infl;
+}
+function roomDefenseWeight(rm, aura){
+  const def = ROOMBYID[rm.defId];
+  let w = 1;
+  if(def.cat==="DEFENSE") w += 3;
+  if(def.id==="guard_room") w += S.crew.filter(c=>c.room===rm.uid).length*1.5;
+  (rm.traps||[]).forEach(tid=>{
+    const t = TRAPBYID[tid]; if(!t) return;
+    if(t.power>0 && !rm.active) return; // an unpowered trap deters nobody
+    w += t.weight;
+  });
+  if(aura && aura[rm.uid]) w -= aura[rm.uid];
+  if(!rm.active) w = Math.max(0.4,w-2); // powered-down defenses are weaker
+  return Math.max(0.2, w);
+}
+// Dijkstra from any entry node ("entrance" or a breached room) to the objective.
+function findPathFrom(startNode, targetUid){
+  const graph = buildGraph();
+  const aura = decoyAura();
+  if(!graph[startNode]) return null;
+  const dist = {[startNode]:0}; const prev={}; const visited=new Set();
+  const pq = [{n:startNode,d:0}];
+  while(pq.length){
+    pq.sort((a,b)=>a.d-b.d);
+    const {n} = pq.shift();
+    if(visited.has(n)) continue; visited.add(n);
+    ((graph[n]||{}).neighbors||[]).forEach(nb=>{
+      const rm = S.rooms.find(r=>r.uid===nb);
+      const w = rm?roomDefenseWeight(rm, aura):1;
+      const nd = dist[n]+w;
+      if(dist[nb]===undefined || nd<dist[nb]){ dist[nb]=nd; prev[nb]=n; pq.push({n:nb,d:nd}); }
+    });
+  }
+  if(dist[targetUid]===undefined) return null;
+  const path=[targetUid]; let cur=targetUid;
+  while(prev[cur]!==undefined){ cur=prev[cur]; path.unshift(cur); }
+  return path; // [startNode, uid1, uid2, ...]
+}
+function findPath(targetUid){ return findPathFrom("entrance", targetUid); }
+// A second breach point for multi-entry bosses: the room deepest from the front door,
+// i.e. the back wall / roof access nobody bothered to defend.
+function rearBreachRoom(){
+  if(!S.rooms.length) return null;
+  return S.rooms.slice().sort((a,b)=>distFromEntrance(b)-distFromEntrance(a))[0];
+}
+function roomValue(rm){
+  const def = ROOMBYID[rm.defId];
+  const rmult = {common:1,uncommon:1.4,rare:2,epic:3,legendary:4.5}[def.rarity]||1;
+  return def.cost*rmult*(1+(rm.level-1)*0.5);
+}
+function resolveTargetRoom(objective){
+  if(objective==="vault") return S.rooms.find(r=>r.defId==="vault") || S.rooms.find(r=>r.defId==="secret_vault");
+  if(objective==="generator") return S.rooms.find(r=>r.defId==="generator");
+  if(objective==="intel") return S.rooms.find(r=>r.defId==="server_room") || S.rooms.find(r=>r.defId==="intel_room");
+  if(objective==="workshop") return S.rooms.find(r=>r.defId==="workshop");
+  if(objective==="control_room") return S.rooms.find(r=>r.defId==="control_room");
+  if(objective==="crew"){ const withCrew = S.rooms.filter(r=>S.crew.some(c=>c.room===r.uid)); return withCrew[Math.floor(Math.random()*withCrew.length)] || S.rooms[0]; }
+  return S.rooms[0];
+}
+
+let RAID = null;
+function startRaid(){
+  S.phase="raid";
+  const boss = S._pendingBoss ? bossForCycle(S.cycle) : null;
+  let objective = S._pendingObjective || pickObjective();
+  // BREAKER forces the Generator; THE COLLECTOR ignores objectives and goes for the richest room.
+  if(boss && boss.forceObjective && S.rooms.some(r=>r.defId===boss.forceObjective)) objective = boss.forceObjective;
+  let targetRoom = resolveTargetRoom(objective);
+  if(boss && boss.targetMostValuable && S.rooms.length){
+    targetRoom = S.rooms.slice().sort((a,b)=>roomValue(b)-roomValue(a))[0];
+    objective = "valuables";
+  }
+  if(!targetRoom || !S.rooms.length){
+    RAID = {objective, boss, squads:[], log:[], done:false, spentTraps:new Set(), surged:[], tick:0, commands:0};
+    finishRaid(true, "لا يوجد ما يستحق المداهمة بعد.");
+    return;
+  }
+  const heatMult = 1+S.heat/100;
+  const districtMult = 1+DISTRICTS[S.districtIdx].threat*0.18;
+  const squadPower = Math.round(10*heatMult*districtMult*(boss?1.8:1));
+  const hpMult = boss?boss.hpMult:1, dmgMult = boss?boss.dmgMult:1;
+  const squadCount = (boss && boss.squads) ? boss.squads : 1;
+
+  const squads = [];
+  for(let i=0;i<squadCount;i++){
+    let startNode = "entrance", entryLabel = "المدخل الرئيسي";
+    if(i>0){ // THE TWINS: the second squad breaches the least-defended rear room
+      const rear = rearBreachRoom();
+      if(rear){ startNode = rear.uid; entryLabel = "اختراق خلفي عبر "+ROOMBYID[rear.defId].nameAr; }
+    }
+    const path = findPathFrom(startNode, targetRoom.uid) || [startNode, targetRoom.uid];
+    const hp = Math.round(squadPower*6*hpMult/squadCount*(squadCount>1?1.3:1));
+    squads.push({
+      id:"sq"+i, name: squadCount>1 ? (i===0?"التوأم الأول":"التوأم الثاني") : "المهاجمون",
+      hp, hpMax:hp, dmg: Math.round(squadPower*0.9*dmgMult),
+      path, pathIdx: startNode==="entrance"?1:0,
+      targetUid: targetRoom.uid, entryLabel, dead:false,
+    });
+  }
+  // Alarm traps buy extra tactical commands.
+  const alarms = S.rooms.filter(r=>r.active).reduce((n,r)=>n+(r.traps||[]).filter(t=>t==="alarm").length,0);
+  RAID = {
+    objective, boss, targetUid:targetRoom.uid, squads,
+    commands: 3 + (S.rooms.some(r=>r.defId==="control_room"&&r.active)?1:0) + alarms,
+    log:[], done:false, tick:0, spentTraps:new Set(), surged:[],
+    lockdownUid:null, decoyUsed:false,
+  };
+  S.raidTargetUid = targetRoom.uid;
+  S.raidClearedUids = []; // plain array: this is serialized into the save, a Set would not survive
+  render();
+  openRaidModal();
+  if(boss) raidLog(`<b style="color:var(--red)">${boss.icon} ${boss.nameAr}</b> — ${boss.desc}`);
+  raidLog(`<b>مداهمة!</b> الهدف: ${objectiveLabel(RAID.objective)}`);
+  squads.forEach(sq=>raidLog(`↘️ ${sq.name} يدخل من: ${sq.entryLabel}`));
+  raidTick();
+}
+function openRaidModal(){
+  const body = `<h3 class="stitle">⚔️ مداهمة جارية${RAID.boss?` — ${RAID.boss.icon} ${RAID.boss.nameAr}`:""}</h3>
+    <div class="pillrow"><div class="pill">🎯 ${objectiveLabel(RAID.objective)}</div></div>
+    <div class="pillrow" id="squadRow"></div>
+    <div id="log"></div>
+    <div class="tactrow" id="tactrow"></div>`;
+  openModal(body);
+  updateRaidHud();
+  renderTactRow();
+}
+function updateRaidHud(){
+  const el = document.getElementById("squadRow");
+  if(!el || !RAID) return;
+  el.innerHTML = RAID.squads.map(sq=>
+    `<div class="pill" style="color:${sq.dead?'var(--dim)':'var(--red)'}">${sq.dead?"☠️":"🧨"} ${sq.name}: ${sq.hp}/${sq.hpMax}</div>`).join("");
+}
+function leadSquad(){
+  if(!RAID) return null;
+  const alive = RAID.squads.filter(s=>!s.dead);
+  if(!alive.length) return null;
+  // the squad with the fewest rooms left between it and the objective
+  return alive.sort((a,b)=>(a.path.length-a.pathIdx)-(b.path.length-b.pathIdx))[0];
+}
+function renderTactRow(){
+  const cmds = [
+    {id:"lockdown",ic:"🔒",label:"Lockdown"},
+    {id:"rally",ic:"📣",label:"Rally"},
+    {id:"overclock",ic:"⚡",label:"Overclock"},
+    {id:"medkit",ic:"💉",label:"Medkit"},
+    {id:"fallback",ic:"↩️",label:"Fall Back"},
+    {id:"decoy",ic:"🎭",label:"Decoy"},
+    {id:"empower",ic:"🔌",label:"Emerg. Power"},
+  ];
+  const el = document.getElementById("tactrow");
+  if(!el || !RAID) return;
+  el.innerHTML = cmds.map(c=>`<button class="tactbtn" data-cmd="${c.id}" ${RAID.commands<=0?"disabled":""}><span class="ic4">${c.ic}</span>${c.label}</button>`).join("")
+    + `<div style="grid-column:span 4;text-align:center;font-size:10px;color:var(--muted);margin-top:2px">أوامر متبقية: ${RAID.commands}</div>`;
+  el.querySelectorAll("[data-cmd]").forEach(b=>b.addEventListener("click",()=>useTactical(b.dataset.cmd)));
+}
+function raidLog(msg){
+  RAID.log.push(msg);
+  const el = document.getElementById("log");
+  if(el){ el.innerHTML = RAID.log.slice(-14).map(m=>`<div>${m}</div>`).join(""); el.scrollTop = el.scrollHeight; }
+}
+function useTactical(cmd){
+  if(!RAID || RAID.commands<=0 || RAID.done) return;
+  const sq = leadSquad();
+  if(!sq) return;
+  RAID.commands--;
+  const curUid = sq.path[sq.pathIdx];
+  const curRoom = S.rooms.find(r=>r.uid===curUid);
+  if(cmd==="lockdown"){
+    RAID.lockdownUid = curUid;
+    raidLog(`🔒 إغلاق باب ${curRoom?ROOMBYID[curRoom.defId].nameAr:"الممر"} — ${sq.name} يفقد جولة.`);
+  } else if(cmd==="rally"){
+    S.crew.forEach(c=>{ if(c.room===curUid) c.dmg = Math.round(c.dmg*1.25); });
+    raidLog(`📣 تجميع الطاقم — ضرر أعلى في غرفة المواجهة.`);
+  } else if(cmd==="overclock"){
+    const tech = S.rooms.find(r=>["intel_room","server_room","hacker_lab"].includes(r.defId)&&r.active);
+    if(tech){
+      RAID.squads.forEach(s=>{ if(!s.dead) s.hp = Math.max(1, s.hp - Math.round(s.hpMax*0.1)); });
+      raidLog(`⚡ Overclock — ${ROOMBYID[tech.defId].nameAr} تُربك كل المهاجمين.`);
+    } else raidLog(`⚡ لا توجد غرفة تقنية تعمل.`);
+  } else if(cmd==="medkit"){
+    const injured = S.crew.filter(c=>c.hp<c.maxHp).sort((a,b)=>a.hp-b.hp)[0];
+    if(injured){ injured.hp = Math.min(injured.maxHp, injured.hp+Math.round(injured.maxHp*0.4)); raidLog(`💉 تم علاج ${injured.name}.`); }
+    else raidLog(`💉 لا أحد يحتاج علاجًا الآن.`);
+  } else if(cmd==="fallback"){
+    S.crew.filter(c=>c.room===curUid).forEach(c=>{ c.room=null; });
+    raidLog(`↩️ سحب الطاقم من غرفة المواجهة.`);
+  } else if(cmd==="empower"){
+    if(curRoom){
+      curRoom.active=true;
+      RAID.surged = RAID.surged.filter(x=>x.uid!==curRoom.uid); // also clears a Grid surge
+      raidLog(`🔌 إعادة تشغيل طارئة لـ ${ROOMBYID[curRoom.defId].nameAr}.`);
+    }
+  } else if(cmd==="decoy"){
+    if(!RAID.decoyUsed){
+      RAID.decoyUsed=true;
+      RAID.squads.forEach(s=>{ s.dmg = Math.round(s.dmg*0.6); });
+      raidLog(`🎭 مسار وهمي يشتت المهاجمين — ضررهم انخفض.`);
+    } else raidLog(`🎭 الخدعة استُخدمت بالفعل.`);
+  }
+  save(); render(); renderTactRow(); updateRaidHud();
+}
+function markCleared(uid){
+  S.raidClearedUids = S.raidClearedUids || [];
+  if(S.raidClearedUids.indexOf(uid)<0) S.raidClearedUids.push(uid);
+}
+// One squad advances one room. Returns nothing; sets RAID.done via finishRaid on a breach.
+function stepSquad(sq){
+  const curUid = sq.path[sq.pathIdx];
+  if(curUid===undefined){ finishRaid(false, `${sq.name} وصل إلى الهدف!`); return; }
+  if(curUid===RAID.lockdownUid){
+    raidLog(`⛔ ${sq.name}: الباب مقفل — يبحثون عن طريق آخر...`);
+    RAID.lockdownUid = null;
+    return;
+  }
+  const rm = S.rooms.find(r=>r.uid===curUid);
+  if(!rm){ sq.pathIdx++; return; }
+  const def = ROOMBYID[rm.defId];
+  const defenders = S.crew.filter(c=>c.room===curUid && c.hp>0);
+  let defDmg = defenders.reduce((s,c)=>s+c.dmg,0) + (def.cat==="DEFENSE"?6:0) + (def.id==="armory"?4:0);
+  if(defenders.length===1 && defenders[0].trait.name==="Lone Wolf") defDmg = Math.round(defDmg*1.3);
+  if(!rm.active) defDmg = Math.round(defDmg*0.5);
+  // traps in this room fire
+  let trapDmg = 0, dmgReduce = 0; const fired = [];
+  (rm.traps||[]).forEach(tid=>{
+    const t = TRAPBYID[tid]; if(!t) return;
+    if(t.power>0 && !rm.active) return; // no power, no trap
+    const key = curUid+":"+tid+":"+sq.id;
+    if(t.oneShot && RAID.spentTraps.has(key)) return;
+    if(t.dmg){ trapDmg += t.dmg; fired.push(t.icon+" "+t.nameAr); }
+    if(t.dmgReduce) dmgReduce = Math.max(dmgReduce, t.dmgReduce);
+    if(t.oneShot) RAID.spentTraps.add(key);
+  });
+  const total = defDmg + trapDmg;
+  sq.hp = Math.max(0, sq.hp - total);
+  if(fired.length) raidLog(`<span class="hit">${fired.join(" + ")}</span> ينفجر على ${sq.name} (${trapDmg} ضرر).`);
+  if(defDmg>0) raidLog(`<span class="hit">🥊 ${def.nameAr}</span> يلحق ${defDmg} ضرر بـ${sq.name}. (متبقٍ ${sq.hp})`);
+  else if(!fired.length) raidLog(`⚠️ لا مقاومة في ${def.nameAr} — ${sq.name} يمر بلا خسائر.`);
+  if(sq.hp<=0){
+    sq.dead = true;
+    markCleared(curUid);
+    raidLog(`<b class="win">✅ تم القضاء على ${sq.name} في ${def.nameAr}</b>`);
+    return;
+  }
+  // counterattack
+  if(defenders.length){
+    const target = defenders[Math.floor(Math.random()*defenders.length)];
+    const incoming = Math.max(1, Math.round(sq.dmg*(1-dmgReduce)));
+    target.hp = Math.max(0, target.hp - incoming);
+    raidLog(`<span class="hit">💥</span> ${target.name} يتلقى ${incoming} ضرر${dmgReduce?" (خفّفه الدخان)":""}.`);
+    if(target.hp<=0){
+      target.injured = true; target.hp = 1;
+      const panic = S.rooms.find(r=>r.defId==="panic_room");
+      target.room = panic ? panic.uid : null;
+      raidLog(`🩸 ${target.name} أُصيب${panic?" ونُقل إلى غرفة الذعر":" وتم سحبه"}.`);
+    }
+  }
+  markCleared(curUid);
+  if(curUid===sq.targetUid){ finishRaid(false, `${sq.name} وصل إلى الهدف!`); return; }
+  sq.pathIdx++;
+}
+function raidTick(){
+  if(!RAID || RAID.done) return;
+  setTimeout(()=>{
+    if(!RAID || RAID.done) return;
+    RAID.tick++;
+    // THE GRID: periodic power surge knocks rooms offline for a couple of ticks
+    if(RAID.boss && RAID.boss.powerSurge && RAID.tick % RAID.boss.powerSurge === 0){
+      const live = S.rooms.filter(r=>r.active).sort(()=>Math.random()-0.5).slice(0,2);
+      live.forEach(r=>{ r.active=false; RAID.surged.push({uid:r.uid, until:RAID.tick+2}); });
+      if(live.length) raidLog(`🕸️ <b>POWER SURGE</b> — توقفت ${live.map(r=>ROOMBYID[r.defId].nameAr).join(" و ")} مؤقتًا.`);
+    }
+    RAID.surged = RAID.surged.filter(x=>{
+      if(RAID.tick>=x.until){ const rm=S.rooms.find(r=>r.uid===x.uid); if(rm) rm.active=true; return false; }
+      return true;
+    });
+    for(const sq of RAID.squads){
+      if(sq.dead) continue;
+      stepSquad(sq);
+      if(RAID.done) return; // a breach ends the raid immediately
+    }
+    if(RAID.squads.every(s=>s.dead)){ finishRaid(true, "تم صد المداهمة!"); return; }
+    render(); updateRaidHud();
+    raidTick();
+  }, 1500);
+}
+function finishRaid(defenderWin, msg){
+  RAID.done = true;
+  raidLog(`<b class="${defenderWin?'win':'hit'}">${msg}</b>`);
+  const rewardBox = document.querySelector("#modalBody");
+  setTimeout(()=>{
+    S.lastRaid = {win:defenderWin, objective:RAID.objective};
+    resolveOutcome(defenderWin);
+  }, 1100);
+}
+function resolveOutcome(win){
+  let cashLoss=0, respectGain=0, cashReward=0, partsReward=0, intelReward=0;
+  const bossMult = RAID.boss ? 2 : 1; // a boss is a bigger risk and a bigger payday
+  if(win){
+    respectGain = (10 + Math.round(S.heat/5)) * bossMult;
+    cashReward = (30 + Math.round(S.heat*1.2)) * bossMult;
+    partsReward = 10 * bossMult;
+    S.heat = Math.max(0, S.heat-6);
+  } else {
+    if(RAID.objective==="vault"){ cashLoss = Math.round(S.resources.cash*0.25); S.resources.cash-=cashLoss; }
+    if(RAID.objective==="generator"){ const g=S.rooms.find(r=>r.defId==="generator"); if(g) g.active=false; }
+    if(RAID.objective==="intel"){ S.resources.intel = Math.max(0, S.resources.intel-15); }
+    if(RAID.objective==="valuables"){
+      // THE COLLECTOR strips the room it reached: it loses a level, or is looted for parts.
+      const rm = S.rooms.find(r=>r.uid===RAID.targetUid);
+      if(rm && rm.level>1){ rm.level--; }
+      else { S.resources.parts = Math.max(0, S.resources.parts-25); }
+      cashLoss = Math.round(S.resources.cash*0.15); S.resources.cash-=cashLoss;
+    }
+    respectGain = -8;
+    S.heat = Math.max(0, S.heat-2);
+    checkGameOver();
+  }
+  // One-shot traps that fired are spent, win or lose.
+  const spent = Array.from(RAID.spentTraps||[]);
+  S.rooms.forEach(rm=>{
+    (rm.traps||[]).slice().forEach(tid=>{
+      const t = TRAPBYID[tid];
+      if(t && t.oneShot && spent.some(k=>k.startsWith(rm.uid+":"+tid+":"))){
+        rm.traps.splice(rm.traps.indexOf(tid),1);
+      }
+    });
+  });
+  S.resources.respect = Math.max(0, S.resources.respect+respectGain);
+  S.resources.cash += cashReward;
+  S.resources.parts += partsReward;
+  S.raidTargetUid=null;
+  S.phase="reward";
+  save();
+  const body = `<h3 class="stitle">${win?"🏆 انتصار":"💀 خسارة جزئية"}</h3>
+    <p class="sdesc">${win?"تمت حماية المخبأ بنجاح.":"لحق المخبأ ضرر لكن العصابة تستمر."}</p>
+    <div class="pillrow">
+      ${win?`<div class="pill" style="color:var(--gold)">+${cashReward} 💵</div><div class="pill" style="color:var(--orange)">+${partsReward} ⚙️</div><div class="pill" style="color:var(--violet)">+${respectGain} ⭐</div>`
+      :`<div class="pill" style="color:var(--red)">-${cashLoss} 💵</div><div class="pill" style="color:var(--red)">${respectGain} ⭐</div>`}
+    </div>
+    <button class="btn primary block" id="rewardNext">التالي ▶</button>`;
+  openModal(body);
+  document.getElementById("rewardNext").addEventListener("click", advancePhase);
+  render();
+}
+function checkGameOver(){
+  const allDown = S.crew.every(c=>c.hp<=0 || c.injured) && S.crew.filter(c=>!c.injured).length===0;
+  const brokeAndEmpty = S.resources.cash<=0 && S.rooms.length===0;
+  if(allDown || brokeAndEmpty){
+    S.gameover = true;
+    const legacyGain = Math.round(S.resources.respect*0.8)+S.cycle*3;
+    META.legacy += legacyGain; saveMeta();
+    setTimeout(()=>{
+      const body = `<h3 class="stitle">💀 نهاية الجولة</h3><p class="sdesc">انهار الطاقم أو المخبأ. اكتسبت <b>${legacyGain} 💠 Legacy</b> لفتح مزايا للجولة القادمة.</p>
+        <button class="btn primary block" id="restartBtn">ابدأ جولة جديدة</button>`;
+      openModal(body);
+      document.getElementById("restartBtn").addEventListener("click",()=>{ localStorage.removeItem(SAVE_KEY); location.reload(); });
+    }, 1300);
+  }
+}
+function nextCycle(){
+  S.cycle++;
+  S.districtIdx = DISTRICTS.reduce((best,d,i)=> S.cycle>=d.minCycle?i:best, 0);
+  S.phase = "hideout";
+  S.shop = null; S.shopRerolls=0;
+  save(); render();
+}
+
+/* ============================================================================================
+   BOOT / RUN SETUP
+   ============================================================================================ */
+function boot(){
+  loadMeta();
+  const existing = load();
+  if(existing && !existing.gameover){ S = existing; afterBoot(); return; }
+  showSetup();
+}
+function showSetup(){
+  const boot = document.getElementById("bootscreen");
+  let chosenLeader = LEADERS[0].id, chosenBiz = BUSINESSES[0].id;
+  function html(){
+    return `
+    <h1>HIDE<span>OUT</span></h1>
+    <p>سيد المخبأ — ابنِ مخبأك، رتّب طاقمك بذكاء، وادفع الغارات بترتيب أفضل لا بأرقام أعلى فقط.</p>
+    <div class="setupcol">
+      <h4>اختر القائد</h4>
+      ${LEADERS.map(l=>`<div class="pickcard leadopt ${l.id===chosenLeader?'sel':''}" data-l="${l.id}"><b>👑 ${l.name}</b><small>${l.trait.split("|")[1]}</small></div>`).join("")}
+      <h4>اختر الواجهة الشرعية</h4>
+      ${BUSINESSES.map(b=>`<div class="pickcard bizopt ${b.id===chosenBiz?'sel':''}" data-b="${b.id}"><b>${b.nameAr}</b><small>${b.bonus}</small></div>`).join("")}
+    </div>
+    <button class="btn primary block" id="startBtn" style="margin-top:6px">ابدأ 🔑</button>`;
+  }
+  boot.innerHTML = html();
+  wire();
+  function wire(){
+    boot.querySelectorAll(".leadopt").forEach(el=>el.addEventListener("click",()=>{chosenLeader=el.dataset.l; boot.innerHTML=html(); wire();}));
+    boot.querySelectorAll(".bizopt").forEach(el=>el.addEventListener("click",()=>{chosenBiz=el.dataset.b; boot.innerHTML=html(); wire();}));
+    document.getElementById("startBtn").addEventListener("click",()=>{
+      S = freshRun(chosenLeader, chosenBiz);
+      // starter rooms placed automatically so the player begins mid-scene, not an empty grid:
+      // a Generator (2x2) fills the left of the starting plot, a Bedroom (1x2) the right column.
+      S.rooms = [];
+      placeStarter("generator", 2,1);
+      placeStarter("bedroom", 4,1);
+      // seat the starter crew so the hideout feels lived-in from the first frame
+      const genRoom = S.rooms.find(r=>r.defId==="generator");
+      const bedRoom = S.rooms.find(r=>r.defId==="bedroom");
+      const mech = S.crew.find(c=>c.role==="MECHANIC"); if(mech && genRoom) mech.room = genRoom.uid;
+      const enf = S.crew.find(c=>c.role==="ENFORCER"); if(enf && bedRoom) enf.room = bedRoom.uid;
+      save();
+      document.getElementById("bootscreen").remove();
+      afterBoot();
+    });
+  }
+}
+function placeStarter(defId, c, r){
+  const shape = SHAPES[ROOMBYID[defId].shape];
+  const cells = shape.map(([dc,dr])=>[c+dc,r+dr]);
+  S.rooms.push({uid:"r"+(++UID), defId, cells, level:1, active:true, crew:[], traps:[], priority:"normal"});
+}
+function afterBoot(){
+  document.querySelector('[data-tab="hideout"]').classList.add("active");
+  render();
+  window.addEventListener("resize", render);
+  toast("مرحبًا بك في مخبأك. ابدأ الدورة الأولى من الأسفل.");
+}
+boot();
+</script>
+</body>
+</html>

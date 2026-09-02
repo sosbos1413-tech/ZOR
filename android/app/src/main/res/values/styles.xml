@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Same ground colour the game paints, so there is no white flash on launch. -->
+  <style name="AppTheme" parent="android:Theme.Material.NoActionBar">
+    <item name="android:windowBackground">#0B0F17</item>
+    <item name="android:statusBarColor">#0B0F17</item>
+    <item name="android:navigationBarColor">#0B0F17</item>
+  </style>
+</resources>
