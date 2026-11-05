@@ -1,6 +1,5 @@
-build/
-.gradle/
-local.properties
-*.apk
+# generated candidates are large; only the chosen image per character is committed
+assets/characters/candidates/
+# the single-file build is published from docs/ instead
+dist/
 .DS_Store
-*.log
