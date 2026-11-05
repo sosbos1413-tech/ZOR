@@ -37,6 +37,17 @@
       { shards: 30 }, { shards: 40 }, { shards: 50 }, { shards: 60 }, { shards: 80 }, { shards: 100 },
       { packs: 1, card: 'rare', big: true },
     ],
+    // Challenge tower: 30 floors, a short best-of-3 fight each (like the campaign), a boss every 5th floor.
+    // Enemy line-ups are generated from the floor number (core/tower.js); `power` = enemy stat multiplier curve
+    // one value per floor (a generated line-up is fixed, so each floor is calibrated alone) from tools/tune-tower.js:
+    // a casual player with upgraded starter cards wins ~88% of floor 1 down to ~30% of floor 30 (bosses 12 points lower). More cards/upgrades go further.
+    tower: {
+      floors: 30, bossEvery: 5,
+      unlock: { campaignLevel: 'l1' },                 // finish campaign level 1 first
+      power: [1.16,1.29,1.22,1.14,0.83,1.18,1.16,1.01,1.16,0.69,1.11,1.03,1.31,0.99,1.07,1.47,0.97,0.86,1.09,0.71,1.27,0.97,0.87,1.23,0.77,1.13,0.83,1.29,1.33,0.78],   // per floor, from tools/tune-tower.js
+      start: [{ from: 1, gold: 8, level: 5 }, { from: 15, gold: 12, level: 6 }, { from: 25, gold: 14, level: 7 }],
+      rewards: { shardsFirst: 20, shardsLast: 50, passXp: 10, passXpBoss: 30, bossPack: 'basic', finalCard: 'epic' },   // first clear only
+    },
     // album: own all 5 units of a world -> its reward (once); own all 20 -> the grand reward
     album: {
       worlds: {

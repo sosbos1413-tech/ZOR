@@ -110,6 +110,7 @@
     { id: 'd_upgrade1', name: 'طوّر بطاقة', stat: 'upgrades', target: 1, xp: 40, shards: 40 },
     { id: 'd_pack1', name: 'افتح باكج', stat: 'packs', target: 1, xp: 30, shards: 30 },
     { id: 'd_stars3', name: 'اجمع ٣ نجوم جديدة في الحملة', stat: 'stars', target: 3, xp: 60, shards: 50 },
+    { id: 'd_tower2', name: 'اصعد طابقين في البرج', stat: 'tower_floors', target: 2, xp: 50, shards: 50 },
     { id: 'd_campaign2', name: 'العب قتالين في الحملة', stat: 'campaign', target: 2, xp: 40, shards: 40 },
   ];
   const WEEKLY = [
@@ -237,6 +238,10 @@
   function wire(pass, events) {
     events.on('cardUpgraded', () => pass.track('upgrades', 1));
     events.on('packOpened', () => pass.track('packs', 1));
+    events.on('towerEnd', (r) => {   // tower fights count as fights won / matches; each new floor counts toward "climb 2 floors"
+      if (r.summary) pass.recordStats(Object.assign({}, r.summary, { won: r.won }));
+      if (r.first) pass.track('tower_floors', 1);
+    });
     events.on('fightEnd', (r) => {
       if (r.summary) pass.recordStats(Object.assign({}, r.summary, { won: r.won }));
       pass.track('campaign', 1);

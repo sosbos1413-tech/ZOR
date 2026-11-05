@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="d5a7444a66">
+<meta name="zor-build" content="5b0445baf5">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1591,6 +1591,23 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
 .save-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
 .upd-banner { position: fixed; z-index: 90; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; background: var(--ink); color: var(--paper); border: 3px solid var(--gold); box-shadow: var(--hard); padding: 8px 14px; font-size: 14px; max-width: calc(100vw - 24px); }
 
+/* ======================================================================= challenge tower */
+#menu-tower { position: relative; } #menu-tower small { opacity: .75; font-weight: 400; direction: ltr; display: inline-block; }
+.tower { max-width: 640px; margin: 0 auto; padding: 0 10px 40px; color: var(--paper); }
+.tw-head { background: var(--ink2); border: 3px solid var(--gold); box-shadow: var(--hard); padding: 12px 16px; margin-bottom: 16px; text-align: center; }
+.tw-best { display: flex; align-items: baseline; justify-content: center; gap: 8px; } .tw-best small { color: var(--paper3); } .tw-best b { font: 400 54px/1 var(--display); color: var(--gold); text-shadow: 3px 3px 0 var(--red); } .tw-best span { color: var(--paper3); font-size: 18px; direction: ltr; }
+.tw-prog { height: 12px; background: #000; border: 2px solid var(--paper3); margin: 8px 0; overflow: hidden; } .tw-prog i { display: block; height: 100%; background: linear-gradient(90deg, var(--gold2), var(--gold)); }
+.twlist { display: flex; flex-direction: column; gap: 8px; }
+.twrow { display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 12px; background: var(--ink2); color: var(--paper); border: 3px solid #000; box-shadow: 0 0 0 2px var(--wc), var(--hard-sm); cursor: pointer; font-family: inherit; text-align: start; position: relative; }
+.twrow.boss { padding: 12px; background: linear-gradient(100deg, color-mix(in srgb, var(--wc) 35%, #141010), #141010 75%); box-shadow: 0 0 0 3px var(--gold), var(--hard-sm); }
+.twrow.cleared { opacity: .72; } .twrow.locked { opacity: .45; cursor: not-allowed; filter: grayscale(.6); }
+.twrow.cur { opacity: 1; background: color-mix(in srgb, var(--wc) 30%, #141010); box-shadow: 0 0 0 3px var(--gold), 0 0 18px var(--gold); animation: pcpulse .8s infinite alternate; }
+.tw-n { flex: none; width: 48px; height: 48px; border-radius: 50%; background: var(--wc); color: #000; display: grid; place-items: center; font: 400 24px var(--display); border: 3px solid #000; overflow: hidden; }
+.twrow.boss .tw-n { width: 64px; height: 64px; background: #000; border-color: var(--gold); } .tw-n .portrait { width: 100%; height: 100%; }
+.tw-mid { flex: 1; display: flex; flex-direction: column; min-width: 0; } .tw-mid b { font-size: 16px; } .tw-mid small { color: var(--paper3); font-size: 12px; }
+.tw-rw { font-size: 14px; white-space: nowrap; color: var(--paper3); } .tw-rw svg { width: 13px; height: 13px; vertical-align: -2px; color: var(--cyan); } .twrow.cleared .tw-rw { color: var(--green); font-weight: 900; font-size: 20px; }
+.tw-go { background: var(--red); color: #fff; padding: 4px 14px; font: 400 18px var(--display); border: 2px solid #000; } .tw-lock { font-size: 18px; }
+
 </style>
 </head>
 <body>
@@ -1612,6 +1629,7 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
       <div class="menu-tiles">
         <button class="mtile mt-prog" data-act="go" data-to="pass" id="menu-pass"><span class="mt-ic">🎖️</span><span class="mt-l">ممر الصدع</span></button>
         <button class="mtile mt-prog" data-act="go" data-to="cards" id="menu-cards"><span class="mt-ic">🃏</span><span class="mt-l">مجموعتي</span></button>
+        <button class="mtile mt-prog" data-act="go" data-to="tower" id="menu-tower"><span class="mt-ic">🗼</span><span class="mt-l">البرج</span></button>
         <button class="mtile mt-prog" data-act="go" data-to="packs" id="menu-packs"><span class="mt-ic">📦</span><span class="mt-l">الباكجات</span></button>
         <button class="mtile mt-prog" data-act="loginOpen" id="menu-login"><span class="mt-ic">🎁</span><span class="mt-l">الدخول اليومي</span></button>
         <button class="mtile" data-act="go" data-to="codex" id="menu-album"><span class="mt-ic">📖</span><span class="mt-l">الألبوم</span></button>
@@ -1722,6 +1740,11 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
   <section class="screen" id="scr-campaign">
     <header class="scr-head"><button class="btn ghost" data-act="go" data-to="menu">→ رجوع</button><h2>الحملة</h2></header>
     <div class="campaign" id="campaign"></div>
+  </section>
+
+  <section class="screen" id="scr-tower">
+    <header class="scr-head"><button class="btn ghost" data-act="go" data-to="menu">→ رجوع</button><h2>برج التحدي</h2></header>
+    <div class="tower" id="tower"></div>
   </section>
 
   <section class="screen" id="scr-stats">
@@ -3979,6 +4002,17 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
       { shards: 30 }, { shards: 40 }, { shards: 50 }, { shards: 60 }, { shards: 80 }, { shards: 100 },
       { packs: 1, card: 'rare', big: true },
     ],
+    // Challenge tower: 30 floors, a short best-of-3 fight each (like the campaign), a boss every 5th floor.
+    // Enemy line-ups are generated from the floor number (core/tower.js); `power` = enemy stat multiplier curve
+    // one value per floor (a generated line-up is fixed, so each floor is calibrated alone) from tools/tune-tower.js:
+    // a casual player with upgraded starter cards wins ~88% of floor 1 down to ~30% of floor 30 (bosses 12 points lower). More cards/upgrades go further.
+    tower: {
+      floors: 30, bossEvery: 5,
+      unlock: { campaignLevel: 'l1' },                 // finish campaign level 1 first
+      power: [1.16,1.29,1.22,1.14,0.83,1.18,1.16,1.01,1.16,0.69,1.11,1.03,1.31,0.99,1.07,1.47,0.97,0.86,1.09,0.71,1.27,0.97,0.87,1.23,0.77,1.13,0.83,1.29,1.33,0.78],   // per floor, from tools/tune-tower.js
+      start: [{ from: 1, gold: 8, level: 5 }, { from: 15, gold: 12, level: 6 }, { from: 25, gold: 14, level: 7 }],
+      rewards: { shardsFirst: 20, shardsLast: 50, passXp: 10, passXpBoss: 30, bossPack: 'basic', finalCard: 'epic' },   // first clear only
+    },
     // album: own all 5 units of a world -> its reward (once); own all 20 -> the grand reward
     album: {
       worlds: {
@@ -4521,6 +4555,135 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
 </script>
 <script>
 /*
+ * Challenge tower: 30 floors, each a short best-of-3 fight (same rules as the campaign) against an enemy
+ * line-up GENERATED from the floor number (deterministic, so a floor is the same every time). Floors get
+ * harder step by step; every 5th floor is a boss (the world's hero + a special, like the campaign bosses).
+ * First clear of a floor pays shards + pass XP; boss floors a free pack; floor 30 a guaranteed epic+ card.
+ * Retrying a lost floor costs nothing. The highest floor reached is saved. Settings: AMB.ECONOMY.tower.
+ */
+(function () {
+  const AMB = globalThis.AMB;
+  const T = () => AMB.ECONOMY.tower;
+  const WORLD_ORDER = ['ember', 'tide', 'neon', 'sylvan'];
+
+  AMB.Save.register('tower', {
+    version: 1,
+    defaults: () => ({ best: 0, attempts: {}, wins: {}, runs: 0 }),   // best = highest floor cleared
+  });
+
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+  /** enemy stat multiplier on a floor */
+  function powerFor(n) {
+  const P = T().power;
+  if (P.length >= T().floors) return P[n - 1];   // one value per floor (tools/tune-tower.js)
+  const [a, b = 0, c = 0] = P; return a + b * n + c * n * n;   // or a + b*floor + c*floor^2
+}
+  const isBoss = (n) => n % T().bossEvery === 0;
+  const bossIndex = (n) => n / T().bossEvery - 1;
+  const bossWorld = (n) => WORLD_ORDER[bossIndex(n) % 4];
+  function startFor(n) { let s = T().start[0]; T().start.forEach((x) => { if (n >= x.from) s = x; }); return { gold: s.gold, level: s.level }; }
+
+  /** the generated enemy for a floor: { units:[[defId,star,slot,fromRound]], hero, boss, name, ... } (pure, deterministic) */
+  function lineupFor(n) {
+    const rng = AMB.util.RNG(7000 + n * 131);
+    const boss = isBoss(n), world = boss ? bossWorld(n) : WORLD_ORDER[(n - 1) % 4];
+    const heroId = Object.values(AMB.DATA.HEROES).find((h) => h.world === world).id;
+    const maxUnits = boss ? 7 : 8;                                   // a boss hero stands on slot b1
+    const count = Math.min(maxUnits, 5 + Math.floor((n - 1) / 8));   // 5 units early .. 8 late (a player starts with 5 board slots)
+    const k = (n - 1) / (T().floors - 1);
+    const tierW = [65 - 45 * k, 28 + 7 * k, 7 + 38 * k];              // shop-like tier odds: weak early, strong late
+    const starTwo = clamp((n - 10) / 50, 0, 0.35), starThree = clamp((n - 22) / 80, 0, 0.15);
+    const all = Object.values(AMB.DATA.UNITS).filter((u) => !u.exclusive);
+    const used = {};
+    const pick = (roles) => {
+      const tier = rng.weighted(tierW.map((w, i) => [i + 1, w]));
+      let pool = all.filter((u) => roles.includes(u.role) && u.tier === tier && (used[u.id] || 0) < 2);
+      const home = pool.filter((u) => u.world === world);
+      pool = home.length && rng.chance(0.7) ? home : pool;
+      if (!pool.length) pool = all.filter((u) => roles.includes(u.role) && (used[u.id] || 0) < 2);
+      const u = pool[rng.int(pool.length)];
+      used[u.id] = (used[u.id] || 0) + 1;
+      return u;
+    };
+    const front = Math.max(1, Math.round(count * 0.4)), back = count - front;
+    const picks = [];
+    for (let i = 0; i < front; i++) picks.push(pick(i % 2 ? ['fighter'] : ['guardian']));
+    for (let i = 0; i < back; i++) picks.push(pick([['marksman', 'mage'], ['support', 'mage'], ['marksman', 'assassin'], ['mage', 'marksman']][i % 4]));
+    const fslots = ['f1', 'f2', 'f0', 'f3'], bslots = boss ? ['b0', 'b2', 'b3'] : ['b1', 'b2', 'b0', 'b3'];
+    // an assassin counts as a back unit here; an assassin may also stand in front, but keep it simple: back
+    let fi = 0, bi = 0;
+    const units = picks.map((u, i) => {
+      const isFront = i < front;
+      const slot = isFront ? fslots[fi++] : bslots[bi++] || fslots[fi++] || 'b3';
+      const star = rng.chance(starThree) ? 3 : rng.chance(starTwo) ? 2 : 1;
+      const from = i < Math.ceil(count * 0.6) ? 1 : i < Math.ceil(count * 0.85) ? 2 : 3;
+      return [u.id, star, slot, from];
+    });
+    const sp = boss ? AMB.LEVELS.BOSS[world] : null;
+    const scale = boss && n >= 25 ? 1.4 : 1;                          // the last two bosses hit harder
+    const blessings = sp ? Object.fromEntries(Object.entries(sp.blessings).map(([kk, v]) => [kk, +(v * scale).toFixed(2)])) : null;
+    return { floor: n, world, heroId, boss, units, summon: boss ? 'b1' : null, blessings, abilities: sp ? sp.abilities : [], special: sp,
+      name: boss ? `زعيم الطابق ${n}: ${AMB.DATA.HEROES[heroId].name}` : `الطابق ${n}` };
+  }
+
+  function rewardsFor(n) {
+    const R = T().rewards, boss = isBoss(n);
+    return { shards: R.shardsFirst + Math.round(((R.shardsLast - R.shardsFirst) * (n - 1)) / (T().floors - 1)), passXp: boss ? R.passXpBoss : R.passXp,
+      pack: boss ? R.bossPack : null, card: n === T().floors ? R.finalCard : null };
+  }
+
+  function Tower(save, deps) {
+    deps = deps || {};
+    const st = () => save.get('tower');
+    const api = {
+      floors: () => T().floors, isBoss, bossWorld, lineupFor, powerFor, startFor, rewardsFor,
+      best: () => st().best,
+      next: () => Math.min(T().floors, st().best + 1),
+      done: () => st().best >= T().floors,
+      unlocked: () => !deps.campaign || deps.campaign.levelDone(T().unlock.campaignLevel),
+      canPlay: (n) => api.unlocked() && n >= 1 && n <= Math.min(T().floors, st().best + 1),
+      attempts: (n) => st().attempts[n] || 0,
+      /** options for new AMB.Match(...) on a floor */
+      matchOptions(n, heroId, seed) {
+        const L = lineupFor(n), C = deps.collection, power = powerFor(n);
+        const enemyPower = {}; L.units.forEach(([id]) => (enemyPower[id] = power)); enemyPower[L.heroId] = power;
+        return {
+          mode: 'tower', seed, progression: true,
+          rules: Object.assign({}, AMB.LEVELS.CAMPAIGN.rules, { start: startFor(n) }),
+          players: [
+            { heroId, name: 'أنت', cardPower: C ? C.powerMap() : null, allowedUnits: C ? C.ownedUnits() : null },
+            { heroId: L.heroId, name: L.name, isAI: true, cardPower: enemyPower, lineup: { units: L.units, summon: L.summon, blessings: L.blessings, abilities: L.abilities } },
+          ],
+        };
+      },
+      /** record a finished fight (match.summary(0) fields + lifeLeft); pays rewards on the first clear of a floor */
+      recordResult(n, res) {
+        const won = !!res.won, first = won && n > st().best && n === st().best + 1;
+        const out = { floor: n, won, boss: isBoss(n), first, shards: 0, passXp: 0, pack: null, card: null, best: st().best };
+        save.update('tower', (s) => { s.attempts[n] = (s.attempts[n] || 0) + 1; s.runs++; if (won) { s.wins[n] = (s.wins[n] || 0) + 1; if (first) s.best = n; } });
+        if (first) {
+          const pay = rewardsFor(n);
+          if (deps.wallet) { deps.wallet.add('shards', pay.shards, 'tower'); out.shards = pay.shards; }
+          if (deps.addPassXp) { deps.addPassXp(pay.passXp); out.passXp = pay.passXp; }
+          if (pay.pack && deps.packs) out.pack = deps.packs.open(pay.pack, { free: true });
+          if (pay.card && deps.collection) out.card = deps.collection.grantRandom(pay.card, deps.rng);
+        }
+        out.best = st().best;
+        if (deps.events) deps.events.emit('towerEnd', Object.assign({}, out, { summary: res }));
+        return out;
+      },
+    };
+    return api;
+  }
+
+  AMB.Tower = Tower;
+  AMB.Tower.lineupFor = lineupFor; AMB.Tower.powerFor = powerFor; AMB.Tower.rewardsFor = rewardsFor;
+})();
+
+</script>
+<script>
+/*
  * Card album: every card in the game; missing ones show as shadows. Own every unit of a world
  * (5 each) to claim that world's set reward once: shards + a title + a frame in the world's colour.
  * Own all 20 units: bonus packs + the title "جامع الصدع". Heroes are listed but belong to no set
@@ -4598,12 +4761,13 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
     const campaign = AMB.Campaign(save, { wallet, packs, collection, events, addPassXp: (n) => AMB.pass && AMB.pass.addXp(n) });
     const login = AMB.Login(save, { wallet, packs, collection, events, now: nowFn });
     const album = AMB.Album(save, { wallet, packs, collection, events });
-    return { save, events, wallet, collection, packs, campaign, login, album };
+    const tower = AMB.Tower(save, { wallet, packs, collection, events, campaign, addPassXp: (n) => AMB.pass && AMB.pass.addXp(n) });
+    return { save, events, wallet, collection, packs, campaign, login, album, tower };
   }
   AMB.Profile = { boot };
   if (typeof document !== 'undefined' && !AMB.save) {
     const p = boot();
-    AMB.save = p.save; AMB.events = p.events; AMB.wallet = p.wallet; AMB.collection = p.collection; AMB.packs = p.packs; AMB.campaign = p.campaign; AMB.login = p.login; AMB.album = p.album;
+    AMB.save = p.save; AMB.events = p.events; AMB.wallet = p.wallet; AMB.collection = p.collection; AMB.packs = p.packs; AMB.campaign = p.campaign; AMB.login = p.login; AMB.album = p.album; AMB.tower = p.tower;
   }
 })();
 
@@ -4721,6 +4885,7 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
     { id: 'd_upgrade1', name: 'طوّر بطاقة', stat: 'upgrades', target: 1, xp: 40, shards: 40 },
     { id: 'd_pack1', name: 'افتح باكج', stat: 'packs', target: 1, xp: 30, shards: 30 },
     { id: 'd_stars3', name: 'اجمع ٣ نجوم جديدة في الحملة', stat: 'stars', target: 3, xp: 60, shards: 50 },
+    { id: 'd_tower2', name: 'اصعد طابقين في البرج', stat: 'tower_floors', target: 2, xp: 50, shards: 50 },
     { id: 'd_campaign2', name: 'العب قتالين في الحملة', stat: 'campaign', target: 2, xp: 40, shards: 40 },
   ];
   const WEEKLY = [
@@ -4848,6 +5013,10 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
   function wire(pass, events) {
     events.on('cardUpgraded', () => pass.track('upgrades', 1));
     events.on('packOpened', () => pass.track('packs', 1));
+    events.on('towerEnd', (r) => {   // tower fights count as fights won / matches; each new floor counts toward "climb 2 floors"
+      if (r.summary) pass.recordStats(Object.assign({}, r.summary, { won: r.won }));
+      if (r.first) pass.track('tower_floors', 1);
+    });
     events.on('fightEnd', (r) => {
       if (r.summary) pass.recordStats(Object.assign({}, r.summary, { won: r.won }));
       pass.track('campaign', 1);
@@ -5396,6 +5565,7 @@ AMB.IMAGES = {
     if (globalThis.AMB && AMB.PassUI) { if (screen === 'menu') AMB.PassUI.refreshMenu(); if (screen === 'pass') AMB.PassUI.render(); }
     if (globalThis.AMB && AMB.CollectionUI) { if (screen === 'menu') AMB.CollectionUI.refreshMenu(); if (screen === 'cards') AMB.CollectionUI.render(); }
     if (globalThis.AMB && AMB.PacksUI) { if (screen === 'menu') AMB.PacksUI.refreshMenu(); if (screen === 'packs') AMB.PacksUI.render(); }
+    if (globalThis.AMB && AMB.TowerUI) { if (screen === 'tower') AMB.TowerUI.render(); if (screen === 'menu') AMB.TowerUI.refreshMenu(); }
     if (globalThis.AMB && AMB.CampaignUI) { if (screen === 'campaign') AMB.CampaignUI.render(); if (screen === 'menu') AMB.CampaignUI.refreshMenu(); }
     if (globalThis.AMB && AMB.DailyUI && screen === 'menu') AMB.DailyUI.onMenu();
   }
@@ -5460,7 +5630,9 @@ AMB.IMAGES = {
       ];
     }
     // campaign fight (ui/campaign-ui.js): fixed enemy line-up, short best-of-3 rules, your card levels count
-    S.match = S.mode === 'campaign' ? new AMB.Match(AMB.campaign.matchOptions(S.campaign.fightId, S.picks[0])) : new AMB.Match({ mode: S.mode, players });
+    S.match = S.mode === 'campaign' ? new AMB.Match(AMB.campaign.matchOptions(S.campaign.fightId, S.picks[0]))
+      : S.mode === 'tower' ? new AMB.Match(AMB.tower.matchOptions(S.tower.floor, S.picks[0]))
+      : new AMB.Match({ mode: S.mode, players });
     // same hero on both sides (e.g. your Kiro vs the Ember boss Kiro): the enemy becomes its "shadow"
     const mirror = S.match.players[0].heroId === S.match.players[1].heroId;
     document.body.classList.toggle('mirror-foe', mirror);
@@ -6376,7 +6548,8 @@ AMB.IMAGES = {
     cancelAnimationFrame(S.raf);
     S.phase = 'over';
     const secs = Math.round((Date.now() - S.startTs) / 1000);
-    if (S.mode === 'campaign') return AMB.CampaignUI.showResult(m, secs);   // campaign has its own results screen
+    if (S.mode === 'campaign') return AMB.CampaignUI.showResult(m, secs);   // campaign and tower have their own results screens
+    if (S.mode === 'tower') return AMB.TowerUI.showResult(m, secs);
     if (S.mode !== 'friendly' && !m._recorded) { AMB.telemetry.recordMatch(m, { seconds: secs }); m._recorded = true; }
     if (!m._counted) { m._counted = true; try { localStorage.setItem('amb_played', String(+(localStorage.getItem('amb_played') || 0) + 1)); } catch (e) { /* ignore */ } }
     if (!m._passDone) { m._passDone = true; try { S.passResult = AMB.pass.recordMatch(m.summary(0)); } catch (e) { S.passResult = null; } }
@@ -6624,7 +6797,7 @@ AMB.IMAGES = {
     },
     toResults: () => showResults(),
     info: (d, el, e) => { if (e) e.stopPropagation(); if (d.k === 'hero') { heroDetail(d.id); return; } const t = AMB.TIPS[d.k]; if (!t) return; const x = t(); modal(`<h2>${x.title}</h2><div class="tip-body">${x.html}</div>`); },
-    again: () => { if (S.mode === 'campaign') { startMatch(); return; } S.picks = [S.picks[0], S.picks[1]]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
+    again: () => { if (S.mode === 'campaign' || S.mode === 'tower') { startMatch(); return; } S.picks = [S.picks[0], S.picks[1]]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
     statsExport: () => {
       const blob = new Blob([JSON.stringify(AMB.telemetry.load(), null, 2)], { type: 'application/json' });
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'multiverse-telemetry.json'; a.click();
@@ -7450,6 +7623,116 @@ AMB.IMAGES = {
   }
 
   AMB.AlbumUI = { render, refreshMenu, installActions };
+  if (UI()) installActions();
+  refreshMenu();
+})();
+
+</script>
+<script>
+/*
+ * "البرج" screen: a ladder of 30 floors. Climb one floor at a time (best-of-3 fight, like the campaign),
+ * every 5th floor is a boss. Logic: core/tower.js, settings: AMB.ECONOMY.tower.
+ */
+(function () {
+  const AMB = globalThis.AMB;
+  const $ = (id) => document.getElementById(id);
+  const TW = AMB.tower, C = AMB.collection, CAM = AMB.campaign;
+  const { icon } = AMB.art;
+  const UI = () => globalThis.AMB_UI;
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const W = (id) => AMB.DATA.WORLDS[id];
+  let hero = null;
+
+  const pickHero = () => { const owned = C.ownedHeroes(); if (hero && owned.includes(hero)) return hero; return (hero = (C.starterHero() && owned.includes(C.starterHero()) ? C.starterHero() : owned[0]) || null); };
+  const rewardHTML = (n) => { const r = TW.rewardsFor(n); return `${icon('gem')} ${r.shards}${r.pack ? ' · 📦' : ''}${r.card ? ' · 🃏' : ''}`; };
+
+  function row(n) {
+    const L = TW.lineupFor(n), cleared = n <= TW.best(), cur = n === TW.next() && !TW.done(), open = TW.canPlay(n);
+    const art = L.boss ? UI().portrait(AMB.DATA.HEROES[L.heroId], { bare: true, k: 'tw' + n }) : `<b>${n}</b>`;
+    return `<button class="twrow ${L.boss ? 'boss' : ''} ${cleared ? 'cleared' : ''} ${cur ? 'cur' : ''} ${open ? '' : 'locked'}" style="--wc:${W(L.world).color}" ${open ? `data-act="towFloor" data-n="${n}"` : 'disabled'}>
+      <span class="tw-n">${art}</span>
+      <span class="tw-mid"><b>${L.boss ? '👑 زعيم · ' : ''}الطابق ${n}</b><small>${W(L.world).name}${L.boss ? ' · ' + esc(L.special.name) : ''}</small></span>
+      <span class="tw-rw">${cleared ? (n === TW.best() ? '✓' : '✓') : rewardHTML(n)}</span>
+      ${cur ? '<span class="tw-go">قاتل</span>' : open ? '' : '<span class="tw-lock">🔒</span>'}</button>`;
+  }
+
+  function render() {
+    const root = $('tower'); if (!root) return;
+    if (C.needsStarter()) { root.innerHTML = '<div class="cam-note">اختر بطلك الأول من «الحملة» أول.</div>'; return; }
+    if (!TW.unlocked()) { root.innerHTML = `<div class="cam-note">🔒 البرج يفتح بعد ما تنهي <b>المستوى الأول من الحملة</b> (${CAM.progress('l1').cleared}/${CAM.progress('l1').total}).</div>`; return; }
+    const best = TW.best(), N = TW.floors();
+    const floors = []; for (let n = N; n >= 1; n--) floors.push(row(n));
+    root.innerHTML = `<div class="tw-head"><div class="tw-best"><small>أعلى طابق</small><b>${best}</b><span>/ ${N}</span></div>
+        <div class="tw-prog"><i style="width:${(100 * best) / N}%"></i></div>
+        <div class="hint">${TW.done() ? '🏆 أكملت البرج!' : `الجاي: الطابق ${TW.next()}`} <button class="ibtn" data-act="info" data-k="towinfo" title="شرح">ⓘ</button></div></div>
+      <div class="twlist">${floors.join('')}</div>`;
+    refreshMenu();
+    const cur = root.querySelector('.twrow.cur'); if (cur && cur.scrollIntoView) setTimeout(() => cur.scrollIntoView({ block: 'center' }), 50);
+  }
+
+  function refreshMenu() {
+    const b = $('menu-tower'); if (!b) return;
+    const l = b.querySelector('.mt-l');
+    l.innerHTML = TW.unlocked() ? `البرج <small>${TW.best()}/${TW.floors()}</small>` : 'البرج 🔒';
+  }
+
+  function preview(n) {
+    const ui = UI(), L = TW.lineupFor(n), h = pickHero(), R = TW.rewardsFor(n), first = n > TW.best();
+    const units = L.units.map(([id, star, , from], k) => `<div class="cu">${ui.portrait(AMB.DATA.UNITS[id], { k: 'twp' + k + id })}${ui.stars(star)}${from > 1 ? `<small>من الجولة ${from}</small>` : ''}</div>`).join('');
+    const heroes = C.ownedHeroes().map((id) => `<button class="hchip ${id === h ? 'on' : ''}" data-act="towHero" data-id="${id}" data-n="${n}">${ui.portrait(AMB.DATA.HEROES[id], { k: 'twh' + id })}<span>${AMB.DATA.HEROES[id].name}</span></button>`).join('');
+    const reward = first ? `${icon('gem')} ${R.shards} شظية · +${R.passXp} خبرة ممر${R.pack ? ' · <b>باكج مجاني</b>' : ''}${R.card ? ' · <b>بطاقة إيبك أو أندر مضمونة</b>' : ''}` : 'أنهيت هذا الطابق: بدون جائزة (تدريب)';
+    ui.modal(`<div class="cam-pv" style="--wc:${W(L.world).color}"><h2>${L.boss ? '👑 ' : ''}${esc(L.name)}</h2><div class="hint">${W(L.world).name} · أفضل من 3 جولات${TW.attempts(n) ? ' · محاولات: ' + TW.attempts(n) : ''}</div>
+      ${L.boss ? `<div class="boss-box">${ui.portrait(AMB.DATA.HEROES[L.heroId], { k: 'twb' })}<div><b>قدرة الزعيم: ${esc(L.special.name)}</b><p>${esc(L.special.text)}</p></div></div>` : ''}
+      <h4>تشكيلة الخصم</h4><div class="cam-units">${units}</div>
+      <h4>الجائزة</h4><div class="cam-reward">${reward}</div>
+      <h4>بطلك</h4><div class="hchips">${heroes}</div>
+      <div class="cam-go"><button class="btn primary big" data-act="towGo" data-n="${n}" ${h ? '' : 'disabled'}>قاتل!</button></div></div>`);
+  }
+
+  function start(n) {
+    const ui = UI(), S = ui.S;
+    S.mode = 'tower'; S.tower = { floor: n }; S.picks = [pickHero(), null]; S.pickIdx = 0;
+    ui.closeModal(); ui.startMatch();
+  }
+
+  function showResult(m, secs) {
+    const ui = UI(), S = ui.S, n = S.tower.floor, L = TW.lineupFor(n);
+    if (!m._towDone) { m._towDone = true; S.towResult = TW.recordResult(n, Object.assign(m.summary(0), { lifeLeft: m.players[0].life, roundsLost: m.players[0].stats.losses })); }
+    const r = S.towResult, won = r.won, score = `${m.players[0].stats.wins} – ${m.players[1].stats.wins}`;
+    const pay = won && r.first ? [r.shards ? `${icon('gem')} +${r.shards} شظية` : '', r.passXp ? `+${r.passXp} خبرة ممر` : ''].filter(Boolean).join(' · ') : '';
+    const cards = (r.pack ? r.pack.cards : []).concat(r.card ? [r.card] : []);
+    const gift = cards.length ? `<div class="cam-pack"><b>${r.card ? '🏆 جائزة البرج' : '🎁 باكج مجاني'}:</b><div class="cam-pack-row">${cards.map((c, i) => `<div class="cu">${ui.portrait(C.def(c.id), { k: 'twr' + i + c.id })}<small class="r-${c.rarity}">${c.isNew ? 'جديدة!' : c.refund ? '+' + c.refund + ' شظية' : (c.rarity === 'legendary' || c.rarity === 'epic') && r.card ? AMB.ECONOMY.rarities[c.rarity].name : '+1 نسخة'}</small></div>`).join('')}</div></div>` : '';
+    const next = won && TW.canPlay(n + 1) ? n + 1 : null;
+    $('results').innerHTML = `<div class="res-stage ${won ? 'victory' : 'defeat'}" style="--wc:${W(L.world).color}"><div class="res-rays"></div>
+        <div class="res-hero">${ui.portrait(won ? AMB.DATA.HEROES[m.players[0].heroId] : AMB.DATA.HEROES[L.heroId], { bare: true, k: 'twrh' })}<i class="sheen"></i></div>
+        <div class="res-hname">${esc(L.name)}</div></div>
+      <div class="res-banner"><h1>${won ? (L.boss ? 'هزمت الزعيم!' : 'فوز!') : 'خسارة'}</h1><p class="hint">النتيجة ${score} · ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')} دقيقة</p>
+        ${won ? `<p class="cam-pay">${r.first ? pay : 'تدريب: بدون جائزة'}</p>${r.first ? `<p class="hint">أعلى طابق: ${r.best} من ${TW.floors()}</p>` : ''}` : '<p class="hint">ما خسرت شي. طوّر بطاقاتك وجرّب نفس الطابق مرة ثانية</p>'}</div>
+      ${gift}
+      <div class="cam-btns">
+        ${next ? `<button class="btn primary big" data-act="towGo" data-n="${next}">الطابق التالي ${next}</button>` : ''}
+        <button class="btn ${won ? '' : 'primary'} big" data-act="towGo" data-n="${n}">${won ? 'أعد الطابق' : 'حاول مرة ثانية'}</button>
+        <button class="btn big ghost" data-act="go" data-to="tower">البرج</button>
+        ${won ? '' : '<button class="btn big ghost" data-act="go" data-to="cards">طوّر بطاقاتي</button>'}</div>`;
+    ui.show('results'); ui.sfx(won ? 'win' : 'lose');
+    if (won) setTimeout(() => { const el = document.querySelector('.res-hero'); if (el) ['#ffd24a', '#ffffff', W(L.world).color].forEach((c) => ui.burst(el, c, 14, { r: 150, s: 8 })); }, 250);
+  }
+
+  AMB.TIPS = AMB.TIPS || {};
+  AMB.TIPS.towinfo = () => { const R = AMB.ECONOMY.tower.rewards; return { title: 'برج التحدي', html: `<p>${TW.floors()} طابقًا، كل طابق قتال <b>أفضل من 3 جولات</b> ضد تشكيلة تصعب كل ما صعدت. كل 5 طوابق زعيم بقدرة خاصة.</p>
+    <p>أول مرة تجتاز طابقًا: ${icon('gem')} ${R.shardsFirst}–${R.shardsLast} شظية + خبرة ممر. الزعيم: باكج مجاني. الطابق ${TW.floors()}: بطاقة إيبك أو أندر مضمونة.</p>
+    <p>لو خسرت تعيد نفس الطابق بدون أي عقوبة، وأعلى طابق وصلت له محفوظ. مستويات بطاقاتك تُحتسب هنا، وتقدر تعيد أي طابق سابق للتدريب بدون جائزة.</p>` }; };
+
+  function installActions() {
+    const ui = UI(); if (!ui || ui.ACT.towFloor) return;
+    Object.assign(ui.ACT, {
+      towFloor: (d) => preview(+d.n),
+      towHero: (d) => { hero = d.id; preview(+d.n); },
+      towGo: (d) => start(+d.n),
+    });
+  }
+
+  AMB.TowerUI = { render, refreshMenu, showResult, installActions };
   if (UI()) installActions();
   refreshMenu();
 })();

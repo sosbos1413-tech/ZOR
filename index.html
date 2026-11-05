@@ -37,6 +37,7 @@
       <div class="menu-tiles">
         <button class="mtile mt-prog" data-act="go" data-to="pass" id="menu-pass"><span class="mt-ic">🎖️</span><span class="mt-l">ممر الصدع</span></button>
         <button class="mtile mt-prog" data-act="go" data-to="cards" id="menu-cards"><span class="mt-ic">🃏</span><span class="mt-l">مجموعتي</span></button>
+        <button class="mtile mt-prog" data-act="go" data-to="tower" id="menu-tower"><span class="mt-ic">🗼</span><span class="mt-l">البرج</span></button>
         <button class="mtile mt-prog" data-act="go" data-to="packs" id="menu-packs"><span class="mt-ic">📦</span><span class="mt-l">الباكجات</span></button>
         <button class="mtile mt-prog" data-act="loginOpen" id="menu-login"><span class="mt-ic">🎁</span><span class="mt-l">الدخول اليومي</span></button>
         <button class="mtile" data-act="go" data-to="codex" id="menu-album"><span class="mt-ic">📖</span><span class="mt-l">الألبوم</span></button>
@@ -149,6 +150,11 @@
     <div class="campaign" id="campaign"></div>
   </section>
 
+  <section class="screen" id="scr-tower">
+    <header class="scr-head"><button class="btn ghost" data-act="go" data-to="menu">→ رجوع</button><h2>برج التحدي</h2></header>
+    <div class="tower" id="tower"></div>
+  </section>
+
   <section class="screen" id="scr-stats">
     <header class="scr-head"><button class="btn ghost" data-act="go" data-to="menu">→ رجوع</button><h2>الإحصائيات والتوازن</h2></header>
     <div class="stats" id="stats"></div>
@@ -180,6 +186,7 @@
 <script src="core/levels.js"></script>
 <script src="core/campaign.js"></script>
 <script src="core/daily.js"></script>
+<script src="core/tower.js"></script>
 <script src="core/album.js"></script>
 <script src="core/profile.js"></script>
 <script src="core/pass.js"></script>
@@ -193,6 +200,7 @@
 <script src="ui/campaign-ui.js"></script>
 <script src="ui/daily-ui.js"></script>
 <script src="ui/album-ui.js"></script>
+<script src="ui/tower-ui.js"></script>
 <script src="ui/save-ui.js"></script>
 <script src="ui/update-ui.js"></script>
 </body>

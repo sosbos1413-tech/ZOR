@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* Rule tests for the core (no browser needed):  node tools/test.js */
 const path = require('path');
-['config', 'data', 'util', 'synergy', 'combat', 'match', 'ai', 'telemetry', 'pass', 'save', 'economy', 'collection', 'packs', 'levels', 'campaign', 'daily', 'album', 'profile'].forEach((f) => require(path.join(__dirname, '..', 'core', f + '.js')));
+['config', 'data', 'util', 'synergy', 'combat', 'match', 'ai', 'telemetry', 'pass', 'save', 'economy', 'collection', 'packs', 'levels', 'campaign', 'daily', 'album', 'tower', 'profile'].forEach((f) => require(path.join(__dirname, '..', 'core', f + '.js')));
 const AMB = globalThis.AMB;
 let pass = 0, fail = 0;
 function t(name, fn) {
@@ -796,6 +796,66 @@ t('album: all 65 units = free packs + grand title; saved across reloads', () => 
 t('album: exclusive (event) cards are not part of any set', () => {
   AMB.DATA.UNITS.thorn_fox.exclusive = true;
   try { const A = AMB.Profile.boot(MEM()).album; eq(A.units('sylvan').length, 20); eq(A.total().total, 64); } finally { delete AMB.DATA.UNITS.thorn_fox.exclusive; }
+});
+
+console.log('challenge tower');
+const towerOf = (prof) => AMB.Tower(prof.save, { wallet: prof.wallet, packs: prof.packs, collection: prof.collection, events: prof.events, campaign: prof.campaign, rng: AMB.util.RNG(5) });
+const unlockTower = (prof) => AMB.LEVELS.LEVELS[0].fights.forEach((f) => prof.campaign.recordResult(f.id, { won: true }));
+t('tower: 30 floors, a boss every 5th, generated line-ups are valid and deterministic', () => {
+  const T = AMB.ECONOMY.tower; eq(T.floors, 30); eq(T.power.length, 30);
+  for (let n = 1; n <= 30; n++) {
+    const L = AMB.Tower.lineupFor(n), L2 = AMB.Tower.lineupFor(n);
+    eq(JSON.stringify(L.units), JSON.stringify(L2.units), 'deterministic ' + n);
+    eq(L.boss, n % 5 === 0, 'boss ' + n); ok(AMB.Tower.powerFor(n) > 0.2 && AMB.Tower.powerFor(n) < 3.5);
+    const slots = new Set();
+    L.units.forEach(([id, star, slot, from]) => { ok(AMB.DATA.UNITS[id], id); ok(/^[fb][0-3]$/.test(slot), slot); ok(!slots.has(slot), `floor ${n} duplicate slot ${slot}`); slots.add(slot); ok(star >= 1 && star <= 3 && from >= 1 && from <= 3); });
+    if (L.boss) { ok(!slots.has('b1'), 'boss hero slot free'); eq(L.summon, 'b1'); ok(L.abilities.length > 0 && L.blessings); } else eq(L.summon, null);
+    ok(L.units.length >= 5 && L.units.length <= (L.boss ? 7 : 8), 'size ' + n);
+  }
+  ok(AMB.Tower.lineupFor(30).units.length > AMB.Tower.lineupFor(1).units.length, 'later floors are bigger');
+});
+t('tower: floors get harder (more units, higher tiers on average)', () => {
+  const avgTier = (a, b) => { let s = 0, c = 0; for (let n = a; n <= b; n++) AMB.Tower.lineupFor(n).units.forEach(([id]) => { s += AMB.DATA.UNITS[id].tier; c++; }); return s / c; };
+  ok(avgTier(21, 30) > avgTier(1, 10) + 0.3, `${avgTier(1, 10).toFixed(2)} -> ${avgTier(21, 30).toFixed(2)}`);
+});
+t('tower: locked until campaign level 1 is done; floors open one at a time', () => {
+  const prof = AMB.Profile.boot(MEM()), tw = towerOf(prof);
+  ok(!tw.unlocked()); ok(!tw.canPlay(1));
+  unlockTower(prof); ok(tw.unlocked()); ok(tw.canPlay(1)); ok(!tw.canPlay(2)); eq(tw.next(), 1); eq(tw.best(), 0);
+});
+t('tower: first clear pays once (shards 20..50 + pass xp), boss floors a pack, floor 30 an epic+ card; best is saved', () => {
+  const mem = MEM(), prof = AMB.Profile.boot(mem); let xp = 0;
+  const tw = AMB.Tower(prof.save, { wallet: prof.wallet, packs: prof.packs, collection: prof.collection, events: prof.events, campaign: prof.campaign, addPassXp: (n) => (xp += n), rng: AMB.util.RNG(5) });
+  unlockTower(prof);
+  const lost = tw.recordResult(1, { won: false }); ok(!lost.won && !lost.first && !lost.shards); eq(tw.best(), 0); eq(tw.attempts(1), 1);
+  const sh = prof.wallet.balance('shards');
+  const w1 = tw.recordResult(1, { won: true }); ok(w1.first); eq(w1.shards, 20); eq(prof.wallet.balance('shards'), sh + 20); eq(xp, 10); eq(tw.best(), 1); ok(tw.canPlay(2));
+  const again = tw.recordResult(1, { won: true }); ok(!again.first && again.shards === 0); eq(tw.best(), 1); eq(prof.wallet.balance('shards'), sh + 20, 'no pay twice');
+  eq(tw.recordResult(3, { won: true }).first, false, 'cannot skip floors'); eq(tw.best(), 1);
+  const packs0 = prof.packs.stats().opened;
+  for (let n = 2; n <= 4; n++) tw.recordResult(n, { won: true });
+  const b5 = tw.recordResult(5, { won: true }); ok(b5.boss && b5.first && b5.pack && b5.pack.cards.length === 5); eq(prof.packs.stats().opened, packs0 + 1); eq(b5.passXp, AMB.ECONOMY.tower.rewards.passXpBoss);
+  for (let n = 6; n <= 29; n++) tw.recordResult(n, { won: true });
+  eq(tw.best(), 29);
+  const f30 = tw.recordResult(30, { won: true }); ok(f30.card && ['epic', 'legendary'].includes(f30.card.rarity), 'final card'); eq(f30.shards, 50); ok(tw.done());
+  eq(AMB.Tower(AMB.Save.create(mem), {}).best(), 30, 'saved');
+});
+t('tower: match options use your cards and owned units; a floor plays end to end', () => {
+  const prof = AMB.Profile.boot(MEM()), tw = towerOf(prof); unlockTower(prof);
+  const o = tw.matchOptions(5, 'orath', 3);
+  ok(o.progression && o.mode === 'tower'); ok(o.players[0].allowedUnits.every((id) => prof.collection.owned(id)));
+  const m = new AMB.Match(o); m.players[0].isAI = true;
+  while (!m.isOver) { m.startRound(); AMB.AI.prep(m, 0); AMB.AI.prep(m, 1); m.resolveCombat(m.createCombat(false).runToEnd()); }
+  ok(m.round <= 3); eq(m.summary(0).mode, 'campaign', 'short-match summary');
+  const r = tw.recordResult(1, Object.assign(m.summary(0), { won: true })); ok(r.first);
+});
+t('tower: missions count tower fights and new floors (event bus)', () => {
+  const prof = AMB.Profile.boot(MEM()), pass = passFor(prof), tw = towerOf(prof); unlockTower(prof);
+  const p = () => pass.state().daily.p;
+  const fw0 = p().fights_won || 0;   // unlocking the tower played the campaign fights, which count too
+  tw.recordResult(1, { won: true, roundsWon: 2, buys: 3 });
+  eq(p().tower_floors, 1); eq(p().fights_won, fw0 + 1); ok(p().buys >= 3);
+  tw.recordResult(1, { won: true, roundsWon: 2 }); eq(p().tower_floors, 1, 'replay is not a new floor'); eq(p().fights_won, fw0 + 2);
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);
