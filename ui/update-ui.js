@@ -41,6 +41,8 @@
 
   // after an update: say so once
   if (ss.get('zor_upd') === mine) { ss.del('zor_upd'); window.addEventListener('load', () => setTimeout(() => UI() && UI().toast('تم تحديث اللعبة ✓', 'good'), 800)); }
+  // installable app: register the service worker (offline play + the "install app" prompt); updates still arrive through version.json
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
   setTimeout(check, 2500);
   setInterval(check, 5 * 60 * 1000);
   setInterval(tick, 3000);

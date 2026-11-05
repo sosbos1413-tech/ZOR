@@ -2,9 +2,14 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="63435e3881">
+<meta name="zor-build" content="d5a7444a66">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="description" content="ZOR — لعبة بطاقات استراتيجية 1 ضد 1 بقتال تلقائي بين أربعة عوالم. ٧ جولات، ٥ دقائق.">
 <meta property="og:title" content="ZOR — Zones Of Rift">
 <meta property="og:description" content="لعبة بطاقات استراتيجية 1 ضد 1 بقتال تلقائي. ٧ جولات، ٥ دقائق.">
@@ -7567,6 +7572,8 @@ AMB.IMAGES = {
 
   // after an update: say so once
   if (ss.get('zor_upd') === mine) { ss.del('zor_upd'); window.addEventListener('load', () => setTimeout(() => UI() && UI().toast('تم تحديث اللعبة ✓', 'good'), 800)); }
+  // installable app: register the service worker (offline play + the "install app" prompt); updates still arrive through version.json
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
   setTimeout(check, 2500);
   setInterval(check, 5 * 60 * 1000);
   setInterval(tick, 3000);

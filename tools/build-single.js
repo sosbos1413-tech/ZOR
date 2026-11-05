@@ -39,6 +39,25 @@ fs.mkdirSync(docs, { recursive: true });
 fs.writeFileSync(path.join(docs, 'index.html'), html);
 fs.writeFileSync(path.join(docs, '.nojekyll'), '');
 fs.writeFileSync(path.join(docs, 'version.json'), versionJson);
+
+// installable app (PWA): manifest + icons + a service worker (network first, so updates always win; the cache only serves offline play)
+const webManifest = { name: 'ZOR — مناطق الصدع', short_name: 'ZOR', description: 'لعبة بطاقات استراتيجية بقتال تلقائي', lang: 'ar', dir: 'rtl',
+  start_url: './', scope: './', id: './', display: 'standalone', orientation: 'any', background_color: '#121010', theme_color: '#121010',
+  icons: [{ src: 'icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+    { src: 'icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }] };
+fs.writeFileSync(path.join(docs, 'manifest.webmanifest'), JSON.stringify(webManifest, null, 2));
+['icon-192.png', 'icon-512.png', 'icon-maskable-512.png'].forEach((f) => fs.copyFileSync(path.join(root, 'assets', 'icons', f), path.join(docs, f)));
+fs.writeFileSync(path.join(docs, 'sw.js'), `// ZOR service worker (build ${buildId}). Network first: a new version is always fetched when online; the cache is only the offline fallback.
+const CACHE = 'zor-${buildId}';
+self.addEventListener('install', (e) => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['./', 'manifest.webmanifest', 'icon-192.png']).catch(() => {}))); });
+self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
+self.addEventListener('fetch', (e) => {
+  const r = e.request, u = new URL(r.url);
+  if (r.method !== 'GET' || u.origin !== location.origin) return;
+  e.respondWith(fetch(r, { cache: 'no-store' }).then((res) => { if (res.ok && !u.pathname.endsWith('version.json')) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(r.mode === 'navigate' ? './' : r, copy)); } return res; })
+    .catch(() => caches.match(r.mode === 'navigate' ? './' : r, { ignoreSearch: true }).then((m) => m || caches.match('./'))));
+});
+`);
 console.log('build', buildId);
 console.log('docs/index.html (GitHub Pages)');
 console.log('dist/zor.html', (html.length / 1048576).toFixed(2) + ' MB');
