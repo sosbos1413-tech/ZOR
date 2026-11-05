@@ -1597,3 +1597,23 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
 .ev-card { flex: none; padding-top: 6px; } .ev-ptxt { flex: 1; } .ev-ptxt p { font: 400 24px var(--display); color: #fff; margin: 4px 0; } .ev-ptxt small { font: 12px system-ui; color: var(--paper3); }
 .ev-done { margin-top: 8px; background: var(--green); color: #fff; padding: 2px 10px; display: inline-block; font-weight: 700; }
 .cam-pack.ev-gift { border-color: #ff9f1a; box-shadow: 0 0 22px #ff9f1a88; } .cu.big { width: 110px; } .cu.big .portrait { width: 100px; height: 100px; }
+
+/* ======================================================================= deck + welcome gift */
+.deck-bar { background: #0008; border: 3px solid var(--gold); box-shadow: var(--hard-sm); padding: 8px 10px; margin: 0 0 10px; position: sticky; top: 0; z-index: 5; backdrop-filter: blur(4px); }
+.deck-bar.bad { border-color: var(--red); }
+.db-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; } .db-top b { font-size: 16px; } .db-top b span { color: var(--gold); direction: ltr; display: inline-block; }
+.db-btns { display: flex; gap: 6px; align-items: center; }
+.db-slots { display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; margin: 6px 0; }
+.dslot { aspect-ratio: 1; border: 2px solid var(--paper3); background: var(--ink2); padding: 0; cursor: pointer; overflow: hidden; display: block; } .dslot .portrait { width: 100%; height: 100%; } .dslot.empty { border-style: dashed; opacity: .5; cursor: default; }
+.db-roles { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; color: var(--paper3); } .db-roles svg { width: 12px; height: 12px; vertical-align: -2px; margin-inline-end: 2px; } .db-roles .z { opacity: .45; }
+.db-warn { color: var(--red); font-size: 12px; margin-top: 4px; font-weight: 700; }
+.cp-tile.indeck .tcard { box-shadow: 0 0 0 3px var(--gold); } .btn.dk.on { background: var(--gold); color: var(--ink); }
+.deck-line { margin-top: 10px; font-size: 14px; } .deck-line.bad { color: var(--red); } .deck-line .btn { margin-inline-start: 6px; }
+.gift-sub { font: 400 22px var(--display); color: var(--gold); margin: 4px 0 12px; }
+.gift-packs { display: flex; justify-content: center; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
+.gift-pack { width: 62px; height: 88px; border: 3px solid #000; border-radius: 8px; box-shadow: 0 0 0 2px var(--gold); background: linear-gradient(160deg, #3a1a6e, #0b0b24 60%, #6e1020); display: flex; flex-direction: column; align-items: center; justify-content: center; animation: pkfloat 3s ease-in-out infinite; animation-delay: var(--d); }
+.gift-pack b { font: 400 22px var(--display); color: var(--gold); text-shadow: 2px 2px 0 var(--red); } .gift-pack small { color: #fff; font-size: 12px; }
+.gift-dots { display: flex; justify-content: center; gap: 6px; margin: 10px 0; } .gift-dots i { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--paper3); } .gift-dots i.on { background: var(--gold); border-color: #000; }
+.deck-mini { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; max-width: 420px; margin: 10px auto; } .dm { aspect-ratio: 1; border: 2px solid var(--gold); overflow: hidden; } .dm .portrait { width: 100%; height: 100%; }
+.deck-roles { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; font-size: 13px; color: var(--paper3); margin-bottom: 8px; } .deck-roles svg { width: 13px; height: 13px; vertical-align: -2px; }
+@media (max-width: 700px) { .db-slots { grid-template-columns: repeat(6, 1fr); } .deck-bar { padding: 6px 8px; position: static; } }

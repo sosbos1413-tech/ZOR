@@ -90,13 +90,14 @@
       ${h === l.hero ? `<div class="hint">ستواجه <b>ظلّ ${AMB.DATA.HEROES[h].name}</b></div>` : ''}
       <h4>تشكيلة الخصم</h4><div class="cam-units">${unitsHTML}</div>
       <h4>الجائزة</h4><div class="cam-reward">${reward}</div>
-      <h4>بطلك</h4><div class="hchips">${heroes}</div>
+      <h4>بطلك</h4><div class="hchips">${heroes}</div>${AMB.DeckGate ? AMB.DeckGate.line() : ''}
       <h4>النجوم ${starRow(CAM.stars(fightId))} <button class="ibtn" data-act="info" data-k="caminfo" title="شرح">ⓘ</button></h4>
       ${st.attempts ? `<div class="hint">محاولات: ${st.attempts} · فوز: ${st.wins}</div>` : ''}
       <div class="cam-go"><button class="btn primary big" data-act="camGo" data-id="${fightId}" ${h ? '' : 'disabled'}>قاتل!</button></div></div>`);
   }
 
   function start(fightId) {
+    if (AMB.DeckGate && !AMB.DeckGate.ensure()) return;
     const ui = UI(), S = ui.S;
     S.mode = 'campaign'; S.campaign = { fightId }; S.picks = [pickHero(), null]; S.pickIdx = 0;
     ui.closeModal(); ui.startMatch();
@@ -139,7 +140,9 @@
       camStarter: (d) => {
         if (!C.chooseStarter(d.id)) return;
         hero = d.id; ui.sfx('merge'); ui.toast(`${AMB.DATA.HEROES[d.id].name} صار بطلك!`, 'good');
-        render(); setTimeout(() => preview(CAM.next()), 250);
+        render();
+        if (!C.giftClaimed() && AMB.GiftUI) setTimeout(() => AMB.GiftUI.intro(() => { render(); preview(CAM.next()); }), 250);
+        else setTimeout(() => preview(CAM.next()), 250);
       },
       camChest: (d) => {
         const r = CAM.claimChest(d.id); if (!r) return;

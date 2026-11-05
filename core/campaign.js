@@ -97,7 +97,7 @@
           mode: 'campaign', seed, progression: true,
           rules: Object.assign({}, LV().CAMPAIGN.rules, { start: f.level.start }),
           players: [
-            { heroId, name: 'أنت', cardPower: C ? C.powerMap() : null, allowedUnits: C ? C.ownedUnits() : null },
+            { heroId, name: 'أنت', cardPower: C ? C.powerMap() : null, allowedUnits: C ? C.playableUnits() : null },
             { heroId: f.level.hero, name: fight.name, isAI: true, cardPower: enemyPower,
               lineup: { units: fight.units, summon: boss ? 'b1' : null, blessings: boss ? boss.blessings : null, abilities: boss ? boss.abilities : [] } },
           ],

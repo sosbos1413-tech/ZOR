@@ -6,8 +6,9 @@
   const AMB = globalThis.AMB;
   const $ = (id) => document.getElementById(id);
   const C = AMB.collection, RAR = AMB.ECONOMY.rarities;
+  const { icon } = AMB.art;
   const UI = () => globalThis.AMB_UI;
-  let filter = '';   // rarity filter ('' = all)
+  let filter = '', roleF = '', deckOnly = false;   // rarity filter ('' = all), role filter, show only the deck
 
   const pct = (a, b) => (b ? Math.min(100, Math.round((a / b) * 100)) : 100);
 
@@ -26,26 +27,43 @@
     const btn = !owned ? `<span class="cp-lock">🔒 ${unlockHint(id)}</span>`
       : max ? '' : `<button class="btn small ${C.canUpgrade(id) ? 'primary' : ''}" data-act="colUpgrade" data-id="${id}" ${C.canUpgrade(id) ? '' : 'disabled'}>طوّر ← Lv ${lv + 1}</button>`;
     const bonus = Math.round((C.power(id) - 1) * 100);
-    return `<div class="cp-tile" data-card="${id}">${card}${owned ? bar : ''}<div class="cp-foot">${btn}<span class="cp-pow" title="قوة البطاقة في الحملة والبرج">${bonus > 0 ? '+' + bonus + '%' : '±0%'}</span></div></div>`;
+    const inDeck = d.role && owned && C.inDeck(id);
+    const dk = d.role && owned ? `<button class="btn small dk ${inDeck ? 'on' : ''}" data-act="colDeck" data-id="${id}">${inDeck ? '✓ في الديك' : '＋ للديك'}</button>` : '';
+    return `<div class="cp-tile ${inDeck ? 'indeck' : ''}" data-card="${id}">${card}${owned ? bar : ''}<div class="cp-foot">${btn}<span class="cp-pow" title="قوة البطاقة في الحملة والبرج">${bonus > 0 ? '+' + bonus + '%' : '±0%'}</span></div>${dk ? `<div class="cp-foot">${dk}</div>` : ''}</div>`;
   }
 
   AMB.TIPS = AMB.TIPS || {};
   AMB.TIPS.colinfo = () => ({ title: 'تطوير البطاقات', html: `<p>كل مستوى +${Math.round(AMB.ECONOMY.cards.levelBonus * 100)}% صحة وهجوم، والندرة الأعلى أقوى لكنها تحتاج نسخًا أكثر.</p>
     <p>النسخ المطلوبة للمستويات 2 إلى 5:</p>${Object.entries(RAR).map(([k, r]) => `<div class="hint">• <b style="color:${r.color}">${r.name}</b>: ${r.copies.join(' / ')}</div>`).join('')}
     <p><b>المستويات والندرة تُحتسب في الحملة والبرج والأحداث فقط</b>، أما المباراة السريعة وعلى نفس الجهاز فالكل متساوٍ.</p>` });
+  // the deck strip: your 12 slots, role counts, auto-build. Progression fights shop only from this deck.
+  function deckBar() {
+    const L = C.deckLimits(), deck = C.deck(), rc = C.roleCounts(deck), ROLE = AMB.DATA.ROLES, ui = UI();
+    const slots = []; for (let i = 0; i < L.size; i++) slots.push(deck[i] ? `<button class="dslot" data-act="colDeck" data-id="${deck[i]}" title="${C.def(deck[i]).name}: اضغط للإزالة">${ui.portrait(C.def(deck[i]), { k: 'dk' + i + deck[i] })}</button>` : `<i class="dslot empty"></i>`);
+    const ok = deck.length >= L.min;
+    return `<div class="deck-bar ${ok ? '' : 'bad'}"><div class="db-top"><b>🃏 ديكك <span>${deck.length}/${L.size}</span></b>
+        <span class="db-btns"><button class="btn small primary" data-act="colAuto">ترتيب تلقائي</button><button class="btn small ghost" data-act="colClear">تفريغ</button><button class="ibtn" data-act="info" data-k="deckinfo" title="شرح">ⓘ</button></span></div>
+      <div class="db-slots">${slots.join('')}</div>
+      <div class="db-roles">${Object.entries(rc).map(([r, n]) => `<span class="${n ? '' : 'z'}">${icon(AMB.art.ROLE_ICON[r])}${ROLE[r].name} ${n}</span>`).join('')}</div>
+      ${ok ? '' : `<div class="db-warn">تحتاج ${L.min} وحدات على الأقل في الديك (وإلا تدخل بكل وحداتك)</div>`}</div>`;
+  }
+  AMB.TIPS.deckinfo = () => ({ title: 'الديك', html: `<p>الديك هو <b>الوحدات اللي تطلع لك في المتجر</b> أثناء الحملة والبرج والأحداث (حتى ${C.deckLimits().size} وحدة، والحد الأدنى ${C.deckLimits().min}). اختر الأدوار والعوالم اللي تكمّل بعض عشان التآزر.</p>
+    <p>المباراة السريعة وعلى نفس الجهاز ما تستخدم الديك: الكل يلعب بكل الوحدات. والأبطال خارج الديك.</p><p>«ترتيب تلقائي» يختار لك ديك متوازن من أقوى بطاقاتك.</p>` });
   function render() {
     const root = $('collection'); if (!root) return;
-    const ids = C.ids().filter((id) => !filter || C.rarity(id) === filter)
+    const ids = C.ids().filter((id) => (!filter || C.rarity(id) === filter) && (!roleF || C.def(id).role === roleF) && (!deckOnly || C.inDeck(id)))
       .sort((a, b) => RAR[C.rarity(b)].order - RAR[C.rarity(a)].order || (C.def(a).role ? 1 : 0) - (C.def(b).role ? 1 : 0));
     const ready = C.ids().filter((id) => C.canUpgrade(id)).length;
     const fb = (v, n, col) => `<button class="btn small ${filter === v ? 'on' : ''}" data-act="colFilter" data-v="${v}" ${col ? `style="--rc:${col}"` : ''}>${n}</button>`;
     root.innerHTML = `<div class="col-head">
+        ${C.needsStarter() ? '' : deckBar()}
         ${C.needsStarter() ? '<div class="col-starter">ما اخترت بطلك الأول للحين: اضغط «العب» واختر واحد من الأربعة.</div>' : ''}
         <div><b>${C.ownedCount()} / ${C.ids().length}</b> بطاقة · ${ready ? `<span class="col-ready">${ready} جاهزة للتطوير</span>` : 'لا توجد ترقيات جاهزة'}</div>
         <p class="hint">النسخ المكررة تطوّر البطاقة <button class="ibtn" data-act="info" data-k="colinfo" title="شرح">ⓘ</button></p>
         <div class="rar-legend">${Object.entries(RAR).map(([k, r]) => `<span class="rl r-${k}"><i></i>${r.name} <small>+${Math.round((r.power - 1) * 100)}%</small></span>`).join('')}</div>
         <button class="btn primary small" data-act="go" data-to="packs">افتح باكجات للحصول على نسخ</button>
         <div class="filters">${fb('', 'الكل')}${Object.entries(RAR).map(([k, r]) => fb(k, r.name, r.color)).join('')}</div>
+        <div class="filters"><button class="btn small ${roleF === '' && !deckOnly ? 'on' : ''}" data-act="colRole" data-v="">كل الأدوار</button><button class="btn small ${deckOnly ? 'on' : ''}" data-act="colRole" data-v="deck">الديك فقط</button>${Object.entries(AMB.DATA.ROLES).map(([k, r]) => `<button class="btn small ${roleF === k ? 'on' : ''}" data-act="colRole" data-v="${k}">${r.name}</button>`).join('')}</div>
       </div>
       <div class="col-grid">${ids.map(tile).join('')}</div>`;
     refreshMenu();
@@ -61,6 +79,11 @@
     const ui = UI(); if (!ui || ui.ACT.colUpgrade) return;
     Object.assign(ui.ACT, {
       colFilter: (d) => { filter = d.v || ''; render(); },
+      colRole: (d) => { deckOnly = d.v === 'deck'; roleF = deckOnly ? '' : (d.v || ''); render(); },
+      colDeck: (d) => { const r = C.toggleDeck(d.id); if (!r.ok) { ui.toast(r.reason, 'err'); return; } ui.sfx('click'); const y = window.scrollY; render(); window.scrollTo(0, y); },
+      colAuto: () => { C.autoBuild(); ui.sfx('merge'); ui.toast('تم ترتيب ديك متوازن', 'good'); render(); },
+      colClear: () => { C.setDeck([]); render(); },
+      deckEdit: () => { ui.closeModal(); ui.show('cards'); },
       colUpgrade: (d) => {
         const lv = C.upgrade(d.id); if (!lv) return;
         ui.sfx('merge'); ui.toast(`${C.def(d.id).name} ← المستوى ${lv}`, 'good');
@@ -71,6 +94,11 @@
     });
   }
 
+  // used before a progression fight: no valid deck -> build one for you; and a one-line summary for the fight previews
+  AMB.DeckGate = {
+    ensure() { if (!C.deckValid()) { C.autoBuild(); if (UI()) UI().toast('رتبت لك ديك تلقائي', 'good'); } return true; },
+    line() { const L = C.deckLimits(), n = C.deck().length; return `<div class="deck-line ${n >= L.min ? '' : 'bad'}">🃏 ديكك: <b>${n}/${L.size}</b>${n >= L.min ? '' : ' (ناقص: يرتّب لك تلقائيًا)'} <button class="btn small" data-act="deckEdit">عدّل</button></div>`; },
+  };
   AMB.CollectionUI = { render, refreshMenu, installActions, unlockHint };
   if (UI()) installActions();
   refreshMenu();

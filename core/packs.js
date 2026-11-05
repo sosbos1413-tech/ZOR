@@ -78,6 +78,40 @@
         return out;
       },
     };
+    /**
+     * The welcome gift: 5 packs opened once (collection.giftClaimed). Units only, no legendary/hero/exclusive, a fixed rarity plan
+     * (EC.gift.plan) and a re-drawn deal until the 25 cards cover every role and every world (EC.gift.need), so a new player
+     * can always build a playable first deck. Returns an array of pack-like results, or null when already claimed.
+     */
+    api.gift = function (seed) {
+      if (collection.giftClaimed()) return null;
+      const G = EC().gift, need = G.need, grng = AMB.util.RNG(seed != null ? seed : Math.floor(rng.next() * 2 ** 31));
+      const units = Object.values(AMB.DATA.UNITS).filter((u) => !u.exclusive && !u.starter);
+      const pool = { c: units.filter((u) => u.rarity === 'common'), r: units.filter((u) => u.rarity === 'rare'), e: units.filter((u) => u.rarity === 'epic') };
+      const okDeal = (cards) => {
+        const n = { frontline: 0, ranged: 0, support: 0, assassin: 0 }, wc = {};
+        cards.forEach((u) => { if (u.role === 'guardian' || u.role === 'fighter') n.frontline++; else if (u.role === 'marksman' || u.role === 'mage') n.ranged++; else n[u.role]++; wc[u.world] = (wc[u.world] || 0) + 1; });
+        return n.frontline >= need.frontline && n.ranged >= need.ranged && n.support >= need.support && n.assassin >= need.assassin && Object.keys(AMB.DATA.WORLDS).every((w) => (wc[w] || 0) >= need.perWorld);
+      };
+      let deal = null;
+      for (let tries = 0; tries < 400 && !deal; tries++) {
+        const cnt = {}, cards = [];
+        G.plan.forEach((slots) => slots.split('').forEach((k) => {
+          let u, guard = 0;
+          do { u = pool[k][grng.int(pool[k].length)]; } while (((cnt[u.id] || 0) >= (k === 'c' ? 2 : 1)) && ++guard < 50);
+          cnt[u.id] = (cnt[u.id] || 0) + 1; cards.push(u);
+        }));
+        if (okDeal(cards)) deal = cards;
+      }
+      if (!deal) throw new Error('gift deal failed');
+      const results = G.plan.map((slots, i) => ({ pack: 'gift', cards: deal.slice(i * slots.length, (i + 1) * slots.length).map((u) => {
+        const r = collection.add(u.id, 1);
+        return { id: u.id, rarity: u.rarity, isNew: r.isNew, refund: 0, level: collection.level(u.id), copies: collection.copies(u.id), canUpgrade: collection.canUpgrade(u.id) };
+      }), forced: false, refund: 0, pityLeft: api.pityLeft('basic') }));
+      collection.markGift();
+      if (events) events.emit('giftOpened', { packs: results });
+      return results;
+    };
     return api;
   }
 

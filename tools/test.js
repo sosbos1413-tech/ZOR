@@ -535,10 +535,12 @@ t('packs: exclusive cards never drop', () => {
 });
 
 console.log('unlocking characters');
-t('new player: the 20 starter units owned, no hero, the 45 new characters locked until unlocked', () => {
+t('new player: the 8 starter units owned, no hero, everything else locked until unlocked', () => {
   const C = AMB.Profile.boot(MEM()).collection;
   Object.values(AMB.DATA.UNITS).forEach((u) => eq(C.owned(u.id), !!u.starter, u.id));
-  eq(Object.values(AMB.DATA.UNITS).filter((u) => u.starter).length, 20, 'starter roster = the original 20 units');
+  eq(Object.values(AMB.DATA.UNITS).filter((u) => u.starter).length, 8, 'starter roster = 8 basic units');
+  eq(new Set(Object.values(AMB.DATA.UNITS).filter((u) => u.starter).map((u) => u.role)).size, 6, 'every role is covered');
+  eq(AMB.DATA.LEGACY_STARTERS.length, 20);
   eq(C.ownedHeroes().length, 0); ok(C.needsStarter());
   ok(C.chooseStarter('merin')); ok(!C.chooseStarter('orath'), 'starter is one-time');
   eq(C.ownedHeroes().join(), 'merin'); ok(!C.needsStarter()); eq(C.level('merin'), 1); eq(C.copies('merin'), 0);
@@ -549,7 +551,7 @@ t('first copy unlocks a card (not counted as an upgrade copy); later copies are 
   const r1 = C.add('shirayuki', 1); ok(r1.isNew); ok(C.owned('shirayuki')); eq(C.copies('shirayuki'), 0);
   const r2 = C.add('shirayuki', 2); ok(!r2.isNew); eq(C.copies('shirayuki'), 2);
   const r3 = C.add('ash_ronin', 1); ok(!r3.isNew, 'starter unit is already owned'); eq(C.copies('ash_ronin'), 1);
-  eq(C.ownedUnits().length, 21);
+  eq(C.ownedUnits().length, 9);
 });
 t('packs can unlock heroes and higher-rarity units (shown as new)', () => {
   const p = rich(5); let newIds = new Set();
@@ -766,8 +768,8 @@ t('album: 5 units per world, progress counts owned units, starters count', () =>
   const prof = AMB.Profile.boot(MEM()), A = prof.album;
   eq(A.worlds().length, 4);
   eq(A.units('ember').length, 15); eq(A.units('tide').length, 15); eq(A.units('neon').length, 14); eq(A.units('sylvan').length, 21);
-  eq(A.total().total, 65); eq(A.total().owned, 20, 'the 20 starter units');
-  eq(A.progress('ember').owned, 5, 'the 5 original ember units');
+  eq(A.total().total, 65); eq(A.total().owned, 8, 'the 8 starter units');
+  eq(A.progress('ember').owned, 3, 'ash_ronin, forge_bulwark, shiro');
   eq(A.state('ember'), 'locked');
 });
 t('album: world set reward is claimable once, gives shards + title + frame (equippable in the pass)', () => {
@@ -937,6 +939,79 @@ t('event: a stage plays end to end and weekly-event fights feed the missions', (
   const w0 = pass.state().weekly.p.event_cleared || 0, f0 = pass.state().daily.p.fights_won || 0;
   prof.weekly.recordResult(1, { won: true }); ok((pass.state().daily.p.fights_won || 0) >= f0 + 1); eq(pass.state().weekly.p.event_cleared || 0, w0, 'only the boss counts as finishing');
   prof.weekly.recordResult(2, { won: true }); prof.weekly.recordResult(3, { won: true }); eq(pass.state().weekly.p.event_cleared, w0 + 1);
+});
+
+console.log('gift packs & deck');
+const newbie = (seed) => { const p = AMB.Profile.boot(MEM(), null, AMB.util.RNG(seed || 1)); p.collection.chooseStarter('orath'); return p; };
+t('gift: 5 packs x 5 units with the fixed rarity plan, no legendary/hero/exclusive, once only', () => {
+  const p = newbie(), g = p.packs.gift(5);
+  eq(g.length, 5); g.forEach((pk) => eq(pk.cards.length, 5));
+  const cards = g.flatMap((x) => x.cards), n = { common: 0, rare: 0, epic: 0 };
+  cards.forEach((c) => { ok(n[c.rarity] !== undefined, 'rarity ' + c.rarity); n[c.rarity]++; const d = AMB.DATA.UNITS[c.id]; ok(d && !d.exclusive && !d.starter, c.id); });
+  eq(JSON.stringify(n), JSON.stringify({ common: 15, rare: 8, epic: 2 }));
+  ok(p.collection.giftClaimed()); eq(p.packs.gift(6), null, 'only once'); eq(p.packs.stats().opened, 0, 'gift packs are not counted as opened packs');
+});
+t('gift: always a playable first deal - every role and world covered (many seeds)', () => {
+  const need = AMB.ECONOMY.gift.need;
+  for (let seed = 1; seed <= 60; seed++) {
+    const p = newbie(seed); p.packs.gift(seed);
+    const owned = p.collection.ownedUnits().map((id) => AMB.DATA.UNITS[id]), rc = p.collection.roleCounts(owned.map((u) => u.id));
+    Object.values(rc).forEach((v) => ok(v >= 1));
+    ok(rc.guardian + rc.fighter >= need.frontline && rc.marksman + rc.mage >= need.ranged && rc.support >= need.support && rc.assassin >= need.assassin, 'roles seed ' + seed);
+    Object.keys(AMB.DATA.WORLDS).forEach((w) => ok(owned.filter((u) => u.world === w).length >= need.perWorld, 'world ' + w));
+    ok(p.collection.ownedUnits().length >= 24 && p.collection.ownedUnits().length <= 33, 'owned ' + p.collection.ownedUnits().length);
+  }
+});
+t('gift: the same seed gives the same deal; it is saved and survives a reload', () => {
+  const a = newbie(1), b = newbie(2); const ga = a.packs.gift(77), gb = b.packs.gift(77);
+  eq(JSON.stringify(ga.map((x) => x.cards.map((c) => c.id))), JSON.stringify(gb.map((x) => x.cards.map((c) => c.id))));
+  const mem = MEM(); const p = AMB.Profile.boot(mem, null, AMB.util.RNG(4)); p.collection.chooseStarter('kagira'); p.packs.gift(9);
+  const q = AMB.Profile.boot(mem); ok(q.collection.giftClaimed()); eq(q.packs.gift(1), null); eq(q.collection.ownedUnits().length, p.collection.ownedUnits().length);
+});
+t('migration: an old save keeps its 20 units (and may still claim the gift)', () => {
+  const mem = MEM(); const sv = AMB.Save.create(mem);
+  sv.set('collection', { cards: { kagira: { owned: true, level: 1, copies: 0, got: 0 }, caldera_seer: { owned: true, level: 2, copies: 1, got: 5 } }, upgrades: 1, starterHero: 'kagira' });
+  const raw = JSON.parse(mem.getItem(AMB.Save.KEY)); raw.sysV.collection = 1; mem.setItem(AMB.Save.KEY, JSON.stringify(raw));
+  const p = AMB.Profile.boot(mem, null, AMB.util.RNG(2));
+  AMB.DATA.LEGACY_STARTERS.forEach((id) => ok(p.collection.owned(id), 'kept ' + id));
+  eq(p.collection.level('caldera_seer'), 2, 'existing progress untouched'); ok(!p.collection.giftClaimed());
+  ok(p.packs.gift(3) && p.collection.giftClaimed());
+  const fresh = AMB.Profile.boot(MEM()); ok(!fresh.collection.owned('spark_wraith'), 'a new save does not get the old 20');
+});
+t('deck: only owned units, no duplicates, max 12, toggle add/remove, saved', () => {
+  const mem = MEM(); const p = AMB.Profile.boot(mem, null, AMB.util.RNG(1)); p.collection.chooseStarter('orath'); p.packs.gift(5); const C = p.collection;
+  eq(C.deckLimits().size, 12); eq(C.deck().length, 0); ok(!C.deckValid());
+  ok(!C.toggleDeck('taiju').ok, 'cannot add a unit you do not own');
+  eq(C.setDeck(['ash_ronin', 'ash_ronin', 'forge_bulwark', 'taiju', 'nope']).join(), 'ash_ronin,forge_bulwark');
+  const owned = C.ownedUnits(); C.setDeck(owned.slice(0, 12)); eq(C.deck().length, 12);
+  const over = owned.find((id) => !C.inDeck(id)); const r = C.toggleDeck(over); ok(!r.ok && /ممتلئ/.test(r.reason)); eq(C.deck().length, 12);
+  const first = C.deck()[0]; ok(C.toggleDeck(first).ok); eq(C.deck().length, 11); ok(C.toggleDeck(first).in);
+  eq(AMB.Profile.boot(mem).collection.deck().join(), C.deck().join(), 'saved');
+});
+t('deck: auto-build gives a valid, balanced deck from any starting deal', () => {
+  for (let seed = 1; seed <= 40; seed++) {
+    const p = newbie(seed); p.packs.gift(seed); const C = p.collection, d = C.autoBuild(), rc = C.roleCounts(d);
+    eq(d.length, 12); ok(C.deckValid()); eq(new Set(d).size, 12); d.forEach((id) => ok(C.owned(id)));
+    ok(rc.guardian >= 2 && rc.fighter >= 1 && rc.marksman + rc.mage >= 3 && rc.support >= 1 && rc.assassin >= 1, 'balanced ' + JSON.stringify(rc));
+    Object.values(rc).forEach((v) => ok(v <= 4, 'no role above 4'));
+  }
+  const p = newbie(2); eq(p.collection.autoBuild().length, 8, 'a player with only the 8 starters gets an 8-unit deck');
+});
+t('deck: progression fights shop only from the deck; quick matches ignore it', () => {
+  const p = newbie(3); p.packs.gift(3); const C = p.collection; const deck = C.autoBuild();
+  const seen = (prog, opts) => {
+    const ids = new Set();
+    for (let sd = 1; sd <= 6; sd++) {
+      const m = new AMB.Match(Object.assign({ seed: sd, progression: prog, players: [{ heroId: 'orath', allowedUnits: opts }, { heroId: 'merin', isAI: true }] }));
+      while (!m.isOver && m.round < 6) { m.startRound(); for (let k = 0; k < 8; k++) { m.players[0].shop.forEach((id) => id && ids.add(id)); m.players[0].gold += 3; m.reroll(0); } AMB.AI.prep(m, 1); m.resolveCombat(m.createCombat(false).runToEnd()); }
+    }
+    return ids;
+  };
+  const prog = seen(true, C.playableUnits()); ok([...prog].every((id) => deck.includes(id)), 'a unit outside the deck was offered: ' + [...prog].filter((id) => !deck.includes(id)));
+  ok([...seen(false, C.playableUnits())].some((id) => !deck.includes(id)), 'quick match still offers every unit');
+  eq(C.playableUnits().join(), deck.join()); C.setDeck(deck.slice(0, 5)); ok(!C.deckValid()); eq(C.playableUnits().length, C.ownedUnits().length, 'no valid deck -> all owned units');
+  const cam = AMB.Campaign(p.save, { collection: C }); eq(cam.matchOptions('l1f1', 'orath', 1).players[0].allowedUnits.length, C.ownedUnits().length);
+  C.setDeck(deck); eq(cam.matchOptions('l1f1', 'orath', 1).players[0].allowedUnits.join(), deck.join(), 'campaign uses the deck');
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

@@ -43,6 +43,7 @@
     if (globalThis.AMB && AMB.EventUI) { if (screen === 'event') AMB.EventUI.render(); if (screen === 'menu') AMB.EventUI.refreshMenu(); }
     if (globalThis.AMB && AMB.TowerUI) { if (screen === 'tower') AMB.TowerUI.render(); if (screen === 'menu') AMB.TowerUI.refreshMenu(); }
     if (globalThis.AMB && AMB.CampaignUI) { if (screen === 'campaign') AMB.CampaignUI.render(); if (screen === 'menu') AMB.CampaignUI.refreshMenu(); }
+    if (globalThis.AMB && AMB.GiftUI && screen === 'menu') AMB.GiftUI.onMenu();
     if (globalThis.AMB && AMB.DailyUI && screen === 'menu') AMB.DailyUI.onMenu();
   }
   function modal(html) { $('modal').innerHTML = `<button class="btn small ghost x" data-act="closeModal">✕</button>` + html; $('modal-back').classList.add('on');

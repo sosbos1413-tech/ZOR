@@ -54,11 +54,12 @@
       ${L.boss ? `<div class="boss-box">${ui.portrait(AMB.DATA.HEROES[L.heroId], { k: 'twb' })}<div><b>قدرة الزعيم: ${esc(L.special.name)}</b><p>${esc(L.special.text)}</p></div></div>` : ''}
       <h4>تشكيلة الخصم</h4><div class="cam-units">${units}</div>
       <h4>الجائزة</h4><div class="cam-reward">${reward}</div>
-      <h4>بطلك</h4><div class="hchips">${heroes}</div>
+      <h4>بطلك</h4><div class="hchips">${heroes}</div>${AMB.DeckGate ? AMB.DeckGate.line() : ''}
       <div class="cam-go"><button class="btn primary big" data-act="towGo" data-n="${n}" ${h ? '' : 'disabled'}>قاتل!</button></div></div>`);
   }
 
   function start(n) {
+    if (AMB.DeckGate && !AMB.DeckGate.ensure()) return;
     const ui = UI(), S = ui.S;
     S.mode = 'tower'; S.tower = { floor: n }; S.picks = [pickHero(), null]; S.pickIdx = 0;
     ui.closeModal(); ui.startMatch();

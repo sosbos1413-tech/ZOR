@@ -103,7 +103,7 @@
           mode: 'tower', seed, progression: true,
           rules: Object.assign({}, AMB.LEVELS.CAMPAIGN.rules, { start: startFor(n) }),
           players: [
-            { heroId, name: 'أنت', cardPower: C ? C.powerMap() : null, allowedUnits: C ? C.ownedUnits() : null },
+            { heroId, name: 'أنت', cardPower: C ? C.powerMap() : null, allowedUnits: C ? C.playableUnits() : null },
             { heroId: L.heroId, name: L.name, isAI: true, cardPower: enemyPower, lineup: { units: L.units, summon: L.summon, blessings: L.blessings, abilities: L.abilities } },
           ],
         };

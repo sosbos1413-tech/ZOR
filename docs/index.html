@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="66bddb73d2">
+<meta name="zor-build" content="1d85da2c95">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1618,6 +1618,26 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
 .ev-done { margin-top: 8px; background: var(--green); color: #fff; padding: 2px 10px; display: inline-block; font-weight: 700; }
 .cam-pack.ev-gift { border-color: #ff9f1a; box-shadow: 0 0 22px #ff9f1a88; } .cu.big { width: 110px; } .cu.big .portrait { width: 100px; height: 100px; }
 
+/* ======================================================================= deck + welcome gift */
+.deck-bar { background: #0008; border: 3px solid var(--gold); box-shadow: var(--hard-sm); padding: 8px 10px; margin: 0 0 10px; position: sticky; top: 0; z-index: 5; backdrop-filter: blur(4px); }
+.deck-bar.bad { border-color: var(--red); }
+.db-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; } .db-top b { font-size: 16px; } .db-top b span { color: var(--gold); direction: ltr; display: inline-block; }
+.db-btns { display: flex; gap: 6px; align-items: center; }
+.db-slots { display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; margin: 6px 0; }
+.dslot { aspect-ratio: 1; border: 2px solid var(--paper3); background: var(--ink2); padding: 0; cursor: pointer; overflow: hidden; display: block; } .dslot .portrait { width: 100%; height: 100%; } .dslot.empty { border-style: dashed; opacity: .5; cursor: default; }
+.db-roles { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; color: var(--paper3); } .db-roles svg { width: 12px; height: 12px; vertical-align: -2px; margin-inline-end: 2px; } .db-roles .z { opacity: .45; }
+.db-warn { color: var(--red); font-size: 12px; margin-top: 4px; font-weight: 700; }
+.cp-tile.indeck .tcard { box-shadow: 0 0 0 3px var(--gold); } .btn.dk.on { background: var(--gold); color: var(--ink); }
+.deck-line { margin-top: 10px; font-size: 14px; } .deck-line.bad { color: var(--red); } .deck-line .btn { margin-inline-start: 6px; }
+.gift-sub { font: 400 22px var(--display); color: var(--gold); margin: 4px 0 12px; }
+.gift-packs { display: flex; justify-content: center; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
+.gift-pack { width: 62px; height: 88px; border: 3px solid #000; border-radius: 8px; box-shadow: 0 0 0 2px var(--gold); background: linear-gradient(160deg, #3a1a6e, #0b0b24 60%, #6e1020); display: flex; flex-direction: column; align-items: center; justify-content: center; animation: pkfloat 3s ease-in-out infinite; animation-delay: var(--d); }
+.gift-pack b { font: 400 22px var(--display); color: var(--gold); text-shadow: 2px 2px 0 var(--red); } .gift-pack small { color: #fff; font-size: 12px; }
+.gift-dots { display: flex; justify-content: center; gap: 6px; margin: 10px 0; } .gift-dots i { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--paper3); } .gift-dots i.on { background: var(--gold); border-color: #000; }
+.deck-mini { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; max-width: 420px; margin: 10px auto; } .dm { aspect-ratio: 1; border: 2px solid var(--gold); overflow: hidden; } .dm .portrait { width: 100%; height: 100%; }
+.deck-roles { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; font-size: 13px; color: var(--paper3); margin-bottom: 8px; } .deck-roles svg { width: 13px; height: 13px; vertical-align: -2px; }
+@media (max-width: 700px) { .db-slots { grid-template-columns: repeat(6, 1fr); } .deck-bar { padding: 6px 8px; position: static; } }
+
 </style>
 </head>
 <body>
@@ -2052,7 +2072,7 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
 
 
   // ======== NEW ROSTER (45 characters, unlocked from packs / battle pass; the 20 above are the starter roster)
-  U.forEach((u) => (u.starter = true));
+  const LEGACY_STARTERS = U.map((u) => u.id);   // the first 20 units: owned by everyone before the gift-pack start (kept for old saves)
   // ---- new roster: Elder Grove
   unit('taiju', 'تايجو', 'Taiju', 'sylvan', 'guardian', 3, 80,
     { type: 'shieldSelf', name: 'لحاء الدهر', shield: [550, 900, 1450],
@@ -2209,6 +2229,9 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
 
   const UNITS = {};
   U.forEach((u) => (UNITS[u.id] = u));
+  // The starter roster: 8 basic units (every role covered). Everything else comes from the gift packs, packs, the pass or events.
+  const STARTER_IDS = ['ash_ronin', 'forge_bulwark', 'wave_caller', 'grid_hound', 'pixel_sniper', 'moss_warden', 'thorn_fox', 'shiro'];
+  STARTER_IDS.forEach((id) => (UNITS[id].starter = true));
 
   /*
    * Heroes. `board` = stats when summoned onto the field (hp comes from life).
@@ -2360,7 +2383,7 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
   ];
 
   Object.values(HEROES).forEach((h) => { h.rarity = h.rarity || 'legendary'; });
-  AMB.DATA = { REWARDS, REWARD_POOLS, WORLDS, ROLES, ROLE_BASE, TIER_MULT, TIER_RARITY, UNITS, HEROES, ITEMS, SYNERGIES, ABILITY_TRIGGERS };
+  AMB.DATA = { LEGACY_STARTERS, STARTER_IDS, REWARDS, REWARD_POOLS, WORLDS, ROLES, ROLE_BASE, TIER_MULT, TIER_RARITY, UNITS, HEROES, ITEMS, SYNERGIES, ABILITY_TRIGGERS };
 })();
 
 </script>
@@ -4004,7 +4027,7 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
 
   const ECONOMY = {
     currencies: {
-      shards: { name: 'شظايا', icon: 'gem', start: 300, max: 999999 },      // earned in missions/levels, spent on packs (new players start with 3 packs' worth)
+      shards: { name: 'شظايا', icon: 'gem', start: 100, max: 999999 },      // earned in missions/levels, spent on packs (new players start with 1 pack's worth, plus the gift packs)
     },
     // Card rarity. `power` and card levels only apply in progression fights (campaign, tower, events),
     // never in quick matches or same-device play, so those stay fair.
@@ -4036,7 +4059,7 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
     tower: {
       floors: 30, bossEvery: 5,
       unlock: { campaignLevel: 'l1' },                 // finish campaign level 1 first
-      power: [1.16,1.29,1.22,1.14,0.83,1.18,1.16,1.01,1.16,0.69,1.11,1.03,1.31,0.99,1.07,1.47,0.97,0.86,1.09,0.71,1.27,0.97,0.87,1.23,0.77,1.13,0.83,1.29,1.33,0.78],   // per floor, from tools/tune-tower.js
+      power: [1.32,1.51,1.38,1.32,0.89,1.26,1.28,1.14,1.22,0.81,1.19,1.09,1.39,1.11,1.17,1.47,1.06,0.87,1.12,0.68,1.23,0.99,0.88,1.29,0.81,1.08,0.82,1.32,1.33,0.78],   // per floor, from tools/tune-tower.js
       start: [{ from: 1, gold: 8, level: 5 }, { from: 15, gold: 12, level: 6 }, { from: 25, gold: 14, level: 7 }],
       rewards: { shardsFirst: 20, shardsLast: 50, passXp: 10, passXpBoss: 30, bossPack: 'basic', finalCard: 'epic' },   // first clear only
     },
@@ -4050,7 +4073,7 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
       stages: [{ n: 10 }, { n: 18 }, { n: 24, boss: true }],   // difficulty position (1..30, like tower floors)
       start: [{ gold: 10, level: 5 }, { gold: 12, level: 6 }, { gold: 14, level: 7 }],
       rewards: [{ shards: 40, passXp: 10 }, { shards: 60, passXp: 20, pack: 'basic' }, { shards: 100, passXp: 50, exclusive: true }],
-      power: { ember: [1.17, 1.31, 0.76], tide: [1.24, 1.07, 0.86], neon: [1.17, 1.09, 0.79], sylvan: [0.91, 1.26, 1.01] },
+      power: { ember: [1.17, 1.43, 0.83], tide: [1.31, 1.19, 0.94], neon: [1.19, 1.21, 0.88], sylvan: [0.98, 1.33, 0.99] },
     },
     // album: own all 5 units of a world -> its reward (once); own all 20 -> the grand reward
     album: {
@@ -4062,10 +4085,19 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
       },
       all: { packs: 3, title: 'alb_all' },
     },
+    // Deck: progression fights (campaign / tower / events) draw their shop only from your deck of up to `size` units
+    // (at least `min` to play); quick matches ignore it. Heroes are not part of the deck.
+    deck: { size: 12, min: 8, roles: { guardian: 2, fighter: 2, assassin: 1, marksman: 2, mage: 2, support: 1 } },   // roles = auto-build quota
+    // Welcome gift: 5 packs opened once by a new player (and once by old saves). `plan` = rarity of each card slot per pack
+    // (c common, r rare, e epic; never legendary). The draw is re-rolled until the 25 cards cover every role and world.
+    gift: {
+      plan: ['cccrr', 'cccre', 'cccrr', 'cccre', 'cccrr'],
+      need: { frontline: 5, ranged: 4, support: 2, assassin: 1, perWorld: 4 },   // minimums over the 25 cards: guardian+fighter, marksman+mage, support, assassin, cards per world
+    },
     cards: {
       levelBonus: 0.07,        // +7% hp & attack per card level above 1 (progression fights only)
       allUnlocked: false,      // true = every card owned (dev / testing)
-      // what a new player owns: the starter roster (units flagged `starter` in core/data.js = the first 20)
+      // what a new player owns: the starter roster (8 basic units flagged `starter` in core/data.js) + the GIFT PACKS below
       // + ONE hero they pick at first play. Everything else (the 45 new characters, the other heroes) comes from
       // packs or the battle pass. Locks: hero choice in every mode (player 1), shop units only in progression fights;
       // quick/same-device matches keep every unit.
@@ -4135,8 +4167,17 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
   const EC = () => AMB.ECONOMY;
 
   AMB.Save.register('collection', {
-    version: 1,
-    defaults: () => ({ cards: {}, upgrades: 0, starterHero: null }),   // cards[id] = { owned, level, copies, got }
+    version: 2,
+    defaults: () => ({ cards: {}, upgrades: 0, starterHero: null, giftClaimed: false, deck: [] }),   // cards[id] = { owned, level, copies, got }
+    // v1 -> v2 (gift-pack start): players who already had the 20 original units keep them, and may still claim the gift packs
+    migrate: (s, from) => {
+      if (from < 2 && s.starterHero) {
+        s.cards = s.cards || {};
+        (AMB.DATA.LEGACY_STARTERS || []).forEach((id) => { s.cards[id] = Object.assign({ owned: true, level: 1, copies: 0, got: 0 }, s.cards[id] || {}, { owned: true }); });
+        s.giftClaimed = false; s.deck = [];
+      }
+      return s;
+    },
   });
 
   const defOf = (id) => AMB.DATA.UNITS[id] || AMB.DATA.HEROES[id] || null;
@@ -4202,6 +4243,45 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
         emit('cardUpgraded', { id, level: lv, rarity: api.rarity(id) });
         return lv;
       },
+      // ---------------------------------------------------------------- deck + gift
+      giftClaimed: () => !!st().giftClaimed,
+      markGift() { save.update('collection', (s) => { s.giftClaimed = true; }); },
+      deckLimits: () => ({ size: EC().deck.size, min: EC().deck.min }),
+      /** the saved deck (only units you still own) */
+      deck() { return (st().deck || []).filter((id) => AMB.DATA.UNITS[id] && api.owned(id)); },
+      inDeck: (id) => api.deck().includes(id),
+      deckValid: () => api.deck().length >= EC().deck.min,
+      /** the units a progression fight may use: your deck, or every owned unit while no valid deck exists */
+      playableUnits() { return api.deckValid() ? api.deck() : api.ownedUnits(); },
+      roleCounts(ids) { const c = { guardian: 0, fighter: 0, assassin: 0, marksman: 0, mage: 0, support: 0 }; (ids || api.deck()).forEach((id) => { const d = AMB.DATA.UNITS[id]; if (d) c[d.role]++; }); return c; },
+      setDeck(ids) {
+        const out = []; (ids || []).forEach((id) => { if (AMB.DATA.UNITS[id] && api.owned(id) && !out.includes(id) && out.length < EC().deck.size) out.push(id); });
+        save.update('collection', (s) => { s.deck = out; }); return out;
+      },
+      /** add/remove one unit; returns { ok, in, reason } */
+      toggleDeck(id) {
+        if (!AMB.DATA.UNITS[id] || !api.owned(id)) return { ok: false, reason: 'لا تملك هذي الوحدة' };
+        const cur = api.deck();
+        if (cur.includes(id)) { api.setDeck(cur.filter((x) => x !== id)); return { ok: true, in: false }; }
+        if (cur.length >= EC().deck.size) return { ok: false, reason: `الديك ممتلئ (${EC().deck.size})` };
+        api.setDeck(cur.concat([id])); return { ok: true, in: true };
+      },
+      /** a balanced deck from what you own: role quotas first (strongest cards), then the best remaining, leaning on your two strongest worlds */
+      autoBuild() {
+        const D = EC().deck, R = EC().rarities;
+        const owned = api.ownedUnits().map((id) => AMB.DATA.UNITS[id]);
+        const score = (u) => u.tier * 10 + api.level(u.id) * 3 + R[u.rarity].order * 2;
+        const byScore = (a, b) => score(b) - score(a) || (a.id < b.id ? -1 : 1);
+        const wsum = {}; owned.forEach((u) => (wsum[u.world] = (wsum[u.world] || 0) + score(u)));
+        const top = Object.keys(wsum).sort((a, b) => wsum[b] - wsum[a]).slice(0, 2);
+        const sc = (u) => score(u) + (top.includes(u.world) ? 4 : 0);
+        const chosen = [];
+        Object.entries(D.roles).forEach(([role, n]) => owned.filter((u) => u.role === role).sort((a, b) => sc(b) - sc(a) || byScore(a, b)).slice(0, n).forEach((u) => chosen.push(u.id)));
+        owned.filter((u) => !chosen.includes(u.id)).sort((a, b) => sc(b) - sc(a) || byScore(a, b)).forEach((u) => { if (chosen.length < D.size && api.roleCounts(chosen)[u.role] < 4) chosen.push(u.id); });
+        owned.filter((u) => !chosen.includes(u.id)).sort(byScore).forEach((u) => { if (chosen.length < D.size) chosen.push(u.id); });
+        return api.setDeck(chosen);
+      },
+
       /** Unlock without copies (starter card, battle-pass reward…). */
       unlock(id) { R(id); return save.update('collection', (s) => { const c = rec(s, id); const was = c.owned; c.owned = true; return !was; }); },
 
@@ -4309,6 +4389,40 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
         return out;
       },
     };
+    /**
+     * The welcome gift: 5 packs opened once (collection.giftClaimed). Units only, no legendary/hero/exclusive, a fixed rarity plan
+     * (EC.gift.plan) and a re-drawn deal until the 25 cards cover every role and every world (EC.gift.need), so a new player
+     * can always build a playable first deck. Returns an array of pack-like results, or null when already claimed.
+     */
+    api.gift = function (seed) {
+      if (collection.giftClaimed()) return null;
+      const G = EC().gift, need = G.need, grng = AMB.util.RNG(seed != null ? seed : Math.floor(rng.next() * 2 ** 31));
+      const units = Object.values(AMB.DATA.UNITS).filter((u) => !u.exclusive && !u.starter);
+      const pool = { c: units.filter((u) => u.rarity === 'common'), r: units.filter((u) => u.rarity === 'rare'), e: units.filter((u) => u.rarity === 'epic') };
+      const okDeal = (cards) => {
+        const n = { frontline: 0, ranged: 0, support: 0, assassin: 0 }, wc = {};
+        cards.forEach((u) => { if (u.role === 'guardian' || u.role === 'fighter') n.frontline++; else if (u.role === 'marksman' || u.role === 'mage') n.ranged++; else n[u.role]++; wc[u.world] = (wc[u.world] || 0) + 1; });
+        return n.frontline >= need.frontline && n.ranged >= need.ranged && n.support >= need.support && n.assassin >= need.assassin && Object.keys(AMB.DATA.WORLDS).every((w) => (wc[w] || 0) >= need.perWorld);
+      };
+      let deal = null;
+      for (let tries = 0; tries < 400 && !deal; tries++) {
+        const cnt = {}, cards = [];
+        G.plan.forEach((slots) => slots.split('').forEach((k) => {
+          let u, guard = 0;
+          do { u = pool[k][grng.int(pool[k].length)]; } while (((cnt[u.id] || 0) >= (k === 'c' ? 2 : 1)) && ++guard < 50);
+          cnt[u.id] = (cnt[u.id] || 0) + 1; cards.push(u);
+        }));
+        if (okDeal(cards)) deal = cards;
+      }
+      if (!deal) throw new Error('gift deal failed');
+      const results = G.plan.map((slots, i) => ({ pack: 'gift', cards: deal.slice(i * slots.length, (i + 1) * slots.length).map((u) => {
+        const r = collection.add(u.id, 1);
+        return { id: u.id, rarity: u.rarity, isNew: r.isNew, refund: 0, level: collection.level(u.id), copies: collection.copies(u.id), canUpgrade: collection.canUpgrade(u.id) };
+      }), forced: false, refund: 0, pityLeft: api.pityLeft('basic') }));
+      collection.markGift();
+      if (events) events.emit('giftOpened', { packs: results });
+      return results;
+    };
     return api;
   }
 
@@ -4369,32 +4483,32 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
 
   const LEVELS = [
     L('l1', 'ember', 'kagira', 'أطراف مملكة الجمر', { gold: 6, level: 4 }, [
-      F('l1f1', 'دورية الرماد', 1.8, [['ash_ronin', 1, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['pixel_sniper', 1, 'b1', 2]]),
-      F('l1f2', 'حرّاس الأتون', 1.42, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 1, 'f2', 1], ['thorn_fox', 1, 'f3', 2], ['pixel_sniper', 1, 'b1', 1]]),
-      F('l1f3', 'كمين الشرر', 1.17, [['ash_ronin', 1, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['spark_wraith', 1, 'b2', 1], ['pyre_archer', 1, 'b1', 2]]),
-      F('l1f4', 'رماة المحرقة', 1.32, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 1, 'f2', 1], ['coral_sentinel', 1, 'f3', 2], ['pyre_archer', 1, 'b1', 1], ['spark_wraith', 1, 'b2', 3]]),
-      F('l1boss', 'الزعيم: كيرو', 0.92, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 2, 'f2', 1], ['pyre_archer', 1, 'b0', 1], ['caldera_seer', 1, 'b2', 2]], { boss: true }),
+      F('l1f1', 'دورية الرماد', 1.71, [['ash_ronin', 1, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['pixel_sniper', 1, 'b1', 2]]),
+      F('l1f2', 'حرّاس الأتون', 1.33, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 1, 'f2', 1], ['thorn_fox', 1, 'f3', 2], ['pixel_sniper', 1, 'b1', 1]]),
+      F('l1f3', 'كمين الشرر', 1.12, [['ash_ronin', 1, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['spark_wraith', 1, 'b2', 1], ['pyre_archer', 1, 'b1', 2]]),
+      F('l1f4', 'رماة المحرقة', 1.17, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 1, 'f2', 1], ['coral_sentinel', 1, 'f3', 2], ['pyre_archer', 1, 'b1', 1], ['spark_wraith', 1, 'b2', 3]]),
+      F('l1boss', 'الزعيم: كيرو', 0.9, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 2, 'f2', 1], ['pyre_archer', 1, 'b0', 1], ['caldera_seer', 1, 'b2', 2]], { boss: true }),
     ]),
     L('l2', 'tide', 'merin', 'سواحل المدّ القمري', { gold: 8, level: 5 }, [
-      F('l2f1', 'حرس المرجان', 1.66, [['coral_sentinel', 1, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['wave_caller', 1, 'b1', 1], ['pixel_sniper', 1, 'b2', 2]]),
-      F('l2f2', 'سيوف القمر', 1.35, [['coral_sentinel', 1, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['lunar_blade', 1, 'f3', 2], ['wave_caller', 1, 'b1', 1], ['mist_witch', 1, 'b2', 3]]),
+      F('l2f1', 'حرس المرجان', 1.62, [['coral_sentinel', 1, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['wave_caller', 1, 'b1', 1], ['pixel_sniper', 1, 'b2', 2]]),
+      F('l2f2', 'سيوف القمر', 1.32, [['coral_sentinel', 1, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['lunar_blade', 1, 'f3', 2], ['wave_caller', 1, 'b1', 1], ['mist_witch', 1, 'b2', 3]]),
       F('l2f3', 'ضباب الساحرات', 1.08, [['coral_sentinel', 2, 'f1', 1], ['moss_warden', 1, 'f2', 1], ['mist_witch', 1, 'b1', 1], ['wave_caller', 1, 'b2', 1], ['willow_eye', 1, 'b3', 2]]),
-      F('l2f4', 'موجة المدّ', 0.78, [['coral_sentinel', 2, 'f1', 1], ['lunar_blade', 2, 'f2', 1], ['thorn_fox', 1, 'f3', 1], ['mist_witch', 1, 'b1', 1], ['wave_caller', 1, 'b2', 2], ['pixel_sniper', 1, 'b3', 3]]),
-      F('l2boss', 'الزعيم: ميران', 0.78, [['coral_sentinel', 2, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['wave_caller', 1, 'b0', 1], ['mist_witch', 1, 'b2', 1], ['tide_priest', 1, 'b3', 2]], { boss: true }),
+      F('l2f4', 'موجة المدّ', 0.76, [['coral_sentinel', 2, 'f1', 1], ['lunar_blade', 2, 'f2', 1], ['thorn_fox', 1, 'f3', 1], ['mist_witch', 1, 'b1', 1], ['wave_caller', 1, 'b2', 2], ['pixel_sniper', 1, 'b3', 3]]),
+      F('l2boss', 'الزعيم: ميران', 0.81, [['coral_sentinel', 2, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['wave_caller', 1, 'b0', 1], ['mist_witch', 1, 'b2', 1], ['tide_priest', 1, 'b3', 2]], { boss: true }),
     ]),
     L('l3', 'neon', 'zerokai', 'شوارع نيون-٩', { gold: 10, level: 5 }, [
-      F('l3f1', 'كلاب الشبكة', 0.99, [['firewall_unit', 1, 'f1', 1], ['grid_hound', 2, 'f2', 1], ['grid_hound', 1, 'f3', 1], ['pixel_sniper', 1, 'b1', 1], ['spectral_coder', 1, 'b2', 2]]),
-      F('l3f2', 'قناصة البكسل', 1.14, [['firewall_unit', 1, 'f1', 1], ['chrome_ronin', 1, 'f2', 2], ['pixel_sniper', 2, 'b1', 1], ['pixel_sniper', 1, 'b2', 1], ['spectral_coder', 1, 'b3', 1]]),
-      F('l3f3', 'جدار النار', 0.76, [['firewall_unit', 2, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 1, 'b1', 1], ['spectral_coder', 1, 'b2', 2], ['spark_wraith', 1, 'b3', 3]]),
-      F('l3f4', 'المبرمجة الطيفية', 0.74, [['firewall_unit', 2, 'f1', 1], ['chrome_ronin', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 2, 'b1', 1], ['spectral_coder', 1, 'b2', 1], ['mist_witch', 1, 'b3', 2]]),
-      F('l3boss', 'الزعيم: زيرو-كاي', 0.61, [['firewall_unit', 2, 'f1', 1], ['chrome_ronin', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 2, 'b0', 1], ['spectral_coder', 1, 'b2', 2]], { boss: true }),
+      F('l3f1', 'كلاب الشبكة', 1.24, [['firewall_unit', 1, 'f1', 1], ['grid_hound', 2, 'f2', 1], ['grid_hound', 1, 'f3', 1], ['pixel_sniper', 1, 'b1', 1], ['spectral_coder', 1, 'b2', 2]]),
+      F('l3f2', 'قناصة البكسل', 1.23, [['firewall_unit', 1, 'f1', 1], ['chrome_ronin', 1, 'f2', 2], ['pixel_sniper', 2, 'b1', 1], ['pixel_sniper', 1, 'b2', 1], ['spectral_coder', 1, 'b3', 1]]),
+      F('l3f3', 'جدار النار', 0.88, [['firewall_unit', 2, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 1, 'b1', 1], ['spectral_coder', 1, 'b2', 2], ['spark_wraith', 1, 'b3', 3]]),
+      F('l3f4', 'المبرمجة الطيفية', 0.81, [['firewall_unit', 2, 'f1', 1], ['chrome_ronin', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 2, 'b1', 1], ['spectral_coder', 1, 'b2', 1], ['mist_witch', 1, 'b3', 2]]),
+      F('l3boss', 'الزعيم: زيرو-كاي', 0.74, [['firewall_unit', 2, 'f1', 1], ['chrome_ronin', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 2, 'b0', 1], ['spectral_coder', 1, 'b2', 2]], { boss: true }),
     ]),
     L('l4', 'sylvan', 'orath', 'قلب الغابة الأزلية', { gold: 12, level: 6 }, [
-      F('l4f1', 'ثعالب الأشواك', 1.23, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['thorn_fox', 1, 'f3', 1], ['willow_eye', 1, 'b1', 1], ['wave_caller', 1, 'b2', 1], ['root_shaman', 1, 'b3', 3]]),
-      F('l4f2', 'عيون الصفصاف', 0.85, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['coral_sentinel', 2, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['willow_eye', 1, 'b2', 1], ['spectral_coder', 1, 'b3', 2]]),
-      F('l4f3', 'المتربّص', 0.85, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['wave_caller', 2, 'b3', 2]]),
-      F('l4f4', 'شامان الجذور', 0.69, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['firewall_unit', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['tide_priest', 1, 'b3', 3]]),
-      F('l4boss', 'الزعيم: أوراث', 0.72, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b0', 1], ['root_shaman', 2, 'b2', 1], ['tide_priest', 1, 'b3', 2]], { boss: true }),
+      F('l4f1', 'ثعالب الأشواك', 1.35, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['thorn_fox', 1, 'f3', 1], ['willow_eye', 1, 'b1', 1], ['wave_caller', 1, 'b2', 1], ['root_shaman', 1, 'b3', 3]]),
+      F('l4f2', 'عيون الصفصاف', 0.88, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['coral_sentinel', 2, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['willow_eye', 1, 'b2', 1], ['spectral_coder', 1, 'b3', 2]]),
+      F('l4f3', 'المتربّص', 0.97, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['wave_caller', 2, 'b3', 2]]),
+      F('l4f4', 'شامان الجذور', 0.79, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['firewall_unit', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['tide_priest', 1, 'b3', 3]]),
+      F('l4boss', 'الزعيم: أوراث', 0.83, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b0', 1], ['root_shaman', 2, 'b2', 1], ['tide_priest', 1, 'b3', 2]], { boss: true }),
     ]),
   ];
 
@@ -4502,7 +4616,7 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
           mode: 'campaign', seed, progression: true,
           rules: Object.assign({}, LV().CAMPAIGN.rules, { start: f.level.start }),
           players: [
-            { heroId, name: 'أنت', cardPower: C ? C.powerMap() : null, allowedUnits: C ? C.ownedUnits() : null },
+            { heroId, name: 'أنت', cardPower: C ? C.powerMap() : null, allowedUnits: C ? C.playableUnits() : null },
             { heroId: f.level.hero, name: fight.name, isAI: true, cardPower: enemyPower,
               lineup: { units: fight.units, summon: boss ? 'b1' : null, blessings: boss ? boss.blessings : null, abilities: boss ? boss.abilities : [] } },
           ],
@@ -4698,7 +4812,7 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
           mode: 'tower', seed, progression: true,
           rules: Object.assign({}, AMB.LEVELS.CAMPAIGN.rules, { start: startFor(n) }),
           players: [
-            { heroId, name: 'أنت', cardPower: C ? C.powerMap() : null, allowedUnits: C ? C.ownedUnits() : null },
+            { heroId, name: 'أنت', cardPower: C ? C.powerMap() : null, allowedUnits: C ? C.playableUnits() : null },
             { heroId: L.heroId, name: L.name, isAI: true, cardPower: enemyPower, lineup: { units: L.units, summon: L.summon, blessings: L.blessings, abilities: L.abilities } },
           ],
         };
@@ -4793,7 +4907,7 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
           mode: 'event', seed, progression: true, eventWeek: c.idx,
           rules: Object.assign({}, AMB.LEVELS.CAMPAIGN.rules, { start: api.startFor(stage) }),
           players: [
-            { heroId, name: 'أنت', cardPower: C ? C.powerMap() : null, allowedUnits: C ? C.ownedUnits() : null },
+            { heroId, name: 'أنت', cardPower: C ? C.powerMap() : null, allowedUnits: C ? C.playableUnits() : null },
             { heroId: L.heroId, name: L.name, isAI: true, cardPower: enemyPower, lineup: { units: L.units, summon: L.summon, blessings: L.blessings, abilities: L.abilities } },
           ],
         };
@@ -5725,6 +5839,7 @@ AMB.IMAGES = {
     if (globalThis.AMB && AMB.EventUI) { if (screen === 'event') AMB.EventUI.render(); if (screen === 'menu') AMB.EventUI.refreshMenu(); }
     if (globalThis.AMB && AMB.TowerUI) { if (screen === 'tower') AMB.TowerUI.render(); if (screen === 'menu') AMB.TowerUI.refreshMenu(); }
     if (globalThis.AMB && AMB.CampaignUI) { if (screen === 'campaign') AMB.CampaignUI.render(); if (screen === 'menu') AMB.CampaignUI.refreshMenu(); }
+    if (globalThis.AMB && AMB.GiftUI && screen === 'menu') AMB.GiftUI.onMenu();
     if (globalThis.AMB && AMB.DailyUI && screen === 'menu') AMB.DailyUI.onMenu();
   }
   function modal(html) { $('modal').innerHTML = `<button class="btn small ghost x" data-act="closeModal">✕</button>` + html; $('modal-back').classList.add('on');
@@ -7298,8 +7413,9 @@ AMB.IMAGES = {
   const AMB = globalThis.AMB;
   const $ = (id) => document.getElementById(id);
   const C = AMB.collection, RAR = AMB.ECONOMY.rarities;
+  const { icon } = AMB.art;
   const UI = () => globalThis.AMB_UI;
-  let filter = '';   // rarity filter ('' = all)
+  let filter = '', roleF = '', deckOnly = false;   // rarity filter ('' = all), role filter, show only the deck
 
   const pct = (a, b) => (b ? Math.min(100, Math.round((a / b) * 100)) : 100);
 
@@ -7318,26 +7434,43 @@ AMB.IMAGES = {
     const btn = !owned ? `<span class="cp-lock">🔒 ${unlockHint(id)}</span>`
       : max ? '' : `<button class="btn small ${C.canUpgrade(id) ? 'primary' : ''}" data-act="colUpgrade" data-id="${id}" ${C.canUpgrade(id) ? '' : 'disabled'}>طوّر ← Lv ${lv + 1}</button>`;
     const bonus = Math.round((C.power(id) - 1) * 100);
-    return `<div class="cp-tile" data-card="${id}">${card}${owned ? bar : ''}<div class="cp-foot">${btn}<span class="cp-pow" title="قوة البطاقة في الحملة والبرج">${bonus > 0 ? '+' + bonus + '%' : '±0%'}</span></div></div>`;
+    const inDeck = d.role && owned && C.inDeck(id);
+    const dk = d.role && owned ? `<button class="btn small dk ${inDeck ? 'on' : ''}" data-act="colDeck" data-id="${id}">${inDeck ? '✓ في الديك' : '＋ للديك'}</button>` : '';
+    return `<div class="cp-tile ${inDeck ? 'indeck' : ''}" data-card="${id}">${card}${owned ? bar : ''}<div class="cp-foot">${btn}<span class="cp-pow" title="قوة البطاقة في الحملة والبرج">${bonus > 0 ? '+' + bonus + '%' : '±0%'}</span></div>${dk ? `<div class="cp-foot">${dk}</div>` : ''}</div>`;
   }
 
   AMB.TIPS = AMB.TIPS || {};
   AMB.TIPS.colinfo = () => ({ title: 'تطوير البطاقات', html: `<p>كل مستوى +${Math.round(AMB.ECONOMY.cards.levelBonus * 100)}% صحة وهجوم، والندرة الأعلى أقوى لكنها تحتاج نسخًا أكثر.</p>
     <p>النسخ المطلوبة للمستويات 2 إلى 5:</p>${Object.entries(RAR).map(([k, r]) => `<div class="hint">• <b style="color:${r.color}">${r.name}</b>: ${r.copies.join(' / ')}</div>`).join('')}
     <p><b>المستويات والندرة تُحتسب في الحملة والبرج والأحداث فقط</b>، أما المباراة السريعة وعلى نفس الجهاز فالكل متساوٍ.</p>` });
+  // the deck strip: your 12 slots, role counts, auto-build. Progression fights shop only from this deck.
+  function deckBar() {
+    const L = C.deckLimits(), deck = C.deck(), rc = C.roleCounts(deck), ROLE = AMB.DATA.ROLES, ui = UI();
+    const slots = []; for (let i = 0; i < L.size; i++) slots.push(deck[i] ? `<button class="dslot" data-act="colDeck" data-id="${deck[i]}" title="${C.def(deck[i]).name}: اضغط للإزالة">${ui.portrait(C.def(deck[i]), { k: 'dk' + i + deck[i] })}</button>` : `<i class="dslot empty"></i>`);
+    const ok = deck.length >= L.min;
+    return `<div class="deck-bar ${ok ? '' : 'bad'}"><div class="db-top"><b>🃏 ديكك <span>${deck.length}/${L.size}</span></b>
+        <span class="db-btns"><button class="btn small primary" data-act="colAuto">ترتيب تلقائي</button><button class="btn small ghost" data-act="colClear">تفريغ</button><button class="ibtn" data-act="info" data-k="deckinfo" title="شرح">ⓘ</button></span></div>
+      <div class="db-slots">${slots.join('')}</div>
+      <div class="db-roles">${Object.entries(rc).map(([r, n]) => `<span class="${n ? '' : 'z'}">${icon(AMB.art.ROLE_ICON[r])}${ROLE[r].name} ${n}</span>`).join('')}</div>
+      ${ok ? '' : `<div class="db-warn">تحتاج ${L.min} وحدات على الأقل في الديك (وإلا تدخل بكل وحداتك)</div>`}</div>`;
+  }
+  AMB.TIPS.deckinfo = () => ({ title: 'الديك', html: `<p>الديك هو <b>الوحدات اللي تطلع لك في المتجر</b> أثناء الحملة والبرج والأحداث (حتى ${C.deckLimits().size} وحدة، والحد الأدنى ${C.deckLimits().min}). اختر الأدوار والعوالم اللي تكمّل بعض عشان التآزر.</p>
+    <p>المباراة السريعة وعلى نفس الجهاز ما تستخدم الديك: الكل يلعب بكل الوحدات. والأبطال خارج الديك.</p><p>«ترتيب تلقائي» يختار لك ديك متوازن من أقوى بطاقاتك.</p>` });
   function render() {
     const root = $('collection'); if (!root) return;
-    const ids = C.ids().filter((id) => !filter || C.rarity(id) === filter)
+    const ids = C.ids().filter((id) => (!filter || C.rarity(id) === filter) && (!roleF || C.def(id).role === roleF) && (!deckOnly || C.inDeck(id)))
       .sort((a, b) => RAR[C.rarity(b)].order - RAR[C.rarity(a)].order || (C.def(a).role ? 1 : 0) - (C.def(b).role ? 1 : 0));
     const ready = C.ids().filter((id) => C.canUpgrade(id)).length;
     const fb = (v, n, col) => `<button class="btn small ${filter === v ? 'on' : ''}" data-act="colFilter" data-v="${v}" ${col ? `style="--rc:${col}"` : ''}>${n}</button>`;
     root.innerHTML = `<div class="col-head">
+        ${C.needsStarter() ? '' : deckBar()}
         ${C.needsStarter() ? '<div class="col-starter">ما اخترت بطلك الأول للحين: اضغط «العب» واختر واحد من الأربعة.</div>' : ''}
         <div><b>${C.ownedCount()} / ${C.ids().length}</b> بطاقة · ${ready ? `<span class="col-ready">${ready} جاهزة للتطوير</span>` : 'لا توجد ترقيات جاهزة'}</div>
         <p class="hint">النسخ المكررة تطوّر البطاقة <button class="ibtn" data-act="info" data-k="colinfo" title="شرح">ⓘ</button></p>
         <div class="rar-legend">${Object.entries(RAR).map(([k, r]) => `<span class="rl r-${k}"><i></i>${r.name} <small>+${Math.round((r.power - 1) * 100)}%</small></span>`).join('')}</div>
         <button class="btn primary small" data-act="go" data-to="packs">افتح باكجات للحصول على نسخ</button>
         <div class="filters">${fb('', 'الكل')}${Object.entries(RAR).map(([k, r]) => fb(k, r.name, r.color)).join('')}</div>
+        <div class="filters"><button class="btn small ${roleF === '' && !deckOnly ? 'on' : ''}" data-act="colRole" data-v="">كل الأدوار</button><button class="btn small ${deckOnly ? 'on' : ''}" data-act="colRole" data-v="deck">الديك فقط</button>${Object.entries(AMB.DATA.ROLES).map(([k, r]) => `<button class="btn small ${roleF === k ? 'on' : ''}" data-act="colRole" data-v="${k}">${r.name}</button>`).join('')}</div>
       </div>
       <div class="col-grid">${ids.map(tile).join('')}</div>`;
     refreshMenu();
@@ -7353,6 +7486,11 @@ AMB.IMAGES = {
     const ui = UI(); if (!ui || ui.ACT.colUpgrade) return;
     Object.assign(ui.ACT, {
       colFilter: (d) => { filter = d.v || ''; render(); },
+      colRole: (d) => { deckOnly = d.v === 'deck'; roleF = deckOnly ? '' : (d.v || ''); render(); },
+      colDeck: (d) => { const r = C.toggleDeck(d.id); if (!r.ok) { ui.toast(r.reason, 'err'); return; } ui.sfx('click'); const y = window.scrollY; render(); window.scrollTo(0, y); },
+      colAuto: () => { C.autoBuild(); ui.sfx('merge'); ui.toast('تم ترتيب ديك متوازن', 'good'); render(); },
+      colClear: () => { C.setDeck([]); render(); },
+      deckEdit: () => { ui.closeModal(); ui.show('cards'); },
       colUpgrade: (d) => {
         const lv = C.upgrade(d.id); if (!lv) return;
         ui.sfx('merge'); ui.toast(`${C.def(d.id).name} ← المستوى ${lv}`, 'good');
@@ -7363,6 +7501,11 @@ AMB.IMAGES = {
     });
   }
 
+  // used before a progression fight: no valid deck -> build one for you; and a one-line summary for the fight previews
+  AMB.DeckGate = {
+    ensure() { if (!C.deckValid()) { C.autoBuild(); if (UI()) UI().toast('رتبت لك ديك تلقائي', 'good'); } return true; },
+    line() { const L = C.deckLimits(), n = C.deck().length; return `<div class="deck-line ${n >= L.min ? '' : 'bad'}">🃏 ديكك: <b>${n}/${L.size}</b>${n >= L.min ? '' : ' (ناقص: يرتّب لك تلقائيًا)'} <button class="btn small" data-act="deckEdit">عدّل</button></div>`; },
+  };
   AMB.CollectionUI = { render, refreshMenu, installActions, unlockHint };
   if (UI()) installActions();
   refreshMenu();
@@ -7561,13 +7704,14 @@ AMB.IMAGES = {
       ${h === l.hero ? `<div class="hint">ستواجه <b>ظلّ ${AMB.DATA.HEROES[h].name}</b></div>` : ''}
       <h4>تشكيلة الخصم</h4><div class="cam-units">${unitsHTML}</div>
       <h4>الجائزة</h4><div class="cam-reward">${reward}</div>
-      <h4>بطلك</h4><div class="hchips">${heroes}</div>
+      <h4>بطلك</h4><div class="hchips">${heroes}</div>${AMB.DeckGate ? AMB.DeckGate.line() : ''}
       <h4>النجوم ${starRow(CAM.stars(fightId))} <button class="ibtn" data-act="info" data-k="caminfo" title="شرح">ⓘ</button></h4>
       ${st.attempts ? `<div class="hint">محاولات: ${st.attempts} · فوز: ${st.wins}</div>` : ''}
       <div class="cam-go"><button class="btn primary big" data-act="camGo" data-id="${fightId}" ${h ? '' : 'disabled'}>قاتل!</button></div></div>`);
   }
 
   function start(fightId) {
+    if (AMB.DeckGate && !AMB.DeckGate.ensure()) return;
     const ui = UI(), S = ui.S;
     S.mode = 'campaign'; S.campaign = { fightId }; S.picks = [pickHero(), null]; S.pickIdx = 0;
     ui.closeModal(); ui.startMatch();
@@ -7610,7 +7754,9 @@ AMB.IMAGES = {
       camStarter: (d) => {
         if (!C.chooseStarter(d.id)) return;
         hero = d.id; ui.sfx('merge'); ui.toast(`${AMB.DATA.HEROES[d.id].name} صار بطلك!`, 'good');
-        render(); setTimeout(() => preview(CAM.next()), 250);
+        render();
+        if (!C.giftClaimed() && AMB.GiftUI) setTimeout(() => AMB.GiftUI.intro(() => { render(); preview(CAM.next()); }), 250);
+        else setTimeout(() => preview(CAM.next()), 250);
       },
       camChest: (d) => {
         const r = CAM.claimChest(d.id); if (!r) return;
@@ -7629,6 +7775,92 @@ AMB.IMAGES = {
   AMB.CampaignUI = { render, refreshMenu, showResult, installActions, isNewbie };
   if (UI()) installActions();
   refreshMenu();
+})();
+
+</script>
+<script>
+/*
+ * Welcome gift: 5 packs opened one by one (new players right after choosing their first hero; old saves get an offer
+ * on the main menu). Afterwards a first deck is built for you. Logic: AMB.packs.gift() in core/packs.js.
+ */
+(function () {
+  const AMB = globalThis.AMB;
+  const $ = (id) => document.getElementById(id);
+  const C = AMB.collection, P = AMB.packs, RAR = AMB.ECONOMY.rarities;
+  const { icon } = AMB.art;
+  const UI = () => globalThis.AMB_UI;
+  let results = null, step = 0, after = null;
+
+  const tag = (c) => (c.isNew ? '<span class="rv-tag new">جديدة!</span>' : `<span class="rv-tag">+1 نسخة</span>`);
+
+  function intro(onDone) {
+    after = onDone || null;
+    UI().overlay(`<div class="rv-wrap"><h2>🎁 هدية البداية</h2>
+      <p class="gift-sub">٥ باكجات هدية تبني منها تشكيلتك الأولى</p>
+      <div class="gift-packs">${[1, 2, 3, 4, 5].map((i) => `<div class="gift-pack" style="--d:${i * 0.12}s"><b>ZOR</b><small>${i}</small></div>`).join('')}</div>
+      <p class="hint">كل باكج فيه 5 وحدات. مضمون إن عندك كل الأدوار وكل العوالم عشان تقدر تبني ديك.</p>
+      <div class="rv-btns"><button class="btn primary big" data-act="giftOpen">افتح الباكج الأول</button></div></div>`);
+  }
+
+  function showPack(i) {
+    const ui = UI(), res = results[i];
+    const best = res.cards.reduce((b, c) => (RAR[c.rarity].order > RAR[b.rarity].order ? c : b), res.cards[0]);
+    const cards = res.cards.map((c, k) => `<div class="rv" style="--d:${k * 0.35}s;--rc:${RAR[c.rarity].color}" data-r="${c.rarity}">
+        <div class="rv-in"><div class="rv-back"><span>ZOR</span></div><div class="rv-front">${ui.cardHTML(C.def(c.id), { k: 'gf' + i + k + c.id, lvl: c.level })}${tag(c)}</div></div></div>`).join('');
+    ui.overlay(`<div class="rv-wrap best-${best.rarity}"><h2>🎁 هدية ${i + 1} من ${results.length}</h2><div class="rv-row">${cards}</div>
+      <div class="gift-dots">${results.map((_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('')}</div>
+      <div class="rv-btns">${i + 1 < results.length ? '<button class="btn primary big" data-act="giftNext">الباكج التالي</button>' : '<button class="btn primary big" data-act="giftNext">خلصت! رتّب ديكك</button>'}
+        <button class="btn ghost" data-act="giftNext" data-all="1">افتح الباقي</button></div></div>`);
+    res.cards.forEach((c, k) => setTimeout(() => {
+      if (!$('overlay').classList.contains('on')) return;
+      ui.sfx(RAR[c.rarity].order >= 2 ? 'merge' : 'click');
+      const el = document.querySelectorAll('.rv')[k];
+      if (el && RAR[c.rarity].order >= 2 && ui.burst) [RAR[c.rarity].color, '#ffffff'].forEach((col) => ui.burst(el, col, 12, { r: 100, s: 6 }));
+    }, 350 * k + 300));
+  }
+
+  function summary() {
+    const ui = UI(), deck = C.autoBuild(), rc = C.roleCounts(deck);
+    const ROLE = AMB.DATA.ROLES;
+    ui.overlay(`<div class="rv-wrap"><h2>🃏 ديكك الأول جاهز</h2><p class="gift-sub">رتبت لك ${deck.length} وحدات متوازنة من اللي طلع لك</p>
+      <div class="deck-mini">${deck.map((id, i) => `<div class="dm" title="${C.def(id).name}">${ui.portrait(C.def(id), { k: 'gd' + i + id })}</div>`).join('')}</div>
+      <div class="deck-roles">${Object.entries(rc).map(([r, n]) => `<span>${icon(AMB.art.ROLE_ICON[r])}${ROLE[r].name} ${n}</span>`).join('')}</div>
+      <p class="hint">الديك هو الوحدات اللي تطلع لك في متجر الحملة والبرج والأحداث. عدّله من «مجموعتي» متى ما بغيت.</p>
+      <div class="rv-btns"><button class="btn primary big" data-act="giftDone">${after ? 'ابدأ أول قتال' : 'تمام'}</button><button class="btn" data-act="giftDeck">عدّل الديك</button></div></div>`);
+  }
+
+  function offer() {   // old saves: the gift is waiting
+    UI().overlay(`<div class="rv-wrap"><h2>🎁 هدية للجميع</h2><p class="gift-sub">٥ باكجات هدية وديك يتحكم في وحداتك بالحملة</p>
+      <p class="hint">بطاقاتك الحالية كلها باقية، والباكجات تنضاف لها.</p>
+      <div class="rv-btns"><button class="btn primary big" data-act="giftStart">استلم الهدية</button><button class="btn ghost" data-act="giftLater">لاحقًا</button></div></div>`);
+  }
+
+  function installActions() {
+    const ui = UI(); if (!ui || ui.ACT.giftOpen) return;
+    Object.assign(ui.ACT, {
+      giftStart: () => intro(null),
+      giftLater: () => ui.closeOverlay(),
+      giftOpen: () => { results = P.gift(); if (!results) { ui.closeOverlay(); return; } step = 0; showPack(0); },
+      giftNext: (d) => {
+        step = d.all ? results.length : step + 1;
+        if (step >= results.length) { summary(); return; }
+        showPack(step);
+      },
+      giftDone: () => { ui.closeOverlay(); ['PacksUI', 'CollectionUI', 'AlbumUI'].forEach((k) => AMB[k] && AMB[k].refreshMenu && AMB[k].refreshMenu()); const f = after; after = null; if (f) f(); else ui.show('menu'); },
+      giftDeck: () => { ui.closeOverlay(); after = null; ui.show('cards'); },
+    });
+  }
+
+  /** called when the main menu shows: offer the gift to a player who has a hero but has not claimed it */
+  let offered = false;
+  function onMenu() {
+    if (offered || !C.starterHero() || C.giftClaimed() || $('overlay').classList.contains('on')) return;
+    offered = true; setTimeout(() => { if (document.querySelector('#scr-menu.active') && !$('overlay').classList.contains('on') && !C.giftClaimed()) offer(); }, 500);
+  }
+
+  AMB.GiftUI = { intro, onMenu, installActions };
+  if (UI()) installActions();
+  if (document.querySelector('#scr-menu.active')) onMenu();
 })();
 
 </script>
@@ -7848,11 +8080,12 @@ AMB.IMAGES = {
       ${L.boss ? `<div class="boss-box">${ui.portrait(AMB.DATA.HEROES[L.heroId], { k: 'twb' })}<div><b>قدرة الزعيم: ${esc(L.special.name)}</b><p>${esc(L.special.text)}</p></div></div>` : ''}
       <h4>تشكيلة الخصم</h4><div class="cam-units">${units}</div>
       <h4>الجائزة</h4><div class="cam-reward">${reward}</div>
-      <h4>بطلك</h4><div class="hchips">${heroes}</div>
+      <h4>بطلك</h4><div class="hchips">${heroes}</div>${AMB.DeckGate ? AMB.DeckGate.line() : ''}
       <div class="cam-go"><button class="btn primary big" data-act="towGo" data-n="${n}" ${h ? '' : 'disabled'}>قاتل!</button></div></div>`);
   }
 
   function start(n) {
+    if (AMB.DeckGate && !AMB.DeckGate.ensure()) return;
     const ui = UI(), S = ui.S;
     S.mode = 'tower'; S.tower = { floor: n }; S.picks = [pickHero(), null]; S.pickIdx = 0;
     ui.closeModal(); ui.startMatch();
@@ -7960,11 +8193,12 @@ AMB.IMAGES = {
     ui.modal(`<div class="cam-pv" style="--wc:${W(c.event.world).color}"><h2>${L.boss ? '👑 ' : ''}${esc(L.name)}</h2><div class="hint">${esc(c.event.name)} · أفضل من 3 جولات</div>
       ${L.boss ? `<div class="boss-box">${ui.portrait(AMB.DATA.HEROES[L.heroId], { k: 'evb' })}<div><b>قدرة الزعيم: ${esc(L.special.name)}</b><p>${esc(L.special.text)}</p></div></div>` : ''}
       <h4>تشكيلة الخصم</h4><div class="cam-units">${units}</div><h4>الجائزة</h4><div class="cam-reward">${reward}</div>
-      <h4>بطلك</h4><div class="hchips">${heroes}</div>
+      <h4>بطلك</h4><div class="hchips">${heroes}</div>${AMB.DeckGate ? AMB.DeckGate.line() : ''}
       <div class="cam-go"><button class="btn primary big" data-act="evGo" data-n="${stage}" ${h ? '' : 'disabled'}>قاتل!</button></div></div>`);
   }
 
   function start(stage) {
+    if (AMB.DeckGate && !AMB.DeckGate.ensure()) return;
     const ui = UI(), S = ui.S;
     S.mode = 'event'; S.event = { stage, week: WK.current().idx }; S.picks = [pickHero(), null]; S.pickIdx = 0;
     ui.closeModal(); ui.startMatch();

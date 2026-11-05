@@ -145,7 +145,7 @@
 
 
   // ======== NEW ROSTER (45 characters, unlocked from packs / battle pass; the 20 above are the starter roster)
-  U.forEach((u) => (u.starter = true));
+  const LEGACY_STARTERS = U.map((u) => u.id);   // the first 20 units: owned by everyone before the gift-pack start (kept for old saves)
   // ---- new roster: Elder Grove
   unit('taiju', 'تايجو', 'Taiju', 'sylvan', 'guardian', 3, 80,
     { type: 'shieldSelf', name: 'لحاء الدهر', shield: [550, 900, 1450],
@@ -302,6 +302,9 @@
 
   const UNITS = {};
   U.forEach((u) => (UNITS[u.id] = u));
+  // The starter roster: 8 basic units (every role covered). Everything else comes from the gift packs, packs, the pass or events.
+  const STARTER_IDS = ['ash_ronin', 'forge_bulwark', 'wave_caller', 'grid_hound', 'pixel_sniper', 'moss_warden', 'thorn_fox', 'shiro'];
+  STARTER_IDS.forEach((id) => (UNITS[id].starter = true));
 
   /*
    * Heroes. `board` = stats when summoned onto the field (hp comes from life).
@@ -453,5 +456,5 @@
   ];
 
   Object.values(HEROES).forEach((h) => { h.rarity = h.rarity || 'legendary'; });
-  AMB.DATA = { REWARDS, REWARD_POOLS, WORLDS, ROLES, ROLE_BASE, TIER_MULT, TIER_RARITY, UNITS, HEROES, ITEMS, SYNERGIES, ABILITY_TRIGGERS };
+  AMB.DATA = { LEGACY_STARTERS, STARTER_IDS, REWARDS, REWARD_POOLS, WORLDS, ROLES, ROLE_BASE, TIER_MULT, TIER_RARITY, UNITS, HEROES, ITEMS, SYNERGIES, ABILITY_TRIGGERS };
 })();

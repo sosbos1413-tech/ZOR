@@ -10,8 +10,17 @@
   const EC = () => AMB.ECONOMY;
 
   AMB.Save.register('collection', {
-    version: 1,
-    defaults: () => ({ cards: {}, upgrades: 0, starterHero: null }),   // cards[id] = { owned, level, copies, got }
+    version: 2,
+    defaults: () => ({ cards: {}, upgrades: 0, starterHero: null, giftClaimed: false, deck: [] }),   // cards[id] = { owned, level, copies, got }
+    // v1 -> v2 (gift-pack start): players who already had the 20 original units keep them, and may still claim the gift packs
+    migrate: (s, from) => {
+      if (from < 2 && s.starterHero) {
+        s.cards = s.cards || {};
+        (AMB.DATA.LEGACY_STARTERS || []).forEach((id) => { s.cards[id] = Object.assign({ owned: true, level: 1, copies: 0, got: 0 }, s.cards[id] || {}, { owned: true }); });
+        s.giftClaimed = false; s.deck = [];
+      }
+      return s;
+    },
   });
 
   const defOf = (id) => AMB.DATA.UNITS[id] || AMB.DATA.HEROES[id] || null;
@@ -77,6 +86,45 @@
         emit('cardUpgraded', { id, level: lv, rarity: api.rarity(id) });
         return lv;
       },
+      // ---------------------------------------------------------------- deck + gift
+      giftClaimed: () => !!st().giftClaimed,
+      markGift() { save.update('collection', (s) => { s.giftClaimed = true; }); },
+      deckLimits: () => ({ size: EC().deck.size, min: EC().deck.min }),
+      /** the saved deck (only units you still own) */
+      deck() { return (st().deck || []).filter((id) => AMB.DATA.UNITS[id] && api.owned(id)); },
+      inDeck: (id) => api.deck().includes(id),
+      deckValid: () => api.deck().length >= EC().deck.min,
+      /** the units a progression fight may use: your deck, or every owned unit while no valid deck exists */
+      playableUnits() { return api.deckValid() ? api.deck() : api.ownedUnits(); },
+      roleCounts(ids) { const c = { guardian: 0, fighter: 0, assassin: 0, marksman: 0, mage: 0, support: 0 }; (ids || api.deck()).forEach((id) => { const d = AMB.DATA.UNITS[id]; if (d) c[d.role]++; }); return c; },
+      setDeck(ids) {
+        const out = []; (ids || []).forEach((id) => { if (AMB.DATA.UNITS[id] && api.owned(id) && !out.includes(id) && out.length < EC().deck.size) out.push(id); });
+        save.update('collection', (s) => { s.deck = out; }); return out;
+      },
+      /** add/remove one unit; returns { ok, in, reason } */
+      toggleDeck(id) {
+        if (!AMB.DATA.UNITS[id] || !api.owned(id)) return { ok: false, reason: 'لا تملك هذي الوحدة' };
+        const cur = api.deck();
+        if (cur.includes(id)) { api.setDeck(cur.filter((x) => x !== id)); return { ok: true, in: false }; }
+        if (cur.length >= EC().deck.size) return { ok: false, reason: `الديك ممتلئ (${EC().deck.size})` };
+        api.setDeck(cur.concat([id])); return { ok: true, in: true };
+      },
+      /** a balanced deck from what you own: role quotas first (strongest cards), then the best remaining, leaning on your two strongest worlds */
+      autoBuild() {
+        const D = EC().deck, R = EC().rarities;
+        const owned = api.ownedUnits().map((id) => AMB.DATA.UNITS[id]);
+        const score = (u) => u.tier * 10 + api.level(u.id) * 3 + R[u.rarity].order * 2;
+        const byScore = (a, b) => score(b) - score(a) || (a.id < b.id ? -1 : 1);
+        const wsum = {}; owned.forEach((u) => (wsum[u.world] = (wsum[u.world] || 0) + score(u)));
+        const top = Object.keys(wsum).sort((a, b) => wsum[b] - wsum[a]).slice(0, 2);
+        const sc = (u) => score(u) + (top.includes(u.world) ? 4 : 0);
+        const chosen = [];
+        Object.entries(D.roles).forEach(([role, n]) => owned.filter((u) => u.role === role).sort((a, b) => sc(b) - sc(a) || byScore(a, b)).slice(0, n).forEach((u) => chosen.push(u.id)));
+        owned.filter((u) => !chosen.includes(u.id)).sort((a, b) => sc(b) - sc(a) || byScore(a, b)).forEach((u) => { if (chosen.length < D.size && api.roleCounts(chosen)[u.role] < 4) chosen.push(u.id); });
+        owned.filter((u) => !chosen.includes(u.id)).sort(byScore).forEach((u) => { if (chosen.length < D.size) chosen.push(u.id); });
+        return api.setDeck(chosen);
+      },
+
       /** Unlock without copies (starter card, battle-pass reward…). */
       unlock(id) { R(id); return save.update('collection', (s) => { const c = rec(s, id); const was = c.owned; c.owned = true; return !was; }); },
 

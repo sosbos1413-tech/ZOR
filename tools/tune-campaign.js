@@ -17,7 +17,9 @@ const heroes = Object.keys(AMB.DATA.HEROES);
 function profile(lvl, owned) {
   const p = AMB.Profile.boot(AMB.Save.memoryStorage()), C = p.collection;
   if (owned === 'all') C.ids().forEach((id) => C.add(id, 1));
+  else { C.chooseStarter('orath'); p.packs.gift(21); }   // the 8 starter units + the welcome gift (a fixed deal)
   C.ids().forEach((id) => { if (!C.owned(id)) return; C.add(id, 999); while (C.level(id) < lvl && C.canUpgrade(id)) C.upgrade(id); });
+  C.autoBuild();   // the deck a player would get from auto-build
   return p;
 }
 function rate(prof, f, power) {

@@ -12,7 +12,7 @@
 
   const ECONOMY = {
     currencies: {
-      shards: { name: 'شظايا', icon: 'gem', start: 300, max: 999999 },      // earned in missions/levels, spent on packs (new players start with 3 packs' worth)
+      shards: { name: 'شظايا', icon: 'gem', start: 100, max: 999999 },      // earned in missions/levels, spent on packs (new players start with 1 pack's worth, plus the gift packs)
     },
     // Card rarity. `power` and card levels only apply in progression fights (campaign, tower, events),
     // never in quick matches or same-device play, so those stay fair.
@@ -44,7 +44,7 @@
     tower: {
       floors: 30, bossEvery: 5,
       unlock: { campaignLevel: 'l1' },                 // finish campaign level 1 first
-      power: [1.16,1.29,1.22,1.14,0.83,1.18,1.16,1.01,1.16,0.69,1.11,1.03,1.31,0.99,1.07,1.47,0.97,0.86,1.09,0.71,1.27,0.97,0.87,1.23,0.77,1.13,0.83,1.29,1.33,0.78],   // per floor, from tools/tune-tower.js
+      power: [1.32,1.51,1.38,1.32,0.89,1.26,1.28,1.14,1.22,0.81,1.19,1.09,1.39,1.11,1.17,1.47,1.06,0.87,1.12,0.68,1.23,0.99,0.88,1.29,0.81,1.08,0.82,1.32,1.33,0.78],   // per floor, from tools/tune-tower.js
       start: [{ from: 1, gold: 8, level: 5 }, { from: 15, gold: 12, level: 6 }, { from: 25, gold: 14, level: 7 }],
       rewards: { shardsFirst: 20, shardsLast: 50, passXp: 10, passXpBoss: 30, bossPack: 'basic', finalCard: 'epic' },   // first clear only
     },
@@ -58,7 +58,7 @@
       stages: [{ n: 10 }, { n: 18 }, { n: 24, boss: true }],   // difficulty position (1..30, like tower floors)
       start: [{ gold: 10, level: 5 }, { gold: 12, level: 6 }, { gold: 14, level: 7 }],
       rewards: [{ shards: 40, passXp: 10 }, { shards: 60, passXp: 20, pack: 'basic' }, { shards: 100, passXp: 50, exclusive: true }],
-      power: { ember: [1.17, 1.31, 0.76], tide: [1.24, 1.07, 0.86], neon: [1.17, 1.09, 0.79], sylvan: [0.91, 1.26, 1.01] },
+      power: { ember: [1.17, 1.43, 0.83], tide: [1.31, 1.19, 0.94], neon: [1.19, 1.21, 0.88], sylvan: [0.98, 1.33, 0.99] },
     },
     // album: own all 5 units of a world -> its reward (once); own all 20 -> the grand reward
     album: {
@@ -70,10 +70,19 @@
       },
       all: { packs: 3, title: 'alb_all' },
     },
+    // Deck: progression fights (campaign / tower / events) draw their shop only from your deck of up to `size` units
+    // (at least `min` to play); quick matches ignore it. Heroes are not part of the deck.
+    deck: { size: 12, min: 8, roles: { guardian: 2, fighter: 2, assassin: 1, marksman: 2, mage: 2, support: 1 } },   // roles = auto-build quota
+    // Welcome gift: 5 packs opened once by a new player (and once by old saves). `plan` = rarity of each card slot per pack
+    // (c common, r rare, e epic; never legendary). The draw is re-rolled until the 25 cards cover every role and world.
+    gift: {
+      plan: ['cccrr', 'cccre', 'cccrr', 'cccre', 'cccrr'],
+      need: { frontline: 5, ranged: 4, support: 2, assassin: 1, perWorld: 4 },   // minimums over the 25 cards: guardian+fighter, marksman+mage, support, assassin, cards per world
+    },
     cards: {
       levelBonus: 0.07,        // +7% hp & attack per card level above 1 (progression fights only)
       allUnlocked: false,      // true = every card owned (dev / testing)
-      // what a new player owns: the starter roster (units flagged `starter` in core/data.js = the first 20)
+      // what a new player owns: the starter roster (8 basic units flagged `starter` in core/data.js) + the GIFT PACKS below
       // + ONE hero they pick at first play. Everything else (the 45 new characters, the other heroes) comes from
       // packs or the battle pass. Locks: hero choice in every mode (player 1), shop units only in progression fights;
       // quick/same-device matches keep every unit.

@@ -14,7 +14,9 @@ const games = +(process.argv[2] || 60), cardLevel = +(process.argv[3] || 1), own
 const prof = AMB.Profile.boot(AMB.Save.memoryStorage());
 const C = prof.collection;
 if (owned === 'all') C.ids().forEach((id) => C.add(id, 1));
+else { C.chooseStarter('orath'); prof.packs.gift(21); }   // starter units + the welcome gift
 C.ids().forEach((id) => { if (!C.owned(id)) return; C.add(id, 999); while (C.level(id) < cardLevel && C.canUpgrade(id)) C.upgrade(id); });
+C.autoBuild();
 const heroes = Object.keys(AMB.DATA.HEROES);
 
 for (const l of AMB.LEVELS.LEVELS) {
