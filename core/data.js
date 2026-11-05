@@ -289,6 +289,17 @@
     { type: 'snipe', name: 'هربون الرمية', dmg: [200, 340, 580],
       text: 'يقنص العدو الأقل صحة أينما كان.' });
 
+  // ======== EVENT-EXCLUSIVE CARDS (weekly events only: never in packs, never in album sets). Art: assets/characters/<id>.jpg when added,
+  // otherwise the role emblem is shown (see assets/characters/PROMPTS_EVENT.md)
+  unit('hinotori', 'هينوتوري', 'Hinotori', 'ember', 'assassin', 3, 60,
+    { type: 'nuke', name: 'ريشة الفينيكس', dmg: [220, 380, 650], text: 'طعنة خاطفة بضرر هائل للهدف.' }, { rarity: 'legendary', exclusive: true });
+  unit('mikazuki', 'ميكازوكي', 'Mikazuki', 'tide', 'marksman', 3, 80,
+    { type: 'snipe', name: 'سهم الهلال', dmg: [290, 490, 840], text: 'يقنص العدو الأقل صحة أينما كان.' }, { rarity: 'legendary', exclusive: true });
+  unit('kaminari', 'كاميناري', 'Kaminari', 'neon', 'fighter', 3, 60,
+    { type: 'execute', name: 'صاعقة الحسم', dmg: [250, 420, 740], text: 'ضربة تتضاعف ضد الأهداف تحت 40% صحة.' }, { rarity: 'legendary', exclusive: true });
+  unit('kodama', 'كوداما', 'Kodama', 'sylvan', 'support', 3, 80,
+    { type: 'healAll', name: 'همس الأرواح', heal: [170, 290, 510], text: 'يعالج جميع الحلفاء.' }, { rarity: 'legendary', exclusive: true });
+
   const UNITS = {};
   U.forEach((u) => (UNITS[u.id] = u));
 

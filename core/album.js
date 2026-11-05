@@ -20,6 +20,7 @@
       /** { owned, total } for a world */
       progress(world) { const ids = units(world); return { owned: ids.filter((id) => deps.collection.owned(id)).length, total: ids.length }; },
       total() { const ids = Object.keys(AMB.DATA.UNITS).filter((id) => !AMB.DATA.UNITS[id].exclusive); return { owned: ids.filter((id) => deps.collection.owned(id)).length, total: ids.length }; },
+      exclusives: () => Object.values(AMB.DATA.UNITS).filter((u) => u.exclusive).map((u) => u.id),
       heroes: () => Object.keys(AMB.DATA.HEROES).map((id) => ({ id, owned: deps.collection.owned(id) })),
       reward: (world) => A().worlds[world],
       /** 'claimed' | 'ready' | 'locked' */

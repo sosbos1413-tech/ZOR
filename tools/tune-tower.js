@@ -6,7 +6,7 @@
  * Reference player: starter units upgraded steadily (see PROFS). Target: 88% on floor 1 falling to 30% on floor 30.
  */
 const path = require('path');
-['config', 'data', 'util', 'synergy', 'combat', 'match', 'ai', 'telemetry', 'pass', 'save', 'economy', 'collection', 'packs', 'levels', 'campaign', 'daily', 'album', 'tower', 'profile']
+['config', 'data', 'util', 'synergy', 'combat', 'match', 'ai', 'telemetry', 'pass', 'save', 'economy', 'collection', 'packs', 'levels', 'campaign', 'daily', 'album', 'tower', 'events', 'profile']
   .forEach((f) => require(path.join(__dirname, '..', 'core', f + '.js')));
 const AMB = globalThis.AMB;
 const mode = process.argv[2] === 'check' ? 'check' : 'tune';

@@ -15,6 +15,7 @@
   function unlockHint(id) {
     const P = AMB.Pass; let src = '';
     if (P) for (const [lv, r] of Object.entries(P.FREE)) if (!src && r.type === 'avatar' && r.id === id) src = `الباتل باس: مستوى ${lv}`;   // the premium track is not available yet, so it is not advertised
+    if (AMB.DATA.UNITS[id] && AMB.DATA.UNITS[id].exclusive) return 'حصرية: الحدث الأسبوعي';
     return src ? `باكجات · ${src}` : 'من الباكجات';
   }
   function tile(id) {

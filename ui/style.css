@@ -1587,3 +1587,13 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
 .tw-mid { flex: 1; display: flex; flex-direction: column; min-width: 0; } .tw-mid b { font-size: 16px; } .tw-mid small { color: var(--paper3); font-size: 12px; }
 .tw-rw { font-size: 14px; white-space: nowrap; color: var(--paper3); } .tw-rw svg { width: 13px; height: 13px; vertical-align: -2px; color: var(--cyan); } .twrow.cleared .tw-rw { color: var(--green); font-weight: 900; font-size: 20px; }
 .tw-go { background: var(--red); color: #fff; padding: 4px 14px; font: 400 18px var(--display); border: 2px solid #000; } .tw-lock { font-size: 18px; }
+
+/* ======================================================================= weekly event */
+#menu-event { position: relative; }
+.ev-banner { background: radial-gradient(circle at 1px 1px, #ffffff10 1px, transparent 1.5px) 0 0 / 6px 6px, linear-gradient(120deg, color-mix(in srgb, var(--wc) 40%, #141010), #141010 80%); border: 3px solid #000; box-shadow: 0 0 0 3px var(--wc), var(--hard); padding: 12px 16px; margin-bottom: 14px; text-align: center; }
+.ev-world { display: inline-block; background: var(--wc); color: #000; font-weight: 700; padding: 0 12px; border: 2px solid #000; } .ev-banner h3 { margin: 6px 0; font: 400 34px var(--display); color: #fff; text-shadow: 3px 3px 0 #000; }
+.ev-time { color: var(--paper3); font-size: 14px; } .ev-time b { color: var(--gold); }
+.ev-prize { display: flex; gap: 14px; align-items: center; background: var(--ink2); border: 3px solid var(--gold); box-shadow: var(--hard); padding: 14px 16px 10px; margin-bottom: 16px; }
+.ev-card { flex: none; padding-top: 6px; } .ev-ptxt { flex: 1; } .ev-ptxt p { font: 400 24px var(--display); color: #fff; margin: 4px 0; } .ev-ptxt small { font: 12px system-ui; color: var(--paper3); }
+.ev-done { margin-top: 8px; background: var(--green); color: #fff; padding: 2px 10px; display: inline-block; font-weight: 700; }
+.cam-pack.ev-gift { border-color: #ff9f1a; box-shadow: 0 0 22px #ff9f1a88; } .cu.big { width: 110px; } .cu.big .portrait { width: 100px; height: 100px; }

@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="5b0445baf5">
+<meta name="zor-build" content="66bddb73d2">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1608,6 +1608,16 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
 .tw-rw { font-size: 14px; white-space: nowrap; color: var(--paper3); } .tw-rw svg { width: 13px; height: 13px; vertical-align: -2px; color: var(--cyan); } .twrow.cleared .tw-rw { color: var(--green); font-weight: 900; font-size: 20px; }
 .tw-go { background: var(--red); color: #fff; padding: 4px 14px; font: 400 18px var(--display); border: 2px solid #000; } .tw-lock { font-size: 18px; }
 
+/* ======================================================================= weekly event */
+#menu-event { position: relative; }
+.ev-banner { background: radial-gradient(circle at 1px 1px, #ffffff10 1px, transparent 1.5px) 0 0 / 6px 6px, linear-gradient(120deg, color-mix(in srgb, var(--wc) 40%, #141010), #141010 80%); border: 3px solid #000; box-shadow: 0 0 0 3px var(--wc), var(--hard); padding: 12px 16px; margin-bottom: 14px; text-align: center; }
+.ev-world { display: inline-block; background: var(--wc); color: #000; font-weight: 700; padding: 0 12px; border: 2px solid #000; } .ev-banner h3 { margin: 6px 0; font: 400 34px var(--display); color: #fff; text-shadow: 3px 3px 0 #000; }
+.ev-time { color: var(--paper3); font-size: 14px; } .ev-time b { color: var(--gold); }
+.ev-prize { display: flex; gap: 14px; align-items: center; background: var(--ink2); border: 3px solid var(--gold); box-shadow: var(--hard); padding: 14px 16px 10px; margin-bottom: 16px; }
+.ev-card { flex: none; padding-top: 6px; } .ev-ptxt { flex: 1; } .ev-ptxt p { font: 400 24px var(--display); color: #fff; margin: 4px 0; } .ev-ptxt small { font: 12px system-ui; color: var(--paper3); }
+.ev-done { margin-top: 8px; background: var(--green); color: #fff; padding: 2px 10px; display: inline-block; font-weight: 700; }
+.cam-pack.ev-gift { border-color: #ff9f1a; box-shadow: 0 0 22px #ff9f1a88; } .cu.big { width: 110px; } .cu.big .portrait { width: 100px; height: 100px; }
+
 </style>
 </head>
 <body>
@@ -1630,6 +1640,7 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
         <button class="mtile mt-prog" data-act="go" data-to="pass" id="menu-pass"><span class="mt-ic">🎖️</span><span class="mt-l">ممر الصدع</span></button>
         <button class="mtile mt-prog" data-act="go" data-to="cards" id="menu-cards"><span class="mt-ic">🃏</span><span class="mt-l">مجموعتي</span></button>
         <button class="mtile mt-prog" data-act="go" data-to="tower" id="menu-tower"><span class="mt-ic">🗼</span><span class="mt-l">البرج</span></button>
+        <button class="mtile mt-prog" data-act="go" data-to="event" id="menu-event"><span class="mt-ic">🌟</span><span class="mt-l">الحدث</span></button>
         <button class="mtile mt-prog" data-act="go" data-to="packs" id="menu-packs"><span class="mt-ic">📦</span><span class="mt-l">الباكجات</span></button>
         <button class="mtile mt-prog" data-act="loginOpen" id="menu-login"><span class="mt-ic">🎁</span><span class="mt-l">الدخول اليومي</span></button>
         <button class="mtile" data-act="go" data-to="codex" id="menu-album"><span class="mt-ic">📖</span><span class="mt-l">الألبوم</span></button>
@@ -1745,6 +1756,11 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
   <section class="screen" id="scr-tower">
     <header class="scr-head"><button class="btn ghost" data-act="go" data-to="menu">→ رجوع</button><h2>برج التحدي</h2></header>
     <div class="tower" id="tower"></div>
+  </section>
+
+  <section class="screen" id="scr-event">
+    <header class="scr-head"><button class="btn ghost" data-act="go" data-to="menu">→ رجوع</button><h2>الحدث الأسبوعي</h2></header>
+    <div class="tower" id="event"></div>
   </section>
 
   <section class="screen" id="scr-stats">
@@ -2179,6 +2195,17 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
   unit('kota', 'كوتا', 'Kota', 'tide', 'marksman', 1, 80,
     { type: 'snipe', name: 'هربون الرمية', dmg: [200, 340, 580],
       text: 'يقنص العدو الأقل صحة أينما كان.' });
+
+  // ======== EVENT-EXCLUSIVE CARDS (weekly events only: never in packs, never in album sets). Art: assets/characters/<id>.jpg when added,
+  // otherwise the role emblem is shown (see assets/characters/PROMPTS_EVENT.md)
+  unit('hinotori', 'هينوتوري', 'Hinotori', 'ember', 'assassin', 3, 60,
+    { type: 'nuke', name: 'ريشة الفينيكس', dmg: [220, 380, 650], text: 'طعنة خاطفة بضرر هائل للهدف.' }, { rarity: 'legendary', exclusive: true });
+  unit('mikazuki', 'ميكازوكي', 'Mikazuki', 'tide', 'marksman', 3, 80,
+    { type: 'snipe', name: 'سهم الهلال', dmg: [290, 490, 840], text: 'يقنص العدو الأقل صحة أينما كان.' }, { rarity: 'legendary', exclusive: true });
+  unit('kaminari', 'كاميناري', 'Kaminari', 'neon', 'fighter', 3, 60,
+    { type: 'execute', name: 'صاعقة الحسم', dmg: [250, 420, 740], text: 'ضربة تتضاعف ضد الأهداف تحت 40% صحة.' }, { rarity: 'legendary', exclusive: true });
+  unit('kodama', 'كوداما', 'Kodama', 'sylvan', 'support', 3, 80,
+    { type: 'healAll', name: 'همس الأرواح', heal: [170, 290, 510], text: 'يعالج جميع الحلفاء.' }, { rarity: 'legendary', exclusive: true });
 
   const UNITS = {};
   U.forEach((u) => (UNITS[u.id] = u));
@@ -4013,6 +4040,18 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
       start: [{ from: 1, gold: 8, level: 5 }, { from: 15, gold: 12, level: 6 }, { from: 25, gold: 14, level: 7 }],
       rewards: { shardsFirst: 20, shardsLast: 50, passXp: 10, passXpBoss: 30, bossPack: 'basic', finalCard: 'epic' },   // first clear only
     },
+    // Weekly event: a special 3-stage level (best-of-3 fights vs generated line-ups, the last is the event boss) that
+    // changes every week (Monday to Sunday, local time) and cycles through the events in core/events.js. Each week's
+    // first clears pay once; clearing the boss gives that event's EXCLUSIVE card (never in packs, kept forever).
+    // `power`: enemy strength per event per stage, fitted by tools/tune-events.js.
+    events: {
+      epoch: [2026, 0, 5],                                   // a Monday: week 0
+      unlock: { campaignLevel: 'l1' },
+      stages: [{ n: 10 }, { n: 18 }, { n: 24, boss: true }],   // difficulty position (1..30, like tower floors)
+      start: [{ gold: 10, level: 5 }, { gold: 12, level: 6 }, { gold: 14, level: 7 }],
+      rewards: [{ shards: 40, passXp: 10 }, { shards: 60, passXp: 20, pack: 'basic' }, { shards: 100, passXp: 50, exclusive: true }],
+      power: { ember: [1.17, 1.31, 0.76], tide: [1.24, 1.07, 0.86], neon: [1.17, 1.09, 0.79], sylvan: [0.91, 1.26, 1.01] },
+    },
     // album: own all 5 units of a world -> its reward (once); own all 20 -> the grand reward
     album: {
       worlds: {
@@ -4584,10 +4623,12 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
   const bossWorld = (n) => WORLD_ORDER[bossIndex(n) % 4];
   function startFor(n) { let s = T().start[0]; T().start.forEach((x) => { if (n >= x.from) s = x; }); return { gold: s.gold, level: s.level }; }
 
-  /** the generated enemy for a floor: { units:[[defId,star,slot,fromRound]], hero, boss, name, ... } (pure, deterministic) */
-  function lineupFor(n) {
-    const rng = AMB.util.RNG(7000 + n * 131);
-    const boss = isBoss(n), world = boss ? bossWorld(n) : WORLD_ORDER[(n - 1) % 4];
+  /**
+   * Generates an enemy line-up (pure + deterministic for the same options). o = { n: difficulty position 1..30,
+   * seed, boss, world, special?: boss special, name? }. Used by the tower (one fixed line-up per floor) and by weekly events.
+   */
+  function generate(o) {
+    const n = o.n, rng = AMB.util.RNG(o.seed), boss = !!o.boss, world = o.world;
     const heroId = Object.values(AMB.DATA.HEROES).find((h) => h.world === world).id;
     const maxUnits = boss ? 7 : 8;                                   // a boss hero stands on slot b1
     const count = Math.min(maxUnits, 5 + Math.floor((n - 1) / 8));   // 5 units early .. 8 late (a player starts with 5 board slots)
@@ -4620,11 +4661,16 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
       const from = i < Math.ceil(count * 0.6) ? 1 : i < Math.ceil(count * 0.85) ? 2 : 3;
       return [u.id, star, slot, from];
     });
-    const sp = boss ? AMB.LEVELS.BOSS[world] : null;
-    const scale = boss && n >= 25 ? 1.4 : 1;                          // the last two bosses hit harder
+    const sp = boss ? (o.special || AMB.LEVELS.BOSS[world]) : null;
+    const scale = boss && n >= 25 && !o.special ? 1.4 : 1;           // the last two tower bosses hit harder
     const blessings = sp ? Object.fromEntries(Object.entries(sp.blessings).map(([kk, v]) => [kk, +(v * scale).toFixed(2)])) : null;
     return { floor: n, world, heroId, boss, units, summon: boss ? 'b1' : null, blessings, abilities: sp ? sp.abilities : [], special: sp,
-      name: boss ? `زعيم الطابق ${n}: ${AMB.DATA.HEROES[heroId].name}` : `الطابق ${n}` };
+      name: o.name || (boss ? `زعيم الطابق ${n}: ${AMB.DATA.HEROES[heroId].name}` : `الطابق ${n}`) };
+  }
+  /** the generated enemy for a tower floor */
+  function lineupFor(n) {
+    const boss = isBoss(n);
+    return generate({ n, seed: 7000 + n * 131, boss, world: boss ? bossWorld(n) : WORLD_ORDER[(n - 1) % 4] });
   }
 
   function rewardsFor(n) {
@@ -4678,7 +4724,111 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
   }
 
   AMB.Tower = Tower;
-  AMB.Tower.lineupFor = lineupFor; AMB.Tower.powerFor = powerFor; AMB.Tower.rewardsFor = rewardsFor;
+  AMB.Tower.generate = generate; AMB.Tower.lineupFor = lineupFor; AMB.Tower.powerFor = powerFor; AMB.Tower.rewardsFor = rewardsFor;
+})();
+
+</script>
+<script>
+/*
+ * Weekly event: a limited-time special level with a boss of one world; clearing it gives a card that cannot
+ * come from packs. The event changes every week (Monday to Sunday, local time) and cycles through EVENTS,
+ * so a missed one comes back after 4 weeks. Rewards are paid once per week's occurrence; an event's
+ * exclusive card stays yours after the week ends. Settings: AMB.ECONOMY.events.
+ */
+(function () {
+  const AMB = globalThis.AMB;
+  const E = () => AMB.ECONOMY.events;
+  const DAY = 864e5;
+
+  // the rotation (order = week order). `exclusive` = a unit flagged exclusive in core/data.js.
+  const EVENTS = [
+    { id: 'ember', world: 'ember', name: 'عاصفة الجمر', exclusive: 'hinotori',
+      boss: { name: 'سيّد الجمر المشتعل', text: 'وحدات الزعيم +30% هجوم و+10% صحة، ويطلق «أمر الهجوم» و«نيزك الجمر» كل جولة.', blessings: { atkPct: 0.3, hpPct: 0.1 }, abilities: ['inferno_banner', 'meteor'] } },
+    { id: 'tide', world: 'tide', name: 'مدّ القمر الأسود', exclusive: 'mikazuki',
+      boss: { name: 'حارس المدّ الأبدي', text: 'وحدات الزعيم +30% صحة و+10% سرعة هجوم، ويطلق «حاجز المدّ» و«ينبوع القمر» كل جولة.', blessings: { hpPct: 0.3, asPct: 0.1 }, abilities: ['tidal_ward', 'moon_spring'] } },
+    { id: 'neon', world: 'neon', name: 'انقطاع نيون', exclusive: 'kaminari',
+      boss: { name: 'عقل الشبكة المتمرّد', text: 'وحدات الزعيم +30% سرعة هجوم و+10% هجوم، ويطلق «كسر السرعة» و«انهيار النظام» كل جولة.', blessings: { asPct: 0.3, atkPct: 0.1 }, abilities: ['overclock', 'system_crash'] } },
+    { id: 'sylvan', world: 'sylvan', name: 'غضب الغابة', exclusive: 'kodama',
+      boss: { name: 'قلب الغابة الأزلي', text: 'وحدات الزعيم +30% صحة و+10% هجوم، ويطلق «جدار الأشواك» و«قيد الجذور» كل جولة.', blessings: { hpPct: 0.3, atkPct: 0.1 }, abilities: ['thorn_wall', 'rootbind'] } },
+  ];
+
+  AMB.Save.register('events', { version: 1, defaults: () => ({ weeks: {} }) });   // weeks[idx] = { stage: stages cleared 0..3, got: exclusive card given }
+
+  const dayNum = (t) => { const d = new Date(t); return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / DAY); };   // local calendar day number
+  const baseDay = () => { const [y, m, d] = E().epoch; return Math.floor(Date.UTC(y, m, d) / DAY); };
+  const weekIndex = (t) => Math.floor((dayNum(t) - baseDay()) / 7);
+  const eventOfWeek = (idx) => EVENTS[((idx % EVENTS.length) + EVENTS.length) % EVENTS.length];
+  /** local midnight that ends the week containing t (next Monday 00:00) */
+  function weekEnd(t) { const d = new Date(t), dow = (d.getDay() + 6) % 7; return new Date(d.getFullYear(), d.getMonth(), d.getDate() + (7 - dow)).getTime(); }
+
+  function Events(save, deps) {
+    deps = deps || {};
+    const now = deps.now || (() => Date.now());
+    const st = () => save.get('events');
+    const rec = (idx) => st().weeks[idx] || { stage: 0, got: false };
+    const api = {
+      EVENTS, weekIndex, eventOfWeek,
+      unlocked: () => !deps.campaign || deps.campaign.levelDone(E().unlock.campaignLevel),
+      /** this week's event: { idx, event, endsAt, msLeft, stage (cleared 0..3), done } */
+      current() {
+        const t = now(), idx = weekIndex(t), ev = eventOfWeek(idx), r = rec(idx);
+        return { idx, event: ev, endsAt: weekEnd(t), msLeft: weekEnd(t) - t, stage: r.stage, done: r.stage >= 3, got: r.got };
+      },
+      nextEvent() { return eventOfWeek(weekIndex(now()) + 1); },
+      stageCount: () => E().stages.length,
+      lineupFor(eventId, stage) {
+        const ev = EVENTS.find((x) => x.id === eventId), order = EVENTS.indexOf(ev), S = E().stages[stage - 1];
+        return AMB.Tower.generate({ n: S.n, seed: 91000 + order * 100 + stage, boss: !!S.boss, world: ev.world, special: S.boss ? ev.boss : null,
+          name: S.boss ? `${ev.boss.name}` : `${ev.name} · المرحلة ${stage}` });
+      },
+      powerFor: (eventId, stage) => E().power[eventId][stage - 1],
+      startFor: (stage) => E().start[stage - 1],
+      rewardsFor: (stage) => E().rewards[stage - 1],
+      canPlay(stage) { const c = api.current(); return api.unlocked() && stage >= 1 && stage <= Math.min(api.stageCount(), c.stage + 1); },
+      /** options for new AMB.Match(...); `idx` (the week) is returned so the result is credited to the week the fight started in */
+      matchOptions(stage, heroId, seed) {
+        const c = api.current(), L = api.lineupFor(c.event.id, stage), C = deps.collection, power = api.powerFor(c.event.id, stage);
+        const enemyPower = {}; L.units.forEach(([id]) => (enemyPower[id] = power)); enemyPower[L.heroId] = power;
+        return {
+          mode: 'event', seed, progression: true, eventWeek: c.idx,
+          rules: Object.assign({}, AMB.LEVELS.CAMPAIGN.rules, { start: api.startFor(stage) }),
+          players: [
+            { heroId, name: 'أنت', cardPower: C ? C.powerMap() : null, allowedUnits: C ? C.ownedUnits() : null },
+            { heroId: L.heroId, name: L.name, isAI: true, cardPower: enemyPower, lineup: { units: L.units, summon: L.summon, blessings: L.blessings, abilities: L.abilities } },
+          ],
+        };
+      },
+      /** record a finished stage fight for the week `idx` it started in (default: this week) */
+      recordResult(stage, res, idx) {
+        if (idx == null) idx = weekIndex(now());
+        const ev = eventOfWeek(idx), before = rec(idx), won = !!res.won;
+        const first = won && stage === before.stage + 1;
+        const out = { week: idx, event: ev.id, stage, won, first, shards: 0, passXp: 0, pack: null, card: null, completed: false, cardIsNew: false };
+        save.update('events', (s) => {
+          const w = s.weeks[idx] = s.weeks[idx] || { stage: 0, got: false };
+          if (first) w.stage = stage;
+        });
+        if (first) {
+          const pay = rewardsFor(stage);
+          if (deps.wallet && pay.shards) { deps.wallet.add('shards', pay.shards, 'event'); out.shards = pay.shards; }
+          if (deps.addPassXp && pay.passXp) { deps.addPassXp(pay.passXp); out.passXp = pay.passXp; }
+          if (pay.pack && deps.packs) out.pack = deps.packs.open(pay.pack, { free: true });
+          if (pay.exclusive && deps.collection) {
+            const r = deps.collection.add(ev.exclusive, 1);
+            out.card = { id: ev.exclusive, rarity: deps.collection.rarity(ev.exclusive), isNew: r.isNew }; out.cardIsNew = r.isNew; out.completed = true;
+            save.update('events', (s) => { s.weeks[idx].got = true; });
+          }
+        }
+        if (deps.events) deps.events.emit('eventEnd', Object.assign({}, out, { summary: res }));
+        return out;
+      },
+    };
+    const rewardsFor = (stage) => E().rewards[stage - 1];
+    return api;
+  }
+
+  AMB.WeeklyEvents = Events;
+  AMB.WEEKLY = EVENTS;
 })();
 
 </script>
@@ -4705,6 +4855,7 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
       /** { owned, total } for a world */
       progress(world) { const ids = units(world); return { owned: ids.filter((id) => deps.collection.owned(id)).length, total: ids.length }; },
       total() { const ids = Object.keys(AMB.DATA.UNITS).filter((id) => !AMB.DATA.UNITS[id].exclusive); return { owned: ids.filter((id) => deps.collection.owned(id)).length, total: ids.length }; },
+      exclusives: () => Object.values(AMB.DATA.UNITS).filter((u) => u.exclusive).map((u) => u.id),
       heroes: () => Object.keys(AMB.DATA.HEROES).map((id) => ({ id, owned: deps.collection.owned(id) })),
       reward: (world) => A().worlds[world],
       /** 'claimed' | 'ready' | 'locked' */
@@ -4762,12 +4913,13 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
     const login = AMB.Login(save, { wallet, packs, collection, events, now: nowFn });
     const album = AMB.Album(save, { wallet, packs, collection, events });
     const tower = AMB.Tower(save, { wallet, packs, collection, events, campaign, addPassXp: (n) => AMB.pass && AMB.pass.addXp(n) });
-    return { save, events, wallet, collection, packs, campaign, login, album, tower };
+    const weekly = AMB.WeeklyEvents(save, { wallet, packs, collection, events, campaign, now: nowFn, addPassXp: (n) => AMB.pass && AMB.pass.addXp(n) });
+    return { save, events, wallet, collection, packs, campaign, login, album, tower, weekly };
   }
   AMB.Profile = { boot };
   if (typeof document !== 'undefined' && !AMB.save) {
     const p = boot();
-    AMB.save = p.save; AMB.events = p.events; AMB.wallet = p.wallet; AMB.collection = p.collection; AMB.packs = p.packs; AMB.campaign = p.campaign; AMB.login = p.login; AMB.album = p.album; AMB.tower = p.tower;
+    AMB.save = p.save; AMB.events = p.events; AMB.wallet = p.wallet; AMB.collection = p.collection; AMB.packs = p.packs; AMB.campaign = p.campaign; AMB.login = p.login; AMB.album = p.album; AMB.tower = p.tower; AMB.weekly = p.weekly;
   }
 })();
 
@@ -4894,6 +5046,7 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
     { id: 'w_merge8', name: 'رقِّ ٨ وحدات', stat: 'merges', target: 8, xp: 180 },
     { id: 'w_rounds30', name: 'افز بـ٣٠ جولة', stat: 'rounds_won', target: 30, xp: 200 },
     { id: 'w_worlds', name: 'ادخل مباراة بوحدات من ٤ عوالم', stat: 'four_worlds', target: 1, xp: 150 },
+    { id: 'w_event', name: 'أكمل الحدث الأسبوعي', stat: 'event_cleared', target: 1, xp: 150 },
     { id: 'w_finale3', name: 'افز بـ٣ جولات حسم', stat: 'finale_won', target: 3, xp: 180 },
   ];
 
@@ -5016,6 +5169,10 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
     events.on('towerEnd', (r) => {   // tower fights count as fights won / matches; each new floor counts toward "climb 2 floors"
       if (r.summary) pass.recordStats(Object.assign({}, r.summary, { won: r.won }));
       if (r.first) pass.track('tower_floors', 1);
+    });
+    events.on('eventEnd', (r) => {   // weekly-event fights count as fights won; finishing the event counts for the weekly mission
+      if (r.summary) pass.recordStats(Object.assign({}, r.summary, { won: r.won }));
+      if (r.completed) pass.track('event_cleared', 1);
     });
     events.on('fightEnd', (r) => {
       if (r.summary) pass.recordStats(Object.assign({}, r.summary, { won: r.won }));
@@ -5565,6 +5722,7 @@ AMB.IMAGES = {
     if (globalThis.AMB && AMB.PassUI) { if (screen === 'menu') AMB.PassUI.refreshMenu(); if (screen === 'pass') AMB.PassUI.render(); }
     if (globalThis.AMB && AMB.CollectionUI) { if (screen === 'menu') AMB.CollectionUI.refreshMenu(); if (screen === 'cards') AMB.CollectionUI.render(); }
     if (globalThis.AMB && AMB.PacksUI) { if (screen === 'menu') AMB.PacksUI.refreshMenu(); if (screen === 'packs') AMB.PacksUI.render(); }
+    if (globalThis.AMB && AMB.EventUI) { if (screen === 'event') AMB.EventUI.render(); if (screen === 'menu') AMB.EventUI.refreshMenu(); }
     if (globalThis.AMB && AMB.TowerUI) { if (screen === 'tower') AMB.TowerUI.render(); if (screen === 'menu') AMB.TowerUI.refreshMenu(); }
     if (globalThis.AMB && AMB.CampaignUI) { if (screen === 'campaign') AMB.CampaignUI.render(); if (screen === 'menu') AMB.CampaignUI.refreshMenu(); }
     if (globalThis.AMB && AMB.DailyUI && screen === 'menu') AMB.DailyUI.onMenu();
@@ -5632,6 +5790,7 @@ AMB.IMAGES = {
     // campaign fight (ui/campaign-ui.js): fixed enemy line-up, short best-of-3 rules, your card levels count
     S.match = S.mode === 'campaign' ? new AMB.Match(AMB.campaign.matchOptions(S.campaign.fightId, S.picks[0]))
       : S.mode === 'tower' ? new AMB.Match(AMB.tower.matchOptions(S.tower.floor, S.picks[0]))
+      : S.mode === 'event' ? new AMB.Match(AMB.weekly.matchOptions(S.event.stage, S.picks[0]))
       : new AMB.Match({ mode: S.mode, players });
     // same hero on both sides (e.g. your Kiro vs the Ember boss Kiro): the enemy becomes its "shadow"
     const mirror = S.match.players[0].heroId === S.match.players[1].heroId;
@@ -6550,6 +6709,7 @@ AMB.IMAGES = {
     const secs = Math.round((Date.now() - S.startTs) / 1000);
     if (S.mode === 'campaign') return AMB.CampaignUI.showResult(m, secs);   // campaign and tower have their own results screens
     if (S.mode === 'tower') return AMB.TowerUI.showResult(m, secs);
+    if (S.mode === 'event') return AMB.EventUI.showResult(m, secs);
     if (S.mode !== 'friendly' && !m._recorded) { AMB.telemetry.recordMatch(m, { seconds: secs }); m._recorded = true; }
     if (!m._counted) { m._counted = true; try { localStorage.setItem('amb_played', String(+(localStorage.getItem('amb_played') || 0) + 1)); } catch (e) { /* ignore */ } }
     if (!m._passDone) { m._passDone = true; try { S.passResult = AMB.pass.recordMatch(m.summary(0)); } catch (e) { S.passResult = null; } }
@@ -6797,7 +6957,7 @@ AMB.IMAGES = {
     },
     toResults: () => showResults(),
     info: (d, el, e) => { if (e) e.stopPropagation(); if (d.k === 'hero') { heroDetail(d.id); return; } const t = AMB.TIPS[d.k]; if (!t) return; const x = t(); modal(`<h2>${x.title}</h2><div class="tip-body">${x.html}</div>`); },
-    again: () => { if (S.mode === 'campaign' || S.mode === 'tower') { startMatch(); return; } S.picks = [S.picks[0], S.picks[1]]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
+    again: () => { if (S.mode === 'campaign' || S.mode === 'tower' || S.mode === 'event') { startMatch(); return; } S.picks = [S.picks[0], S.picks[1]]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
     statsExport: () => {
       const blob = new Blob([JSON.stringify(AMB.telemetry.load(), null, 2)], { type: 'application/json' });
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'multiverse-telemetry.json'; a.click();
@@ -7147,6 +7307,7 @@ AMB.IMAGES = {
   function unlockHint(id) {
     const P = AMB.Pass; let src = '';
     if (P) for (const [lv, r] of Object.entries(P.FREE)) if (!src && r.type === 'avatar' && r.id === id) src = `الباتل باس: مستوى ${lv}`;   // the premium track is not available yet, so it is not advertised
+    if (AMB.DATA.UNITS[id] && AMB.DATA.UNITS[id].exclusive) return 'حصرية: الحدث الأسبوعي';
     return src ? `باكجات · ${src}` : 'من الباكجات';
   }
   function tile(id) {
@@ -7590,6 +7751,8 @@ AMB.IMAGES = {
       ${A.worlds().map(worldSection).join('')}
       <section class="al-world" style="--wc:#ff5a64"><header><h3>الأبطال</h3><span class="al-count">${C.ownedHeroes().length}/${A.heroes().length}</span></header>
         <div class="al-grid">${A.heroes().map((h) => cardTile(h.id)).join('')}</div></section>
+      <section class="al-world" style="--wc:#ffd24a"><header><h3>🌟 حصريات الأحداث</h3><span class="al-count">${A.exclusives().filter((id) => C.owned(id)).length}/${A.exclusives().length}</span></header>
+        <div class="al-grid">${A.exclusives().map(cardTile).join('')}</div></section>
       <h3 class="al-items-h">المعدات والتعاويذ</h3><div class="codex-grid">${UI().itemsHTML()}</div>`;
     refreshMenu();
   }
@@ -7733,6 +7896,111 @@ AMB.IMAGES = {
   }
 
   AMB.TowerUI = { render, refreshMenu, showResult, installActions };
+  if (UI()) installActions();
+  refreshMenu();
+})();
+
+</script>
+<script>
+/*
+ * "الحدث" screen: this week's special level (3 stages, the last is the event boss). The boss gives an
+ * exclusive card that packs never drop. Logic: core/events.js, settings: AMB.ECONOMY.events.
+ */
+(function () {
+  const AMB = globalThis.AMB;
+  const $ = (id) => document.getElementById(id);
+  const WK = AMB.weekly, C = AMB.collection;
+  const { icon } = AMB.art;
+  const UI = () => globalThis.AMB_UI;
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const W = (id) => AMB.DATA.WORLDS[id];
+  let hero = null, timer = 0;
+
+  const pickHero = () => { const owned = C.ownedHeroes(); if (hero && owned.includes(hero)) return hero; return (hero = (C.starterHero() && owned.includes(C.starterHero()) ? C.starterHero() : owned[0]) || null); };
+  function left(ms) { const h = Math.max(0, Math.floor(ms / 36e5)), d = Math.floor(h / 24); return d >= 1 ? `${d} يوم و ${h % 24} ساعة` : `${h} ساعة`; }
+  const rewardHTML = (stage) => { const r = WK.rewardsFor(stage); return `${icon('gem')} ${r.shards}${r.pack ? ' · 📦' : ''}${r.exclusive ? ' · 🌟 بطاقة حصرية' : ''}`; };
+
+  function stageRow(c, stage) {
+    const L = WK.lineupFor(c.event.id, stage), cleared = stage <= c.stage, cur = stage === c.stage + 1, open = WK.canPlay(stage);
+    const art = L.boss ? UI().portrait(AMB.DATA.HEROES[L.heroId], { bare: true, k: 'ev' + stage }) : `<b>${stage}</b>`;
+    return `<button class="twrow ${L.boss ? 'boss' : ''} ${cleared ? 'cleared' : ''} ${cur ? 'cur' : ''} ${open ? '' : 'locked'}" style="--wc:${W(c.event.world).color}" ${open ? `data-act="evStage" data-n="${stage}"` : 'disabled'}>
+      <span class="tw-n">${art}</span><span class="tw-mid"><b>${L.boss ? '👑 ' : ''}${esc(L.boss ? L.special.name : 'المرحلة ' + stage)}</b><small>${L.boss ? 'زعيم الحدث' : 'قتال ' + stage + ' من ' + WK.stageCount()}</small></span>
+      <span class="tw-rw">${cleared ? '✓' : rewardHTML(stage)}</span>${cur ? '<span class="tw-go">قاتل</span>' : open ? '' : '<span class="tw-lock">🔒</span>'}</button>`;
+  }
+
+  function render() {
+    const root = $('event'); if (!root) return;
+    clearInterval(timer);
+    if (C.needsStarter()) { root.innerHTML = '<div class="cam-note">اختر بطلك الأول من «الحملة» أول.</div>'; return; }
+    if (!WK.unlocked()) { root.innerHTML = `<div class="cam-note">🔒 الحدث الأسبوعي يفتح بعد ما تنهي <b>المستوى الأول من الحملة</b>.</div>`; return; }
+    const c = WK.current(), ev = c.event, ex = AMB.DATA.UNITS[ev.exclusive], owned = C.owned(ev.exclusive), next = WK.nextEvent();
+    const card = UI().cardHTML(ex, { k: 'evx', lvl: owned ? C.level(ev.exclusive) : 0, cls: owned ? '' : 'unowned', attrs: `data-act="detail" data-id="${ev.exclusive}"` });
+    const rows = []; for (let s = WK.stageCount(); s >= 1; s--) rows.push(stageRow(c, s));
+    root.innerHTML = `<div class="ev-banner" style="--wc:${W(ev.world).color}"><div class="ev-world">${W(ev.world).name}</div><h3>${esc(ev.name)}</h3>
+        <div class="ev-time">⏳ باقي <b id="ev-left">${left(c.msLeft)}</b> · القادم: ${esc(next.name)}</div></div>
+      <div class="ev-prize"><div class="ev-card">${card}</div><div class="ev-ptxt"><b>🌟 الجائزة الحصرية</b><p>${esc(ex.name)} <small>${esc(ex.en)}</small></p>
+        <div class="hint">${owned ? '✓ تملكها (تعيد الحدث وتاخذ نسخة تطوير)' : 'ما تطلع من الباكجات، فقط من هذا الحدث'} <button class="ibtn" data-act="info" data-k="evinfo" title="شرح">ⓘ</button></div>
+        ${c.done ? '<div class="ev-done">✓ أنهيت حدث هذا الأسبوع</div>' : ''}</div></div>
+      <div class="twlist">${rows.join('')}</div>`;
+    refreshMenu();
+    timer = setInterval(() => { const e = $('ev-left'); if (!e || UI().S.screen !== 'event') { clearInterval(timer); return; } e.textContent = left(WK.current().msLeft); }, 30000);
+  }
+
+  function refreshMenu() {
+    const b = $('menu-event'); if (!b) return;
+    const l = b.querySelector('.mt-l'), c = WK.current();
+    l.innerHTML = `الحدث${WK.unlocked() && !c.done ? '<span class="dot">!</span>' : ''}`;
+  }
+
+  function preview(stage) {
+    const ui = UI(), c = WK.current(), L = WK.lineupFor(c.event.id, stage), h = pickHero(), R = WK.rewardsFor(stage), first = stage === c.stage + 1;
+    const units = L.units.map(([id, star, , from], k) => `<div class="cu">${ui.portrait(AMB.DATA.UNITS[id], { k: 'evp' + k + id })}${ui.stars(star)}${from > 1 ? `<small>من الجولة ${from}</small>` : ''}</div>`).join('');
+    const heroes = C.ownedHeroes().map((id) => `<button class="hchip ${id === h ? 'on' : ''}" data-act="evHero" data-id="${id}" data-n="${stage}">${ui.portrait(AMB.DATA.HEROES[id], { k: 'evh' + id })}<span>${AMB.DATA.HEROES[id].name}</span></button>`).join('');
+    const reward = first ? `${icon('gem')} ${R.shards} شظية · +${R.passXp} خبرة ممر${R.pack ? ' · <b>باكج مجاني</b>' : ''}${R.exclusive ? ` · <b>🌟 ${esc(AMB.DATA.UNITS[c.event.exclusive].name)} (حصرية)</b>` : ''}` : 'أنهيت هذه المرحلة هذا الأسبوع: تدريب بدون جائزة';
+    ui.modal(`<div class="cam-pv" style="--wc:${W(c.event.world).color}"><h2>${L.boss ? '👑 ' : ''}${esc(L.name)}</h2><div class="hint">${esc(c.event.name)} · أفضل من 3 جولات</div>
+      ${L.boss ? `<div class="boss-box">${ui.portrait(AMB.DATA.HEROES[L.heroId], { k: 'evb' })}<div><b>قدرة الزعيم: ${esc(L.special.name)}</b><p>${esc(L.special.text)}</p></div></div>` : ''}
+      <h4>تشكيلة الخصم</h4><div class="cam-units">${units}</div><h4>الجائزة</h4><div class="cam-reward">${reward}</div>
+      <h4>بطلك</h4><div class="hchips">${heroes}</div>
+      <div class="cam-go"><button class="btn primary big" data-act="evGo" data-n="${stage}" ${h ? '' : 'disabled'}>قاتل!</button></div></div>`);
+  }
+
+  function start(stage) {
+    const ui = UI(), S = ui.S;
+    S.mode = 'event'; S.event = { stage, week: WK.current().idx }; S.picks = [pickHero(), null]; S.pickIdx = 0;
+    ui.closeModal(); ui.startMatch();
+  }
+
+  function showResult(m, secs) {
+    const ui = UI(), S = ui.S, stage = S.event.stage;
+    if (!m._evDone) { m._evDone = true; S.evResult = WK.recordResult(stage, Object.assign(m.summary(0), { lifeLeft: m.players[0].life, roundsLost: m.players[0].stats.losses }), S.event.week); }
+    const r = S.evResult, ev = AMB.WEEKLY.find((e) => e.id === r.event), L = WK.lineupFor(ev.id, stage), won = r.won, score = `${m.players[0].stats.wins} – ${m.players[1].stats.wins}`;
+    const pay = won && r.first ? [r.shards ? `${icon('gem')} +${r.shards} شظية` : '', r.passXp ? `+${r.passXp} خبرة ممر` : ''].filter(Boolean).join(' · ') : '';
+    const ex = AMB.DATA.UNITS[ev.exclusive];
+    const gift = (r.pack ? `<div class="cam-pack"><b>🎁 باكج مجاني:</b><div class="cam-pack-row">${r.pack.cards.map((c, i) => `<div class="cu">${ui.portrait(C.def(c.id), { k: 'evr' + i + c.id })}<small class="r-${c.rarity}">${c.isNew ? 'جديدة!' : c.refund ? '+' + c.refund + ' شظية' : '+1 نسخة'}</small></div>`).join('')}</div></div>` : '')
+      + (r.card ? `<div class="cam-pack ev-gift"><b>🌟 بطاقة حصرية!</b><div class="cam-pack-row"><div class="cu big">${ui.portrait(ex, { k: 'evxr' })}<small class="r-legendary">${esc(ex.name)} · ${r.cardIsNew ? 'جديدة!' : '+1 نسخة'}</small></div></div></div>` : '');
+    const nextStage = won && WK.canPlay(stage + 1) ? stage + 1 : null;
+    $('results').innerHTML = `<div class="res-stage ${won ? 'victory' : 'defeat'}" style="--wc:${W(ev.world).color}"><div class="res-rays"></div>
+        <div class="res-hero">${ui.portrait(won ? AMB.DATA.HEROES[m.players[0].heroId] : AMB.DATA.HEROES[L.heroId], { bare: true, k: 'evrh' })}<i class="sheen"></i></div><div class="res-hname">${esc(L.name)}</div></div>
+      <div class="res-banner"><h1>${won ? (L.boss ? 'هزمت زعيم الحدث!' : 'فوز!') : 'خسارة'}</h1><p class="hint">النتيجة ${score} · ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')} دقيقة</p>
+        ${won ? `<p class="cam-pay">${r.first ? pay : 'تدريب: بدون جائزة'}</p>` : '<p class="hint">طوّر بطاقاتك وجرّب مرة ثانية</p>'}</div>${gift}
+      <div class="cam-btns">${nextStage ? `<button class="btn primary big" data-act="evGo" data-n="${nextStage}">المرحلة التالية</button>` : ''}
+        <button class="btn ${won ? '' : 'primary'} big" data-act="evGo" data-n="${stage}">${won ? 'أعد المرحلة' : 'حاول مرة ثانية'}</button>
+        <button class="btn big ghost" data-act="go" data-to="event">الحدث</button>${won ? '' : '<button class="btn big ghost" data-act="go" data-to="cards">طوّر بطاقاتي</button>'}</div>`;
+    ui.show('results'); ui.sfx(won ? 'win' : 'lose');
+    if (won) setTimeout(() => { const el = document.querySelector('.res-hero'); if (el) ['#ffd24a', '#ffffff', W(ev.world).color].forEach((c) => ui.burst(el, c, 14, { r: 150, s: 8 })); }, 250);
+  }
+
+  AMB.TIPS = AMB.TIPS || {};
+  AMB.TIPS.evinfo = () => { const R = AMB.ECONOMY.events.rewards; return { title: 'الحدث الأسبوعي', html: `<p>كل أسبوع (من الاثنين للأحد) حدث جديد من عالم مختلف: <b>${WK.stageCount()} مراحل</b> أفضل من 3 جولات، والأخيرة زعيم الحدث بقدرتين.</p>
+    <p>كل مرحلة تعطي شظايا وخبرة ممر (والثانية باكج مجاني) مرة واحدة في الأسبوع. هزيمة الزعيم تعطيك <b>بطاقة حصرية</b> ما تطلع في الباكجات ولا تضيع بعد انتهاء الحدث.</p>
+    <p>الأحداث الأربعة تدور، فلو فاتك حدث يرجع بعد 4 أسابيع (وتاخذ نسخة تطوير إضافية للبطاقة لو عندك). الخسارة بدون عقوبة وتقدر تعيد.</p>` }; };
+
+  function installActions() {
+    const ui = UI(); if (!ui || ui.ACT.evStage) return;
+    Object.assign(ui.ACT, { evStage: (d) => preview(+d.n), evHero: (d) => { hero = d.id; preview(+d.n); }, evGo: (d) => start(+d.n) });
+  }
+
+  AMB.EventUI = { render, refreshMenu, showResult, installActions };
   if (UI()) installActions();
   refreshMenu();
 })();

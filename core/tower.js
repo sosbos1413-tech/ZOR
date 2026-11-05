@@ -28,10 +28,12 @@
   const bossWorld = (n) => WORLD_ORDER[bossIndex(n) % 4];
   function startFor(n) { let s = T().start[0]; T().start.forEach((x) => { if (n >= x.from) s = x; }); return { gold: s.gold, level: s.level }; }
 
-  /** the generated enemy for a floor: { units:[[defId,star,slot,fromRound]], hero, boss, name, ... } (pure, deterministic) */
-  function lineupFor(n) {
-    const rng = AMB.util.RNG(7000 + n * 131);
-    const boss = isBoss(n), world = boss ? bossWorld(n) : WORLD_ORDER[(n - 1) % 4];
+  /**
+   * Generates an enemy line-up (pure + deterministic for the same options). o = { n: difficulty position 1..30,
+   * seed, boss, world, special?: boss special, name? }. Used by the tower (one fixed line-up per floor) and by weekly events.
+   */
+  function generate(o) {
+    const n = o.n, rng = AMB.util.RNG(o.seed), boss = !!o.boss, world = o.world;
     const heroId = Object.values(AMB.DATA.HEROES).find((h) => h.world === world).id;
     const maxUnits = boss ? 7 : 8;                                   // a boss hero stands on slot b1
     const count = Math.min(maxUnits, 5 + Math.floor((n - 1) / 8));   // 5 units early .. 8 late (a player starts with 5 board slots)
@@ -64,11 +66,16 @@
       const from = i < Math.ceil(count * 0.6) ? 1 : i < Math.ceil(count * 0.85) ? 2 : 3;
       return [u.id, star, slot, from];
     });
-    const sp = boss ? AMB.LEVELS.BOSS[world] : null;
-    const scale = boss && n >= 25 ? 1.4 : 1;                          // the last two bosses hit harder
+    const sp = boss ? (o.special || AMB.LEVELS.BOSS[world]) : null;
+    const scale = boss && n >= 25 && !o.special ? 1.4 : 1;           // the last two tower bosses hit harder
     const blessings = sp ? Object.fromEntries(Object.entries(sp.blessings).map(([kk, v]) => [kk, +(v * scale).toFixed(2)])) : null;
     return { floor: n, world, heroId, boss, units, summon: boss ? 'b1' : null, blessings, abilities: sp ? sp.abilities : [], special: sp,
-      name: boss ? `زعيم الطابق ${n}: ${AMB.DATA.HEROES[heroId].name}` : `الطابق ${n}` };
+      name: o.name || (boss ? `زعيم الطابق ${n}: ${AMB.DATA.HEROES[heroId].name}` : `الطابق ${n}`) };
+  }
+  /** the generated enemy for a tower floor */
+  function lineupFor(n) {
+    const boss = isBoss(n);
+    return generate({ n, seed: 7000 + n * 131, boss, world: boss ? bossWorld(n) : WORLD_ORDER[(n - 1) % 4] });
   }
 
   function rewardsFor(n) {
@@ -122,5 +129,5 @@
   }
 
   AMB.Tower = Tower;
-  AMB.Tower.lineupFor = lineupFor; AMB.Tower.powerFor = powerFor; AMB.Tower.rewardsFor = rewardsFor;
+  AMB.Tower.generate = generate; AMB.Tower.lineupFor = lineupFor; AMB.Tower.powerFor = powerFor; AMB.Tower.rewardsFor = rewardsFor;
 })();

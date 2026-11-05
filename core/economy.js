@@ -48,6 +48,18 @@
       start: [{ from: 1, gold: 8, level: 5 }, { from: 15, gold: 12, level: 6 }, { from: 25, gold: 14, level: 7 }],
       rewards: { shardsFirst: 20, shardsLast: 50, passXp: 10, passXpBoss: 30, bossPack: 'basic', finalCard: 'epic' },   // first clear only
     },
+    // Weekly event: a special 3-stage level (best-of-3 fights vs generated line-ups, the last is the event boss) that
+    // changes every week (Monday to Sunday, local time) and cycles through the events in core/events.js. Each week's
+    // first clears pay once; clearing the boss gives that event's EXCLUSIVE card (never in packs, kept forever).
+    // `power`: enemy strength per event per stage, fitted by tools/tune-events.js.
+    events: {
+      epoch: [2026, 0, 5],                                   // a Monday: week 0
+      unlock: { campaignLevel: 'l1' },
+      stages: [{ n: 10 }, { n: 18 }, { n: 24, boss: true }],   // difficulty position (1..30, like tower floors)
+      start: [{ gold: 10, level: 5 }, { gold: 12, level: 6 }, { gold: 14, level: 7 }],
+      rewards: [{ shards: 40, passXp: 10 }, { shards: 60, passXp: 20, pack: 'basic' }, { shards: 100, passXp: 50, exclusive: true }],
+      power: { ember: [1.17, 1.31, 0.76], tide: [1.24, 1.07, 0.86], neon: [1.17, 1.09, 0.79], sylvan: [0.91, 1.26, 1.01] },
+    },
     // album: own all 5 units of a world -> its reward (once); own all 20 -> the grand reward
     album: {
       worlds: {

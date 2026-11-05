@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* Rule tests for the core (no browser needed):  node tools/test.js */
 const path = require('path');
-['config', 'data', 'util', 'synergy', 'combat', 'match', 'ai', 'telemetry', 'pass', 'save', 'economy', 'collection', 'packs', 'levels', 'campaign', 'daily', 'album', 'tower', 'profile'].forEach((f) => require(path.join(__dirname, '..', 'core', f + '.js')));
+['config', 'data', 'util', 'synergy', 'combat', 'match', 'ai', 'telemetry', 'pass', 'save', 'economy', 'collection', 'packs', 'levels', 'campaign', 'daily', 'album', 'tower', 'events', 'profile'].forEach((f) => require(path.join(__dirname, '..', 'core', f + '.js')));
 const AMB = globalThis.AMB;
 let pass = 0, fail = 0;
 function t(name, fn) {
@@ -215,6 +215,7 @@ t('pass: daily missions are 3, stable within a day, change on another day; progr
   eq(p.weeklyMissions().length, 3);
   // finish everything possible in one huge match, then claim
   p.recordMatch(sm({ won: true, roundsWon: 7, finaleWon: true, buys: 40, rerolls: 20, merges: 10, summoned: true, stageRewards: 3, damage: 20000, worldsUsed: 4 }));
+  ['upgrades', 'packs', 'stars', 'campaign', 'tower_floors', 'event_cleared'].forEach((k) => p.track(k, 10));   // stats fed by other systems
   const done = p.dailyMissions().concat(p.weeklyMissions()).filter((m) => m.done); ok(done.length >= 3, 'a huge match completes several missions');
   const xp0 = p.state().xp; const c = p.claimMission(done[0].id); ok(c && c.xp > 0); eq(p.state().xp, xp0 + c.xp); eq(p.claimMission(done[0].id), null, 'cannot claim twice');
 });
@@ -856,6 +857,86 @@ t('tower: missions count tower fights and new floors (event bus)', () => {
   tw.recordResult(1, { won: true, roundsWon: 2, buys: 3 });
   eq(p().tower_floors, 1); eq(p().fights_won, fw0 + 1); ok(p().buys >= 3);
   tw.recordResult(1, { won: true, roundsWon: 2 }); eq(p().tower_floors, 1, 'replay is not a new floor'); eq(p().fights_won, fw0 + 2);
+});
+
+console.log('weekly event');
+const evProf = (mem, clock) => AMB.Profile.boot(mem || MEM(), clock || (() => TH));
+const TH = new Date(2026, 10, 5, 12).getTime();   // a Thursday
+t('event: changes every week (Monday), cycles through the 4 events, shows time left and what is next', () => {
+  const D = 864e5; let now = new Date(2026, 10, 2, 0, 5).getTime();   // Monday 00:05
+  const prof = evProf(MEM(), () => now), W = prof.weekly;
+  const first = W.current(); eq(first.event.id, AMB.WEEKLY[first.idx % 4].id);
+  now = new Date(2026, 10, 8, 23, 0).getTime();   // Sunday night: same week
+  eq(W.current().idx, first.idx); ok(W.current().msLeft > 0 && W.current().msLeft <= 3600e3 + 1, 'about one hour left');
+  now = new Date(2026, 10, 9, 0, 1).getTime();    // Monday: next event
+  eq(W.current().idx, first.idx + 1); ok(W.current().event.id !== first.event.id);
+  eq(W.nextEvent().id, AMB.WEEKLY[(first.idx + 2) % 4].id);
+  const seen = new Set(); for (let k = 0; k < 4; k++) { now = TH + k * 7 * D; seen.add(W.current().event.id); } eq(seen.size, 4, 'all four events appear in four weeks');
+  now = TH + 4 * 7 * D; eq(W.current().event.id, AMB.WEEKLY[W.current().idx % 4].id);
+});
+t('event: locked until campaign level 1; stages open one at a time; line-ups valid and fixed; every stage has a tuned power', () => {
+  const prof = evProf(), W = prof.weekly;
+  ok(!W.unlocked() && !W.canPlay(1)); unlockTower(prof); ok(W.unlocked() && W.canPlay(1) && !W.canPlay(2));
+  AMB.WEEKLY.forEach((ev) => [1, 2, 3].forEach((st) => {
+    const L = W.lineupFor(ev.id, st), L2 = W.lineupFor(ev.id, st); eq(JSON.stringify(L.units), JSON.stringify(L2.units));
+    ok(W.powerFor(ev.id, st) > 0.3 && W.powerFor(ev.id, st) < 3.5); eq(L.boss, st === 3);
+    const slots = new Set(); L.units.forEach(([id, , slot]) => { ok(AMB.DATA.UNITS[id] && !AMB.DATA.UNITS[id].exclusive, id); ok(!slots.has(slot)); slots.add(slot); });
+    if (st === 3) { ok(!slots.has('b1')); eq(L.heroId, Object.values(AMB.DATA.HEROES).find((h) => h.world === ev.world).id); eq(L.abilities.length, 2); }
+  }));
+});
+t('event: first clears pay once per week, the boss gives the exclusive card, progress is saved', () => {
+  const mem = MEM(); let xp = 0;
+  const prof = evProf(mem); unlockTower(prof);
+  const W = AMB.WeeklyEvents(prof.save, { wallet: prof.wallet, packs: prof.packs, collection: prof.collection, events: prof.events, campaign: prof.campaign, now: () => TH, addPassXp: (n) => (xp += n) });
+  const ev = W.current().event, R = AMB.ECONOMY.events.rewards;
+  const sh = prof.wallet.balance('shards');
+  const lost = W.recordResult(1, { won: false }); ok(!lost.first && !lost.shards); eq(W.current().stage, 0);
+  eq(W.recordResult(2, { won: true }).first, false, 'cannot skip stage 1');
+  const s1 = W.recordResult(1, { won: true }); ok(s1.first); eq(s1.shards, R[0].shards); eq(W.current().stage, 1);
+  eq(W.recordResult(1, { won: true }).shards, 0, 'replay pays nothing');
+  const packs0 = prof.packs.stats().opened;
+  const s2 = W.recordResult(2, { won: true }); ok(s2.pack); eq(prof.packs.stats().opened, packs0 + 1);
+  ok(!prof.collection.owned(ev.exclusive), 'exclusive card not yet owned');
+  const s3 = W.recordResult(3, { won: true }); ok(s3.completed && s3.card && s3.card.id === ev.exclusive && s3.cardIsNew); eq(s3.shards, R[2].shards);
+  ok(prof.collection.owned(ev.exclusive)); ok(W.current().done); eq(xp, R[0].passXp + R[1].passXp + R[2].passXp);
+  eq(prof.wallet.balance('shards'), sh + R[0].shards + R[1].shards + R[2].shards + (s2.pack.refund || 0));
+  eq(W.recordResult(3, { won: true }).card, null, 'the boss pays once per week');
+  const again = AMB.Profile.boot(mem, () => TH); ok(again.weekly.current().done && again.collection.owned(ev.exclusive), 'saved');
+});
+t('event: the exclusive card stays after the event ends and comes back (as a duplicate) when the event returns four weeks later', () => {
+  const D = 864e5; let now = TH; const mem = MEM(); const prof = evProf(mem, () => now); unlockTower(prof);
+  const W = prof.weekly, ev = W.current().event;
+  [1, 2, 3].forEach((st) => W.recordResult(st, { won: true }));
+  ok(prof.collection.owned(ev.exclusive));
+  now = TH + 7 * D; ok(W.current().event.id !== ev.id); ok(!W.current().done, 'new week, new event'); ok(prof.collection.owned(ev.exclusive), 'still owned');
+  now = TH + 28 * D; eq(W.current().event.id, ev.id, 'same event again'); eq(W.current().stage, 0, 'fresh progress this time');
+  [1, 2].forEach((st) => W.recordResult(st, { won: true }));
+  const c0 = prof.collection.copies(ev.exclusive); const r3 = W.recordResult(3, { won: true });
+  ok(r3.completed && !r3.cardIsNew); eq(prof.collection.copies(ev.exclusive), c0 + 1, 'an upgrade copy');
+});
+t('event: a fight is credited to the week it started in (the week may change mid-fight)', () => {
+  const D = 864e5; let now = TH; const prof = evProf(MEM(), () => now); unlockTower(prof); const W = prof.weekly;
+  const o = W.matchOptions(1, 'orath', 1), startWeek = o.eventWeek; now = TH + 7 * D;   // the week rolls over before the result
+  const r = W.recordResult(1, { won: true }, startWeek); eq(r.week, startWeek); eq(W.current().stage, 0, 'the new week is untouched'); eq(AMB.Profile.boot(prof.save.exportJSON && MEM(), () => TH).weekly.current().stage, 0);
+});
+t('event: exclusive cards never drop from packs, are not in album sets, but still exist as real units', () => {
+  const ex = Object.values(AMB.DATA.UNITS).filter((u) => u.exclusive); eq(ex.length, 4); ex.forEach((u) => { eq(u.rarity, 'legendary'); eq(u.tier, 3); ok(AMB.WEEKLY.some((e) => e.exclusive === u.id)); });
+  const p = AMB.Profile.boot(MEM(), null, AMB.util.RNG(8)); p.wallet.add('shards', 1e6);
+  const ids = new Set(); for (let i = 0; i < 1500; i++) p.packs.open('basic', { free: true }).cards.forEach((c) => ids.add(c.id));
+  ex.forEach((u) => ok(!ids.has(u.id), 'dropped from a pack: ' + u.id));
+  ok(ids.size > 55, 'packs still drop the regular roster (' + ids.size + ' different cards)');
+  AMB.album && ex.forEach((u) => ok(!p.album.units(u.world).includes(u.id)));
+  for (let i = 0; i < 200; i++) { const id = p.collection.grantRandom('legendary').id; ok(!(AMB.DATA.UNITS[id] || {}).exclusive, id); }
+});
+t('event: a stage plays end to end and weekly-event fights feed the missions', () => {
+  const prof = evProf(), pass = passFor(prof); unlockTower(prof);
+  const o = prof.weekly.matchOptions(1, 'orath', 4); ok(o.progression && o.mode === 'event');
+  const m = new AMB.Match(o); m.players[0].isAI = true;
+  while (!m.isOver) { m.startRound(); AMB.AI.prep(m, 0); AMB.AI.prep(m, 1); m.resolveCombat(m.createCombat(false).runToEnd()); }
+  ok(m.round <= 3);
+  const w0 = pass.state().weekly.p.event_cleared || 0, f0 = pass.state().daily.p.fights_won || 0;
+  prof.weekly.recordResult(1, { won: true }); ok((pass.state().daily.p.fights_won || 0) >= f0 + 1); eq(pass.state().weekly.p.event_cleared || 0, w0, 'only the boss counts as finishing');
+  prof.weekly.recordResult(2, { won: true }); prof.weekly.recordResult(3, { won: true }); eq(pass.state().weekly.p.event_cleared, w0 + 1);
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

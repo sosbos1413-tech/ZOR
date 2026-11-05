@@ -119,6 +119,7 @@
     { id: 'w_merge8', name: 'رقِّ ٨ وحدات', stat: 'merges', target: 8, xp: 180 },
     { id: 'w_rounds30', name: 'افز بـ٣٠ جولة', stat: 'rounds_won', target: 30, xp: 200 },
     { id: 'w_worlds', name: 'ادخل مباراة بوحدات من ٤ عوالم', stat: 'four_worlds', target: 1, xp: 150 },
+    { id: 'w_event', name: 'أكمل الحدث الأسبوعي', stat: 'event_cleared', target: 1, xp: 150 },
     { id: 'w_finale3', name: 'افز بـ٣ جولات حسم', stat: 'finale_won', target: 3, xp: 180 },
   ];
 
@@ -241,6 +242,10 @@
     events.on('towerEnd', (r) => {   // tower fights count as fights won / matches; each new floor counts toward "climb 2 floors"
       if (r.summary) pass.recordStats(Object.assign({}, r.summary, { won: r.won }));
       if (r.first) pass.track('tower_floors', 1);
+    });
+    events.on('eventEnd', (r) => {   // weekly-event fights count as fights won; finishing the event counts for the weekly mission
+      if (r.summary) pass.recordStats(Object.assign({}, r.summary, { won: r.won }));
+      if (r.completed) pass.track('event_cleared', 1);
     });
     events.on('fightEnd', (r) => {
       if (r.summary) pass.recordStats(Object.assign({}, r.summary, { won: r.won }));

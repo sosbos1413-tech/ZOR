@@ -45,6 +45,8 @@
       ${A.worlds().map(worldSection).join('')}
       <section class="al-world" style="--wc:#ff5a64"><header><h3>الأبطال</h3><span class="al-count">${C.ownedHeroes().length}/${A.heroes().length}</span></header>
         <div class="al-grid">${A.heroes().map((h) => cardTile(h.id)).join('')}</div></section>
+      <section class="al-world" style="--wc:#ffd24a"><header><h3>🌟 حصريات الأحداث</h3><span class="al-count">${A.exclusives().filter((id) => C.owned(id)).length}/${A.exclusives().length}</span></header>
+        <div class="al-grid">${A.exclusives().map(cardTile).join('')}</div></section>
       <h3 class="al-items-h">المعدات والتعاويذ</h3><div class="codex-grid">${UI().itemsHTML()}</div>`;
     refreshMenu();
   }
