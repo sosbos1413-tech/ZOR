@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="f5077bca22">
+<meta name="zor-build" content="df2c85571b">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1949,10 +1949,6 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 .rr-title { font: 400 26px var(--display); text-align: center; margin: 0 0 4px; color: var(--ink); }
 .ov-card.rr.lose .rr-title { color: var(--red); } .ov-card.rr.win .rr-title { color: #a06800; }
 .rr-note { text-align: center; font-size: 13px; color: var(--muted); margin: 2px 0 6px; }
-/* phones held sideways during a match: the layout is portrait-only, so say so instead of showing a broken screen */
-@media (orientation: landscape) and (max-height: 520px) and (pointer: coarse) {
-  body.in-match::after { content: '↻  دوّر جوالك للوضع الطولي'; position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; background: #121010f2; color: var(--gold); font: 400 26px var(--display); text-align: center; padding: 20px; }
-}
 
 /* ===== playtest fixes: bigger touch areas, long names, hero picker, pack row on phones ===== */
 .ibtn { position: relative; } .ibtn::after { content: ''; position: absolute; inset: -9px; }
@@ -1984,6 +1980,35 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 .rr-go { font-size: 22px !important; }
 .pb .btn.ghost { color: var(--ink); background: transparent; border: 2px solid var(--ink); }
 
+/* ===== landscape phones: field on one side, bench + shop on the other ===== */
+.rot-btn { display: none; }
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 1100px) {
+  .rot-btn { display: inline-flex; }
+  #scr-match.active { display: grid !important; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto auto minmax(0, 1fr); height: 100dvh; padding: 3px; gap: 4px; overflow: hidden; --cwl: clamp(40px, calc((100dvh - 96px) / 4.6), 96px); }
+  #scr-match .topbar { grid-column: 1 / -1; grid-row: 1; }
+  #scr-match .match-grid, #scr-match .center, #scr-match .field-wrap { display: contents !important; }
+  #scr-match .field { grid-column: 1; grid-row: 2 / 5; --cw: var(--cwl); width: auto; align-self: start; margin: 0; }
+  #scr-match #bench { grid-column: 2; grid-row: 2; width: auto !important; max-width: none; }
+  #scr-match #combat-ctrl { grid-column: 2; grid-row: 3; }
+  #scr-match #shopbar { grid-column: 2; grid-row: 4; height: auto !important; min-height: 0; align-self: start; overflow: hidden; flex-wrap: wrap; }
+  #scr-match .panel { display: none !important; }
+  #scr-match .side .post { display: none; }
+  #scr-match .tcard.hc.full { zoom: .64; }
+  #scr-match .tcard.hc.full.empty { height: 140px; }
+  #scr-match #bench .bslot, #scr-match .side .bslot { width: 50px; height: 56px; }
+  #scr-match #shopbar { padding: 3px 5px; gap: 3px 6px; }
+  #scr-match #shopbar .shop-actions { flex: 1 1 46%; flex-direction: row; flex-wrap: nowrap; width: auto; min-width: 0; gap: 4px; order: 1; }
+  #scr-match #shopbar .shop-row { order: 3; display: flex; flex-wrap: nowrap; gap: 6px; align-items: flex-start; }
+  #scr-match #shopbar .shop-cards, #scr-match #shopbar .item-cards { flex-wrap: nowrap; min-width: 0; overflow: visible; padding: 0; border: 0; }
+  #scr-match #shopbar .shop-actions .btn .cost { font-size: 11px; } #scr-match #shopbar .ib-act { gap: 2px; }
+  #scr-match #shopbar .shop-actions .btn { flex: 1; min-height: 32px; padding: 2px 4px; font-size: 13px; }
+  #scr-match #shopbar .shop-row { width: 100%; }
+  #scr-match #bench { padding: 2px 6px; }
+  #scr-match .side .bslot, #scr-match .bslot { width: 44px; height: 50px; }
+  #scr-match #combat-ctrl, #scr-match .pb { min-height: 0; }
+  #scr-match .topbar { min-height: 0; }
+}
+
 </style>
 </head>
 <body>
@@ -2013,6 +2038,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
         <button class="mtile" data-act="go" data-to="stats"><span class="mt-ic">📊</span><span class="mt-l">الإحصائيات</span></button>
         <button class="mtile" data-act="saveOpen" id="menu-save"><span class="mt-ic">💾</span><span class="mt-l">الحفظ</span></button>
         <button class="mtile" data-act="howto"><span class="mt-ic">❓</span><span class="mt-l">كيف ألعب؟</span></button>
+        <button class="mtile" data-act="rotate" id="menu-rotate"><span class="mt-ic">🔄</span><span class="mt-l">تدوير الشاشة</span></button>
         <button class="mtile" data-act="sound" id="menu-sound"><span class="mt-ic">🔊</span><span class="mt-l">الصوت</span></button>
       </div>
       <p class="menu-newbie">ابدأ بالحملة: أول فوز يفتح لك الباكجات ومجموعتك وممر الصدع والجوائز اليومية.</p>
@@ -6328,8 +6354,18 @@ AMB.IMAGES = {
   }
 
   const maxR = () => (S.match && S.match.rules ? S.match.rules.maxRounds : CFG.match.maxRounds);
-  // a match on a phone is portrait-only: ask the browser to hold it (works in the installed app), and CSS shows a "rotate" notice otherwise
-  try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('portrait').catch(() => {}); } catch (e) { /* ignore */ }
+  // rotate button: lock the screen to landscape / portrait (Android Chrome and the installed app; iPhones can't be locked from a web page)
+  function rotateScreen() {
+    const land = innerWidth > innerHeight;
+    const want = land ? 'portrait' : 'landscape';
+    const done = () => { try { toast(want === 'landscape' ? 'تم التدوير للعرض' : 'رجعت للطول', 'good'); } catch (e) { /* ignore */ } };
+    const lock = () => screen.orientation.lock(want).then(done).catch(() => toast('جوالك ما يسمح بالتدوير من اللعبة، دوّره بنفسك أو شغّل التدوير التلقائي', 'err'));
+    try {
+      if (!(screen.orientation && screen.orientation.lock)) throw new Error('no lock');
+      const fs = document.documentElement.requestFullscreen;
+      if (!document.fullscreenElement && fs && !(matchMedia('(display-mode: standalone)').matches)) fs.call(document.documentElement).then(lock).catch(lock); else lock();
+    } catch (e) { toast('جوالك ما يسمح بالتدوير من اللعبة، دوّره بنفسك أو شغّل التدوير التلقائي', 'err'); }
+  }
   // closing/reloading in the middle of a match loses it: ask first (the browser shows its own wording)
   window.addEventListener('beforeunload', (e) => { if (S.match && S.screen === 'match' && S.mode !== 'tutorial' && !S.match.isOver) { e.preventDefault(); e.returnValue = ''; } });
   function startMatch() {
@@ -6889,6 +6925,7 @@ AMB.IMAGES = {
       <button class="btn small mob-only ibtn2" data-act="panels">${S.panels ? '✕' : icon('crown')}</button>
       <button class="btn small ibtn2" data-act="pause">${S.paused ? icon('play') : icon('pause')}</button>
       ${soundBtn()}
+      <button class="btn small ibtn2 rot-btn" data-act="rotate">تدوير</button>
       <button class="btn small ibtn2" data-act="menuMatch">☰</button>`;
   }
 
@@ -7244,6 +7281,7 @@ AMB.IMAGES = {
     S._resumeAfterMenu = !wasPaused;
     modal(`<h2>القائمة</h2><div style="display:grid;gap:10px;margin-top:12px">
       <button class="btn" data-act="resumeMenu">متابعة</button>
+      <button class="btn" data-act="rotate">تدوير الشاشة (طول / عرض)</button>
       <button class="btn" data-act="tutorial">دليل سريع</button>
       <button class="btn" data-act="howto">كل القواعد</button>
       <button class="btn danger" data-act="surrender">انسحب (${esc(me().name)})</button>
@@ -7440,6 +7478,7 @@ AMB.IMAGES = {
     buyFromUpg: (d) => { const r = S.match.buy(S.v, +d.idx); if (res(r) && r.merged && r.merged.length) toast(`تطوير! ${UNITS[r.merged[r.merged.length - 1].defId].name} ${'★'.repeat(r.merged[r.merged.length - 1].star)}`, 'good'); renderMatch(); upgradesModal(); },
     buyItem: (d) => { if (prepActive() && res(S.match.buyItem(S.v, +d.idx))) renderMatch(); },
     reroll: () => { if (prepActive() && res(S.match.reroll(S.v))) { sfx('reroll'); renderMatch(); } },
+    rotate: () => rotateScreen(),
     sound: () => { SND.on = !SND.on; try { localStorage.setItem('amb_sound', SND.on ? '1' : '0'); } catch (e) { /* ignore */ } if (SND.on) sfx('click'); document.querySelectorAll('[data-act="sound"]').forEach((b) => { if (b.id === 'menu-sound') b.querySelector('.mt-ic').textContent = SND.on ? '🔊' : '🔇'; else b.textContent = SND.on ? '🔊' : '🔇'; }); },
     xp: () => { if (prepActive()) { const lv = me().level; if (res(S.match.buyXp(S.v))) { if (me().level > lv) toast(`المستوى ${me().level}! تقدر تحط ${me().level} وحدات`, 'good'); renderMatch(); } } },
     lock: () => { if (prepActive()) { S.match.toggleLock(S.v); renderMatch(); } },

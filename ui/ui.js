@@ -110,8 +110,18 @@
   }
 
   const maxR = () => (S.match && S.match.rules ? S.match.rules.maxRounds : CFG.match.maxRounds);
-  // a match on a phone is portrait-only: ask the browser to hold it (works in the installed app), and CSS shows a "rotate" notice otherwise
-  try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('portrait').catch(() => {}); } catch (e) { /* ignore */ }
+  // rotate button: lock the screen to landscape / portrait (Android Chrome and the installed app; iPhones can't be locked from a web page)
+  function rotateScreen() {
+    const land = innerWidth > innerHeight;
+    const want = land ? 'portrait' : 'landscape';
+    const done = () => { try { toast(want === 'landscape' ? 'تم التدوير للعرض' : 'رجعت للطول', 'good'); } catch (e) { /* ignore */ } };
+    const lock = () => screen.orientation.lock(want).then(done).catch(() => toast('جوالك ما يسمح بالتدوير من اللعبة، دوّره بنفسك أو شغّل التدوير التلقائي', 'err'));
+    try {
+      if (!(screen.orientation && screen.orientation.lock)) throw new Error('no lock');
+      const fs = document.documentElement.requestFullscreen;
+      if (!document.fullscreenElement && fs && !(matchMedia('(display-mode: standalone)').matches)) fs.call(document.documentElement).then(lock).catch(lock); else lock();
+    } catch (e) { toast('جوالك ما يسمح بالتدوير من اللعبة، دوّره بنفسك أو شغّل التدوير التلقائي', 'err'); }
+  }
   // closing/reloading in the middle of a match loses it: ask first (the browser shows its own wording)
   window.addEventListener('beforeunload', (e) => { if (S.match && S.screen === 'match' && S.mode !== 'tutorial' && !S.match.isOver) { e.preventDefault(); e.returnValue = ''; } });
   function startMatch() {
@@ -671,6 +681,7 @@
       <button class="btn small mob-only ibtn2" data-act="panels">${S.panels ? '✕' : icon('crown')}</button>
       <button class="btn small ibtn2" data-act="pause">${S.paused ? icon('play') : icon('pause')}</button>
       ${soundBtn()}
+      <button class="btn small ibtn2 rot-btn" data-act="rotate">تدوير</button>
       <button class="btn small ibtn2" data-act="menuMatch">☰</button>`;
   }
 
@@ -1026,6 +1037,7 @@
     S._resumeAfterMenu = !wasPaused;
     modal(`<h2>القائمة</h2><div style="display:grid;gap:10px;margin-top:12px">
       <button class="btn" data-act="resumeMenu">متابعة</button>
+      <button class="btn" data-act="rotate">تدوير الشاشة (طول / عرض)</button>
       <button class="btn" data-act="tutorial">دليل سريع</button>
       <button class="btn" data-act="howto">كل القواعد</button>
       <button class="btn danger" data-act="surrender">انسحب (${esc(me().name)})</button>
@@ -1222,6 +1234,7 @@
     buyFromUpg: (d) => { const r = S.match.buy(S.v, +d.idx); if (res(r) && r.merged && r.merged.length) toast(`تطوير! ${UNITS[r.merged[r.merged.length - 1].defId].name} ${'★'.repeat(r.merged[r.merged.length - 1].star)}`, 'good'); renderMatch(); upgradesModal(); },
     buyItem: (d) => { if (prepActive() && res(S.match.buyItem(S.v, +d.idx))) renderMatch(); },
     reroll: () => { if (prepActive() && res(S.match.reroll(S.v))) { sfx('reroll'); renderMatch(); } },
+    rotate: () => rotateScreen(),
     sound: () => { SND.on = !SND.on; try { localStorage.setItem('amb_sound', SND.on ? '1' : '0'); } catch (e) { /* ignore */ } if (SND.on) sfx('click'); document.querySelectorAll('[data-act="sound"]').forEach((b) => { if (b.id === 'menu-sound') b.querySelector('.mt-ic').textContent = SND.on ? '🔊' : '🔇'; else b.textContent = SND.on ? '🔊' : '🔇'; }); },
     xp: () => { if (prepActive()) { const lv = me().level; if (res(S.match.buyXp(S.v))) { if (me().level > lv) toast(`المستوى ${me().level}! تقدر تحط ${me().level} وحدات`, 'good'); renderMatch(); } } },
     lock: () => { if (prepActive()) { S.match.toggleLock(S.v); renderMatch(); } },
