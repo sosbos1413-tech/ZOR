@@ -175,7 +175,7 @@
       passEquipReward: (d) => { const r = pass.reward(+d.level, d.track); if (r && pass.equip(r.type, r.id)) { UI().sfx('click'); toast(`تم تجهيز: ${pass.rewardName(r)}`, 'good'); after(); } },
       passEquip: (d) => { if (pass.equip(d.type, d.id === '' ? null : d.id)) { UI().sfx('click'); after(); } },
       passClaimMission: (d) => { const r = pass.claimMission(d.id); if (r) { UI().sfx('merge'); toast(`+${r.xp} خبرة${r.shards ? ` و +${r.shards} شظية` : ''}${r.levelUp ? ' — ارتفع مستواك!' : ''}`, 'good'); after(); } },
-      passPremium: () => toast('المسار المميز غير متاح بعد: يحتاج نظام حسابات ودفع غير موجود حاليًا. كل مكافآت المسار المجاني متاحة لك.', ''),
+      passPremium: () => toast('المسار المميز قريبًا · المجاني متاح لك كله', ''),
     });
   }
 

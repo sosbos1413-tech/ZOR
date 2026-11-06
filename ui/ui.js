@@ -26,11 +26,16 @@
   // beginners (fewer than 2 finished matches) get the extra hints, then they disappear
   const coach = () => { try { return +(localStorage.getItem('amb_played') || 0) < 2; } catch (e) { return false; } };
   function toast(msg, kind) {
+    const box = $('toasts');
+    // never pile up: the same message just restarts its timer, and at most 2 toasts show at once
+    const same = [...box.children].find((x) => x.textContent === msg);
+    if (same) { same.style.animation = 'none'; void same.offsetWidth; same.style.animation = ''; clearTimeout(same._t); same._t = setTimeout(() => same.remove(), kind === 'err' ? 4200 : 2500); return; }
+    while (box.children.length >= 2) box.firstChild.remove();
     const el = document.createElement('div');
     el.className = 'toast ' + (kind || '');
     el.textContent = msg;
-    $('toasts').appendChild(el);
-    setTimeout(() => el.remove(), kind === 'err' ? 4200 : 2500);
+    box.appendChild(el);
+    el._t = setTimeout(() => el.remove(), kind === 'err' ? 4200 : 2500);
   }
   function show(screen) {
     document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('active', s.id === 'scr-' + screen));

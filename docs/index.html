@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="df924d3bb0">
+<meta name="zor-build" content="984c5832f0">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1637,6 +1637,8 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
 .deck-mini { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; max-width: 420px; margin: 10px auto; } .dm { aspect-ratio: 1; border: 2px solid var(--gold); overflow: hidden; } .dm .portrait { width: 100%; height: 100%; }
 .deck-roles { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; font-size: 13px; color: var(--paper3); margin-bottom: 8px; } .deck-roles svg { width: 13px; height: 13px; vertical-align: -2px; }
 @media (max-width: 700px) { .db-slots { grid-template-columns: repeat(6, 1fr); } .deck-bar { padding: 6px 8px; position: static; } }
+.up-how { background: #ffffff10; border: 2px dashed var(--paper3); padding: 8px 10px; margin: 6px 0; font-size: 14px; line-height: 1.8; } .up-how b { color: var(--gold); } .up-how .btn { margin-inline-start: 6px; }
+.cp-need { font-size: 12px; color: var(--paper3); text-align: center; }
 
 </style>
 </head>
@@ -5822,11 +5824,16 @@ AMB.IMAGES = {
   // beginners (fewer than 2 finished matches) get the extra hints, then they disappear
   const coach = () => { try { return +(localStorage.getItem('amb_played') || 0) < 2; } catch (e) { return false; } };
   function toast(msg, kind) {
+    const box = $('toasts');
+    // never pile up: the same message just restarts its timer, and at most 2 toasts show at once
+    const same = [...box.children].find((x) => x.textContent === msg);
+    if (same) { same.style.animation = 'none'; void same.offsetWidth; same.style.animation = ''; clearTimeout(same._t); same._t = setTimeout(() => same.remove(), kind === 'err' ? 4200 : 2500); return; }
+    while (box.children.length >= 2) box.firstChild.remove();
     const el = document.createElement('div');
     el.className = 'toast ' + (kind || '');
     el.textContent = msg;
-    $('toasts').appendChild(el);
-    setTimeout(() => el.remove(), kind === 'err' ? 4200 : 2500);
+    box.appendChild(el);
+    el._t = setTimeout(() => el.remove(), kind === 'err' ? 4200 : 2500);
   }
   function show(screen) {
     document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('active', s.id === 'scr-' + screen));
@@ -7393,7 +7400,7 @@ AMB.IMAGES = {
       passEquipReward: (d) => { const r = pass.reward(+d.level, d.track); if (r && pass.equip(r.type, r.id)) { UI().sfx('click'); toast(`تم تجهيز: ${pass.rewardName(r)}`, 'good'); after(); } },
       passEquip: (d) => { if (pass.equip(d.type, d.id === '' ? null : d.id)) { UI().sfx('click'); after(); } },
       passClaimMission: (d) => { const r = pass.claimMission(d.id); if (r) { UI().sfx('merge'); toast(`+${r.xp} خبرة${r.shards ? ` و +${r.shards} شظية` : ''}${r.levelUp ? ' — ارتفع مستواك!' : ''}`, 'good'); after(); } },
-      passPremium: () => toast('المسار المميز غير متاح بعد: يحتاج نظام حسابات ودفع غير موجود حاليًا. كل مكافآت المسار المجاني متاحة لك.', ''),
+      passPremium: () => toast('المسار المميز قريبًا · المجاني متاح لك كله', ''),
     });
   }
 
@@ -7415,7 +7422,7 @@ AMB.IMAGES = {
   const C = AMB.collection, RAR = AMB.ECONOMY.rarities;
   const { icon } = AMB.art;
   const UI = () => globalThis.AMB_UI;
-  let filter = '', roleF = '', deckOnly = false;   // rarity filter ('' = all), role filter, show only the deck
+  let filter = '', roleF = '', deckOnly = false, upOnly = false;   // rarity filter ('' = all), role filter, show only the deck
 
   const pct = (a, b) => (b ? Math.min(100, Math.round((a / b) * 100)) : 100);
 
@@ -7429,10 +7436,12 @@ AMB.IMAGES = {
   function tile(id) {
     const d = C.def(id), owned = C.owned(id), lv = C.level(id), need = C.needed(id), have = C.copies(id), max = C.isMax(id);
     const card = UI().cardHTML(d, { k: 'col' + id, lvl: owned ? lv : 0, cls: owned ? '' : 'unowned', attrs: `data-act="${d.role ? 'detail' : 'heroInfo'}" data-id="${id}"` });
-    const bar = max ? '<div class="cp-bar max"><i style="width:100%"></i><span>المستوى الأقصى</span></div>'
-      : `<div class="cp-bar ${have >= need ? 'ready' : ''}"><i style="width:${pct(have, need)}%"></i><span>${have} / ${need}</span></div>`;
+    const bar = max ? '<div class="cp-bar max"><i style="width:100%"></i><span>المستوى الأقصى ✓</span></div>'
+      : `<div class="cp-bar ${have >= need ? 'ready' : ''}"><i style="width:${pct(have, need)}%"></i><span>نسخ ${have}/${need}</span></div>`;
+    const gain = Math.round(AMB.ECONOMY.cards.levelBonus * 100);
     const btn = !owned ? `<span class="cp-lock">🔒 ${unlockHint(id)}</span>`
-      : max ? '' : `<button class="btn small ${C.canUpgrade(id) ? 'primary' : ''}" data-act="colUpgrade" data-id="${id}" ${C.canUpgrade(id) ? '' : 'disabled'}>طوّر ← Lv ${lv + 1}</button>`;
+      : max ? '' : C.canUpgrade(id) ? `<button class="btn small primary" data-act="colUpgrade" data-id="${id}">⬆ طوّر +${gain}%</button>`
+      : `<span class="cp-need">تحتاج ${need - have} نسخة ${need - have === 1 ? 'زيادة' : 'زيادة'} من الباكجات</span>`;
     const bonus = Math.round((C.power(id) - 1) * 100);
     const inDeck = d.role && owned && C.inDeck(id);
     const dk = d.role && owned ? `<button class="btn small dk ${inDeck ? 'on' : ''}" data-act="colDeck" data-id="${id}">${inDeck ? '✓ في الديك' : '＋ للديك'}</button>` : '';
@@ -7458,7 +7467,7 @@ AMB.IMAGES = {
     <p>المباراة السريعة وعلى نفس الجهاز ما تستخدم الديك: الكل يلعب بكل الوحدات. والأبطال خارج الديك.</p><p>«ترتيب تلقائي» يختار لك ديك متوازن من أقوى بطاقاتك.</p>` });
   function render() {
     const root = $('collection'); if (!root) return;
-    const ids = C.ids().filter((id) => (!filter || C.rarity(id) === filter) && (!roleF || C.def(id).role === roleF) && (!deckOnly || C.inDeck(id)))
+    const ids = C.ids().filter((id) => (!filter || C.rarity(id) === filter) && (!roleF || C.def(id).role === roleF) && (!deckOnly || C.inDeck(id)) && (!upOnly || C.canUpgrade(id)))
       .sort((a, b) => RAR[C.rarity(b)].order - RAR[C.rarity(a)].order || (C.def(a).role ? 1 : 0) - (C.def(b).role ? 1 : 0));
     const ready = C.ids().filter((id) => C.canUpgrade(id)).length;
     const fb = (v, n, col) => `<button class="btn small ${filter === v ? 'on' : ''}" data-act="colFilter" data-v="${v}" ${col ? `style="--rc:${col}"` : ''}>${n}</button>`;
@@ -7466,11 +7475,12 @@ AMB.IMAGES = {
         ${C.needsStarter() ? '' : deckBar()}
         ${C.needsStarter() ? '<div class="col-starter">ما اخترت بطلك الأول للحين: اضغط «العب» واختر واحد من الأربعة.</div>' : ''}
         <div><b>${C.ownedCount()} / ${C.ids().length}</b> بطاقة · ${ready ? `<span class="col-ready">${ready} جاهزة للتطوير</span>` : 'لا توجد ترقيات جاهزة'}</div>
-        <p class="hint">النسخ المكررة تطوّر البطاقة <button class="ibtn" data-act="info" data-k="colinfo" title="شرح">ⓘ</button></p>
+        <div class="up-how"><b>كيف أطوّر؟</b> كل نسخة <u>مكررة</u> من باكج تروح لبطاقتها. لما يكتمل شريط النسخ يطلع زر <b>⬆ طوّر</b> ويرفع قوتها <b>+${Math.round(AMB.ECONOMY.cards.levelBonus * 100)}%</b> في الحملة والبرج والأحداث.
+          ${ready ? `<button class="btn small primary" data-act="colRole" data-v="up">⬆ ${ready} جاهزة الحين</button>` : '<span class="hint">ما فيه بطاقة جاهزة الحين، افتح باكجات.</span>'} <button class="ibtn" data-act="info" data-k="colinfo" title="شرح">ⓘ</button></div>
         <div class="rar-legend">${Object.entries(RAR).map(([k, r]) => `<span class="rl r-${k}"><i></i>${r.name} <small>+${Math.round((r.power - 1) * 100)}%</small></span>`).join('')}</div>
         <button class="btn primary small" data-act="go" data-to="packs">افتح باكجات للحصول على نسخ</button>
         <div class="filters">${fb('', 'الكل')}${Object.entries(RAR).map(([k, r]) => fb(k, r.name, r.color)).join('')}</div>
-        <div class="filters"><button class="btn small ${roleF === '' && !deckOnly ? 'on' : ''}" data-act="colRole" data-v="">كل الأدوار</button><button class="btn small ${deckOnly ? 'on' : ''}" data-act="colRole" data-v="deck">الديك فقط</button>${Object.entries(AMB.DATA.ROLES).map(([k, r]) => `<button class="btn small ${roleF === k ? 'on' : ''}" data-act="colRole" data-v="${k}">${r.name}</button>`).join('')}</div>
+        <div class="filters"><button class="btn small ${roleF === '' && !deckOnly && !upOnly ? 'on' : ''}" data-act="colRole" data-v="">كل الأدوار</button><button class="btn small ${upOnly ? 'on' : ''}" data-act="colRole" data-v="up">⬆ جاهزة للتطوير</button><button class="btn small ${deckOnly ? 'on' : ''}" data-act="colRole" data-v="deck">الديك فقط</button>${Object.entries(AMB.DATA.ROLES).map(([k, r]) => `<button class="btn small ${roleF === k ? 'on' : ''}" data-act="colRole" data-v="${k}">${r.name}</button>`).join('')}</div>
       </div>
       <div class="col-grid">${ids.map(tile).join('')}</div>`;
     refreshMenu();
@@ -7486,7 +7496,7 @@ AMB.IMAGES = {
     const ui = UI(); if (!ui || ui.ACT.colUpgrade) return;
     Object.assign(ui.ACT, {
       colFilter: (d) => { filter = d.v || ''; render(); },
-      colRole: (d) => { deckOnly = d.v === 'deck'; roleF = deckOnly ? '' : (d.v || ''); render(); },
+      colRole: (d) => { deckOnly = d.v === 'deck'; upOnly = d.v === 'up'; roleF = deckOnly || upOnly ? '' : (d.v || ''); render(); },
       colDeck: (d) => { const r = C.toggleDeck(d.id); if (!r.ok) { ui.toast(r.reason, 'err'); return; } ui.sfx('click'); const y = window.scrollY; render(); window.scrollTo(0, y); },
       colAuto: () => { C.autoBuild(); ui.sfx('merge'); ui.toast('تم ترتيب ديك متوازن', 'good'); render(); },
       colClear: () => { C.setDeck([]); render(); },

@@ -1617,3 +1617,5 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
 .deck-mini { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; max-width: 420px; margin: 10px auto; } .dm { aspect-ratio: 1; border: 2px solid var(--gold); overflow: hidden; } .dm .portrait { width: 100%; height: 100%; }
 .deck-roles { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; font-size: 13px; color: var(--paper3); margin-bottom: 8px; } .deck-roles svg { width: 13px; height: 13px; vertical-align: -2px; }
 @media (max-width: 700px) { .db-slots { grid-template-columns: repeat(6, 1fr); } .deck-bar { padding: 6px 8px; position: static; } }
+.up-how { background: #ffffff10; border: 2px dashed var(--paper3); padding: 8px 10px; margin: 6px 0; font-size: 14px; line-height: 1.8; } .up-how b { color: var(--gold); } .up-how .btn { margin-inline-start: 6px; }
+.cp-need { font-size: 12px; color: var(--paper3); text-align: center; }
