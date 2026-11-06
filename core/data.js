@@ -38,7 +38,7 @@
     assassin: { hp: 420, atk: 68, as: 0.85, range: 1, def: 0.05, crit: 0.25 },
     mage: { hp: 470, atk: 46, as: 0.6, range: 3, def: 0, crit: 0.05 },
     marksman: { hp: 410, atk: 66, as: 0.75, range: 4, def: 0, crit: 0.1 },
-    support: { hp: 540, atk: 38, as: 0.6, range: 3, def: 0.05, crit: 0.05 },
+    support: { hp: 630, atk: 47, as: 0.6, range: 3, def: 0.05, crit: 0.05 },
   };
   const TIER_MULT = { 1: 1, 2: 1.22, 3: 1.5 };
 
@@ -220,8 +220,8 @@
   unit('kogetsu', 'كوغيتسو', 'Kogetsu', 'neon', 'fighter', 3, 70,
     { type: 'cleave', name: 'قطع التاج', dmg: [170, 290, 490], radius: 1.4,
       text: 'ضربة تلف وتصيب الهدف واللي حوله.' });
-  unit('yozora', 'يوزورا', 'Yozora', 'neon', 'support', 3, 80,
-    { type: 'healAll', name: 'مطر النجوم', heal: [170, 290, 510],
+  unit('yozora', 'يوزورا', 'Yozora', 'neon', 'support', 3, 70,
+    { type: 'healAll', name: 'مطر النجوم', heal: [215, 360, 640],
       text: 'يعالج كل الفريق.' });
   unit('nagi', 'ناغي', 'Nagi', 'neon', 'assassin', 1, 60,
     { type: 'nuke', name: 'خنجرا الظلام', dmg: [150, 260, 450],
@@ -454,8 +454,8 @@
       { n: 2, effects: [{ scope: 'members', stat: 'atkPct', value: 0.15 }, { scope: 'members', stat: 'range', value: 1 }], text: '+15% هجوم، و+1 مدى' },
       { n: 3, effects: [{ scope: 'members', stat: 'atkPct', value: 0.35 }, { scope: 'members', stat: 'range', value: 1 }], text: '+35% هجوم، و+1 مدى' }] },
     support: { id: 'support', kind: 'role', name: 'الداعمون', tiers: [
-      { n: 2, effects: [{ scope: 'all', stat: 'regenPct', value: 0.015 }], text: 'كل الفريق يتجدد 1.5% كل ثانية' },
-      { n: 3, effects: [{ scope: 'all', stat: 'regenPct', value: 0.03 }], text: 'كل الفريق يتجدد 3% كل ثانية' }] },
+      { n: 2, effects: [{ scope: 'all', stat: 'regenPct', value: 0.02 }], text: 'كل الفريق يتجدد 2% كل ثانية' },
+      { n: 3, effects: [{ scope: 'all', stat: 'regenPct', value: 0.04 }], text: 'كل الفريق يتجدد 4% كل ثانية' }] },
 
     convergence: { id: 'convergence', kind: 'special', name: 'تقارب العوالم', countBy: 'worlds', tiers: [
       { n: 3, effects: [{ scope: 'all', stat: 'atkPct', value: 0.1 }, { scope: 'all', stat: 'hpPct', value: 0.1 }], text: '3 عوالم: الكل +10% هجوم وصحة' },
