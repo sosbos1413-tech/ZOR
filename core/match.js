@@ -43,16 +43,23 @@
       this.progression = !!opts.progression;
       this.rules = opts.rules || null;   // short-match rules (campaign): { maxRounds, winsNeeded, start: { gold, level } }
       this.players = opts.players.map((p, i) => newPlayer(i, this.progression ? p : Object.assign({}, p, { cardPower: null, allowedUnits: null })));
+      // online play: each player has their OWN random stream, unit pool and unit ids, so both phones can replay each other's moves and stay identical
+      this.isolated = !!opts.isolated;
       this.round = 0;
       this.phase = 'idle';
       this.pool = {};
       Object.values(AMB.DATA.UNITS).forEach((u) => (this.pool[u.id] = AMB.CONFIG.economy.poolSize[u.tier]));
+      if (this.isolated) this.players.forEach((p, i) => { p.rng = AMB.util.RNG(this.seed * 7 + i * 7919 + 13); p.pool = Object.assign({}, this.pool); p.uidN = 0; });
       this.history = [];       // per-round reports
       this.scout = [null, null]; // last board each player fought with
       this.winner = undefined;
       this.startedAt = Date.now();
       this.log = [];
     }
+
+    _rng(p) { return this.isolated ? p.rng : this.rng; }
+    _pool(p) { return this.isolated ? p.pool : this.pool; }
+    _uid(p) { return this.isolated ? 'u' + p.index + '_' + (++p.uidN) : AMB.util.uid('u'); }
 
     // ================================================================ round flow
     startRound() {
@@ -94,13 +101,13 @@
 
     _drawUnit(p) {
       const odds = AMB.CONFIG.economy.tierOdds[p.level];
-      const tier = this.rng.weighted(odds.map((w, i) => [i + 1, w]).filter((e) => e[1] > 0));
+      const tier = this._rng(p).weighted(odds.map((w, i) => [i + 1, w]).filter((e) => e[1] > 0));
       const mine = (u) => !p.allowed || p.allowed.has(u.id);   // progression: only units the player owns
-      let entries = Object.values(AMB.DATA.UNITS).filter((u) => u.tier === tier && mine(u)).map((u) => [u.id, this.pool[u.id]]);
-      let pick = this.rng.weighted(entries);
+      let entries = Object.values(AMB.DATA.UNITS).filter((u) => u.tier === tier && mine(u)).map((u) => [u.id, this._pool(p)[u.id]]);
+      let pick = this._rng(p).weighted(entries);
       if (!pick) { // tier exhausted (or none owned in it): fall back to any available unit you own
-        entries = Object.values(AMB.DATA.UNITS).filter(mine).map((u) => [u.id, this.pool[u.id]]);
-        pick = this.rng.weighted(entries);
+        entries = Object.values(AMB.DATA.UNITS).filter(mine).map((u) => [u.id, this._pool(p)[u.id]]);
+        pick = this._rng(p).weighted(entries);
       }
       return pick;
     }
@@ -111,7 +118,7 @@
       for (let i = 0; i < E.shopSlots; i++) p.shop.push(this._drawUnit(p));
       const items = Object.keys(AMB.DATA.ITEMS);
       p.itemShop = [];
-      for (let i = 0; i < E.itemShopSlots; i++) p.itemShop.push(this.rng.pick(items));
+      for (let i = 0; i < E.itemShopSlots; i++) p.itemShop.push(this._rng(p).pick(items));
     }
 
     reroll(pi) {
@@ -149,7 +156,7 @@
       if (!defId) return { ok: false, reason: 'فارغ' };
       const def = AMB.DATA.UNITS[defId];
       if (p.gold < def.cost) return { ok: false, reason: 'ما عندك ذهب يكفي' };
-      if (this.pool[defId] <= 0) return { ok: false, reason: 'خلصت نسخ هالوحدة من المخزون' };
+      if (this._pool(p)[defId] <= 0) return { ok: false, reason: 'خلصت نسخ هالوحدة من المخزون' };
       const benchFree = p.bench.indexOf(null) >= 0;
       if (!benchFree) {
         const same = this.allUnits(p).filter((u) => u.defId === defId && u.star === 1).length;
@@ -165,9 +172,9 @@
       const defId = p.shop[shopIdx];
       const def = AMB.DATA.UNITS[defId];
       p.gold -= def.cost; p.stats.goldSpent += def.cost; p.stats.unitsBought++;
-      this.pool[defId]--;
+      this._pool(p)[defId]--;
       p.shop[shopIdx] = null;
-      const unit = { uid: AMB.util.uid('u'), defId, star: 1, items: [] };
+      const unit = { uid: this._uid(p), defId, star: 1, items: [] };
       const idx = p.bench.indexOf(null);
       if (idx >= 0) p.bench[idx] = unit;
       else p._overflow = unit; // will merge immediately
@@ -191,7 +198,7 @@
         const items = [];
         use.forEach((u) => { items.push(...u.items); this._remove(p, u); });
         if (p._overflow && use.includes(p._overflow)) p._overflow = null;
-        const up = { uid: AMB.util.uid('u'), defId: check.defId, star: check.star + 1, items: [] };
+        const up = { uid: this._uid(p), defId: check.defId, star: check.star + 1, items: [] };
         const maxI = AMB.CONFIG.economy.maxItemsPerUnit;
         items.forEach((it) => (up.items.length < maxI ? up.items.push(it) : p.items.push(it)));
         if (keepLoc && keepLoc.zone === 'board') p.board[keepLoc.slot] = up;
@@ -203,7 +210,7 @@
         check = up;
       }
       if (p._overflow) { // could not merge after all — refund
-        p.gold += AMB.DATA.UNITS[p._overflow.defId].cost; this.pool[p._overflow.defId]++; p._overflow = null;
+        p.gold += AMB.DATA.UNITS[p._overflow.defId].cost; this._pool(p)[p._overflow.defId]++; p._overflow = null;
       }
       return merges;
     }
@@ -237,7 +244,7 @@
       if (!u) return this._fail('ما لقيت الوحدة');
       this._remove(p, u);
       p.gold += this.sellValue(u);
-      this.pool[u.defId] += this.copiesOf(u);
+      this._pool(p)[u.defId] += this.copiesOf(u);
       p.items.push(...u.items);
       return { ok: true };
     }
@@ -444,7 +451,7 @@
       const specs = [this.buildCombatSpec(0), this.buildCombatSpec(1)];
       this.scout = specs.map((s) => JSON.parse(JSON.stringify(s)));
       this._combatSpecs = specs;
-      return new AMB.Combat(specs, { seed: this.rng.int(2 ** 31), round: this.round, record });
+      return new AMB.Combat(specs, { seed: this.isolated ? ((this.seed * 31 + this.round * 104729) % 2147483647) : this.rng.int(2 ** 31), round: this.round, record });
     }
 
     /** Apply a finished combat result: hero damage, streaks, essence, spells. */
@@ -534,8 +541,8 @@
         const pool = AMB.DATA.REWARD_POOLS[si].filter((id) => id !== 'heal' || p.life < p.maxLife);
         const picks = ['unit'];
         const rest = pool.slice();
-        while (picks.length < (trailing ? 4 : 3) && rest.length) picks.push(rest.splice(this.rng.int(rest.length), 1)[0]);
-        for (let i = picks.length - 1; i > 0; i--) { const j = this.rng.int(i + 1); [picks[i], picks[j]] = [picks[j], picks[i]]; }
+        while (picks.length < (trailing ? 4 : 3) && rest.length) picks.push(rest.splice(this._rng(p).int(rest.length), 1)[0]);
+        for (let i = picks.length - 1; i > 0; i--) { const j = this._rng(p).int(i + 1); [picks[i], picks[j]] = [picks[j], picks[i]]; }
         p.rewardOffer = { stage: si, options: picks, claimed: false, trailing };
       });
       return true;
@@ -553,16 +560,16 @@
         case 'xp': this._gainXp(p, R.n[st]); break;
         case 'essence': p.essence = Math.min(AMB.CONFIG.economy.essenceMax + 3, p.essence + R.n[st]); break;
         case 'heal': p.life = Math.min(p.maxLife, p.life + R.n[st]); break;
-        case 'item': { const ids = Object.keys(AMB.DATA.ITEMS); const pick = this.rng.pick(ids); if (p.items.length < AMB.CONFIG.economy.itemBenchSize) p.items.push(pick); else p.gold += 3; out.item = pick; break; }
+        case 'item': { const ids = Object.keys(AMB.DATA.ITEMS); const pick = this._rng(p).pick(ids); if (p.items.length < AMB.CONFIG.economy.itemBenchSize) p.items.push(pick); else p.gold += 3; out.item = pick; break; }
         case 'bless_atk': p.blessings.atkPct += R.pct[st]; break;
         case 'bless_hp': p.blessings.hpPct += R.pct[st]; break;
         case 'bless_as': p.blessings.asPct += R.pct[st]; break;
         case 'unit': {
           const tier = R.tiers[st], hero = AMB.DATA.HEROES[p.heroId];
           const mine = (u) => !p.allowed || p.allowed.has(u.id);
-          const entries = Object.values(AMB.DATA.UNITS).filter((u) => u.tier === tier && this.pool[u.id] > 0 && mine(u)).map((u) => [u.id, u.world === hero.world ? 2 : 1]);
-          const any = entries.length ? entries : Object.values(AMB.DATA.UNITS).filter((u) => this.pool[u.id] > 0 && mine(u)).map((u) => [u.id, 1]);
-          const defId = this.rng.weighted(any);
+          const entries = Object.values(AMB.DATA.UNITS).filter((u) => u.tier === tier && this._pool(p)[u.id] > 0 && mine(u)).map((u) => [u.id, u.world === hero.world ? 2 : 1]);
+          const any = entries.length ? entries : Object.values(AMB.DATA.UNITS).filter((u) => this._pool(p)[u.id] > 0 && mine(u)).map((u) => [u.id, 1]);
+          const defId = this._rng(p).weighted(any);
           if (defId) { out.unit = defId; out.text += ' → ' + AMB.DATA.UNITS[defId].name; this._grantUnit(p, defId); }
           break;
         }
@@ -574,8 +581,8 @@
 
     /** a free unit goes to the bench (merging if it completes a trio); if there is no room it converts to its gold cost */
     _grantUnit(p, defId) {
-      this.pool[defId]--;
-      const unit = { uid: AMB.util.uid('u'), defId, star: 1, items: [] };
+      this._pool(p)[defId]--;
+      const unit = { uid: this._uid(p), defId, star: 1, items: [] };
       const idx = p.bench.indexOf(null);
       if (idx >= 0) p.bench[idx] = unit; else p._overflow = unit;
       this._merge(p, unit);

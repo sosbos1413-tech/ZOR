@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="0138ddb3eb">
+<meta name="zor-build" content="53e2ccae34">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -2064,6 +2064,14 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
   #scr-match .field-wrap { --cwv: clamp(48px, min(calc((var(--app-h, 100dvh) - 372px) / 4.7), calc((100vw - 22px) / 4)), 150px); }
 }
 
+/* ===== playing against a friend (ui/net-ui.js) ===== */
+.net-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+.net-code { font: 400 46px var(--display); letter-spacing: 8px; text-align: center; color: var(--gold); margin: 10px 0 2px; padding: 8px 12px; border: 3px dashed var(--gold); user-select: all; }
+.net-input { display: block; width: 100%; box-sizing: border-box; margin: 10px 0; padding: 12px; font: 400 34px var(--display); letter-spacing: 8px; text-align: center; text-transform: uppercase; border: 3px solid var(--ink); background: #fffaf0; color: var(--ink); }
+.net-wait { text-align: center; } .net-wait h2 { font-size: 24px; }
+.net-dots { display: flex; gap: 8px; justify-content: center; margin: 12px 0; } .net-dots i { width: 12px; height: 12px; border-radius: 50%; background: var(--gold); animation: netdot 1s infinite; } .net-dots i:nth-child(2) { animation-delay: .2s; } .net-dots i:nth-child(3) { animation-delay: .4s; }
+@keyframes netdot { 0%, 100% { opacity: .25; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.15); } }
+
 </style>
 </head>
 <body>
@@ -2080,6 +2088,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
       <div class="menu-buttons">
         <button class="btn big primary menu-cta" data-act="go" data-to="campaign" id="menu-campaign">الحملة</button>
         <button class="btn big" data-act="go" data-to="mode" id="menu-play">مباراة سريعة</button>
+        <button class="btn big" data-act="netMenu" id="menu-friend">العب ضد صاحبك</button>
       </div>
       <!-- secondary screens as small tiles; the progression ones appear after the first campaign win -->
       <div class="menu-tiles">
@@ -2131,10 +2140,10 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
         <p>قتالات قصيرة وزعماء وجوائز · ابدأ من هنا</p>
         <button class="btn primary" data-act="go" data-to="campaign">افتح الحملة</button>
       </div>
-      <div class="mode-card soon">
-        <h3>التحدي التنافسي</h3>
-        <p>ضد لاعبين حقيقيين</p>
-        <span class="tag">قريب</span>
+      <div class="mode-card">
+        <h3>العب ضد صاحبك</h3>
+        <p>كل واحد من جواله · رمز غرفة بين الاثنين</p>
+        <div class="net-btns"><button class="btn primary" data-act="netHost">سوّ غرفة</button><button class="btn" data-act="netJoin">ادخل غرفة</button></div>
       </div>
     </div>
   </section>
@@ -3526,16 +3535,23 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
       this.progression = !!opts.progression;
       this.rules = opts.rules || null;   // short-match rules (campaign): { maxRounds, winsNeeded, start: { gold, level } }
       this.players = opts.players.map((p, i) => newPlayer(i, this.progression ? p : Object.assign({}, p, { cardPower: null, allowedUnits: null })));
+      // online play: each player has their OWN random stream, unit pool and unit ids, so both phones can replay each other's moves and stay identical
+      this.isolated = !!opts.isolated;
       this.round = 0;
       this.phase = 'idle';
       this.pool = {};
       Object.values(AMB.DATA.UNITS).forEach((u) => (this.pool[u.id] = AMB.CONFIG.economy.poolSize[u.tier]));
+      if (this.isolated) this.players.forEach((p, i) => { p.rng = AMB.util.RNG(this.seed * 7 + i * 7919 + 13); p.pool = Object.assign({}, this.pool); p.uidN = 0; });
       this.history = [];       // per-round reports
       this.scout = [null, null]; // last board each player fought with
       this.winner = undefined;
       this.startedAt = Date.now();
       this.log = [];
     }
+
+    _rng(p) { return this.isolated ? p.rng : this.rng; }
+    _pool(p) { return this.isolated ? p.pool : this.pool; }
+    _uid(p) { return this.isolated ? 'u' + p.index + '_' + (++p.uidN) : AMB.util.uid('u'); }
 
     // ================================================================ round flow
     startRound() {
@@ -3577,13 +3593,13 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 
     _drawUnit(p) {
       const odds = AMB.CONFIG.economy.tierOdds[p.level];
-      const tier = this.rng.weighted(odds.map((w, i) => [i + 1, w]).filter((e) => e[1] > 0));
+      const tier = this._rng(p).weighted(odds.map((w, i) => [i + 1, w]).filter((e) => e[1] > 0));
       const mine = (u) => !p.allowed || p.allowed.has(u.id);   // progression: only units the player owns
-      let entries = Object.values(AMB.DATA.UNITS).filter((u) => u.tier === tier && mine(u)).map((u) => [u.id, this.pool[u.id]]);
-      let pick = this.rng.weighted(entries);
+      let entries = Object.values(AMB.DATA.UNITS).filter((u) => u.tier === tier && mine(u)).map((u) => [u.id, this._pool(p)[u.id]]);
+      let pick = this._rng(p).weighted(entries);
       if (!pick) { // tier exhausted (or none owned in it): fall back to any available unit you own
-        entries = Object.values(AMB.DATA.UNITS).filter(mine).map((u) => [u.id, this.pool[u.id]]);
-        pick = this.rng.weighted(entries);
+        entries = Object.values(AMB.DATA.UNITS).filter(mine).map((u) => [u.id, this._pool(p)[u.id]]);
+        pick = this._rng(p).weighted(entries);
       }
       return pick;
     }
@@ -3594,7 +3610,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
       for (let i = 0; i < E.shopSlots; i++) p.shop.push(this._drawUnit(p));
       const items = Object.keys(AMB.DATA.ITEMS);
       p.itemShop = [];
-      for (let i = 0; i < E.itemShopSlots; i++) p.itemShop.push(this.rng.pick(items));
+      for (let i = 0; i < E.itemShopSlots; i++) p.itemShop.push(this._rng(p).pick(items));
     }
 
     reroll(pi) {
@@ -3632,7 +3648,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
       if (!defId) return { ok: false, reason: 'فارغ' };
       const def = AMB.DATA.UNITS[defId];
       if (p.gold < def.cost) return { ok: false, reason: 'ما عندك ذهب يكفي' };
-      if (this.pool[defId] <= 0) return { ok: false, reason: 'خلصت نسخ هالوحدة من المخزون' };
+      if (this._pool(p)[defId] <= 0) return { ok: false, reason: 'خلصت نسخ هالوحدة من المخزون' };
       const benchFree = p.bench.indexOf(null) >= 0;
       if (!benchFree) {
         const same = this.allUnits(p).filter((u) => u.defId === defId && u.star === 1).length;
@@ -3648,9 +3664,9 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
       const defId = p.shop[shopIdx];
       const def = AMB.DATA.UNITS[defId];
       p.gold -= def.cost; p.stats.goldSpent += def.cost; p.stats.unitsBought++;
-      this.pool[defId]--;
+      this._pool(p)[defId]--;
       p.shop[shopIdx] = null;
-      const unit = { uid: AMB.util.uid('u'), defId, star: 1, items: [] };
+      const unit = { uid: this._uid(p), defId, star: 1, items: [] };
       const idx = p.bench.indexOf(null);
       if (idx >= 0) p.bench[idx] = unit;
       else p._overflow = unit; // will merge immediately
@@ -3674,7 +3690,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
         const items = [];
         use.forEach((u) => { items.push(...u.items); this._remove(p, u); });
         if (p._overflow && use.includes(p._overflow)) p._overflow = null;
-        const up = { uid: AMB.util.uid('u'), defId: check.defId, star: check.star + 1, items: [] };
+        const up = { uid: this._uid(p), defId: check.defId, star: check.star + 1, items: [] };
         const maxI = AMB.CONFIG.economy.maxItemsPerUnit;
         items.forEach((it) => (up.items.length < maxI ? up.items.push(it) : p.items.push(it)));
         if (keepLoc && keepLoc.zone === 'board') p.board[keepLoc.slot] = up;
@@ -3686,7 +3702,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
         check = up;
       }
       if (p._overflow) { // could not merge after all — refund
-        p.gold += AMB.DATA.UNITS[p._overflow.defId].cost; this.pool[p._overflow.defId]++; p._overflow = null;
+        p.gold += AMB.DATA.UNITS[p._overflow.defId].cost; this._pool(p)[p._overflow.defId]++; p._overflow = null;
       }
       return merges;
     }
@@ -3720,7 +3736,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
       if (!u) return this._fail('ما لقيت الوحدة');
       this._remove(p, u);
       p.gold += this.sellValue(u);
-      this.pool[u.defId] += this.copiesOf(u);
+      this._pool(p)[u.defId] += this.copiesOf(u);
       p.items.push(...u.items);
       return { ok: true };
     }
@@ -3927,7 +3943,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
       const specs = [this.buildCombatSpec(0), this.buildCombatSpec(1)];
       this.scout = specs.map((s) => JSON.parse(JSON.stringify(s)));
       this._combatSpecs = specs;
-      return new AMB.Combat(specs, { seed: this.rng.int(2 ** 31), round: this.round, record });
+      return new AMB.Combat(specs, { seed: this.isolated ? ((this.seed * 31 + this.round * 104729) % 2147483647) : this.rng.int(2 ** 31), round: this.round, record });
     }
 
     /** Apply a finished combat result: hero damage, streaks, essence, spells. */
@@ -4017,8 +4033,8 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
         const pool = AMB.DATA.REWARD_POOLS[si].filter((id) => id !== 'heal' || p.life < p.maxLife);
         const picks = ['unit'];
         const rest = pool.slice();
-        while (picks.length < (trailing ? 4 : 3) && rest.length) picks.push(rest.splice(this.rng.int(rest.length), 1)[0]);
-        for (let i = picks.length - 1; i > 0; i--) { const j = this.rng.int(i + 1); [picks[i], picks[j]] = [picks[j], picks[i]]; }
+        while (picks.length < (trailing ? 4 : 3) && rest.length) picks.push(rest.splice(this._rng(p).int(rest.length), 1)[0]);
+        for (let i = picks.length - 1; i > 0; i--) { const j = this._rng(p).int(i + 1); [picks[i], picks[j]] = [picks[j], picks[i]]; }
         p.rewardOffer = { stage: si, options: picks, claimed: false, trailing };
       });
       return true;
@@ -4036,16 +4052,16 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
         case 'xp': this._gainXp(p, R.n[st]); break;
         case 'essence': p.essence = Math.min(AMB.CONFIG.economy.essenceMax + 3, p.essence + R.n[st]); break;
         case 'heal': p.life = Math.min(p.maxLife, p.life + R.n[st]); break;
-        case 'item': { const ids = Object.keys(AMB.DATA.ITEMS); const pick = this.rng.pick(ids); if (p.items.length < AMB.CONFIG.economy.itemBenchSize) p.items.push(pick); else p.gold += 3; out.item = pick; break; }
+        case 'item': { const ids = Object.keys(AMB.DATA.ITEMS); const pick = this._rng(p).pick(ids); if (p.items.length < AMB.CONFIG.economy.itemBenchSize) p.items.push(pick); else p.gold += 3; out.item = pick; break; }
         case 'bless_atk': p.blessings.atkPct += R.pct[st]; break;
         case 'bless_hp': p.blessings.hpPct += R.pct[st]; break;
         case 'bless_as': p.blessings.asPct += R.pct[st]; break;
         case 'unit': {
           const tier = R.tiers[st], hero = AMB.DATA.HEROES[p.heroId];
           const mine = (u) => !p.allowed || p.allowed.has(u.id);
-          const entries = Object.values(AMB.DATA.UNITS).filter((u) => u.tier === tier && this.pool[u.id] > 0 && mine(u)).map((u) => [u.id, u.world === hero.world ? 2 : 1]);
-          const any = entries.length ? entries : Object.values(AMB.DATA.UNITS).filter((u) => this.pool[u.id] > 0 && mine(u)).map((u) => [u.id, 1]);
-          const defId = this.rng.weighted(any);
+          const entries = Object.values(AMB.DATA.UNITS).filter((u) => u.tier === tier && this._pool(p)[u.id] > 0 && mine(u)).map((u) => [u.id, u.world === hero.world ? 2 : 1]);
+          const any = entries.length ? entries : Object.values(AMB.DATA.UNITS).filter((u) => this._pool(p)[u.id] > 0 && mine(u)).map((u) => [u.id, 1]);
+          const defId = this._rng(p).weighted(any);
           if (defId) { out.unit = defId; out.text += ' → ' + AMB.DATA.UNITS[defId].name; this._grantUnit(p, defId); }
           break;
         }
@@ -4057,8 +4073,8 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 
     /** a free unit goes to the bench (merging if it completes a trio); if there is no room it converts to its gold cost */
     _grantUnit(p, defId) {
-      this.pool[defId]--;
-      const unit = { uid: AMB.util.uid('u'), defId, star: 1, items: [] };
+      this._pool(p)[defId]--;
+      const unit = { uid: this._uid(p), defId, star: 1, items: [] };
       const idx = p.bench.indexOf(null);
       if (idx >= 0) p.bench[idx] = unit; else p._overflow = unit;
       this._merge(p, unit);
@@ -4195,7 +4211,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
     rest.sort((a, b) => power(b) - power(a));
     rest.forEach((u, i) => {
       if (i < p.bench.length) p.bench[i] = u;
-      else { p.gold += match.sellValue(u); match.pool[u.defId] += match.copiesOf(u); p.items.push(...u.items); }
+      else { p.gold += match.sellValue(u); match._pool(p)[u.defId] += match.copiesOf(u); p.items.push(...u.items); }
     });
   }
 
@@ -5492,6 +5508,75 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 </script>
 <script>
 /*
+ * Online play, logic only (no network, no DOM, so it is testable in Node).
+ *
+ * Both phones run the SAME Match (same seed, `isolated: true` = every player has their own random stream,
+ * unit pool and unit ids). A player only sends the list of moves they made during prep; the other phone replays
+ * those moves on its copy of that player. Combat is deterministic, so both phones get the same fight and result.
+ *
+ *   const rec = AMB.NetSync.record(match, myIndex);   // start recording MY moves
+ *   ...player plays...                                  // match.buy(myIndex, 2), match.move(...)
+ *   const ops = rec.take();                             // -> [['buy', 2], ['move', 'u0_3', {...}], ...]  (send this)
+ *   AMB.NetSync.replay(match, otherIndex, ops);         // the other phone applies them to the other player
+ */
+(function () {
+  const AMB = (globalThis.AMB = globalThis.AMB || {});
+  // every call a player can make during prep or the reward draft
+  const OPS = ['buy', 'reroll', 'buyXp', 'toggleLock', 'sell', 'move', 'buyItem', 'equip', 'unequip', 'sellItem', 'armSpell', 'disarmSpell', 'setAbility', 'toggleSummon', 'moveHero', 'autoArrange', 'claimReward'];
+
+  function record(match, idx) {
+    const ops = []; let depth = 0;
+    OPS.forEach((name) => {
+      const orig = match[name]; if (typeof orig !== 'function' || orig.__net) return;
+      const wrapped = function (pi, ...args) {
+        const top = depth === 0;
+        depth++;
+        let r;
+        try { r = orig.call(this, pi, ...args); } finally { depth--; }
+        if (top && pi === idx && !(r && r.ok === false)) ops.push([name, ...JSON.parse(JSON.stringify(args))]);   // only my own successful top-level moves
+        return r;
+      };
+      wrapped.__net = true; wrapped.__orig = orig;
+      match[name] = wrapped;
+    });
+    // engine-driven steps call the move methods themselves (autoFill moves bench units onto the board): never record those
+    ['autoFill', 'startRound', 'createCombat', 'resolveCombat', 'offerRewards'].forEach((name) => {
+      const orig = match[name]; if (typeof orig !== 'function' || orig.__net) return;
+      const wrapped = function (...args) { depth++; try { return orig.apply(this, args); } finally { depth--; } };
+      wrapped.__net = true; wrapped.__orig = orig; match[name] = wrapped;
+    });
+    return { take() { const o = ops.splice(0, ops.length); return o; }, peek: () => ops.slice() };
+  }
+
+  function replay(match, pi, ops) {
+    const failed = [];
+    for (const [name, ...args] of ops) {
+      const fn = match[name] && (match[name].__orig || match[name]);
+      if (typeof fn !== 'function' || !OPS.includes(name)) { failed.push(name); continue; }
+      const r = fn.call(match, pi, ...args);
+      if (r && r.ok === false) failed.push(name + ':' + r.reason);
+    }
+    return failed;   // should always be empty: a non-empty list means the two phones disagree
+  }
+
+  // a short fingerprint of everything that matters, to check both phones are still identical
+  function hash(match) {
+    const snap = match.players.map((p) => ({
+      g: p.gold, l: p.life, lv: p.level, xp: p.xp, ess: p.essence, shop: p.shop, bench: p.bench.map((u) => u && [u.uid, u.defId, u.star, u.items]),
+      board: Object.keys(p.board).sort().map((k) => [k, p.board[k].uid, p.board[k].defId, p.board[k].star, p.board[k].items]), items: p.items,
+      spells: p.armedSpells, ab: p.abilities, sum: p.summoned, hs: p.heroSlot, bl: p.blessings,
+    }));
+    const s = JSON.stringify([match.round, snap, match.pool && 0]);
+    let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+    return (h >>> 0).toString(36);
+  }
+
+  AMB.NetSync = { OPS, record, replay, hash };
+})();
+
+</script>
+<script>
+/*
  * Card album: every card in the game; missing ones show as shadows. Own every unit of a world
  * (5 each) to claim that world's set reward once: shards + a title + a frame in the world's colour.
  * Own all 20 units: bonus packs + the title "جامع الصدع". Heroes are listed but belong to no set
@@ -6430,6 +6515,7 @@ AMB.IMAGES = {
   function overlay(html) { $('overlay').innerHTML = html; $('overlay').classList.add('on'); }
   function closeOverlay() { $('overlay').classList.remove('on'); $('overlay').innerHTML = ''; }
 
+  const mySeat = () => (S.mode === 'online' && S.net ? S.net.idx : 0);
   const me = () => S.match.players[S.v];
   const opp = () => S.match.players[1 - S.v];
   const res = (r) => { if (!r.ok) toast(r.reason, 'err'); return r.ok; };
@@ -6498,6 +6584,7 @@ AMB.IMAGES = {
       : S.mode === 'tower' ? new AMB.Match(AMB.tower.matchOptions(S.tower.floor, S.picks[0]))
       : S.mode === 'event' ? new AMB.Match(AMB.weekly.matchOptions(S.event.stage, S.picks[0]))
       : S.mode === 'tutorial' ? new AMB.Match(AMB.tutorial.matchOptions(S.picks[0]))
+      : S.mode === 'online' ? AMB.NetUI.makeMatch()
       : new AMB.Match({ mode: S.mode, players });
     // same hero on both sides (e.g. your Kiro vs the Ember boss Kiro): the enemy becomes its "shadow"
     const mirror = S.match.players[0].heroId === S.match.players[1].heroId;
@@ -6527,6 +6614,7 @@ AMB.IMAGES = {
     m.startRound();
     if (S.mode === 'tutorial') AMB.tutorial.onRound(m);   // fixed shop for the guided match
     S.combat = null;
+    if (S.mode === 'online') { beginPrep(mySeat()); return; }   // no computer opponent: your friend's moves arrive when they press ready
     if (S.mode === 'hotseat') {
       S.queue = m.round % 2 ? [0, 1] : [1, 0]; // alternate who shops first (shared pool)
       handoff(S.queue.shift());
@@ -6625,6 +6713,7 @@ AMB.IMAGES = {
     const m = S.match;
     m.autoFill(S.v);
     S.sel = null;
+    if (S.mode === 'online') { AMB.NetUI.iAmReady(); return; }
     if (S.mode === 'hotseat' && S.queue.length) { handoff(S.queue.shift()); return; }
     if (S.mode !== 'hotseat' && !S.aiFirst) AMB.AI.prep(m, 1);
     startCombat();
@@ -6644,8 +6733,8 @@ AMB.IMAGES = {
     const m = S.match;
     cancelDrag();
     closeOverlay();
-    S.combatViewer = 0;
-    S.v = 0;
+    S.combatViewer = mySeat();
+    S.v = mySeat();
     S.combat = m.createCombat(true);
     S.phase = 'combat';
     renderMatch();
@@ -6683,21 +6772,22 @@ AMB.IMAGES = {
     const rep = m.resolveCombat(S.combat.result);
     S.lastReport = rep;
     renderMatch(true);
-    if (rep.winner != null) sfx(S.mode === 'hotseat' || rep.winner === 0 ? 'win' : 'lose');
+    const mi = mySeat();
+    if (rep.winner != null) sfx(S.mode === 'hotseat' || rep.winner === mi ? 'win' : 'lose');
     let cls;
     if (rep.winner === null) cls = 'draw';
     else if (S.mode === 'hotseat') cls = 'win';
-    else cls = rep.winner === 0 ? 'win' : 'lose';
+    else cls = rep.winner === mi ? 'win' : 'lose';
     const over = m.isOver;
     const side = (i) => { const r = rep.players[i], pl = m.players[i]; return `<div class="rr-side ${rep.winner === i ? 'won' : ''}">${portrait(r.heroKilled ? HEROES[pl.heroId] : HEROES[pl.heroId], { k: 'rr' + i })}
         <div class="rr-life">${icon(r.heroKilled ? 'skull' : 'heart')} <b>${lifeStr(r.lifeAfter)}</b></div>${(r.backlash + r.direct) > 0 ? `<div class="rr-dmg"><bdi dir="ltr">−${Math.round(r.backlash + r.direct)}</bdi></div>` : '<div class="rr-dmg">&nbsp;</div>'}</div>`; };
-    const me0 = rep.players[0];
-    const why = S.mode !== 'hotseat' && rep.winner === 1 ? (me0.exposed ? `<div class="rr-why">${icon('shield')}<i>✗</i> ➜ ${icon('warn')}</div>` : `<div class="rr-why">${icon('star')} ➜ ${icon('sword')}</div>`) : '';
+    const me0 = rep.players[mi];
+    const why = S.mode !== 'hotseat' && rep.winner === 1 - mi ? (me0.exposed ? `<div class="rr-why">${icon('shield')}<i>✗</i> ➜ ${icon('warn')}</div>` : `<div class="rr-why">${icon('star')} ➜ ${icon('sword')}</div>`) : '';
     const title = rep.winner === null ? `الجولة ${m.round}: تعادل`
       : S.mode === 'hotseat' ? `الجولة ${m.round}: فاز ${esc(m.players[rep.winner].name)}`
-      : over ? (rep.winner === 0 ? 'فزت بالمباراة! 🎉' : 'خسرت المباراة')
-      : `الجولة ${m.round}: ${rep.winner === 0 ? 'فزت' : 'خسرت'}`;
-    const whyTxt = S.mode !== 'hotseat' && rep.winner === 1 ? (me0.exposed ? 'سقط خط الدفاع وانكشف بطلك' : 'العدو كان أقوى هالجولة') : '';
+      : over ? (rep.winner === mi ? 'فزت بالمباراة! 🎉' : 'خسرت المباراة')
+      : `الجولة ${m.round}: ${rep.winner === mi ? 'فزت' : 'خسرت'}`;
+    const whyTxt = S.mode !== 'hotseat' && rep.winner === 1 - mi ? (me0.exposed ? 'سقط خط الدفاع وانكشف بطلك' : 'العدو كان أقوى هالجولة') : '';
     overlay(`<div class="ov-card rr ${cls}"><div class="rr-title">${title}</div><div class="rr-big">${icon(rep.winner === null ? 'swap' : cls === 'lose' ? 'skull' : 'crown')}</div>
       <div class="rr-row">${side(0)}<div class="rr-vs">${icon('sword')}</div>${side(1)}</div>${why}${whyTxt ? `<div class="rr-note">${whyTxt}</div>` : ''}${rep.finale ? `<div class="rr-why">${icon('flame')} ×${CFG.match.finaleLossMult}</div>` : ''}
       <button class="btn primary big rr-go" data-act="${over ? 'toResults' : m.rewardPending ? 'rewards' : 'nextRound'}">${over ? 'النتيجة' : m.rewardPending ? 'اختر مكافأتك' : 'الجولة الجاية'}</button></div>`);
@@ -7351,7 +7441,7 @@ AMB.IMAGES = {
     if (S.match) {
       const p = me();
       const ow = S.match.allUnits(p).filter((u) => u.defId === id);
-      match = `<div class="hint">في هذه المباراة: تملك ${ow.length ? ow.map((u) => '★'.repeat(u.star)).join(' ، ') : 'لا شيء'} · المتبقي في المخزون المشترك: ${S.match.pool[id]}/${CFG.economy.poolSize[d.tier]}</div>`;
+      match = `<div class="hint">في هذه المباراة: تملك ${ow.length ? ow.map((u) => '★'.repeat(u.star)).join(' ، ') : 'لا شيء'} · المتبقي في المخزون المشترك: ${S.match._pool(me())[id]}/${CFG.economy.poolSize[d.tier]}</div>`;
     }
     modal(`<div class="detail-head">${portrait(d, { k: 'md' })}<div><h2>${d.name} ${star ? stars(star) : ''}</h2><div class="hint" style="direction:ltr;text-align:right">${d.en}</div>
       <span class="pill" style="--pc:${W.color}">${W.name}</span><span class="pill">${R.name}</span><span class="pill" style="--pc:var(--t${d.tier})">فئة ${d.tier} · تكلفة ${d.cost}</span>
@@ -7394,7 +7484,7 @@ AMB.IMAGES = {
       const preview = maxed ? 'وصلت لأعلى مستوى ★★★' : `عند ${'★'.repeat(target + 1)}: صحة ${fmt(d.hp * SM[target])} → <b>${fmt(d.hp * SM[target + 1])}</b>، هجوم ${fmt(d.atk * SM[target])} → <b>${fmt(d.atk * SM[target + 1])}</b>${d.skill.dmg ? `، ${d.skill.name} ${d.skill.dmg[target - 1]} → <b>${d.skill.dmg[target]}</b>` : d.skill.heal ? `، علاج ${d.skill.heal[target - 1]} → <b>${d.skill.heal[target]}</b>` : d.skill.shield ? `، درع ${d.skill.shield[target - 1]} → <b>${d.skill.shield[target]}</b>` : ''}`;
       const inShop = p.shop.map((x, i) => [x, i]).filter((e) => e[0] === id);
       const btn = inShop.length && !maxed ? `<button class="btn small primary" data-act="buyFromUpg" data-idx="${inShop[0][1]}">شراء من المتجر (${d.cost})</button>` : `<span class="hint">${maxed ? '' : 'غير متوفر في المتجر الآن'}</span>`;
-      return `<div class="upg-row">${portrait(d, { k: 'up' + id })}<div><b>${d.name}</b> <span class="hint">★×${byStar[0]} ★★×${byStar[1]} ★★★×${byStar[2]} · المخزون ${m.pool[id]}</span>
+      return `<div class="upg-row">${portrait(d, { k: 'up' + id })}<div><b>${d.name}</b> <span class="hint">★×${byStar[0]} ★★×${byStar[1]} ★★★×${byStar[2]} · المخزون ${m._pool(me())[id]}</span>
         ${maxed ? '' : `<div class="hint">نسخ ${'★'.repeat(target)}: ${have}/${need} للترقية</div><div class="prog"><i style="width:${(have / need) * 100}%"></i></div>`}
         <div class="hint">${preview}</div></div>${btn}</div>`;
     }).join('');
@@ -7443,13 +7533,13 @@ AMB.IMAGES = {
     if (S.mode === 'tower') return AMB.TowerUI.showResult(m, secs);
     if (S.mode === 'event') return AMB.EventUI.showResult(m, secs);
     if (S.mode === 'tutorial') return AMB.TutorialUI.showResult(m, secs);
-    if (S.mode !== 'friendly' && !m._recorded) { AMB.telemetry.recordMatch(m, { seconds: secs }); m._recorded = true; }
+    if (S.mode !== 'friendly' && S.mode !== 'online' && !m._recorded) { AMB.telemetry.recordMatch(m, { seconds: secs }); m._recorded = true; }
     if (!m._counted) { m._counted = true; try { localStorage.setItem('amb_played', String(+(localStorage.getItem('amb_played') || 0) + 1)); } catch (e) { /* ignore */ } }
-    if (!m._passDone) { m._passDone = true; try { S.passResult = AMB.pass.recordMatch(m.summary(0)); } catch (e) { S.passResult = null; } }
+    if (!m._passDone && S.mode !== 'online') { m._passDone = true; try { S.passResult = AMB.pass.recordMatch(m.summary(0)); } catch (e) { S.passResult = null; } }
     let title;
     if (m.winner === null || m.winner === undefined) title = 'تعادل';
     else if (S.mode === 'hotseat') title = `فاز ${esc(m.players[m.winner].name)}!`;
-    else title = m.winner === 0 ? 'نصر!' : 'هزيمة';
+    else title = m.winner === mySeat() ? 'نصر!' : 'هزيمة';
     const last = m.history[m.history.length - 1];
     const cols = m.players.map((p, i) => {
       const h = HEROES[p.heroId];
@@ -7568,7 +7658,7 @@ AMB.IMAGES = {
   const prepActive = () => S.screen === 'match' && (S.phase === 'prep' || S.phase === 'resources');
 
   const ACT = {
-    go: (d) => { show(d.to); if (d.to === 'stats') renderStats(); if (d.to === 'codex') renderCodex(); },
+    go: (d) => { if (S.net && S.screen === 'hero') AMB.NetUI.leave(); show(d.to); if (d.to === 'stats') renderStats(); if (d.to === 'codex') renderCodex(); },
     howto: () => (AMB.TutorialUI ? AMB.TutorialUI.start({ replay: true }) : howto()),
     tutorial: () => showTutorial(),
     diff: (d) => { S.difficulty = d.v; document.querySelectorAll('#diff-seg button').forEach((b) => b.classList.toggle('on', b.dataset.v === d.v)); },
@@ -7586,6 +7676,7 @@ AMB.IMAGES = {
         renderHeroSelect(); return;
       }
       if (S.mode === 'hotseat' && S.pickIdx === 0) { S.pickIdx = 1; renderHeroSelect(); return; }
+      if (S.mode === 'online') { AMB.NetUI.heroChosen(S.picks[0]); return; }
       startMatch();
     },
     handoffGo: (d) => beginPrep(+d.pi),
@@ -7663,6 +7754,7 @@ AMB.IMAGES = {
     upgrades: () => upgradesModal(),
     closeModal: () => { closeModal(); if (S._resumeAfterMenu) { ACT.resumeMenu(); } },
     pause: () => {
+      if (S.mode === 'online') { toast('ما يصير توقف وأنت تلعب مع صاحبك', 'err'); return; }
       if (S.phase === 'prep') {
         if (!S.paused) { S.paused = true; S.pausedLeft = S.deadline - Date.now(); }
         else { S.paused = false; S.deadline = Date.now() + S.pausedLeft; }
@@ -7679,20 +7771,21 @@ AMB.IMAGES = {
     },
     surrender: () => {
       const m = S.match;
+      if (S.net) AMB.NetUI.leave();
       closeModal(); S._resumeAfterMenu = false; S.paused = false;
       cancelAnimationFrame(S.raf);
       m.winner = 1 - S.v; m.phase = 'over'; m.endedAt = Date.now();
       me().life = 0;
       showResults();
     },
-    abandon: () => { closeModal(); closeOverlay(); S._resumeAfterMenu = false; S.paused = false; cancelAnimationFrame(S.raf); S.phase = 'idle'; S.match = null; show('menu'); },
+    abandon: () => { if (S.net) AMB.NetUI.leave(); closeModal(); closeOverlay(); S._resumeAfterMenu = false; S.paused = false; cancelAnimationFrame(S.raf); S.phase = 'idle'; S.match = null; show('menu'); },
     speed: (d) => { S.speed = +d.v; renderCombatCtrl(); },
     skip: () => skipCombat(),
     nextRound: () => { closeOverlay(); if (S.match.isOver) showResults(); else nextRound(); },
     rewards: () => {
       const m = S.match; closeOverlay();
       if (S.mode === 'hotseat') { S.rewardQueue = [1]; rewardHandoff(0); }
-      else { S.rewardQueue = []; showRewards(0); }
+      else { S.rewardQueue = []; showRewards(mySeat()); }
     },
     rewardGo: (d) => showRewards(+d.pi),
     claimReward: (d) => {
@@ -7701,13 +7794,14 @@ AMB.IMAGES = {
       sfx('merge');
       let msg = 'استلمت: ' + r.text; if (r.item) msg += ' — ' + AMB.DATA.ITEMS[r.item].name;
       toast(S.mode === 'hotseat' ? m.players[pi].name + ': ' + msg : msg, 'good');
+      if (S.mode === 'online') { AMB.NetUI.rewardClaimed(); return; }
       if (S.mode !== 'hotseat') { const a = AMB.AI.claimReward(m, 1); if (a && a.ok) setTimeout(() => toast('الخصم اختار: ' + AMB.DATA.REWARDS[a.id].name, ''), 700); }
       afterReward();
     },
     toResults: () => showResults(),
     abTrig: (d) => { if (!prepActive()) return; const cur = S.match.players[S.v].abilities[d.ab]; res(S.match.setAbility(S.v, d.ab, cur === d.t ? null : d.t)); renderMatch(); },
     info: (d, el, e) => { if (e) e.stopPropagation(); if (d.k === 'hero') { heroDetail(d.id); return; } const t = AMB.TIPS[d.k]; if (!t) return; const x = t(); modal(`<h2>${x.title}</h2><div class="tip-body">${x.html}</div>`); },
-    again: () => { if (S.mode === 'tutorial') { AMB.TutorialUI.start(); return; } if (S.mode === 'campaign' || S.mode === 'tower' || S.mode === 'event') { startMatch(); return; } S.picks = [S.picks[0], S.picks[1]]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
+    again: () => { if (S.mode === 'online') { if (S.net) AMB.NetUI.leave(); show('menu'); return; } if (S.mode === 'tutorial') { AMB.TutorialUI.start(); return; } if (S.mode === 'campaign' || S.mode === 'tower' || S.mode === 'event') { startMatch(); return; } S.picks = [S.picks[0], S.picks[1]]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
     statsExport: () => {
       const blob = new Blob([JSON.stringify(AMB.telemetry.load(), null, 2)], { type: 'application/json' });
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'multiverse-telemetry.json'; a.click();
@@ -7845,7 +7939,7 @@ AMB.IMAGES = {
   })();
 
   // debug / testing hook
-  globalThis.AMB_UI = { S, ACT, itemsHTML: () => Object.values(ITEMS).map((it) => itemCardHTML(it)).join(''), renderMatch, cardHTML, itemCardHTML, show, toast, sfx, burst, modal, closeModal, overlay, closeOverlay, startMatch, portrait, stars };
+  globalThis.AMB_UI = { renderHeroSelect, startCombat, afterReward, showResults, S, ACT, itemsHTML: () => Object.values(ITEMS).map((it) => itemCardHTML(it)).join(''), renderMatch, cardHTML, itemCardHTML, show, toast, sfx, burst, modal, closeModal, overlay, closeOverlay, startMatch, portrait, stars };
   if (AMB.PassUI) { AMB.PassUI.installActions(); AMB.PassUI.applyCosmetics(); AMB.PassUI.refreshMenu(); }
 })();
 
@@ -8621,6 +8715,277 @@ AMB.IMAGES = {
     if (ui && ui.sfx) ui.sfx('c_' + role);
   }
   AMB.VFX = { attack, cast, COL };
+})();
+
+</script>
+<script>
+/*
+ * Play against a friend, each on their own phone (ui side of core/netsync.js).
+ *   host: "سوّ غرفة" -> a short room code -> the friend types it in "ادخل غرفة" -> both pick a hero -> same match, same seed.
+ * The two phones talk directly (WebRTC through the free PeerJS broker, loaded only when you open a room).
+ * Only the moves of each prep round are sent; both phones replay them and get the identical fight.
+ */
+(function () {
+  const AMB = globalThis.AMB;
+  const UI = () => globalThis.AMB_UI;
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const randCode = () => Array.from({ length: 5 }, () => CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]).join('');
+  const PEER_SRC = 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
+  const useLocal = () => /[?&]nettest=1/.test(location.search);   // two tabs of the same browser (for testing without internet)
+
+  // ------------------------------------------------------------------ transports: both give a "link" { send(obj), onmessage, onclose, close() }
+  function makeLink(raw) { return { raw, onmessage: null, onclose: null, send: null, close: null }; }
+  function loadPeerJS() {
+    return new Promise((res, rej) => {
+      if (globalThis.Peer) return res();
+      const s = document.createElement('script'); s.src = PEER_SRC; s.onload = () => res(); s.onerror = () => rej(new Error('load'));
+      document.head.appendChild(s); setTimeout(() => rej(new Error('timeout')), 12000);
+    });
+  }
+  function openPeer(id) {
+    return new Promise((res, rej) => {
+      const p = id ? new Peer(id, { debug: 0 }) : new Peer({ debug: 0 });
+      p.on('open', () => res(p)); p.on('error', rej); setTimeout(() => rej(new Error('timeout')), 12000);
+    });
+  }
+  function wrapConn(conn) {
+    const link = makeLink(conn);
+    link.send = (o) => { try { conn.send(JSON.stringify(o)); } catch (e) { /* closed */ } };
+    link.close = () => { try { conn.close(); } catch (e) { /* ignore */ } };
+    conn.on('data', (d) => { try { link.onmessage && link.onmessage(JSON.parse(d)); } catch (e) { /* ignore bad message */ } });
+    conn.on('close', () => link.onclose && link.onclose());
+    conn.on('error', () => link.onclose && link.onclose());
+    return link;
+  }
+  const Peers = {
+    async host() {
+      await loadPeerJS();
+      for (let i = 0; i < 6; i++) {
+        const code = randCode();
+        try {
+          const peer = await openPeer('zor-' + code);
+          const linked = new Promise((res) => peer.on('connection', (c) => { c.on('open', () => res(wrapConn(c))); }));
+          return { code, linked, close: () => { try { peer.destroy(); } catch (e) { /* ignore */ } } };
+        } catch (e) { if (!e || e.type !== 'unavailable-id') throw e; }
+      }
+      throw new Error('no id');
+    },
+    async join(code) {
+      await loadPeerJS();
+      const peer = await openPeer();
+      return new Promise((res, rej) => {
+        const conn = peer.connect('zor-' + code, { reliable: true });
+        const to = setTimeout(() => rej(new Error('timeout')), 12000);
+        peer.on('error', (e) => { clearTimeout(to); rej(e); });
+        conn.on('open', () => { clearTimeout(to); res(wrapConn(conn)); });
+      });
+    },
+  };
+  const Locals = {   // BroadcastChannel: lets two tabs of one browser play each other
+    async host() {
+      const code = randCode(), id = 'h' + Math.random(), ch = new BroadcastChannel('zor-' + code);
+      const linked = new Promise((res) => { ch.onmessage = (ev) => { if (ev.data.t === 'join') { const link = mkLocal(ch, id, ev.data.id); ch.postMessage({ t: 'welcome', from: id, to: ev.data.id }); res(link); } }; });
+      return { code, linked, close: () => {} };
+    },
+    async join(code) {
+      const id = 'g' + Math.random(), ch = new BroadcastChannel('zor-' + code);
+      return new Promise((res, rej) => {
+        const to = setTimeout(() => rej(new Error('timeout')), 4000);
+        ch.onmessage = (ev) => { if (ev.data.t === 'welcome' && ev.data.to === id) { clearTimeout(to); res(mkLocal(ch, id, ev.data.from)); } };
+        ch.postMessage({ t: 'join', id });
+      });
+    },
+  };
+  function mkLocal(ch, me, other) {
+    const link = makeLink(ch);
+    link.send = (o) => ch.postMessage({ t: 'msg', from: me, to: other, d: JSON.stringify(o) });
+    link.close = () => { ch.postMessage({ t: 'bye', from: me, to: other }); };
+    ch.onmessage = (ev) => { const m = ev.data; if (m.to !== me || m.from !== other) return; if (m.t === 'msg') link.onmessage && link.onmessage(JSON.parse(m.d)); else if (m.t === 'bye') link.onclose && link.onclose(); };
+    return link;
+  }
+  const transport = () => (useLocal() ? Locals : Peers);
+
+  // ------------------------------------------------------------------ lobby
+  let room = null;   // { code, close } while waiting for a friend
+  const ui = () => UI();
+  function fresh(idx, link) { return { idx, link, theirHero: null, theirStart: null, myHero: null, inbox: null, sentReady: false, peerReady: null, iClaimed: false, peerReward: null, rec: null, over: false }; }
+
+  function openMenu() {
+    ui().modal(`<h2>العب ضد صاحبك</h2><p class="hint">كل واحد من جواله. واحد يسوّي غرفة ويعطي صاحبه الرمز، والثاني يدخلها.</p>
+      <div class="net-btns"><button class="btn primary big" data-act="netHost">سوّ غرفة</button><button class="btn big" data-act="netJoin">ادخل غرفة</button></div>
+      <p class="hint">تحتاج نت للاثنين. ما تنحسب هالمباريات في الممر ولا تعطي جوائز.</p>`);
+  }
+  async function host() {
+    ui().modal(`<h2>جاري تجهيز الغرفة…</h2><p class="hint">لحظة</p>`);
+    try {
+      room = await transport().host();
+    } catch (e) { ui().modal(`<h2>ما قدرت أسوّي الغرفة</h2><p class="hint">تأكد من النت وجرّب مرة ثانية.</p><div class="net-btns"><button class="btn" data-act="closeModal">تمام</button></div>`); return; }
+    const code = room.code;
+    ui().modal(`<h2>غرفتك جاهزة</h2><p class="hint">أعطِ صاحبك هالرمز، وخلّه يضغط «ادخل غرفة»:</p>
+      <div class="net-code" dir="ltr">${code}</div>
+      <div class="net-btns"><button class="btn" data-act="netCopy">نسخ الرمز</button><button class="btn" data-act="netShare">إرسال</button><button class="btn ghost" data-act="netCancel">إلغاء</button></div>
+      <p class="hint" id="net-status">ينتظر صاحبك…</p>`);
+    const myRoom = room;
+    myRoom.linked.then((link) => { if (room !== myRoom) { link.close(); return; } room = null; connected(0, link); });
+  }
+  function joinForm() {
+    ui().modal(`<h2>ادخل غرفة</h2><p class="hint">اكتب الرمز اللي عطاك إياه صاحبك:</p>
+      <input id="net-in" class="net-input" dir="ltr" maxlength="5" autocapitalize="characters" autocomplete="off" placeholder="XXXXX">
+      <div class="net-btns"><button class="btn primary big" data-act="netJoinGo">دخول</button><button class="btn ghost" data-act="closeModal">إلغاء</button></div><p class="hint" id="net-status"></p>`);
+    setTimeout(() => { const i = document.getElementById('net-in'); if (i) i.focus(); }, 100);
+  }
+  async function join() {
+    const input = document.getElementById('net-in'), code = (input && input.value || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const st = document.getElementById('net-status');
+    if (code.length < 4) { if (st) st.textContent = 'اكتب الرمز كامل'; return; }
+    if (st) st.textContent = 'جاري الدخول…';
+    try { const link = await transport().join(code); connected(1, link); }
+    catch (e) { if (st) st.textContent = (e && e.type === 'peer-unavailable') || (e && e.message === 'timeout') ? 'ما لقيت الغرفة. تأكد من الرمز وإن صاحبك فاتحها' : 'ما قدرت أتصل، جرّب مرة ثانية'; }
+  }
+
+  function connected(idx, link) {
+    const S = ui().S;
+    S.net = fresh(idx, link);
+    link.onmessage = onMessage;
+    link.onclose = onClose;
+    S.mode = 'online'; S.picks = [null, null]; S.pickIdx = 0;
+    ui().closeModal();
+    ui().toast('اتصلت مع صاحبك ✓', 'good');
+    ui().renderHeroSelect(); ui().show('hero');
+  }
+
+  // after "confirm" on the hero screen
+  function heroChosen(hero) {
+    const S = ui().S, n = S.net; if (!n) return;
+    n.myHero = hero;
+    n.link.send({ t: 'hero', hero });
+    waiting('ينتظر صاحبك يختار بطله…');
+    tryStart();
+  }
+  function tryStart() {
+    const S = ui().S, n = S.net; if (!n || !n.myHero || !n.theirHero) return;
+    if (n.idx === 0) {   // the host decides the seed
+      const seed = 1 + Math.floor(Math.random() * 2 ** 30);
+      n.link.send({ t: 'start', seed, heroes: [n.myHero, n.theirHero] });
+      begin(seed, [n.myHero, n.theirHero]);
+    } else if (n.theirStart) begin(n.theirStart.seed, n.theirStart.heroes);
+  }
+  function begin(seed, heroes) {
+    const S = ui().S, n = S.net;
+    n.seed = seed; n.heroes = heroes; n.started = true;
+    ui().closeOverlay();
+    ui().startMatch();
+  }
+  /** called by ui.js startMatch() when S.mode === 'online' */
+  function makeMatch() {
+    const S = ui().S, n = S.net, i = n.idx;
+    const players = n.heroes.map((h, k) => ({ heroId: h, name: k === i ? 'أنت' : 'صاحبك' }));
+    const m = new AMB.Match({ mode: 'online', seed: n.seed, isolated: true, players });
+    n.rec = AMB.NetSync.record(m, i);
+    n.sentReady = false; n.peerReady = null; n.iClaimed = false; n.peerReward = null; n.over = false;
+    return m;
+  }
+
+  // ------------------------------------------------------------------ in the match
+  function waiting(text) {
+    ui().overlay(`<div class="ov-card net-wait"><h2>${esc(text)}</h2><div class="net-dots"><i></i><i></i><i></i></div>
+      <div class="net-btns"><button class="btn ghost" data-act="netLeave">اخرج</button></div></div>`);
+  }
+  function iAmReady() {
+    const S = ui().S, n = S.net, m = S.match;
+    const ops = n.rec.take();
+    n.sentReady = true;
+    n.link.send({ t: 'ready', round: m.round, ops });
+    S.phase = 'waiting';
+    ui().renderMatch(true);
+    if (!n.peerReady || n.peerReady.round !== m.round) waiting('جاهز! ينتظر صاحبك…');
+    pump();
+  }
+  function rewardClaimed() {
+    const S = ui().S, n = S.net, m = S.match;
+    n.iClaimed = true;
+    n.link.send({ t: 'reward', round: m.round, ops: n.rec.take() });
+    if (!n.peerReward || n.peerReward.round !== m.round) waiting('ينتظر صاحبك يختار مكافأته…');
+    pump();
+  }
+  function pump() {
+    const S = ui().S, n = S.net; if (!n || !S.match) return;
+    const m = S.match, other = 1 - n.idx;
+    if (n.sentReady && n.peerReady && n.peerReady.round === m.round && S.phase === 'waiting') {
+      const bad = AMB.NetSync.replay(m, other, n.peerReady.ops);
+      if (bad.length) console.warn('online: replay problems', bad);
+      n.sentReady = false; n.peerReady = null;
+      ui().closeOverlay();
+      ui().startCombat();
+    }
+    if (n.iClaimed && n.peerReward && n.peerReward.round === m.round && S.phase === 'result') {
+      const bad = AMB.NetSync.replay(m, other, n.peerReward.ops);
+      if (bad.length) console.warn('online: reward replay problems', bad);
+      n.iClaimed = false; n.peerReward = null;
+      ui().closeOverlay();
+      ui().afterReward();
+    }
+  }
+  function onMessage(msg) {
+    const S = ui().S, n = S.net; if (!n || !msg) return;
+    switch (msg.t) {
+      case 'hero': n.theirHero = msg.hero; tryStart(); break;
+      case 'start': n.theirStart = msg; tryStart(); break;
+      case 'ready': n.peerReady = msg; pump(); break;
+      case 'reward': n.peerReward = msg; pump(); break;
+      case 'leave': peerLeft(); break;
+      default: break;
+    }
+  }
+  function onClose() {
+    const S = ui().S, n = S.net; if (!n || n.over || n.closing) return;
+    if (S.match && !S.match.isOver) {
+      n.over = true;
+      ui().modal(`<h2>انقطع الاتصال</h2><p class="hint">صاحبك طلع أو النت انقطع.</p><div class="net-btns"><button class="btn primary" data-act="abandon">للقائمة</button></div>`);
+    } else if (S.screen === 'hero' || S.phase === 'idle') {
+      n.over = true; ui().closeOverlay();
+      ui().modal(`<h2>انقطع الاتصال</h2><p class="hint">صاحبك طلع قبل ما تبدأ المباراة.</p><div class="net-btns"><button class="btn primary" data-act="abandon">للقائمة</button></div>`);
+    }
+  }
+  function peerLeft() {
+    const S = ui().S, n = S.net, m = S.match; if (!n || n.over) return;
+    n.over = true;
+    if (m && !m.isOver) {
+      m.players[1 - n.idx].life = 0; m.winner = n.idx; m.phase = 'over';
+      ui().closeModal(); ui().closeOverlay();
+      ui().toast('صاحبك انسحب، فزت!', 'good');
+      ui().showResults();
+    } else {
+      ui().closeOverlay();
+      ui().modal(`<h2>صاحبك طلع</h2><p class="hint">طلع قبل ما تبدأ المباراة.</p><div class="net-btns"><button class="btn primary" data-act="abandon">للقائمة</button></div>`);
+    }
+  }
+  function leave() {   // I leave: tell the friend, drop the link
+    const S = ui().S, n = S.net; if (!n) return;
+    n.closing = true;
+    try { n.link.send({ t: 'leave' }); } catch (e) { /* ignore */ }
+    setTimeout(() => { try { n.link.close(); } catch (e) { /* ignore */ } }, 250);
+    S.net = null;
+  }
+  function cancelRoom() { if (room) { room.close(); room = null; } ui().closeModal(); }
+
+  function installActions() {
+    const u = ui(); if (!u || u.ACT.netHost) return;
+    Object.assign(u.ACT, {
+      netMenu: () => openMenu(),
+      netHost: () => host(),
+      netJoin: () => joinForm(),
+      netJoinGo: () => join(),
+      netCancel: () => cancelRoom(),
+      netCopy: () => { const c = room && room.code; if (!c) return; try { navigator.clipboard.writeText(c); u.toast('نسخت الرمز', 'good'); } catch (e) { u.toast('الرمز: ' + c, ''); } },
+      netShare: () => { const c = room && room.code; if (!c) return; const text = `تعال العب ضدي في ZOR! ادخل «ادخل غرفة» واكتب الرمز: ${c}\n${location.href.split('?')[0]}`; if (navigator.share) navigator.share({ text }).catch(() => {}); else { try { navigator.clipboard.writeText(text); u.toast('نسخت الدعوة', 'good'); } catch (e) { u.toast('الرمز: ' + c, ''); } } },
+      netLeave: () => { leave(); u.ACT.abandon(); },
+    });
+  }
+
+  AMB.NetUI = { installActions, heroChosen, makeMatch, iAmReady, rewardClaimed, pump, leave, openMenu, useLocal };
+  if (UI()) installActions();
 })();
 
 </script>

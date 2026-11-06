@@ -90,7 +90,7 @@
     rest.sort((a, b) => power(b) - power(a));
     rest.forEach((u, i) => {
       if (i < p.bench.length) p.bench[i] = u;
-      else { p.gold += match.sellValue(u); match.pool[u.defId] += match.copiesOf(u); p.items.push(...u.items); }
+      else { p.gold += match.sellValue(u); match._pool(p)[u.defId] += match.copiesOf(u); p.items.push(...u.items); }
     });
   }
 

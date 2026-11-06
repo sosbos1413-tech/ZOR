@@ -32,6 +32,7 @@
       <div class="menu-buttons">
         <button class="btn big primary menu-cta" data-act="go" data-to="campaign" id="menu-campaign">الحملة</button>
         <button class="btn big" data-act="go" data-to="mode" id="menu-play">مباراة سريعة</button>
+        <button class="btn big" data-act="netMenu" id="menu-friend">العب ضد صاحبك</button>
       </div>
       <!-- secondary screens as small tiles; the progression ones appear after the first campaign win -->
       <div class="menu-tiles">
@@ -83,10 +84,10 @@
         <p>قتالات قصيرة وزعماء وجوائز · ابدأ من هنا</p>
         <button class="btn primary" data-act="go" data-to="campaign">افتح الحملة</button>
       </div>
-      <div class="mode-card soon">
-        <h3>التحدي التنافسي</h3>
-        <p>ضد لاعبين حقيقيين</p>
-        <span class="tag">قريب</span>
+      <div class="mode-card">
+        <h3>العب ضد صاحبك</h3>
+        <p>كل واحد من جواله · رمز غرفة بين الاثنين</p>
+        <div class="net-btns"><button class="btn primary" data-act="netHost">سوّ غرفة</button><button class="btn" data-act="netJoin">ادخل غرفة</button></div>
       </div>
     </div>
   </section>
@@ -196,6 +197,7 @@
 <script src="core/tower.js"></script>
 <script src="core/events.js"></script>
 <script src="core/tutorial.js"></script>
+<script src="core/netsync.js"></script>
 <script src="core/album.js"></script>
 <script src="core/profile.js"></script>
 <script src="core/pass.js"></script>
@@ -209,6 +211,7 @@
 <script src="ui/campaign-ui.js"></script>
 <script src="ui/fx-ui.js"></script>
 <script src="ui/vfx-ui.js"></script>
+<script src="ui/net-ui.js"></script>
 <script src="ui/tips-ui.js"></script>
 <script src="ui/gift-ui.js"></script>
 <script src="ui/tutorial-ui.js"></script>

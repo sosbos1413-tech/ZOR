@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* Rule tests for the core (no browser needed):  node tools/test.js */
 const path = require('path');
-['config', 'data', 'util', 'synergy', 'combat', 'match', 'ai', 'telemetry', 'pass', 'save', 'economy', 'collection', 'packs', 'levels', 'campaign', 'daily', 'album', 'tower', 'events', 'tutorial', 'profile'].forEach((f) => require(path.join(__dirname, '..', 'core', f + '.js')));
+['config', 'data', 'util', 'synergy', 'combat', 'match', 'ai', 'telemetry', 'pass', 'save', 'economy', 'collection', 'packs', 'levels', 'campaign', 'daily', 'album', 'tower', 'events', 'tutorial', 'netsync', 'profile'].forEach((f) => require(path.join(__dirname, '..', 'core', f + '.js')));
 const AMB = globalThis.AMB;
 let pass = 0, fail = 0;
 function t(name, fn) {
@@ -1065,6 +1065,51 @@ t('twists: every card has its own skill signature, twist text is shown, and ever
     for (let i = 0; i < 400 && !c.over; i++) c.step();
     ok(c.fighters.length > 0, ex);
   });
+});
+
+t('online: two phones replay each other\'s moves and stay identical for a whole match', () => {
+  const heroes = Object.keys(AMB.DATA.HEROES);
+  for (let g = 0; g < 4; g++) {
+    const mk = () => new AMB.Match({ mode: 'online', seed: 4000 + g * 11, isolated: true, players: [{ heroId: heroes[g % 4], name: 'a' }, { heroId: heroes[(g + 1) % 4], name: 'b' }] });
+    const A = mk(), B = mk(); const copies = [A, B];
+    const recs = [AMB.NetSync.record(A, 0), AMB.NetSync.record(B, 1)];   // phone A plays player 0, phone B plays player 1
+    // a simple deterministic "human": buys what it can afford, places units, sometimes rerolls / buys xp / sells
+    const act = (m, pi, k) => {
+      const p = m.players[pi];
+      for (let i = 0; i < 12; i++) {
+        const idx = p.shop.findIndex((id) => id && AMB.DATA.UNITS[id].cost <= p.gold);
+        if (idx < 0) { if (p.gold >= 4 && (k + i) % 3 === 0) m.buyXp(pi); else if (p.gold >= 3 && (k + i) % 2 === 0) m.reroll(pi); else break; continue; }
+        m.buy(pi, idx);
+        const u = p.bench.find(Boolean);
+        if (u && m.boardCount(p) < p.level) { const slot = ['f1', 'f2', 'f0', 'f3', 'b1', 'b2', 'b0', 'b3'].find((s) => !p.board[s]); if (slot) m.move(pi, u.uid, { zone: 'board', slot }); }
+      }
+      const extra = p.bench.find(Boolean); if (extra && k % 4 === 0) m.sell(pi, extra.uid);
+      if (p.items.length) { const bu = Object.values(p.board)[0]; if (bu) m.equip(pi, 0, bu.uid); }
+    };
+    let rounds = 0;
+    while (!A.isOver && rounds++ < 12) {
+      A.startRound(); B.startRound();
+      eq(AMB.NetSync.hash(A), AMB.NetSync.hash(B), 'round start state differs');
+      act(A, 0, rounds); act(B, 1, rounds);
+      const opsA = recs[0].take(), opsB = recs[1].take();
+      eq(AMB.NetSync.replay(A, 1, opsB).length, 0, 'A could not replay B'); eq(AMB.NetSync.replay(B, 0, opsA).length, 0, 'B could not replay A');
+      const ca = A.createCombat(false), cb = B.createCombat(false);
+      eq(AMB.NetSync.hash(A), AMB.NetSync.hash(B), 'prep state differs at combat start');
+      const ra = ca.runToEnd(), rb = cb.runToEnd();
+      eq(ra.winner, rb.winner, 'combat winner differs'); eq(Math.round(ca.t * 100), Math.round(cb.t * 100), 'combat length differs');
+      A.resolveCombat(ra); B.resolveCombat(rb);
+      eq(A.players[0].life, B.players[0].life, 'life differs'); eq(A.players[1].life, B.players[1].life);
+      if (A.rewardPending) {   // each phone picks for its own player, then replays the other's pick
+        const pa = A.players[0].rewardOffer, pb = B.players[1].rewardOffer;
+        A.claimReward(0, 0); B.claimReward(1, pb.options.length - 1);
+        const ro = [recs[0].take(), recs[1].take()];
+        eq(AMB.NetSync.replay(A, 1, ro[1]).length, 0); eq(AMB.NetSync.replay(B, 0, ro[0]).length, 0);
+        ok(!A.rewardPending && !B.rewardPending, 'rewards claimed');
+        eq(AMB.NetSync.hash(A), AMB.NetSync.hash(B), 'state differs after rewards');
+      }
+    }
+    ok(rounds > 3, 'match actually ran'); eq(A.winner, B.winner, 'final winner differs');
+  }
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);
