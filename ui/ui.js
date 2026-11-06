@@ -84,8 +84,8 @@
   const starterPick = () => S.pickIdx === 0 && AMB.collection && AMB.collection.needsStarter();
   const heroLocked = (id) => S.pickIdx === 0 && AMB.collection && !starterPick() && !AMB.collection.owned(id);
   function renderHeroSelect() {
-    const who = starterPick() ? 'اختر بطلك الأول — اختيار دائم، والباقين تفتحهم من الباكجات أو الباتل باس'
-      : S.mode === 'hotseat' ? `اللاعب ${S.pickIdx + 1}: اختر بطلك${S.pickIdx === 1 ? ' (ضيف: كل الأبطال متاحة)' : ''}` : 'اختر بطلك';
+    const who = starterPick() ? 'اختر بطلك الأول. ما تقدر تغيّره، والباقين تفتحهم من الباكجات أو الباتل باس'
+      : S.mode === 'hotseat' ? `اللاعب ${S.pickIdx + 1}: اختر بطلك${S.pickIdx === 1 ? ' (ضيف: كل الأبطال متاحين)' : ''}` : 'اختر بطلك';
     $('hero-title').textContent = who;
     if (S.picks[S.pickIdx] && heroLocked(S.picks[S.pickIdx])) S.picks[S.pickIdx] = null;
     const cur = S.picks[S.pickIdx];
@@ -99,14 +99,14 @@
         <h3>${h.name}</h3><div class="title">${h.title}</div>
         <div class="world">${W.name}</div>
         <div class="style">${h.style}</div>
-        <div class="ab"><b>سلبية — ${h.passive.name}:</b> ${h.passive.text}</div>
+        <div class="ab"><b>سلبية: ${h.passive.name}</b> — ${h.passive.text}</div>
         ${h.abilities.map((a) => `<div class="ab"><b>${a.name}</b> <span style="color:var(--ess)">(${a.cost} جوهر)</span>: ${a.text}</div>`).join('')}
         <div class="ab" style="color:var(--muted)">وحدات عالمه (رنين +${CFG.hero.resonancePerAlly * 100}%): ${units}</div>
         <div style="text-align:center;margin-top:8px"><button class="btn small" data-act="heroInfo" data-id="${h.id}">تفاصيل</button></div>
       </div>`;
     }).join('');
     $('hero-confirm').disabled = !cur;
-    $('hero-confirm').textContent = starterPick() ? 'اعتمده بطلي الأول' : S.mode === 'hotseat' && S.pickIdx === 0 ? 'تأكيد والانتقال للاعب 2' : 'ابدأ المباراة';
+    $('hero-confirm').textContent = starterPick() ? 'خذه بطلي الأول' : S.mode === 'hotseat' && S.pickIdx === 0 ? 'تمام، دور اللاعب 2' : 'ابدأ المباراة';
   }
 
   const maxR = () => (S.match && S.match.rules ? S.match.rules.maxRounds : CFG.match.maxRounds);
@@ -121,7 +121,7 @@
       const styles = ['mono', 'mixed', 'balanced'];
       players = [
         { heroId: S.picks[0], name: 'أنت' },
-        { heroId: aiHero, name: 'الخصم الآلي', isAI: true, aiStyle: styles[Math.floor(Math.random() * 3)], difficulty: S.mode === 'friendly' ? 'easy' : S.difficulty },
+        { heroId: aiHero, name: 'الكمبيوتر', isAI: true, aiStyle: styles[Math.floor(Math.random() * 3)], difficulty: S.mode === 'friendly' ? 'easy' : S.difficulty },
       ];
     }
     // campaign fight (ui/campaign-ui.js): fixed enemy line-up, short best-of-3 rules, your card levels count
@@ -194,12 +194,12 @@
     const m = S.match, p = m.players[pi], o = p.rewardOffer, st = AMB.CONFIG.match.stages[o.stage];
     S.rewardFor = pi;
     overlay(`<div class="ov-card rw"><h2>🎁 مكافأة مرحلة «${st.name}»</h2>
-      <p class="hint">${S.mode === 'hotseat' ? esc(p.name) + ': ' : ''}اختر مكافأة واحدة.${o.trailing ? ' <b style="color:var(--red)">خيار إضافي لأنك متأخر بالحياة.</b>' : ''}</p>
+      <p class="hint">${S.mode === 'hotseat' ? esc(p.name) + ': ' : ''}اختر مكافأة واحدة.${o.trailing ? ' <b style="color:var(--red)">خيار زيادة لأنك متأخر بالحياة.</b>' : ''}</p>
       <div class="rw-grid">${o.options.map((id, i) => { const r = rewardHTML(id, o.stage); return `<button class="rw-card ${id.startsWith('bless') ? 'bless' : id}" data-act="claimReward" data-idx="${i}"><span class="rw-ic">${icon(r.R.icon)}</span><b>${r.R.name}</b><span class="rw-tx">${r.text}</span>${r.tags}</button>`; }).join('')}</div></div>`);
   }
   function rewardHandoff(pi) {
     const p = S.match.players[pi];
-    overlay(`<div class="ov-card"><h2>دور ${esc(p.name)}</h2><p class="hint">سلّم الجهاز لـ ${esc(p.name)} لاختيار المكافأة.</p>
+    overlay(`<div class="ov-card"><h2>دور ${esc(p.name)}</h2><p class="hint">عطِ الجهاز لـ ${esc(p.name)} عشان يختار المكافأة.</p>
       <button class="btn primary big" data-act="rewardGo" data-pi="${pi}">أنا جاهز</button></div>`);
   }
   function afterReward() {
@@ -216,7 +216,7 @@
     S.phase = 'handoff';
     renderMatch();
     overlay(`<div class="ov-card"><h2>دور ${esc(p.name)}</h2>
-      <p class="hint">الجولة ${S.match.round}. سلّم الجهاز لـ ${esc(p.name)}. لا ينظر الخصم أثناء التجهيز.</p>
+      <p class="hint">الجولة ${S.match.round}. عطِ الجهاز لـ ${esc(p.name)}، والخصم لا يطالع وقت التجهيز.</p>
       <p>${portrait(HEROES[p.heroId], { k: 'ho' }).replace('class="portrait', 'style="width:80px;height:80px" class="portrait')}</p>
       <button class="btn primary big" data-act="handoffGo" data-pi="${pi}">أنا جاهز</button></div>`);
   }
@@ -592,13 +592,13 @@
       } else if (e.type === 'heroAbility' || e.type === 'spell') {
         addFloat(50, e.side === S.combatViewer ? 62 : 38, (e.type === 'spell' ? '✦ ' : '⚡ ') + e.name, 'big');
       } else if (e.type === 'exposed') {
-        addFloat(50, e.side === S.combatViewer ? 84 : 16, 'سقط خط الدفاع — البطل مكشوف!', 'big');
+        addFloat(50, e.side === S.combatViewer ? 84 : 16, 'سقط خط الدفاع، البطل صار مكشوف!', 'big');
       } else if (e.type === 'assault') {
-        addFloat(50, e.side === S.combatViewer ? 80 : 20, 'هجوم على مركز القيادة!', 'big');
+        addFloat(50, e.side === S.combatViewer ? 80 : 20, 'يهجمون على البطل!', 'big');
       } else if (e.type === 'retreat') {
-        addFloat(50, e.side === S.combatViewer ? 80 : 20, 'انسحب البطل إلى مركز القيادة', 'big');
+        addFloat(50, e.side === S.combatViewer ? 80 : 20, 'البطل رجع لمركزه', 'big');
       } else if (e.type === 'sealed') {
-        addFloat(50, e.side === S.combatViewer ? 88 : 12, 'تحصّن مركز القيادة (حد الضرر)', 'label');
+        addFloat(50, e.side === S.combatViewer ? 88 : 12, 'البطل تحصّن (ضرر محدود)', 'label');
       } else if (e.type === 'leap' && f && el) {
         floatAt(el, 'قفزة!', 'label', 26);
       } else if (e.type === 'stun' && f && el) {
@@ -828,7 +828,7 @@
     const sc = m.players[1 - S.v].lineup ? m.buildCombatSpec(1 - S.v) : m.scout[1 - S.v];
     const oppSyn = sc ? AMB.synergy.evaluate(sc.units, sc.heroId).list.filter((x) => x.activeTier >= 0) : [];
     const timeline = m.history.map((r) => `<span class="${r.winner === null ? 'wd' : r.winner === S.v ? 'w0' : 'w1'}">${r.round}</span>`).join('');
-    AMB.TIPS.guard = () => ({ title: 'حماية البطل', html: '<p>ما دام عندك أي وحدة حيّة في الصف الأمامي، <b>ما يقدر العدو يستهدف بطلك</b>. إذا سقطت كلها ينكشف البطل ويتلقى الضرر.</p><p>القتلة يقفزون للصف الخلفي لكن لا يضربون البطل المحمي. وإذا استدعيت بطلك للساحة يتلقى الضرر كاملًا.</p>' });
+    AMB.TIPS.guard = () => ({ title: 'حماية البطل', html: '<p>طول ما عندك وحدة حية في الصف الأمامي، <b>العدو ما يقدر يضرب بطلك</b>. وإذا سقطت كلها ينكشف البطل ويتضرر.</p><p>القتلة يقفزون للصف الخلفي بس ما يقدرون يضربون البطل وهو محمي. وإذا نزّلت بطلك الساحة ياخذ الضرر كامل.</p>' });
     const guard = heroFront || front === 0 ? `<button class="guard risk" data-act="info" data-k="guard">${icon('warn')}</button>` : `<button class="guard safe" data-act="info" data-k="guard">${icon('shield')}<b>${front}</b></button>`;
     $('panel-left').innerHTML = `
       <section class="rail-guard">${guard}</section>
@@ -864,9 +864,9 @@
       bag.push(`<div class="bagslot ${it.kind} ${sel ? 'sel' : ''}" data-act="bagSel" data-idx="${i}">${icon(it.icon)}</div>`);
     }
     const armed = p.armedSpells.map((id, i) => `<span class="chip" data-act="disarm" data-idx="${i}">${icon(ITEMS[id].icon)} ✕</span>`).join('');
-    AMB.TIPS.summon = () => ({ title: 'استدعاء البطل', html: `<p>${p.summoned ? 'بطلك الحين يقاتل في الساحة (اسحبه لتغيير موقعه).' : 'بطلك الحين في مركز القيادة خلف صفوفك.'}</p>
-      <p><b>الفايدة:</b> يهاجم بقوة ${h.board.atk + CFG.hero.boardAtkPerRound * m.round}، والحلفاء +${CFG.hero.summonAuraAtk * 100}% هجوم، والقدرات أرخص بـ${CFG.hero.summonAbilityDiscount}.</p>
-      <p><b>المخاطرة:</b> يتلقى الضرر كاملًا (حتى الضرر المساحي)، وينسحب بعد خسارة ${CFG.combat.summonKnockout} حياة، ووصول حياته للصفر = خسارة فورية.</p>` });
+    AMB.TIPS.summon = () => ({ title: 'استدعاء البطل', html: `<p>${p.summoned ? 'بطلك الحين يقاتل في الساحة (اسحبه عشان تغيّر مكانه).' : 'بطلك الحين واقف خلف صفوفك.'}</p>
+      <p><b>الفايدة:</b> يهجم بقوة ${h.board.atk + CFG.hero.boardAtkPerRound * m.round}، والحلفاء +${CFG.hero.summonAuraAtk * 100}% هجوم، وقدراته أرخص بـ${CFG.hero.summonAbilityDiscount}.</p>
+      <p><b>المخاطرة:</b> ياخذ الضرر كامل (حتى ضرر المنطقة)، وينسحب بعد ما تخسر ${CFG.combat.summonKnockout} حياة، وإذا وصلت حياته صفر تخسر المباراة على طول.</p>` });
     $('panel-right').innerHTML = `
       <section class="hero-card-mini">${portrait(h, { k: 'rh' })}
         <div class="hcm-r"><div class="lifebar-big"><i style="width:${(p.life / p.maxLife) * 100}%"></i></div><div class="hcm-n">${icon('heart')} <b>${lifeStr(p.life)}</b></div></div>
@@ -936,8 +936,8 @@
     const W = WORLDS[d.world], R = ROLES[d.role];
     const SM = CFG.stars.mult;
     const rows = [
-      ['الصحة', (s) => d.hp * SM[s]], ['الهجوم', (s) => d.atk * SM[s]], ['سرعة الهجوم (ضربة/ث)', () => d.as, 2],
-      ['الضرر في الثانية', (s) => d.atk * SM[s] * d.as], ['المدى', () => d.range], ['الدفاع (تقليل ضرر)', () => d.def * 100, 0, '%'],
+      ['الصحة', (s) => d.hp * SM[s]], ['الهجوم', (s) => d.atk * SM[s]], ['سرعة الهجوم (ضربة في الثانية)', () => d.as, 2],
+      ['الضرر في الثانية', (s) => d.atk * SM[s] * d.as], ['المدى', () => d.range], ['الدفاع (ضرر أقل)', () => d.def * 100, 0, '%'],
       ['فرصة الحرجة', () => d.crit * 100, 0, '%'], ['المانا للمهارة', () => d.mana],
     ];
     const sk = d.skill;
@@ -957,7 +957,7 @@
       ${rows.map(([n, f, dg, suf]) => `<tr><td>${n}</td>${[1, 2, 3].map((s) => { const v = f(s), b = f(1); return `<td>${fmt(v, dg || 0)}${suf || ''}${s > 1 && v !== b ? `<div class="delta">+${Math.round(((v - b) / b) * 100)}%</div>` : ''}</td>`; }).join('')}</tr>`).join('')}</table>
       <div class="skillbox"><b>المهارة — ${sk.name}:</b> ${sk.text}
         ${skRows ? `<table><tr><th></th><th>★</th><th>★★</th><th>★★★</th></tr>${skRows}</table>` : ''}</div>
-      <div class="hint"><b>التطوير:</b> ${CFG.stars.copiesPerStar} نسخ ★ = ★★ ، و ${CFG.stars.copiesPerStar} نسخ ★★ = ★★★ (الحد الأقصى). الصحة والهجوم ×${SM[2]} ثم ×${SM[3]}؛ السرعة والمدى ثابتان كي لا تصبح وحدة واحدة غير قابلة للمواجهة.</div>
+      <div class="hint"><b>التطوير:</b> ${CFG.stars.copiesPerStar} نسخ ★ = ★★ ، و ${CFG.stars.copiesPerStar} نسخ ★★ = ★★★ (الحد الأقصى). الصحة والهجوم ×${SM[2]} ثم ×${SM[3]}؛ السرعة والمدى ما تتغير عشان ما تصير وحدة واحدة ما أحد يقدر عليها.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
         <div><span class="wtag" style="--w:${W.color}">${SYNERGIES[d.world].name}</span>${synOf(d.world)}</div>
         <div><b>${SYNERGIES[d.role].name}</b>${synOf(d.role)}</div></div>
@@ -968,7 +968,7 @@
     const h = HEROES[id], W = WORLDS[h.world];
     modal(`<div class="detail-head">${portrait(h, { k: 'mh' })}<div><h2>${h.name}</h2><div class="hint">${h.title}</div>
       <span class="pill" style="--pc:${W.color}">${W.name}</span><div class="hint">${h.style}</div></div></div>
-      <div class="skillbox"><b>سلبية — ${h.passive.name}:</b> ${h.passive.text}</div>
+      <div class="skillbox"><b>سلبية: ${h.passive.name}</b> — ${h.passive.text}</div>
       ${h.abilities.map((a) => `<div class="skillbox"><b>${a.name}</b> — <span style="color:var(--ess)">${a.cost} جوهر</span><br>${a.text}</div>`).join('')}
       <table><tr><th>عند الاستدعاء</th><th></th></tr>
       <tr><td>الصحة</td><td>الحياة × ${CFG.combat.heroHpScale}</td></tr><tr><td>الهجوم</td><td>${h.board.atk} + ${CFG.hero.boardAtkPerRound} لكل جولة</td></tr>
@@ -988,27 +988,27 @@
       const target = byStar[0] > 0 || byStar[1] === 0 ? 1 : 2;
       const have = byStar[target - 1];
       const SM = CFG.stars.mult;
-      const preview = maxed ? 'وصلت للحد الأقصى ★★★' : `عند ${'★'.repeat(target + 1)}: صحة ${fmt(d.hp * SM[target])} → <b>${fmt(d.hp * SM[target + 1])}</b>، هجوم ${fmt(d.atk * SM[target])} → <b>${fmt(d.atk * SM[target + 1])}</b>${d.skill.dmg ? `، ${d.skill.name} ${d.skill.dmg[target - 1]} → <b>${d.skill.dmg[target]}</b>` : d.skill.heal ? `، علاج ${d.skill.heal[target - 1]} → <b>${d.skill.heal[target]}</b>` : d.skill.shield ? `، درع ${d.skill.shield[target - 1]} → <b>${d.skill.shield[target]}</b>` : ''}`;
+      const preview = maxed ? 'وصلت لأعلى مستوى ★★★' : `عند ${'★'.repeat(target + 1)}: صحة ${fmt(d.hp * SM[target])} → <b>${fmt(d.hp * SM[target + 1])}</b>، هجوم ${fmt(d.atk * SM[target])} → <b>${fmt(d.atk * SM[target + 1])}</b>${d.skill.dmg ? `، ${d.skill.name} ${d.skill.dmg[target - 1]} → <b>${d.skill.dmg[target]}</b>` : d.skill.heal ? `، علاج ${d.skill.heal[target - 1]} → <b>${d.skill.heal[target]}</b>` : d.skill.shield ? `، درع ${d.skill.shield[target - 1]} → <b>${d.skill.shield[target]}</b>` : ''}`;
       const inShop = p.shop.map((x, i) => [x, i]).filter((e) => e[0] === id);
       const btn = inShop.length && !maxed ? `<button class="btn small primary" data-act="buyFromUpg" data-idx="${inShop[0][1]}">شراء من المتجر (${d.cost})</button>` : `<span class="hint">${maxed ? '' : 'غير متوفر في المتجر الآن'}</span>`;
       return `<div class="upg-row">${portrait(d, { k: 'up' + id })}<div><b>${d.name}</b> <span class="hint">★×${byStar[0]} ★★×${byStar[1]} ★★★×${byStar[2]} · المخزون ${m.pool[id]}</span>
         ${maxed ? '' : `<div class="hint">نسخ ${'★'.repeat(target)}: ${have}/${need} للترقية</div><div class="prog"><i style="width:${(have / need) * 100}%"></i></div>`}
         <div class="hint">${preview}</div></div>${btn}</div>`;
     }).join('');
-    modal(`<h2>شاشة التطوير</h2><p class="hint">اجمع ${need} نسخ متطابقة بنفس عدد النجوم ليتم دمجها تلقائيًا في وحدة أقوى (تنتقل المعدات معها). الحد الأقصى ★★★.
-      المخزون مشترك بين اللاعبين، فإذا جمع خصمك نفس الوحدة تصبح أصعب.</p>${rows || '<p class="hint">لا تملك وحدات بعد.</p>'}`);
+    modal(`<h2>شاشة التطوير</h2><p class="hint">اجمع ${need} نسخ متطابقة بنفس النجوم وتندمج لوحدة أقوى لحالها (والمعدات تنتقل معها). أعلى مستوى ★★★.
+      المخزون مشترك بين اللاعبين، فإذا خصمك جمع نفس الوحدة تصير أصعب عليك.</p>${rows || '<p class="hint">ما عندك وحدات للحين.</p>'}`);
   }
 
   function howto() {
     modal(`<h2>كيف ألعب؟</h2>
-      <div class="skillbox"><b>الهدف:</b> أوصل حياة بطل الخصم إلى الصفر. كل جولة: موارد ← شراء وتطوير ← ترتيب وقدرات ← قتال تلقائي ← نتائج.</div>
-      <div class="skillbox"><b>المتجر:</b> اشترِ الوحدات بالذهب، حدّث العروض (${CFG.economy.rerollCost} ذهب)، اشترِ خبرة لرفع المستوى (= عدد الوحدات في الساحة). الفائدة: +1 لكل ${CFG.economy.interestPer} ذهب مدخر (حتى ${CFG.economy.interestMax}). سلاسل الفوز/الخسارة تمنح ذهبًا إضافيًا.</div>
-      <div class="skillbox"><b>التطوير:</b> ${CFG.stars.copiesPerStar} نسخ متطابقة = نجمة إضافية تلقائيًا.</div>
-      <div class="skillbox"><b>الساحة:</b> صف أمامي (خط الدفاع) وصف خلفي. الحراس والمقاتلون في الأمام، السحرة والقناصة والدعم في الخلف. القتلة يقفزون إلى الصف الخلفي للعدو.</div>
-      <div class="skillbox"><b>البطل:</b> يبقى في مركز القيادة ولا يمكن استهدافه ما دام لديك وحدة حية في الصف الأمامي. إذا سقط خط الدفاع يصبح مكشوفًا. يمكنك استدعاؤه للساحة ليقاتل بنفسه — مكسب كبير ومخاطرة حقيقية.</div>
-      <div class="skillbox"><b>القدرات:</b> جهّز قدرات البطل واختر متى تُفعّل (بداية القتال، بعد 5 ثوانٍ، عند سقوط أول حليف، عند انكشاف البطل). تستهلك الجوهر.</div>
-      <div class="skillbox"><b>التآزر:</b> وحدات من نفس العالم أو الدور تفعّل مكافآت. وحدات عالم بطلك تكتسب رنينًا. وجود 3–4 عوالم مختلفة يفعّل "تقارب العوالم" فلا تكون التشكيلات المختلطة أضعف.</div>
-      <div class="skillbox"><b>المراحل والمكافآت:</b> المباراة ${CFG.match.maxRounds} جولات في 4 مراحل: ${CFG.match.stages.map((x) => x.name + ' (' + (x.rounds[0] === x.rounds[1] ? 'الجولة ' + x.rounds[0] : 'الجولتان ' + x.rounds[0] + '–' + x.rounds[1]) + ')').join('، ')}. بعد كل مرحلة (عدا الأخيرة) تختار <b>مكافأة من 3</b>: وحدة مجانية، ذهب، خبرة، جوهر، معدة، <b>بركة دائمة</b> للفريق، أو شفاء للبطل. جولة الحسم تضاعف ارتداد الخسارة ×${CFG.match.finaleLossMult}. إن لم يسقط بطل قبلها، يفوز الأعلى حياة. وفي القتال نفسه يتصاعد الضرر بعد ${CFG.combat.furyStart} ثانية (الغضب).</div>`);
+      <div class="skillbox"><b>الهدف:</b> نزّل حياة بطل الخصم لين تصير صفر. كل جولة: موارد ← شراء وتطوير ← ترتيب وقدرات ← قتال تلقائي ← نتيجة.</div>
+      <div class="skillbox"><b>المتجر:</b> اشتر الوحدات بالذهب، وحدّث العروض (${CFG.economy.rerollCost} ذهب)، واشتر خبرة عشان ترفع المستوى (المستوى = عدد الوحدات اللي تحطها في الساحة). والفايدة: +1 عن كل ${CFG.economy.interestPer} ذهب موفّر (لين ${CFG.economy.interestMax}). وسلسلة الفوز أو الخسارة تعطيك ذهب زيادة.</div>
+      <div class="skillbox"><b>التطوير:</b> ${CFG.stars.copiesPerStar} نسخ متطابقة = نجمة زيادة، وتنحسب لحالها.</div>
+      <div class="skillbox"><b>الساحة:</b> صف أمامي (خط الدفاع) وصف خلفي. الحراس والمقاتلين قدّام، والسحرة والقناصة والدعم ورا. القتلة يقفزون للصف الخلفي عند العدو.</div>
+      <div class="skillbox"><b>البطل:</b> يبقى خلف صفوفك وما أحد يقدر يضربه طول ما عندك وحدة حية في الصف الأمامي. وإذا سقط خط الدفاع ينكشف. تقدر تنزّله الساحة يقاتل بنفسه، وهذا مكسب كبير بس فيه مخاطرة.</div>
+      <div class="skillbox"><b>القدرات:</b> جهّز قدرات البطل واختر متى تشتغل (بداية القتال، بعد 5 ثواني، لما يسقط أول واحد من فريقك، أو لما ينكشف البطل). وتخسّر جوهر.</div>
+      <div class="skillbox"><b>التآزر:</b> وحدات من نفس العالم أو نفس الدور تعطيك مكافآت. ووحدات عالم بطلك تاخذ رنين. وإذا جمعت 3 أو 4 عوالم مختلفة يشتغل «تقارب العوالم» عشان التشكيلة المختلطة ما تكون أضعف.</div>
+      <div class="skillbox"><b>المراحل والمكافآت:</b> المباراة ${CFG.match.maxRounds} جولات في 4 مراحل: ${CFG.match.stages.map((x) => x.name + ' (' + (x.rounds[0] === x.rounds[1] ? 'الجولة ' + x.rounds[0] : 'الجولتان ' + x.rounds[0] + '–' + x.rounds[1]) + ')').join('، ')}. بعد كل مرحلة (عدا الأخيرة) تختار <b>مكافأة من 3</b>: وحدة مجانية، ذهب، خبرة، جوهر، معدة، <b>بركة دائمة</b> للفريق، أو شفاء للبطل. جولة الحسم تضاعف خسارة الحياة ×${CFG.match.finaleLossMult}. وإذا ما سقط أي بطل قبلها يفوز اللي حياته أعلى. وداخل القتال الضرر يزيد بعد ${CFG.combat.furyStart} ثانية (الغضب).</div>`);
   }
 
   function matchMenu() {
@@ -1019,8 +1019,8 @@
       <button class="btn" data-act="resumeMenu">متابعة</button>
       <button class="btn" data-act="tutorial">دليل سريع</button>
       <button class="btn" data-act="howto">كل القواعد</button>
-      <button class="btn danger" data-act="surrender">استسلام (${esc(me().name)})</button>
-      <button class="btn ghost" data-act="abandon">خروج للقائمة الرئيسية (لا تُسجَّل)</button></div>`);
+      <button class="btn danger" data-act="surrender">انسحب (${esc(me().name)})</button>
+      <button class="btn ghost" data-act="abandon">الخروج للقائمة (ما تنحسب)</button></div>`);
   }
 
   // ======================================================================= results / stats / codex
@@ -1070,7 +1070,7 @@
     const avDef = own ? myAvatar(m.players[0], 0) : heroDef;
     const ptitle = own && AMB.PassUI ? AMB.PassUI.titleName() : '';
     const stage = `<div class="res-stage ${m.winner == null ? 'draw' : myWin ? 'victory' : 'defeat'}" style="--wc:${WORLDS[heroDef.world].color}"><div class="res-rays"></div><div class="res-hero">${portrait(avDef, { bare: true, k: 'resh' })}<i class="sheen"></i></div><div class="res-hname">${avDef.name}</div>${ptitle ? `<div class="res-title">${ptitle}</div>` : ''}</div>`;
-    $('results').innerHTML = `${stage}<div class="res-banner"><h1>${title}</h1><p class="hint">${m.round} جولات · ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')} دقيقة ${S.mode === 'friendly' ? '· مباراة ودية (لم تُسجَّل)' : ''}</p>
+    $('results').innerHTML = `${stage}<div class="res-banner"><h1>${title}</h1><p class="hint">${m.round} جولات · ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')} دقيقة ${S.mode === 'friendly' ? '· مباراة ودية (ما تنحسب)' : ''}</p>
       <div class="timeline">${tl}</div></div>
       ${AMB.PassUI ? AMB.PassUI.resultPanel(S.passResult) : ''}
       <div class="res-quick">${m.players.map((p, i) => `<div class="rq ${m.winner === i ? 'won' : ''}"><b>${esc(p.name)}</b><span>${icon('heart')} ${lifeStr(p.life)}</span><span>${icon('sword')} ${p.stats.wins}–${p.stats.losses}</span><span>${fmt(p.stats.damageDealt)} ضرر</span></div>`).join('')}</div>
@@ -1089,7 +1089,7 @@
     const pct = (w, p) => (p ? Math.round(((w || 0) / p) * 100) : 0);
     const tbl = (obj, nameOf, extra) => {
       const rows = Object.entries(obj).sort((a, b) => b[1].picks - a[1].picks);
-      if (!rows.length) return '<p class="hint">لا توجد بيانات بعد — العب مباراة.</p>';
+      if (!rows.length) return '<p class="hint">ما فيه بيانات للحين، العب مباراة.</p>';
       return `<table><tr><th>الاسم</th><th>مرات</th><th>نسبة الفوز</th><th></th>${extra ? '<th>نهائي</th><th>★★★</th>' : ''}</tr>${rows.map(([k, v]) =>
         `<tr><td>${nameOf(k)}</td><td>${v.picks}</td><td>${pct(v.wins, v.picks)}%</td><td><div class="bar"><i style="width:${pct(v.wins, v.picks)}%"></i></div></td>${extra ? `<td>${v.final || 0}</td><td>${v.threeStar || 0}</td>` : ''}</tr>`).join('')}</table>`;
     };
@@ -1101,7 +1101,7 @@
           <div><div class="big-num">${d.matches ? fmt(d.totalRounds / d.matches, 1) : 0}</div><div class="hint">متوسط الجولات</div></div>
           <div><div class="big-num">${d.matches ? fmt(d.totalSeconds / d.matches / 60, 1) : 0}</div><div class="hint">متوسط الدقائق</div></div></div>
         <p class="hint">تعادلات: ${d.draws} · استدعاء البطل: ${d.summons.used} لاعب، فوز ${pct(d.summons.wins, d.summons.used)}%</p>
-        <p class="hint">لاختبار التوازن على نطاق واسع شغّل محاكي الذكاء الاصطناعي: <code>node tools/simulate.js 800</code></p>
+        <p class="hint">لاختبار التوازن على نطاق واسع شغّل محاكي الكمبيوتر: <code>node tools/simulate.js 800</code></p>
         <div style="display:flex;gap:8px"><button class="btn small" data-act="statsExport">تصدير JSON</button><button class="btn small danger" data-act="statsReset">مسح البيانات</button></div></div>
       <div class="box"><h3>الأبطال</h3>${tbl(d.heroes, (k) => HEROES[k] ? HEROES[k].name : k)}</div>
       <div class="box"><h3>أنماط اللاعبين</h3>${tbl(d.styles, (k) => k === 'human' ? 'بشري' : k.replace('ai:', 'ذكاء اصطناعي: '))}</div>
@@ -1134,7 +1134,7 @@
     const sel = S.sel;
     if (sel && sel.kind === 'item') {
       if (occ && res(m.equip(v, sel.idx, occ.uid))) { toast('تم التجهيز', 'good'); S.sel = null; }
-      else if (!occ) toast('اختر وحدة لتجهيزها', 'err');
+      else if (!occ) toast('اختر وحدة تجهّزها', 'err');
     } else if (sel && sel.kind === 'unit') {
       if (occ && occ.uid === sel.uid) S.sel = null;
       else if (res(m.move(v, sel.uid, { zone: 'board', slot }))) S.sel = null;
@@ -1171,14 +1171,14 @@
     mode: (d) => { S.mode = d.v; S.picks = [null, null]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
     pickHero: (d, el, e) => {
       if (e.target.closest('[data-act="heroInfo"]')) return;
-      if (heroLocked(d.id)) { toast('هذا البطل مقفل: افتحه من الباكجات (ليجندري) أو الباتل باس', 'err'); return; }
+      if (heroLocked(d.id)) { toast('هذا البطل مقفل: تفتحه من الباكجات (ليجندري) أو الباتل باس', 'err'); return; }
       S.picks[S.pickIdx] = d.id; renderHeroSelect();
     },
     heroInfo: (d, el, e) => { e.stopPropagation(); heroDetail(d.id); },
     heroConfirm: () => {
       if (!S.picks[S.pickIdx] || heroLocked(S.picks[S.pickIdx])) return;
       if (starterPick()) {   // one-time starter choice, then continue to the match as usual
-        AMB.collection.chooseStarter(S.picks[0]); sfx('merge'); toast(`${HEROES[S.picks[0]].name} صار بطلك! افتح الباقين من الباكجات أو الباتل باس`, 'good');
+        AMB.collection.chooseStarter(S.picks[0]); sfx('merge'); toast(`${HEROES[S.picks[0]].name} صار بطلك! الباقين تفتحهم من الباكجات أو الباتل باس`, 'good');
         renderHeroSelect(); return;
       }
       if (S.mode === 'hotseat' && S.pickIdx === 0) { S.pickIdx = 1; renderHeroSelect(); return; }
@@ -1200,7 +1200,7 @@
         } else {
           S.pop = { uid: r.unit.uid };
           const have = m0.allUnits(m0.players[S.v]).filter((x) => x.defId === r.unit.defId && x.star === 1).length;
-          if (have === 2) toast(`عندك نسختان من «${UNITS[r.unit.defId].name}»: اشترِ ثالثة وتترقى ★ تلقائيًا`, 'good');
+          if (have === 2) toast(`عندك نسختين من «${UNITS[r.unit.defId].name}»: اشتر ثالثة وتتطور ★ لحالها`, 'good');
         }
       }
       renderMatch();
@@ -1214,14 +1214,14 @@
     buyItem: (d) => { if (prepActive() && res(S.match.buyItem(S.v, +d.idx))) renderMatch(); },
     reroll: () => { if (prepActive() && res(S.match.reroll(S.v))) { sfx('reroll'); renderMatch(); } },
     sound: () => { SND.on = !SND.on; try { localStorage.setItem('amb_sound', SND.on ? '1' : '0'); } catch (e) { /* ignore */ } if (SND.on) sfx('click'); document.querySelectorAll('[data-act="sound"]').forEach((b) => { if (b.id === 'menu-sound') b.querySelector('.mt-ic').textContent = SND.on ? '🔊' : '🔇'; else b.textContent = SND.on ? '🔊' : '🔇'; }); },
-    xp: () => { if (prepActive()) { const lv = me().level; if (res(S.match.buyXp(S.v))) { if (me().level > lv) toast(`المستوى ${me().level}! يمكنك وضع ${me().level} وحدات`, 'good'); renderMatch(); } } },
+    xp: () => { if (prepActive()) { const lv = me().level; if (res(S.match.buyXp(S.v))) { if (me().level > lv) toast(`المستوى ${me().level}! تقدر تحط ${me().level} وحدات`, 'good'); renderMatch(); } } },
     lock: () => { if (prepActive()) { S.match.toggleLock(S.v); renderMatch(); } },
     ready: () => prepActive() && endPrep(),
     deselect: () => { S.sel = null; renderMatch(); },
-    autoArrange: () => { if (!prepActive()) return; S.match.autoArrange(S.v); S.sel = null; toast('تم ترتيب أقوى وحداتك: الحراس أمام والباقي خلف', 'good'); renderMatch(); },
+    autoArrange: () => { if (!prepActive()) return; S.match.autoArrange(S.v); S.sel = null; toast('رتبت لك أقوى وحداتك: الحراس قدّام والباقي ورا', 'good'); renderMatch(); },
     toBench: () => {
       const m = S.match, p = me(); if (!S.sel || S.sel.kind !== 'unit') return;
-      const bi = p.bench.indexOf(null); if (bi < 0) { toast('الاحتياط ممتلئ: بع وحدة أو بدّل مكانها', 'err'); return; }
+      const bi = p.bench.indexOf(null); if (bi < 0) { toast('الاحتياط ممتلئ: بع وحدة أو بدّل معها', 'err'); return; }
       if (res(m.move(S.v, S.sel.uid, { zone: 'bench', idx: bi }))) { S.sel = null; renderMatch(); }
     },
     toBoard: () => {
@@ -1229,16 +1229,16 @@
       const u = m.findUnit(p, S.sel.uid); if (!u) return;
       const sd = ROLES[UNITS[u.defId].role].side, F = ['f1', 'f2', 'f0', 'f3'], B = ['b1', 'b2', 'b0', 'b3'];
       const order = (sd === 'back' ? B.concat(F) : sd === 'front' ? F.concat(B) : F.concat(B)).filter((x) => !p.board[x] && !(p.summoned && p.heroSlot === x));
-      if (!order.length || Object.keys(p.board).length >= p.level) { toast(`الساحة ممتلئة (${p.level}/${p.level}). اضغط وحدة في الساحة لتبديلها، أو بع وحدة، أو ارفع مستواك`, 'err'); return; }
+      if (!order.length || Object.keys(p.board).length >= p.level) { toast(`الساحة ممتلئة (${p.level}/${p.level}). اضغط وحدة في الساحة تبدّل معها، أو بع وحدة، أو ارفع مستواك`, 'err'); return; }
       if (res(m.move(S.v, u.uid, { zone: 'board', slot: order[0] }))) { S.sel = null; renderMatch(); }
     },
     sell: () => { if (prepActive() && S.sel && S.sel.kind === 'unit' && res(S.match.sell(S.v, S.sel.uid))) { S.sel = null; renderMatch(); } },
     unequip: () => { if (S.sel && S.sel.kind === 'unit' && res(S.match.unequip(S.v, S.sel.uid))) renderMatch(); },
     bagSel: (d) => { if (!prepActive()) return; const i = +d.idx; S.sel = S.sel && S.sel.kind === 'item' && S.sel.idx === i ? null : { kind: 'item', idx: i }; renderMatch(); },
-    arm: () => { if (S.sel && S.sel.kind === 'item' && res(S.match.armSpell(S.v, S.sel.idx))) { S.sel = null; toast('جُهّزت التعويذة للقتال القادم', 'good'); renderMatch(); } },
+    arm: () => { if (S.sel && S.sel.kind === 'item' && res(S.match.armSpell(S.v, S.sel.idx))) { S.sel = null; toast('التعويذة جاهزة للقتال الجاي', 'good'); renderMatch(); } },
     disarm: (d) => { if (prepActive() && res(S.match.disarmSpell(S.v, +d.idx))) renderMatch(); },
     sellItem: () => { if (S.sel && S.sel.kind === 'item' && res(S.match.sellItem(S.v, S.sel.idx))) { S.sel = null; renderMatch(); } },
-    summon: () => { if (prepActive() && res(S.match.toggleSummon(S.v))) { S.sel = null; toast(me().summoned ? 'استُدعي البطل إلى الساحة' : 'عاد البطل إلى مركز القيادة', 'good'); renderMatch(); } },
+    summon: () => { if (prepActive() && res(S.match.toggleSummon(S.v))) { S.sel = null; toast(me().summoned ? 'البطل نزل الساحة' : 'البطل رجع لمركزه', 'good'); renderMatch(); } },
     detail: (d, el, e) => { e.stopPropagation(); unitDetail(d.id, d.star ? +d.star : 0); },
     upgrades: () => upgradesModal(),
     closeModal: () => { closeModal(); if (S._resumeAfterMenu) { ACT.resumeMenu(); } },
@@ -1293,7 +1293,7 @@
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'multiverse-telemetry.json'; a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     },
-    statsReset: () => { if (confirm('مسح جميع الإحصائيات؟')) { AMB.telemetry.reset(); renderStats(); } },
+    statsReset: () => { if (confirm('تبي تمسح كل الإحصائيات؟')) { AMB.telemetry.reset(); renderStats(); } },
     codexF: (d) => { S.codexF[d.k] = d.v; renderCodex(); },
   };
 

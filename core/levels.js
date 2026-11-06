@@ -24,8 +24,8 @@
     stars: {
       rules: [
         { n: 1, text: 'فوز' },
-        { n: 2, text: 'فوز بدون خسارة أي جولة' },
-        { n: 3, text: 'فوز بدون خسارة جولة وبطلك بكامل حياته' },
+        { n: 2, text: 'فوز بدون ما تخسر جولة' },
+        { n: 3, text: 'فوز بدون ما تخسر جولة، وبطلك حياته كاملة' },
       ],
       chests: [
         { id: 'ch10', need: 10, name: 'صندوق برونزي', reward: { shards: 100 } },
@@ -38,10 +38,10 @@
 
   // boss specials: stat blessings + hero abilities fired at the start of every round
   const BOSS = {
-    ember: { name: 'غضب الجمر', text: 'وحدات الزعيم +20% هجوم، ويطلق «أمر الهجوم» مع بداية كل جولة.', blessings: { atkPct: 0.2 }, abilities: ['inferno_banner'] },
-    tide: { name: 'مدّ الحماية', text: 'وحدات الزعيم +25% صحة، ويطلق «حاجز المدّ» مع بداية كل جولة.', blessings: { hpPct: 0.25 }, abilities: ['tidal_ward'] },
-    neon: { name: 'كسر السرعة', text: 'وحدات الزعيم +20% سرعة هجوم، ويطلق «كسر السرعة» مع بداية كل جولة.', blessings: { asPct: 0.2 }, abilities: ['overclock'] },
-    sylvan: { name: 'جذور أزلية', text: 'وحدات الزعيم +20% صحة، ويطلق «جدار الأشواك» مع بداية كل جولة.', blessings: { hpPct: 0.2 }, abilities: ['thorn_wall'] },
+    ember: { name: 'غضب الجمر', text: 'وحدات الزعيم +20% هجوم، ويستخدم «أمر الهجوم» في بداية كل جولة.', blessings: { atkPct: 0.2 }, abilities: ['inferno_banner'] },
+    tide: { name: 'مدّ الحماية', text: 'وحدات الزعيم +25% صحة، ويستخدم «حاجز المدّ» في بداية كل جولة.', blessings: { hpPct: 0.25 }, abilities: ['tidal_ward'] },
+    neon: { name: 'كسر السرعة', text: 'وحدات الزعيم +20% سرعة هجوم، ويستخدم «كسر السرعة» في بداية كل جولة.', blessings: { asPct: 0.2 }, abilities: ['overclock'] },
+    sylvan: { name: 'جذور أزلية', text: 'وحدات الزعيم +20% صحة، ويستخدم «جدار الأشواك» في بداية كل جولة.', blessings: { hpPct: 0.2 }, abilities: ['thorn_wall'] },
   };
 
   const L = (id, world, hero, name, start, fights) => ({ id, world, hero, name, start, fights });

@@ -118,7 +118,7 @@
       const p = this.players[pi];
       const cost = AMB.CONFIG.economy.rerollCost;
       if (p.freeRerolls > 0) p.freeRerolls--;
-      else if (p.gold < cost) return this._fail('لا يوجد ذهب كافٍ للتحديث');
+      else if (p.gold < cost) return this._fail('ما عندك ذهب يكفي للتحديث');
       else { p.gold -= cost; p.stats.goldSpent += cost; }
       p.stats.rerolls++;
       this._rollShop(p);
@@ -128,8 +128,8 @@
     buyXp(pi) {
       const p = this.players[pi];
       const E = AMB.CONFIG.economy;
-      if (p.level >= E.maxLevel) return this._fail('وصلت للمستوى الأقصى');
-      if (p.gold < E.xpCost) return this._fail('لا يوجد ذهب كافٍ');
+      if (p.level >= E.maxLevel) return this._fail('وصلت لأعلى مستوى');
+      if (p.gold < E.xpCost) return this._fail('ما عندك ذهب يكفي');
       p.gold -= E.xpCost; p.stats.goldSpent += E.xpCost;
       this._gainXp(p, E.xpPerBuy);
       return { ok: true };
@@ -148,12 +148,12 @@
       const defId = p.shop[shopIdx];
       if (!defId) return { ok: false, reason: 'فارغ' };
       const def = AMB.DATA.UNITS[defId];
-      if (p.gold < def.cost) return { ok: false, reason: 'لا يوجد ذهب كافٍ' };
-      if (this.pool[defId] <= 0) return { ok: false, reason: 'نفدت النسخ من المخزون المشترك' };
+      if (p.gold < def.cost) return { ok: false, reason: 'ما عندك ذهب يكفي' };
+      if (this.pool[defId] <= 0) return { ok: false, reason: 'خلصت نسخ هالوحدة من المخزون' };
       const benchFree = p.bench.indexOf(null) >= 0;
       if (!benchFree) {
         const same = this.allUnits(p).filter((u) => u.defId === defId && u.star === 1).length;
-        if (same < AMB.CONFIG.stars.copiesPerStar - 1) return { ok: false, reason: 'مقعد الاحتياط ممتلئ' };
+        if (same < AMB.CONFIG.stars.copiesPerStar - 1) return { ok: false, reason: 'الاحتياط ممتلئ' };
       }
       return { ok: true };
     }
@@ -234,7 +234,7 @@
     sell(pi, uid) {
       const p = this.players[pi];
       const u = this.findUnit(p, uid);
-      if (!u) return this._fail('الوحدة غير موجودة');
+      if (!u) return this._fail('ما لقيت الوحدة');
       this._remove(p, u);
       p.gold += this.sellValue(u);
       this.pool[u.defId] += this.copiesOf(u);
@@ -246,15 +246,15 @@
     move(pi, uid, dest) {
       const p = this.players[pi];
       const u = this.findUnit(p, uid);
-      if (!u) return this._fail('الوحدة غير موجودة');
+      if (!u) return this._fail('ما لقيت الوحدة');
       const from = this._locate(p, u);
       if (dest.zone === 'board') {
         if (p.summoned && p.heroSlot === dest.slot) {
-          if (from.zone !== 'board') return this._fail('البطل يشغل هذه الخانة');
+          if (from.zone !== 'board') return this._fail('البطل واقف في هالخانة');
           p.heroSlot = from.slot; delete p.board[from.slot]; p.board[dest.slot] = u; return { ok: true };
         }
         const other = p.board[dest.slot] || null;
-        if (from.zone === 'bench' && !other && this.boardCount(p) >= p.level) return this._fail(`الساحة ممتلئة (${p.level}/${p.level}). بدّل بوحدة في الساحة، أو بع وحدة، أو ارفع مستواك بزر «خبرة»`);
+        if (from.zone === 'bench' && !other && this.boardCount(p) >= p.level) return this._fail(`الساحة ممتلئة (${p.level}/${p.level}). بدّل مع وحدة في الساحة، أو بع وحدة، أو ارفع مستواك بزر «خبرة»`);
         this._remove(p, u);
         if (other) { this._remove(p, other); this._put(p, other, from); }
         p.board[dest.slot] = u;
@@ -274,7 +274,7 @@
       const id = p.itemShop[idx];
       if (!id) return this._fail('فارغ');
       const it = AMB.DATA.ITEMS[id];
-      if (p.gold < it.cost) return this._fail('لا يوجد ذهب كافٍ');
+      if (p.gold < it.cost) return this._fail('ما عندك ذهب يكفي');
       if (p.items.length >= AMB.CONFIG.economy.itemBenchSize) return this._fail('حقيبة المعدات ممتلئة');
       p.gold -= it.cost; p.stats.goldSpent += it.cost;
       p.items.push(id);
@@ -285,10 +285,10 @@
     equip(pi, itemIdx, uid) {
       const p = this.players[pi];
       const id = p.items[itemIdx];
-      if (!id || AMB.DATA.ITEMS[id].kind !== 'equip') return this._fail('ليست معدة قابلة للتجهيز');
+      if (!id || AMB.DATA.ITEMS[id].kind !== 'equip') return this._fail('هذي مو معدة تنلبس');
       const u = this.findUnit(p, uid);
       if (!u) return this._fail('اختر وحدة');
-      if (u.items.length >= AMB.CONFIG.economy.maxItemsPerUnit) return this._fail('الوحدة تحمل الحد الأقصى من المعدات');
+      if (u.items.length >= AMB.CONFIG.economy.maxItemsPerUnit) return this._fail('الوحدة ما تشيل معدات زيادة');
       p.items.splice(itemIdx, 1);
       u.items.push(id);
       return { ok: true };
@@ -297,7 +297,7 @@
     unequip(pi, uid) {
       const p = this.players[pi];
       const u = this.findUnit(p, uid);
-      if (!u || !u.items.length) return this._fail('لا توجد معدات');
+      if (!u || !u.items.length) return this._fail('ما فيه معدات');
       if (p.items.length + u.items.length > AMB.CONFIG.economy.itemBenchSize) return this._fail('الحقيبة ممتلئة');
       p.items.push(...u.items); u.items = [];
       return { ok: true };
@@ -315,8 +315,8 @@
     armSpell(pi, itemIdx) {
       const p = this.players[pi];
       const id = p.items[itemIdx];
-      if (!id || AMB.DATA.ITEMS[id].kind !== 'spell') return this._fail('ليست تعويذة');
-      if (p.armedSpells.length >= AMB.CONFIG.economy.maxArmedSpells) return this._fail('الحد الأقصى للتعاويذ المجهزة');
+      if (!id || AMB.DATA.ITEMS[id].kind !== 'spell') return this._fail('هذي مو تعويذة');
+      if (p.armedSpells.length >= AMB.CONFIG.economy.maxArmedSpells) return this._fail('وصلت الحد الأقصى من التعاويذ');
       p.items.splice(itemIdx, 1);
       p.armedSpells.push(id);
       return { ok: true };
@@ -342,11 +342,11 @@
       const p = this.players[pi];
       const hero = AMB.DATA.HEROES[p.heroId];
       const ab = hero.abilities.find((a) => a.id === abilityId);
-      if (!ab) return this._fail('قدرة غير معروفة');
+      if (!ab) return this._fail('ما أعرف هالقدرة');
       if (!trigger) { delete p.abilities[abilityId]; return { ok: true }; }
       const had = p.abilities[abilityId];
       if (!had) {
-        if (this.reservedEssence(p) + this.abilityCost(p, ab) > p.essence) return this._fail('الجوهر غير كافٍ');
+        if (this.reservedEssence(p) + this.abilityCost(p, ab) > p.essence) return this._fail('ما عندك جوهر يكفي');
       }
       p.abilities[abilityId] = trigger;
       return { ok: true };
@@ -363,14 +363,14 @@
       if (p.summoned) { p.summoned = false; this._validateAbilities(p); return { ok: true }; }
       const s = slot || p.heroSlot;
       const target = !p.board[s] ? s : SLOTS.slice().reverse().find((x) => !p.board[x]);
-      if (!target) return this._fail('لا توجد خانة فارغة لاستدعاء البطل');
+      if (!target) return this._fail('ما فيه خانة فاضية تنزّل فيها البطل');
       p.heroSlot = target;
       p.summoned = true;
       return { ok: true };
     }
     moveHero(pi, slot) {
       const p = this.players[pi];
-      if (!p.summoned) return this._fail('البطل غير مستدعى');
+      if (!p.summoned) return this._fail('البطل مو في الساحة');
       const other = p.board[slot];
       if (other) { delete p.board[slot]; p.board[p.heroSlot] = other; }
       p.heroSlot = slot;
@@ -545,8 +545,8 @@
 
     claimReward(pi, idx) {
       const p = this.players[pi], o = p.rewardOffer;
-      if (!o || o.claimed) return this._fail('لا توجد مكافأة');
-      const id = o.options[idx]; if (!id) return this._fail('خيار غير صالح');
+      if (!o || o.claimed) return this._fail('ما فيه مكافأة');
+      const id = o.options[idx]; if (!id) return this._fail('هذا الخيار مو صحيح');
       const R = AMB.DATA.REWARDS[id], st = o.stage, out = { ok: true, id, text: R.name + ' — ' + this.rewardText(id, st) };
       switch (id) {
         case 'gold': p.gold += R.n[st]; break;

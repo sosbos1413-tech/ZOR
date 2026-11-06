@@ -21,23 +21,23 @@
       return { ic: AMB.art.WORLD_ICON[d.world], title: d.name, color: D.WORLDS[d.world].color, html: parts.map((c) => `<div class="tp-sec"><div class="tp-sh">${icon(c.ic)}<b>${esc(c.title)}</b></div>${c.html.replace(/<div class="tp-s">التآزر[^<]*<\/div>/, '')}</div>`).join('') };
     }
     switch (k) {
-      case 'world': { const W = D.WORLDS[d.world]; return { ic: AMB.art.WORLD_ICON[d.world], title: W.name, color: W.color, html: `<div class="tp-s">التآزر: كل ما جمعت وحدات من هذا العالم يقوون:</div>${synLines(d.world)}` }; }
+      case 'world': { const W = D.WORLDS[d.world]; return { ic: AMB.art.WORLD_ICON[d.world], title: W.name, color: W.color, html: `<div class="tp-s">التآزر: كل ما جمعت وحدات أكثر من هالعالم يقوون:</div>${synLines(d.world)}` }; }
       case 'role': { const R = D.ROLES[d.role]; return { ic: AMB.art.ROLE_ICON[d.role], title: R.name, html: `<div class="tp-l">${esc(R.desc)}</div><div class="tp-s">تُوضع: <b>${esc(R.place)}</b></div>${synLines(d.role)}` }; }
-      case 'herorole': return { ic: 'crown', title: 'بطل', html: `<div class="tp-l"><b>${esc(d.passive.name)}</b>: ${esc(d.passive.text)}</div><div class="tp-s">قائدك: حياته هي حياتك، وسقوطه = خسارة.</div>` };
+      case 'herorole': return { ic: 'crown', title: 'بطل', html: `<div class="tp-l"><b>${esc(d.passive.name)}</b>: ${esc(d.passive.text)}</div><div class="tp-s">هو قائدك: حياته هي حياتك، وإذا سقط تخسر.</div>` };
       case 'skill': {
         const s = d.skill, st = +x || 1, rows = [];
         Object.keys(s).forEach((key) => { if (Array.isArray(s[key]) && s[key].length === 3 && LABEL[key]) rows.push(`<div class="tp-l"><b>${LABEL[key]}</b>: <span class="tp-v ${st === 1 ? 'on' : ''}">★ ${s[key][0]}</span> <span class="tp-v ${st === 2 ? 'on' : ''}">★★ ${s[key][1]}</span> <span class="tp-v ${st === 3 ? 'on' : ''}">★★★ ${s[key][2]}</span></div>`); });
-        return { ic: AMB.art.SKILL_ICON[s.type] || 'star', title: s.name, html: `<div class="tp-l">${esc(s.text)}</div>${rows.join('')}<div class="tp-s">تنطلق لما تمتلئ المانا (${d.mana}).</div>` };
+        return { ic: AMB.art.SKILL_ICON[s.type] || 'star', title: s.name, html: `<div class="tp-l">${esc(s.text)}</div>${rows.join('')}<div class="tp-s">تشتغل لما تمتلئ المانا (${d.mana}).</div>` };
       }
       case 'atk': case 'hp': {
         const lab = k === 'atk' ? 'الهجوم' : 'الصحة', base = isHero ? (k === 'atk' ? d.board.atk : 100) : (k === 'atk' ? d.atk : d.hp), m = SM();
         const v = (s) => Math.round(base * (isHero ? 1 : m[s]));
-        return { ic: k === 'atk' ? 'sword' : 'heart', title: lab, html: isHero ? `<div class="tp-l">${k === 'atk' ? 'هجومه لما تستدعيه للساحة (ويكبر كل جولة).' : 'حياة البطل = حياتك في المباراة.'}</div>` : `<div class="tp-l"><span class="tp-v">★ ${v(1)}</span> <span class="tp-v">★★ ${v(2)}</span> <span class="tp-v">★★★ ${v(3)}</span></div><div class="tp-s">كل نجمة ترفع القوة. ٣ نسخ متطابقة = نجمة.</div>` };
+        return { ic: k === 'atk' ? 'sword' : 'heart', title: lab, html: isHero ? `<div class="tp-l">${k === 'atk' ? 'هجومه لما تنزّله الساحة (ويزيد كل جولة).' : 'حياة البطل = حياتك في المباراة.'}</div>` : `<div class="tp-l"><span class="tp-v">★ ${v(1)}</span> <span class="tp-v">★★ ${v(2)}</span> <span class="tp-v">★★★ ${v(3)}</span></div><div class="tp-s">كل نجمة ترفع القوة. ٣ نسخ متطابقة = نجمة.</div>` };
       }
       case 'rar': { const R = AMB.ECONOMY.rarities[d.rarity]; return { ic: 'gem', title: R.name, color: R.color, html: `<div class="tp-l">قوة إضافية <b>+${Math.round((R.power - 1) * 100)}%</b> في الحملة والبرج والأحداث.</div><div class="tp-s">نسخ التطوير للمستويات 2–5: ${R.copies.join(' / ')}</div>` }; }
       case 'lvl': return { ic: 'up', title: 'مستوى ' + x, html: `<div class="tp-l">كل مستوى <b>+${Math.round(AMB.ECONOMY.cards.levelBonus * 100)}%</b> صحة وهجوم، في الحملة والبرج والأحداث فقط.</div><div class="tp-s">تطوّره بالنسخ المكررة من «مجموعتي».</div>` };
-      case 'cost': return { ic: 'gold', title: d.cost + ' ذهب', html: `<div class="tp-l">سعر الشراء، وهو نفس رقم الفئة ${d.tier} (الجواهر).</div><div class="tp-s">البيع يرجّع نفس السعر.</div>` };
-      case 'own': return { ic: 'star', title: x === 'up' ? '↑' : '×' + x, html: x === 'up' ? '<div class="tp-l">عندك نسختين: شراؤها يرقّيها لنجمة أقوى!</div>' : `<div class="tp-l">عندك ${x} نسخة منها. ٣ نسخ متطابقة تندمج لنجمة.</div>` };
+      case 'cost': return { ic: 'gold', title: d.cost + ' ذهب', html: `<div class="tp-l">سعر الشراء (فئة ${d.tier}).</div><div class="tp-s">البيع يرجّع نفس السعر.</div>` };
+      case 'own': return { ic: 'star', title: x === 'up' ? '↑' : '×' + x, html: x === 'up' ? '<div class="tp-l">عندك نسختين: لو اشتريتها تتطور لنجمة أقوى!</div>' : `<div class="tp-l">عندك ${x} نسخة منها. ٣ نسخ متطابقة تندمج لنجمة.</div>` };
     }
     return null;
   }

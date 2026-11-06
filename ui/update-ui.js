@@ -32,10 +32,10 @@
 
   function tick() {
     if (!pending) return;
-    if (busy()) { showBanner('🔄 فيه تحديث جديد — يتطبّق بعد المباراة'); return; }
+    if (busy()) { showBanner('🔄 فيه تحديث جديد، ينزل بعد المباراة'); return; }
     if (ss.get('zor_upd') === pending) { showBanner('🔄 فيه تحديث جديد', true, 6000); return; }   // already tried once for this version: let the player decide
     const v = pending; pending = null;
-    showBanner('🔄 جاري تحديث اللعبة… تقدّمك محفوظ');
+    showBanner('🔄 جاري تحديث اللعبة… تقدمك محفوظ');
     setTimeout(() => apply(v), 1200);
   }
   async function check() {

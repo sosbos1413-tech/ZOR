@@ -101,7 +101,7 @@
     const exportJSON = () => JSON.stringify(root);
     function importJSON(text) {
       const r = JSON.parse(text);
-      if (!isObj(r) || !isObj(r.systems)) throw new Error('ملف حفظ غير صالح');
+      if (!isObj(r) || !isObj(r.systems)) throw new Error('ملف الحفظ مو صحيح');
       try { storage.setItem(KEY + '_preimport', JSON.stringify(root)); } catch (e) { /* ignore */ }   // the previous save stays recoverable
       root = r; root.sysV = root.sysV || {}; root.bakDay = dayOf(now()); write(); emit('*'); return true;
     }

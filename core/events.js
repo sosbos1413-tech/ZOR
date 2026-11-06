@@ -12,13 +12,13 @@
   // the rotation (order = week order). `exclusive` = a unit flagged exclusive in core/data.js.
   const EVENTS = [
     { id: 'ember', world: 'ember', name: 'عاصفة الجمر', exclusive: 'hinotori',
-      boss: { name: 'سيّد الجمر المشتعل', text: 'وحدات الزعيم +30% هجوم و+10% صحة، ويطلق «أمر الهجوم» و«نيزك الجمر» كل جولة.', blessings: { atkPct: 0.3, hpPct: 0.1 }, abilities: ['inferno_banner', 'meteor'] } },
+      boss: { name: 'سيّد الجمر المشتعل', text: 'وحدات الزعيم +30% هجوم و+10% صحة، ويستخدم «أمر الهجوم» و«نيزك الجمر» كل جولة.', blessings: { atkPct: 0.3, hpPct: 0.1 }, abilities: ['inferno_banner', 'meteor'] } },
     { id: 'tide', world: 'tide', name: 'مدّ القمر الأسود', exclusive: 'mikazuki',
-      boss: { name: 'حارس المدّ الأبدي', text: 'وحدات الزعيم +30% صحة و+10% سرعة هجوم، ويطلق «حاجز المدّ» و«ينبوع القمر» كل جولة.', blessings: { hpPct: 0.3, asPct: 0.1 }, abilities: ['tidal_ward', 'moon_spring'] } },
+      boss: { name: 'حارس المدّ الأبدي', text: 'وحدات الزعيم +30% صحة و+10% سرعة هجوم، ويستخدم «حاجز المدّ» و«ينبوع القمر» كل جولة.', blessings: { hpPct: 0.3, asPct: 0.1 }, abilities: ['tidal_ward', 'moon_spring'] } },
     { id: 'neon', world: 'neon', name: 'انقطاع نيون', exclusive: 'kaminari',
-      boss: { name: 'عقل الشبكة المتمرّد', text: 'وحدات الزعيم +30% سرعة هجوم و+10% هجوم، ويطلق «كسر السرعة» و«انهيار النظام» كل جولة.', blessings: { asPct: 0.3, atkPct: 0.1 }, abilities: ['overclock', 'system_crash'] } },
+      boss: { name: 'عقل الشبكة المتمرّد', text: 'وحدات الزعيم +30% سرعة هجوم و+10% هجوم، ويستخدم «كسر السرعة» و«انهيار النظام» كل جولة.', blessings: { asPct: 0.3, atkPct: 0.1 }, abilities: ['overclock', 'system_crash'] } },
     { id: 'sylvan', world: 'sylvan', name: 'غضب الغابة', exclusive: 'kodama',
-      boss: { name: 'قلب الغابة الأزلي', text: 'وحدات الزعيم +30% صحة و+10% هجوم، ويطلق «جدار الأشواك» و«قيد الجذور» كل جولة.', blessings: { hpPct: 0.3, atkPct: 0.1 }, abilities: ['thorn_wall', 'rootbind'] } },
+      boss: { name: 'قلب الغابة الأزلي', text: 'وحدات الزعيم +30% صحة و+10% هجوم، ويستخدم «جدار الأشواك» و«قيد الجذور» كل جولة.', blessings: { hpPct: 0.3, atkPct: 0.1 }, abilities: ['thorn_wall', 'rootbind'] } },
   ];
 
   AMB.Save.register('events', { version: 1, defaults: () => ({ weeks: {} }) });   // weeks[idx] = { stage: stages cleared 0..3, got: exclusive card given }

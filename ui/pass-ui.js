@@ -56,15 +56,15 @@
   // ---------------------------------------------------------------- results panel (xp gained)
   function resultPanel(r) {
     if (!r) return '';
-    if (r.mult === 0) return `<div class="xp-panel"><div class="xp-h"><b>ممر الصدع</b></div><p class="hint">المباراة الودية لا تمنح خبرة، جرّب «ضد الذكاء الاصطناعي» لتتقدم في الممر.</p></div>`;
+    if (r.mult === 0) return `<div class="xp-panel"><div class="xp-h"><b>ممر الصدع</b></div><p class="hint">المباراة الودية ما تعطي خبرة، جرّب «ضد الكمبيوتر» عشان تتقدم في الممر.</p></div>`;
     const lv = pass.level(), pct = pass.maxed() ? 100 : pass.xpInLevel();
     const up = r.levelAfter > r.levelBefore;
     return `<div class="xp-panel"><div class="xp-h"><b>ممر الصدع</b><span class="xp-gain">+${r.xp} خبرة</span></div>
-      ${r.ended ? '<p class="hint">انتهى الموسم: لا تُضاف خبرة جديدة.</p>' : ''}
+      ${r.ended ? '<p class="hint">انتهى الموسم، ما تنضاف خبرة جديدة.</p>' : ''}
       <ul class="xp-lines">${r.lines.map((l) => `<li><span>${l[0]}</span><b>+${l[1]}</b></li>`).join('')}</ul>
       <div class="xp-bar"><i style="width:${pct}%"></i></div>
       <div class="xp-lv">المستوى <b>${lv}</b>${up ? ` <span class="xp-up">ارتفعت من ${r.levelBefore} ← ${r.levelAfter} 🎉</span>` : ''}</div>
-      ${pass.unclaimedCount() ? `<button class="btn primary" data-act="go" data-to="pass">لديك ${pass.unclaimedCount()} مكافأة/مهمة جاهزة للاستلام</button>` : ''}</div>`;
+      ${pass.unclaimedCount() ? `<button class="btn primary" data-act="go" data-to="pass">عندك ${pass.unclaimedCount()} مكافأة أو مهمة جاهزة تستلمها</button>` : ''}</div>`;
   }
 
   function refreshMenu() {
@@ -76,8 +76,8 @@
   // ---------------------------------------------------------------- tips (ⓘ)
   const ibtnP = (k) => `<button class="ibtn" data-act="info" data-k="${k}" title="شرح">ⓘ</button>`;
   AMB.TIPS = AMB.TIPS || {};
-  AMB.TIPS.passinfo = () => ({ title: 'مكافآت الممر', html: '<p>كل المكافآت <b>تجميلية</b> (ألقاب، إطارات، ثيمات، تأثيرات، صور)، والشخصيات تفتح بطاقاتها.</p><p>الاستثناء الوحيد «مؤقت التجهيز»: وقت أطول للتفكير فقط. <b>ما فيه شي يقوّي الوحدات.</b></p><p>المسار المميز واجهة فقط حاليًا (قريبًا).</p>' });
-  AMB.TIPS.missinfo = () => ({ title: 'المهام', html: '<p>مهام اليوم تعطي <b>خبرة ممر + شظايا</b> تشتري فيها باكجات.</p><p>تُحتسب المباريات السريعة وعلى نفس الجهاز وقتالات الحملة، وتطوير البطاقات وفتح الباكجات. المباراة الودية لا تُحتسب.</p>' });
+  AMB.TIPS.passinfo = () => ({ title: 'مكافآت الممر', html: '<p>كل المكافآت <b>للشكل بس</b> (ألقاب، إطارات، ثيمات، تأثيرات، صور)، والشخصيات تفتح بطاقاتها.</p><p>الوحيد المختلف «مؤقت التجهيز»: وقت زيادة تفكر فيه بس. <b>ما فيه شي يقوّي الوحدات.</b></p><p>المسار المميز للعرض بس الحين (قريب).</p>' });
+  AMB.TIPS.missinfo = () => ({ title: 'المهام', html: '<p>مهام اليوم تعطي <b>خبرة ممر + شظايا</b> تشتري فيها باكجات.</p><p>تنحسب المباريات السريعة وعلى نفس الجهاز وقتالات الحملة، وتطوير البطاقات وفتح الباكجات. المباراة الودية ما تنحسب.</p>' });
 
   // ---------------------------------------------------------------- screen
   function cellHTML(level, track) {
@@ -114,7 +114,7 @@
     const d = new Date(), mid = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1), hrs = Math.max(1, Math.ceil((mid - d) / 3600000));
     return `<h3>مهام اليوم <small>تتجدد بعد ${hrs} ساعة</small></h3><div class="missions">${pass.dailyMissions().map(missionHTML).join('')}</div>
       <h3>مهام الأسبوع</h3><div class="missions">${pass.weeklyMissions().map(missionHTML).join('')}</div>
-      <p class="hint">${ibtnP('missinfo')} المباراة الودية لا تُحتسب</p>`;
+      <p class="hint">${ibtnP('missinfo')} المباراة الودية ما تنحسب</p>`;
   }
 
   function optionHTML(type, id) {
@@ -145,8 +145,8 @@
     const days = pass.daysLeft();
     root.innerHTML = `<div class="pass-head"><div class="ph-lv"><small>المستوى</small><b>${lv}</b></div>
       <div class="ph-mid"><div class="ph-name">${P.SEASON.name}</div><div class="xp-bar big"><i style="width:${pct}%"></i></div>
-        <div class="ph-sub">${pass.maxed() ? 'وصلت للحد الأقصى 🎉' : `${pass.xpInLevel()} / ${P.SEASON.xpPerLevel} خبرة للمستوى ${lv + 1}`} · ${pass.ended() ? '<b style="color:var(--red)">انتهى الموسم</b>' : `باقي ${days} يوم`}</div></div>
-      <button class="btn ph-prem" data-act="passPremium" title="غير متاح بعد">${pass.isPremium() ? '✓ بريميوم' : '👑 بريميوم · قريبًا'}</button></div>
+        <div class="ph-sub">${pass.maxed() ? 'وصلت لأعلى مستوى 🎉' : `${pass.xpInLevel()} / ${P.SEASON.xpPerLevel} خبرة للمستوى ${lv + 1}`} · ${pass.ended() ? '<b style="color:var(--red)">انتهى الموسم</b>' : `باقي ${days} يوم`}</div></div>
+      <button class="btn ph-prem" data-act="passPremium" title="مو متاح للحين">${pass.isPremium() ? '✓ بريميوم' : '👑 بريميوم · قريب'}</button></div>
       <div class="ptabs">${[['track', 'المسار'], ['missions', 'المهام'], ['profile', 'ملفي']].map(([k, n]) => `<button class="${tab === k ? 'on' : ''}" data-act="passTab" data-v="${k}">${n}${k === 'missions' && pass.dailyMissions().concat(pass.weeklyMissions()).some((m) => m.done && !m.claimed) ? ' <span class="dot sm"></span>' : ''}</button>`).join('')}</div>
       <div class="pbody">${tab === 'track' ? trackHTML() : tab === 'missions' ? missionsHTML() : profileHTML()}</div>`;
     if (tab === 'track') { const tr = $('ptrack'); if (tr) { const col = tr.querySelector(`[data-col="${Math.max(1, lv - 1)}"]`); if (col) tr.scrollLeft = col.offsetLeft - 8; } }
@@ -175,7 +175,7 @@
       passEquipReward: (d) => { const r = pass.reward(+d.level, d.track); if (r && pass.equip(r.type, r.id)) { UI().sfx('click'); toast(`تم تجهيز: ${pass.rewardName(r)}`, 'good'); after(); } },
       passEquip: (d) => { if (pass.equip(d.type, d.id === '' ? null : d.id)) { UI().sfx('click'); after(); } },
       passClaimMission: (d) => { const r = pass.claimMission(d.id); if (r) { UI().sfx('merge'); toast(`+${r.xp} خبرة${r.shards ? ` و +${r.shards} شظية` : ''}${r.levelUp ? ' — ارتفع مستواك!' : ''}`, 'good'); after(); } },
-      passPremium: () => toast('المسار المميز قريبًا · المجاني متاح لك كله', ''),
+      passPremium: () => toast('المسار المميز قريب · والمجاني متاح لك كله', ''),
     });
   }
 

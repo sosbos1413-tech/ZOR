@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="4f56949550">
+<meta name="zor-build" content="0beb4645d5">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -10,9 +10,9 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="description" content="ZOR — لعبة بطاقات استراتيجية 1 ضد 1 بقتال تلقائي بين أربعة عوالم. ٧ جولات، ٥ دقائق.">
+<meta name="description" content="ZOR — لعبة بطاقات 1 ضد 1، القتال فيها تلقائي بين أربعة عوالم. ٧ جولات في حوالي ٥ دقائق.">
 <meta property="og:title" content="ZOR — Zones Of Rift">
-<meta property="og:description" content="لعبة بطاقات استراتيجية 1 ضد 1 بقتال تلقائي. ٧ جولات، ٥ دقائق.">
+<meta property="og:description" content="لعبة بطاقات 1 ضد 1 والقتال فيها تلقائي. ٧ جولات في حوالي ٥ دقائق.">
 <title>ZOR</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1980,7 +1980,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
       </div>
       <p class="menu-newbie">ابدأ بالحملة: أول فوز يفتح لك الباكجات ومجموعتك وممر الصدع والجوائز اليومية.</p>
       <div class="menu-heroes" id="menu-heroes"></div>
-      <p class="fineprint">كل العوالم والشخصيات أصلية. لعبة تجريبية: تقدّمك محفوظ في هذا المتصفح.</p>
+      <p class="fineprint">كل العوالم والشخصيات أصلية. اللعبة تجريبية، وتقدمك ينحفظ في هالمتصفح.</p>
     </div>
   </section>
 
@@ -1989,8 +1989,8 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
     <header class="scr-head"><button class="btn ghost" data-act="go" data-to="menu">→ رجوع</button><h2>اختر نمط اللعب</h2></header>
     <div class="mode-grid">
       <div class="mode-card">
-        <h3>ضد الذكاء الاصطناعي</h3>
-        <p>7 جولات ضد خصم آلي</p>
+        <h3>ضد الكمبيوتر</h3>
+        <p>7 جولات ضد الكمبيوتر</p>
         <div class="seg" id="diff-seg">
           <button data-act="diff" data-v="easy">سهل</button>
           <button data-act="diff" data-v="normal" class="on">عادي</button>
@@ -2000,23 +2000,23 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
       </div>
       <div class="mode-card">
         <h3>1 ضد 1 — نفس الجهاز</h3>
-        <p>لاعبان على جهاز واحد</p>
+        <p>لاعبين على جهاز واحد</p>
         <button class="btn primary" data-act="mode" data-v="hotseat">ابدأ</button>
       </div>
       <div class="mode-card">
         <h3>مباراة ودية</h3>
-        <p>سهلة وبوقت مضاعف للتعلّم</p>
+        <p>سهلة ووقتها أطول عشان تتعلم</p>
         <button class="btn" data-act="mode" data-v="friendly">ابدأ</button>
       </div>
       <div class="mode-card">
         <h3>الحملة</h3>
-        <p>قتالات قصيرة، زعماء، جوائز · ابدأ من هنا</p>
+        <p>قتالات قصيرة وزعماء وجوائز · ابدأ من هنا</p>
         <button class="btn primary" data-act="go" data-to="campaign">افتح الحملة</button>
       </div>
       <div class="mode-card soon">
         <h3>التحدي التنافسي</h3>
         <p>ضد لاعبين حقيقيين</p>
-        <span class="tag">قريبًا</span>
+        <span class="tag">قريب</span>
       </div>
     </div>
   </section>
@@ -2093,7 +2093,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
   </section>
 
   <section class="screen" id="scr-stats">
-    <header class="scr-head"><button class="btn ghost" data-act="go" data-to="menu">→ رجوع</button><h2>الإحصائيات والتوازن</h2></header>
+    <header class="scr-head"><button class="btn ghost" data-act="go" data-to="menu">→ رجوع</button><h2>الإحصائيات</h2></header>
     <div class="stats" id="stats"></div>
   </section>
 
@@ -2249,22 +2249,22 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 
   const WORLDS = {
     ember: { id: 'ember', name: 'مملكة الجمر', en: 'Emberreach', color: '#ff7a45', glyph: '火',
-      lore: 'إمبراطورية حدادين وساموراي تُشعل سيوفها من قلب بركان حيّ.' },
+      lore: 'مملكة حدادين وساموراي، سيوفهم تشتعل من قلب بركان حي.' },
     tide: { id: 'tide', name: 'المدّ القمري', en: 'Moontide', color: '#3ec9ff', glyph: '水',
-      lore: 'أرخبيل يحكمه القمر؛ أرواح الموج تحمي وتُشفي.' },
+      lore: 'جزر يحكمها القمر، وأرواح الموج تحمي وتعالج.' },
     neon: { id: 'neon', name: 'نيون-٩', en: 'Neon-9', color: '#c45cff', glyph: '電',
-      lore: 'مدينة سيبرانية لا تنام؛ السرعة فيها عملة.' },
+      lore: 'مدينة إلكترونية ما تنام، والسرعة فيها هي العملة.' },
     sylvan: { id: 'sylvan', name: 'الغابة الأزلية', en: 'Elder Grove', color: '#52d67c', glyph: '森',
-      lore: 'غابة أقدم من الزمن، جذورها جدران وأشجارها حرّاس.' },
+      lore: 'غابة أقدم من الزمن، جذورها جدران وأشجارها حراس.' },
   };
 
   const ROLES = {
-    guardian: { side: 'front', kind: 'def', place: 'أمامي', id: 'guardian', name: 'حارس', en: 'Guardian', icon: 'shield', desc: 'وحدة دفاعية تحمي الخط الأمامي وتشتت العدو.' },
-    fighter: { side: 'front', kind: 'off', place: 'أمامي', id: 'fighter', name: 'مقاتل', en: 'Fighter', icon: 'sword', desc: 'التحام متوازن بين التحمل والضرر.' },
-    assassin: { side: 'any', kind: 'off', place: 'أمامي أو خلفي (يقفز للخلف)', id: 'assassin', name: 'قاتل', en: 'Assassin', icon: 'dagger', desc: 'يقفز فوق خط الدفاع إلى الصف الخلفي للخصم.' },
-    mage: { side: 'back', kind: 'off', place: 'خلفي', id: 'mage', name: 'ساحر', en: 'Mage', icon: 'orb', desc: 'مهارات منطقة قوية، صحة منخفضة.' },
-    marksman: { side: 'back', kind: 'off', place: 'خلفي', id: 'marksman', name: 'قناص', en: 'Marksman', icon: 'bow', desc: 'ضرر مستمر من مدى بعيد.' },
-    support: { side: 'back', kind: 'def', place: 'خلفي', id: 'support', name: 'دعم', en: 'Support', icon: 'wings', desc: 'علاج ودروع وتعزيز للحلفاء.' },
+    guardian: { side: 'front', kind: 'def', place: 'أمامي', id: 'guardian', name: 'حارس', en: 'Guardian', icon: 'shield', desc: 'يوقف قدّام ويحمي الفريق، ويشغل العدو عن البقية.' },
+    fighter: { side: 'front', kind: 'off', place: 'أمامي', id: 'fighter', name: 'مقاتل', en: 'Fighter', icon: 'sword', desc: 'قتال قريب: يتحمل وفي نفس الوقت يضرب.' },
+    assassin: { side: 'any', kind: 'off', place: 'أمامي أو خلفي (يقفز للخلف)', id: 'assassin', name: 'قاتل', en: 'Assassin', icon: 'dagger', desc: 'يقفز فوق الدفاع ويروح للصف الخلفي عند الخصم.' },
+    mage: { side: 'back', kind: 'off', place: 'خلفي', id: 'mage', name: 'ساحر', en: 'Mage', icon: 'orb', desc: 'مهاراته قوية وتضرب منطقة، بس صحته قليلة.' },
+    marksman: { side: 'back', kind: 'off', place: 'خلفي', id: 'marksman', name: 'قناص', en: 'Marksman', icon: 'bow', desc: 'يضرب من بعيد وبشكل مستمر.' },
+    support: { side: 'back', kind: 'def', place: 'خلفي', id: 'support', name: 'دعم', en: 'Support', icon: 'wings', desc: 'يعالج ويعطي دروع ويقوّي الفريق.' },
   };
 
   // 1-star, tier-1 baseline per role. Tier multiplies hp & atk.
@@ -2314,70 +2314,70 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
   // ---- Emberreach (no support)
   unit('ash_ronin', 'رونين الرماد', 'Ash Ronin', 'ember', 'fighter', 1, 70,
     { type: 'cleave', name: 'قطع الرماد', dmg: [120, 200, 340], radius: 1.2,
-      text: 'ضربة دائرية تصيب الهدف ومن حوله.' });
+      text: 'ضربة تلف وتصيب الهدف واللي حوله.' });
   unit('forge_bulwark', 'حامي الأتون', 'Forge Bulwark', 'ember', 'guardian', 1, 90,
     { type: 'taunt', name: 'تحدّي الحدّاد', shield: [200, 350, 600], radius: 2.2, dur: 3,
-      text: 'يجبر الأعداء القريبين على مهاجمته ويكتسب درعًا.' });
+      text: 'يخلّي الأعداء القريبين منه يهجمون عليه هو، ويجيه درع.' });
   unit('spark_wraith', 'شبح الشرر', 'Spark Wraith', 'ember', 'assassin', 2, 60,
     { type: 'nuke', name: 'طعنة الشرر', dmg: [230, 390, 660],
-      text: 'طعنة خاطفة بضرر هائل للهدف.' });
+      text: 'طعنة سريعة بضرر عالي على الهدف.' });
   unit('pyre_archer', 'رامية المحرقة', 'Pyre Archer', 'ember', 'marksman', 2, 80,
     { type: 'burn', name: 'سهم المحرقة', dps: [60, 100, 170], dur: 4,
-      text: 'يحرق الهدف ضررًا متواصلًا لمدة 4 ثوانٍ.' });
+      text: 'يحرق الهدف ويضره كل ثانية لمدة 4 ثواني.' });
   unit('caldera_seer', 'عرّافة البركان', 'Caldera Seer', 'ember', 'mage', 3, 90,
     { type: 'aoe', name: 'انفجار الفوهة', dmg: [340, 560, 960], radius: 1.6,
-      text: 'انفجار بركاني يصيب منطقة واسعة حول الهدف.' });
+      text: 'انفجار يضرب منطقة واسعة حول الهدف.' });
 
   // ---- Moontide (no assassin / marksman)
   unit('wave_caller', 'مستدعية الموج', 'Wave Caller', 'tide', 'support', 1, 60,
     { type: 'healLowest', name: 'موجة شافية', heal: [230, 380, 640],
-      text: 'تعالج الحليف الأكثر جرحًا.' });
+      text: 'تعالج أضعف واحد في فريقك.' });
   unit('coral_sentinel', 'حارس المرجان', 'Coral Sentinel', 'tide', 'guardian', 1, 80,
     { type: 'shieldSelf', name: 'قشرة المرجان', shield: [380, 620, 1000],
-      text: 'يكتسب درعًا مرجانيًا سميكًا.' });
+      text: 'ياخذ درع قوي.' });
   unit('lunar_blade', 'سيّاف القمر', 'Lunar Blade', 'tide', 'fighter', 2, 70,
     { type: 'drain', name: 'خسوف', dmg: [220, 360, 620],
-      text: 'ضربة تمتص الحياة وتعالجه بقيمة الضرر.' });
+      text: 'ضربة تسحب صحة الهدف وترجّعها له.' });
   unit('mist_witch', 'ساحرة الضباب', 'Mist Witch', 'tide', 'mage', 2, 80,
     { type: 'stunAoe', name: 'ضباب متجمّد', dmg: [120, 200, 350], stun: [1.5, 1.8, 2.2], radius: 1.2,
-      text: 'تجمّد الهدف ومن حوله وتصيبهم بضرر.' });
+      text: 'تجمّد الهدف واللي حوله وتضرّهم.' });
   unit('tide_priest', 'كاهن المدّ العالي', 'High Tide Priest', 'tide', 'support', 3, 80,
     { type: 'healAll', name: 'مدّ عظيم', heal: [180, 300, 520],
-      text: 'يعالج جميع الحلفاء.' });
+      text: 'يعالج كل الفريق.' });
 
   // ---- Neon-9 (no mage)
   unit('grid_hound', 'كلب الشبكة', 'Grid Hound', 'neon', 'assassin', 1, 60,
     { type: 'nuke', name: 'عضّة البيانات', dmg: [150, 260, 450],
-      text: 'عضة إلكترونية بضرر عالٍ.' });
+      text: 'عضّة سريعة بضرر عالي.' });
   unit('pixel_sniper', 'قنّاص البكسل', 'Pixel Sniper', 'neon', 'marksman', 1, 80,
     { type: 'snipe', name: 'تصويب دقيق', dmg: [200, 340, 580],
-      text: 'تقنص العدو الأقل صحة أينما كان (ضمن الأهداف المسموحة).' });
+      text: 'تصيد العدو الأضعف في أي مكان.' });
   unit('firewall_unit', 'وحدة الجدار الناري', 'Firewall Unit', 'neon', 'guardian', 2, 90,
     { type: 'taunt', name: 'جدار ناري', shield: [260, 430, 720], radius: 2.6, dur: 3,
-      text: 'تجذب انتباه الأعداء في نطاق واسع وتكتسب درعًا.' });
+      text: 'تخلّي الأعداء القريبين منها يهجمون عليها، وياخذ درع.' });
   unit('spectral_coder', 'المبرمجة الطيفية', 'Spectral Coder', 'neon', 'support', 2, 90,
     { type: 'hasteAllies', name: 'رفع التردد', pct: [0.3, 0.45, 0.65], dur: 5,
-      text: 'تزيد سرعة هجوم جميع الحلفاء مؤقتًا.' });
+      text: 'تسرّع هجوم كل الفريق لفترة قصيرة.' });
   unit('chrome_ronin', 'رونين الكروم', 'Chrome Ronin', 'neon', 'fighter', 3, 60,
     { type: 'execute', name: 'قطع نهائي', dmg: [250, 420, 740],
-      text: 'ضربة تتضاعف ضد الأهداف تحت 40% صحة.' });
+      text: 'ضربتها تتضاعف على اللي صحته أقل من 40%.' });
 
   // ---- Elder Grove (no support)
   unit('moss_warden', 'حارس الطحلب', 'Moss Warden', 'sylvan', 'guardian', 1, 70,
     { type: 'healSelf', name: 'تجدد الطحلب', heal: [240, 400, 680],
-      text: 'يستعيد جزءًا كبيرًا من صحته.' });
+      text: 'يرجّع جزء كبير من صحته.' });
   unit('thorn_fox', 'ثعلب الأشواك', 'Thorn Fox', 'sylvan', 'fighter', 1, 70,
     { type: 'stunStrike', name: 'وخزة شائكة', dmg: [100, 170, 300], stun: [1, 1.2, 1.5],
-      text: 'يصيب الهدف ويشلّه لفترة قصيرة.' });
+      text: 'يضرب الهدف ويوقفه لحظات.' });
   unit('willow_eye', 'عين الصفصاف', 'Willow Eye', 'sylvan', 'marksman', 2, 80,
     { type: 'multishot', name: 'وابل الأوراق', dmg: [130, 220, 380], count: 3,
-      text: 'تطلق ثلاثة أسهم على أقرب ثلاثة أعداء.' });
+      text: 'ترمي ثلاثة سهام على أقرب ثلاثة أعداء.' });
   unit('root_shaman', 'شامان الجذور', 'Root Shaman', 'sylvan', 'mage', 3, 90,
     { type: 'stunAoe', name: 'قبضة الجذور', dmg: [220, 370, 650], stun: [1.2, 1.5, 2], radius: 1.6,
-      text: 'جذور تقيّد الأعداء في منطقة وتؤذيهم.' });
+      text: 'جذور تمسك الأعداء في المنطقة وتضرّهم.' });
   unit('wild_stalker', 'المتربّص البري', 'Wild Stalker', 'sylvan', 'assassin', 3, 60,
     { type: 'execute', name: 'انقضاض', dmg: [300, 520, 900],
-      text: 'انقضاض قاتل يتضاعف ضد الأهداف الجريحة.' });
+      text: 'انقضاض يتضاعف ضرره على اللي صحته قليلة.' });
 
 
   // ======== NEW ROSTER (45 characters, unlocked from packs / battle pass; the 20 above are the starter roster)
@@ -2385,156 +2385,156 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
   // ---- new roster: Elder Grove
   unit('taiju', 'تايجو', 'Taiju', 'sylvan', 'guardian', 3, 80,
     { type: 'shieldSelf', name: 'لحاء الدهر', shield: [550, 900, 1450],
-      text: 'يكتسب درعًا سميكًا.' }, { rarity: 'legendary' });
+      text: 'ياخذ درع قوي.' }, { rarity: 'legendary' });
   unit('kashiwagi', 'كاشيواغي', 'Kashiwagi', 'sylvan', 'fighter', 3, 70,
     { type: 'cleave', name: 'ضربة السنديان', dmg: [170, 290, 490], radius: 1.4,
-      text: 'ضربة دائرية تصيب الهدف ومن حوله.' });
+      text: 'ضربة تلف وتصيب الهدف واللي حوله.' });
   unit('shirayuki', 'شيراويوكي', 'Shirayuki', 'sylvan', 'mage', 3, 85,
     { type: 'stunAoe', name: 'ندى الفجر', dmg: [140, 240, 420], stun: [1.4, 1.7, 2.1], radius: 1.5,
-      text: 'يجمّد الهدف ومن حوله ويصيبهم بضرر.' });
+      text: 'يجمّد الهدف واللي حوله ويضرّهم.' });
   unit('kazehaya', 'كازيهايا', 'Kazehaya', 'sylvan', 'marksman', 2, 80,
     { type: 'snipe', name: 'سهم الريح', dmg: [240, 410, 700],
-      text: 'يقنص العدو الأقل صحة أينما كان.' });
+      text: 'يصيد العدو الأضعف في أي مكان.' });
   unit('kagemaru', 'كاجيمارو', 'Kagemaru', 'sylvan', 'assassin', 1, 60,
     { type: 'nuke', name: 'طعنة الظل', dmg: [150, 260, 450],
-      text: 'طعنة خاطفة بضرر هائل للهدف.' });
+      text: 'طعنة سريعة بضرر عالي على الهدف.' });
   unit('hayate', 'هاياتي', 'Hayate', 'sylvan', 'assassin', 2, 60,
     { type: 'execute', name: 'عاصفة النصلين', dmg: [200, 350, 610],
-      text: 'ضربة تتضاعف ضد الأهداف تحت 40% صحة.' });
+      text: 'ضربتها تتضاعف على اللي صحته أقل من 40%.' });
   unit('yoshino', 'يوشينو', 'Yoshino', 'sylvan', 'support', 2, 90,
     { type: 'hasteAllies', name: 'لحن الورقة', pct: [0.25, 0.38, 0.55], dur: 5,
-      text: 'يزيد سرعة هجوم جميع الحلفاء مؤقتًا.' });
+      text: 'يسرّع هجوم كل الفريق لفترة قصيرة.' });
   unit('kinoko', 'كينوكو', 'Kinoko', 'sylvan', 'support', 1, 60,
     { type: 'healLowest', name: 'بوغ الشفاء', heal: [230, 380, 640],
-      text: 'يعالج الحليف الأكثر جرحًا.' });
+      text: 'يعالج أضعف واحد في فريقه.' });
   unit('genzo', 'جينزو', 'Genzo', 'sylvan', 'guardian', 2, 70,
     { type: 'healSelf', name: 'جذور الصمود', heal: [290, 480, 820],
-      text: 'يستعيد جزءًا كبيرًا من صحته.' });
+      text: 'يرجّع جزء كبير من صحته.' });
   unit('takashi', 'تاكاشي', 'Takashi', 'sylvan', 'marksman', 1, 80,
     { type: 'multishot', name: 'ضربة الصقر', dmg: [110, 180, 320], count: 3,
-      text: 'يطلق ثلاثة أسهم على أقرب ثلاثة أعداء.' });
+      text: 'يرمي ثلاثة سهام على أقرب ثلاثة أعداء.' });
   unit('gensai', 'جينساي', 'Gensai', 'sylvan', 'mage', 2, 90,
     { type: 'aoe', name: 'كرة العاصفة', dmg: [280, 460, 780], radius: 1.6,
-      text: 'انفجار يصيب منطقة حول الهدف.' });
+      text: 'انفجار يضرب المنطقة حول الهدف.' });
   unit('ibara', 'إيبارا', 'Ibara', 'sylvan', 'mage', 2, 85,
     { type: 'stunAoe', name: 'سجن الأشواك', dmg: [120, 200, 350], stun: [1.4, 1.7, 2.1], radius: 1.4,
-      text: 'يجمّد الهدف ومن حوله ويصيبهم بضرر.' });
+      text: 'يجمّد الهدف واللي حوله ويضرّهم.' });
   unit('kaito', 'كايتو', 'Kaito', 'sylvan', 'fighter', 2, 70,
     { type: 'stunStrike', name: 'تاج الشوك', dmg: [120, 200, 360], stun: [1, 1.2, 1.5],
-      text: 'يصيب الهدف ويشلّه لفترة قصيرة.' });
+      text: 'يضرب الهدف ويوقفه لحظات.' });
   unit('hisui', 'هيسوي', 'Hisui', 'sylvan', 'support', 3, 80,
     { type: 'healAll', name: 'ريش الزمرد', heal: [170, 290, 510],
-      text: 'يعالج جميع الحلفاء.' });
+      text: 'يعالج كل الفريق.' });
   unit('daigo', 'دايغو', 'Daigo', 'sylvan', 'guardian', 1, 90,
     { type: 'taunt', name: 'درع الطحلب', shield: [200, 350, 600], radius: 2.2, dur: 3,
-      text: 'يجبر الأعداء القريبين على مهاجمته ويكتسب درعًا.' });
+      text: 'يخلّي الأعداء القريبين منه يهجمون عليه هو، ويجيه درع.' });
   unit('wakaba', 'سوتا', 'Souta', 'sylvan', 'marksman', 1, 80,
     { type: 'burn', name: 'سهم السمّ الأخضر', dps: [50, 85, 145], dur: 4,
-      text: 'يحرق الهدف ضررًا متواصلًا لمدة 4 ثوانٍ.' });
+      text: 'يحرق الهدف ويضره كل ثانية لمدة 4 ثواني.' });
 
   // ---- new roster: Neon-9
   unit('gantetsu', 'غانتيتسو', 'Gantetsu', 'neon', 'guardian', 2, 80,
     { type: 'shieldSelf', name: 'جلد الحجر', shield: [460, 740, 1200],
-      text: 'يكتسب درعًا سميكًا.' });
+      text: 'ياخذ درع قوي.' });
   unit('tetsuya', 'تيتسويا', 'Tetsuya', 'neon', 'guardian', 1, 90,
     { type: 'taunt', name: 'تحدّي الفولاذ', shield: [200, 350, 600], radius: 2.2, dur: 3,
-      text: 'يجبر الأعداء القريبين على مهاجمته ويكتسب درعًا.' });
+      text: 'يخلّي الأعداء القريبين منه يهجمون عليه هو، ويجيه درع.' });
   unit('reiji', 'ريجي', 'Reiji', 'neon', 'mage', 2, 90,
     { type: 'aoe', name: 'ختم الرموز', dmg: [280, 460, 780], radius: 1.6,
-      text: 'انفجار يصيب منطقة حول الهدف.' });
+      text: 'انفجار يضرب المنطقة حول الهدف.' });
   unit('mitsuki', 'ميتسوكي', 'Mitsuki', 'neon', 'support', 1, 60,
     { type: 'healLowest', name: 'بلّورة الشفاء', heal: [230, 380, 640],
-      text: 'يعالج الحليف الأكثر جرحًا.' });
+      text: 'يعالج أضعف واحد في فريقه.' });
   unit('mugen', 'موغين', 'Mugen', 'neon', 'mage', 3, 85,
     { type: 'stunAoe', name: 'ثقب اللانهاية', dmg: [140, 240, 420], stun: [1.4, 1.7, 2.1], radius: 1.5,
-      text: 'يجمّد الهدف ومن حوله ويصيبهم بضرر.' }, { rarity: 'legendary' });
+      text: 'يجمّد الهدف واللي حوله ويضرّهم.' }, { rarity: 'legendary' });
   unit('juzo', 'جوزو', 'Juzo', 'neon', 'fighter', 2, 60,
     { type: 'execute', name: 'ضربة الجلّاد', dmg: [200, 350, 610],
-      text: 'ضربة تتضاعف ضد الأهداف تحت 40% صحة.' });
+      text: 'ضربتها تتضاعف على اللي صحته أقل من 40%.' });
   unit('kogetsu', 'كوغيتسو', 'Kogetsu', 'neon', 'fighter', 3, 70,
     { type: 'cleave', name: 'قطع التاج', dmg: [170, 290, 490], radius: 1.4,
-      text: 'ضربة دائرية تصيب الهدف ومن حوله.' });
+      text: 'ضربة تلف وتصيب الهدف واللي حوله.' });
   unit('yozora', 'يوزورا', 'Yozora', 'neon', 'support', 3, 80,
     { type: 'healAll', name: 'مطر النجوم', heal: [170, 290, 510],
-      text: 'يعالج جميع الحلفاء.' });
+      text: 'يعالج كل الفريق.' });
   unit('nagi', 'ناغي', 'Nagi', 'neon', 'assassin', 1, 60,
     { type: 'nuke', name: 'خنجرا الظلام', dmg: [150, 260, 450],
-      text: 'طعنة خاطفة بضرر هائل للهدف.' });
+      text: 'طعنة سريعة بضرر عالي على الهدف.' });
 
   // ---- new roster: Emberreach
   unit('goka', 'غوكا', 'Goka', 'ember', 'fighter', 3, 70,
     { type: 'cleave', name: 'نار العرش', dmg: [170, 290, 490], radius: 1.4,
-      text: 'ضربة دائرية تصيب الهدف ومن حوله.' }, { rarity: 'legendary' });
+      text: 'ضربة تلف وتصيب الهدف واللي حوله.' }, { rarity: 'legendary' });
   unit('ryuji', 'ريوجي', 'Ryuji', 'ember', 'fighter', 1, 70,
     { type: 'stunStrike', name: 'قبضة الجمر', dmg: [100, 170, 300], stun: [1, 1.2, 1.5],
-      text: 'يصيب الهدف ويشلّه لفترة قصيرة.' });
+      text: 'يضرب الهدف ويوقفه لحظات.' });
   unit('akane', 'أكاني', 'Akane', 'ember', 'assassin', 2, 60,
     { type: 'nuke', name: 'نصلا اللهب', dmg: [180, 310, 540],
-      text: 'طعنة خاطفة بضرر هائل للهدف.' });
+      text: 'طعنة سريعة بضرر عالي على الهدف.' });
   unit('natsuki', 'ناتسوكي', 'Natsuki', 'ember', 'mage', 2, 90,
     { type: 'aoe', name: 'موجة الحمم', dmg: [280, 460, 780], radius: 1.6,
-      text: 'انفجار يصيب منطقة حول الهدف.' });
+      text: 'انفجار يضرب المنطقة حول الهدف.' });
   unit('shiro', 'شيرو', 'Shiro', 'ember', 'mage', 1, 90,
     { type: 'aoe', name: 'شرارة مبتدئ', dmg: [230, 380, 650], radius: 1.5,
-      text: 'انفجار يصيب منطقة حول الهدف.' });
+      text: 'انفجار يضرب المنطقة حول الهدف.' });
   unit('kurenai', 'كورينائي', 'Kurenai', 'ember', 'guardian', 3, 90,
     { type: 'taunt', name: 'قلعة القرمزي', shield: [290, 510, 870], radius: 2.4, dur: 3,
-      text: 'يجبر الأعداء القريبين على مهاجمته ويكتسب درعًا.' });
+      text: 'يخلّي الأعداء القريبين منه يهجمون عليه هو، ويجيه درع.' });
   unit('tsubaki', 'تسوباكي', 'Tsubaki', 'ember', 'support', 1, 60,
     { type: 'healLowest', name: 'دفء الموقد', heal: [230, 380, 640],
-      text: 'يعالج الحليف الأكثر جرحًا.' });
+      text: 'يعالج أضعف واحد في فريقه.' });
   unit('godo', 'غودو', 'Godo', 'ember', 'guardian', 2, 80,
     { type: 'shieldSelf', name: 'جلد الحمم', shield: [460, 740, 1200],
-      text: 'يكتسب درعًا سميكًا.' });
+      text: 'ياخذ درع قوي.' });
   unit('yuta', 'يوتا', 'Yuta', 'ember', 'marksman', 1, 80,
     { type: 'burn', name: 'سهم الفحم', dps: [50, 85, 145], dur: 4,
-      text: 'يحرق الهدف ضررًا متواصلًا لمدة 4 ثوانٍ.' });
+      text: 'يحرق الهدف ويضره كل ثانية لمدة 4 ثواني.' });
   unit('momo', 'شينغو', 'Shingo', 'ember', 'support', 2, 90,
     { type: 'hasteAllies', name: 'خطة اللهب', pct: [0.25, 0.38, 0.55], dur: 5,
-      text: 'يزيد سرعة هجوم جميع الحلفاء مؤقتًا.' });
+      text: 'يسرّع هجوم كل الفريق لفترة قصيرة.' });
 
   // ---- new roster: Moontide
   unit('seiji', 'سيجي', 'Seiji', 'tide', 'fighter', 2, 70,
     { type: 'drain', name: 'نصل الجزر', dmg: [220, 360, 610],
-      text: 'ضربة تمتص الحياة وتعالجه بقيمة الضرر.' });
+      text: 'ضربة تسحب صحة الهدف وترجّعها له.' });
   unit('ryujin', 'ريوجين', 'Ryujin', 'tide', 'fighter', 3, 70,
     { type: 'cleave', name: 'رمح المدّ', dmg: [170, 290, 490], radius: 1.4,
-      text: 'ضربة دائرية تصيب الهدف ومن حوله.' });
+      text: 'ضربة تلف وتصيب الهدف واللي حوله.' });
   unit('mizuki', 'ميزوتو', 'Mizuto', 'tide', 'assassin', 1, 60,
     { type: 'nuke', name: 'شفرة الموج', dmg: [150, 260, 450],
-      text: 'طعنة خاطفة بضرر هائل للهدف.' });
+      text: 'طعنة سريعة بضرر عالي على الهدف.' });
   unit('miyuki', 'ميوكي', 'Miyuki', 'tide', 'support', 2, 80,
     { type: 'healAll', name: 'ترنيمة القمر', heal: [140, 240, 420],
-      text: 'يعالج جميع الحلفاء.' });
+      text: 'يعالج كل الفريق.' });
   unit('shiori', 'شيوري', 'Shiori', 'tide', 'mage', 1, 85,
     { type: 'stunAoe', name: 'فقاعة مجمّدة', dmg: [100, 160, 290], stun: [1.4, 1.7, 2.1], radius: 1.3,
-      text: 'يجمّد الهدف ومن حوله ويصيبهم بضرر.' });
+      text: 'يجمّد الهدف واللي حوله ويضرّهم.' });
   unit('tomoe', 'تومويه', 'Tomoe', 'tide', 'guardian', 1, 80,
     { type: 'shieldSelf', name: 'درع اللؤلؤ', shield: [380, 620, 1000],
-      text: 'يكتسب درعًا سميكًا.' });
+      text: 'ياخذ درع قوي.' });
   unit('otohime', 'أوتوهيمي', 'Otohime', 'tide', 'support', 3, 80,
     { type: 'healAll', name: 'حضن البحر', heal: [170, 290, 510],
-      text: 'يعالج جميع الحلفاء.' }, { rarity: 'legendary' });
+      text: 'يعالج كل الفريق.' }, { rarity: 'legendary' });
   unit('haruka', 'هاروتو', 'Haruto', 'tide', 'mage', 2, 90,
     { type: 'aoe', name: 'دوّامة', dmg: [280, 460, 780], radius: 1.6,
-      text: 'انفجار يصيب منطقة حول الهدف.' });
+      text: 'انفجار يضرب المنطقة حول الهدف.' });
   unit('daikai', 'دايكاي', 'Daikai', 'tide', 'guardian', 3, 90,
     { type: 'taunt', name: 'مرساة الأعماق', shield: [290, 510, 870], radius: 2.4, dur: 3,
-      text: 'يجبر الأعداء القريبين على مهاجمته ويكتسب درعًا.' });
+      text: 'يخلّي الأعداء القريبين منه يهجمون عليه هو، ويجيه درع.' });
   unit('kota', 'كوتا', 'Kota', 'tide', 'marksman', 1, 80,
     { type: 'snipe', name: 'هربون الرمية', dmg: [200, 340, 580],
-      text: 'يقنص العدو الأقل صحة أينما كان.' });
+      text: 'يصيد العدو الأضعف في أي مكان.' });
 
   // ======== EVENT-EXCLUSIVE CARDS (weekly events only: never in packs, never in album sets). Art: assets/characters/<id>.jpg when added,
   // otherwise the role emblem is shown (see assets/characters/PROMPTS_EVENT.md)
   unit('hinotori', 'هينوتوري', 'Hinotori', 'ember', 'assassin', 3, 60,
-    { type: 'nuke', name: 'ريشة الفينيكس', dmg: [220, 380, 650], text: 'طعنة خاطفة بضرر هائل للهدف.' }, { rarity: 'legendary', exclusive: true });
+    { type: 'nuke', name: 'ريشة الفينيكس', dmg: [220, 380, 650], text: 'طعنة سريعة بضرر عالي على الهدف.' }, { rarity: 'legendary', exclusive: true });
   unit('mikazuki', 'ميكازوكي', 'Mikazuki', 'tide', 'marksman', 3, 80,
-    { type: 'snipe', name: 'سهم الهلال', dmg: [290, 490, 840], text: 'يقنص العدو الأقل صحة أينما كان.' }, { rarity: 'legendary', exclusive: true });
+    { type: 'snipe', name: 'سهم الهلال', dmg: [290, 490, 840], text: 'يصيد العدو الأضعف في أي مكان.' }, { rarity: 'legendary', exclusive: true });
   unit('kaminari', 'كاميناري', 'Kaminari', 'neon', 'fighter', 3, 60,
-    { type: 'execute', name: 'صاعقة الحسم', dmg: [250, 420, 740], text: 'ضربة تتضاعف ضد الأهداف تحت 40% صحة.' }, { rarity: 'legendary', exclusive: true });
+    { type: 'execute', name: 'صاعقة الحسم', dmg: [250, 420, 740], text: 'ضربتها تتضاعف على اللي صحته أقل من 40%.' }, { rarity: 'legendary', exclusive: true });
   unit('kodama', 'كوداما', 'Kodama', 'sylvan', 'support', 3, 80,
-    { type: 'healAll', name: 'همس الأرواح', heal: [170, 290, 510], text: 'يعالج جميع الحلفاء.' }, { rarity: 'legendary', exclusive: true });
+    { type: 'healAll', name: 'همس الأرواح', heal: [170, 290, 510], text: 'يعالج كل الفريق.' }, { rarity: 'legendary', exclusive: true });
 
   const UNITS = {};
   U.forEach((u) => (UNITS[u.id] = u));
@@ -2549,47 +2549,47 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
    */
   const HEROES = {
     kagira: {
-      id: 'kagira', name: 'كيرو', title: 'الجمر الهادئ', world: 'ember', style: 'هجومي — هادئ ومحسوب، ينفجر عند الهجوم: ضغط مبكر وضرر متفجر',
+      id: 'kagira', name: 'كيرو', title: 'الجمر الهادئ', world: 'ember', style: 'هجومي: هادي وحسّابه، وإذا هجم ينفجر. ضغط من البداية وضرر قوي.',
       board: { atk: 85, as: 0.8, range: 1, def: 0.2, crit: 0.1 },
-      passive: { id: 'blazing_will', name: 'إرادة متقدة', text: 'عندما يصبح البطل مكشوفًا يكتسب الحلفاء +25% هجوم.' },
+      passive: { id: 'blazing_will', name: 'إرادة متقدة', text: 'لما يصير البطل مكشوف، الفريق ياخذ +25% هجوم.' },
       abilities: [
         { id: 'inferno_banner', name: 'أمر الهجوم', cost: 3, type: 'buffAllies', atkPct: 0.3, dur: 6,
-          text: '+30% هجوم لجميع الحلفاء لمدة 6 ثوانٍ.' },
+          text: '+30% هجوم لكل الفريق لمدة 6 ثواني.' },
         { id: 'meteor', name: 'نيزك الجمر', cost: 4, type: 'damageCluster', dmg: 200, scale: 25, radius: 1.6,
-          text: 'نيزك على أكثف تجمع للأعداء (200 + 25 لكل جولة).' },
+          text: 'نيزك ينزل على أكثر مكان فيه أعداء (200 + 25 مع كل جولة).' },
       ],
     },
     merin: {
-      id: 'merin', name: 'ميران', title: 'حارس المدّ الصامت', world: 'tide', style: 'صمود — ظلّ هادئ يحمي الفريق: دروع وعلاج ومعارك طويلة',
+      id: 'merin', name: 'ميران', title: 'حارس المدّ الصامت', world: 'tide', style: 'صمود: هادي ويحمي الفريق. دروع وعلاج ومعارك طويلة.',
       board: { atk: 86, as: 0.8, range: 3, def: 0.1, crit: 0.05 },
-      passive: { id: 'deep_reserve', name: 'مخزون عميق', text: '+1 جوهر إضافي كل جولة.' },
+      passive: { id: 'deep_reserve', name: 'مخزون عميق', text: '+1 جوهرة زيادة كل جولة.' },
       abilities: [
         { id: 'tidal_ward', name: 'حاجز المدّ', cost: 3, type: 'shieldAllies', amount: 200, scale: 25,
-          text: 'درع لجميع الحلفاء (200 + 25 لكل جولة).' },
+          text: 'درع لكل الفريق (200 + 25 مع كل جولة).' },
         { id: 'moon_spring', name: 'ينبوع القمر', cost: 4, type: 'healAllies', pct: 0.36,
-          text: 'يعالج جميع الحلفاء بنسبة 36% من صحتهم القصوى.' },
+          text: 'يعالج كل الفريق بنسبة 36% من صحتهم الكاملة.' },
       ],
     },
     zerokai: {
-      id: 'zerokai', name: 'زيرو-كاي', title: 'الظلّ المشفّر', world: 'neon', style: 'إيقاع — غامض يسبق خصمه بخطوة، اقتصاد مرن وسرعة',
+      id: 'zerokai', name: 'زيرو-كاي', title: 'الظلّ المشفّر', world: 'neon', style: 'سرعة: غامض وسابق خصمه بخطوة. اقتصاد مرن وحركة سريعة.',
       board: { atk: 74, as: 0.85, range: 4, def: 0.05, crit: 0.15 },
       passive: { id: 'free_reroll', name: 'وصول خلفي', text: 'أول تحديث للمتجر في كل جولة مجاني.' },
       abilities: [
         { id: 'overclock', name: 'كسر السرعة', cost: 3, type: 'buffAllies', asPct: 0.25, dur: 5,
-          text: '+25% سرعة هجوم لجميع الحلفاء لمدة 5 ثوانٍ.' },
+          text: '+25% سرعة هجوم لكل الفريق لمدة 5 ثواني.' },
         { id: 'system_crash', name: 'انهيار النظام', cost: 5, type: 'stunEnemies', dur: 1.5,
-          text: 'يشلّ جميع الأعداء لمدة 1.5 ثانية.' },
+          text: 'يوقف كل الأعداء لمدة 1.5 ثانية.' },
       ],
     },
     orath: {
-      id: 'orath', name: 'أوراث', title: 'الحارس المحلّل', world: 'sylvan', style: 'دفاعي — هادئ وتحليلي يقرأ المعركة قبل أن تبدأ: خط أمامي صلب وتحكم',
+      id: 'orath', name: 'أوراث', title: 'الحارس المحلّل', world: 'sylvan', style: 'دفاعي: هادي ويحلل، ويقرأ المعركة قبل لا تبدأ. خط أمامي قوي وسيطرة.',
       board: { atk: 75, as: 0.65, range: 1, def: 0.3, crit: 0.05 },
-      passive: { id: 'ancient_bark', name: 'لحاء صلب', text: 'وحدات الصف الأمامي تكتسب +15% صحة قصوى.' },
+      passive: { id: 'ancient_bark', name: 'لحاء صلب', text: 'وحدات الصف الأمامي تاخذ +15% صحة.' },
       abilities: [
         { id: 'thorn_wall', name: 'جدار الأشواك', cost: 3, type: 'frontDR', dr: 0.35, dur: 6,
-          text: 'الصف الأمامي يتلقى ضررًا أقل بـ 35% لمدة 6 ثوانٍ.' },
+          text: 'الصف الأمامي ياخذ ضرر أقل بـ 35% لمدة 6 ثواني.' },
         { id: 'rootbind', name: 'قيد الجذور', cost: 4, type: 'stunFront', dur: 2, dmg: 100, scale: 15,
-          text: 'يقيّد الصف الأمامي للعدو ثانيتين ويصيبه (100 + 15 لكل جولة).' },
+          text: 'يوقف الصف الأمامي للعدو ثانيتين ويضرّه (100 + 15 مع كل جولة).' },
       ],
     },
   };
@@ -2606,24 +2606,24 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
     rift_blade: { id: 'rift_blade', kind: 'equip', name: 'نصل الصدع', cost: 3, icon: 'sword',
       effects: [{ stat: 'atkPct', value: 0.25 }], text: '+25% هجوم.' },
     star_plate: { id: 'star_plate', kind: 'equip', name: 'درع النجم', cost: 3, icon: 'shield',
-      effects: [{ stat: 'hpPct', value: 0.3 }, { stat: 'dr', value: 0.05 }], text: '+30% صحة، +5% تقليل ضرر.' },
+      effects: [{ stat: 'hpPct', value: 0.3 }, { stat: 'dr', value: 0.05 }], text: '+30% صحة، و5% ضرر أقل عليه.' },
     swift_charm: { id: 'swift_charm', kind: 'equip', name: 'تميمة الريح', cost: 3, icon: 'wind',
       effects: [{ stat: 'asPct', value: 0.25 }], text: '+25% سرعة هجوم.' },
     mana_prism: { id: 'mana_prism', kind: 'equip', name: 'موشور المانا', cost: 3, icon: 'orb',
-      effects: [{ stat: 'startMana', value: 40 }, { stat: 'skillPower', value: 0.1 }], text: '+40 مانا ابتدائية، +10% قوة مهارة.' },
+      effects: [{ stat: 'startMana', value: 40 }, { stat: 'skillPower', value: 0.1 }], text: '+40 مانا من البداية، و+10% قوة للمهارة.' },
     vamp_fang: { id: 'vamp_fang', kind: 'equip', name: 'ناب الظل', cost: 3, icon: 'fang',
-      effects: [{ stat: 'lifesteal', value: 0.2 }], text: '20% سرقة حياة.' },
+      effects: [{ stat: 'lifesteal', value: 0.2 }], text: 'يسرق 20% من ضرره صحة.' },
     hawk_scope: { id: 'hawk_scope', kind: 'equip', name: 'منظار الصقر', cost: 3, icon: 'eye',
-      effects: [{ stat: 'range', value: 1 }, { stat: 'crit', value: 0.15 }], text: '+1 مدى، +15% فرصة ضربة حرجة.' },
+      effects: [{ stat: 'range', value: 1 }, { stat: 'crit', value: 0.15 }], text: '+1 مدى، و+15% فرصة ضربة حرجة.' },
 
     war_hymn: { id: 'war_hymn', kind: 'spell', name: 'ترنيمة الحرب', cost: 2, icon: 'note',
-      spell: { type: 'buffAll', atkPct: 0.2 }, text: 'القتال القادم: +20% هجوم لجميع الحلفاء.' },
+      spell: { type: 'buffAll', atkPct: 0.2 }, text: 'القتال الجاي: +20% هجوم لكل الفريق.' },
     rift_ward: { id: 'rift_ward', kind: 'spell', name: 'حاجز الصدع', cost: 2, icon: 'shield',
-      spell: { type: 'shieldFront', amount: 260 }, text: 'القتال القادم: درع 260 للصف الأمامي.' },
+      spell: { type: 'shieldFront', amount: 260 }, text: 'القتال الجاي: درع 260 للصف الأمامي.' },
     dim_meteor: { id: 'dim_meteor', kind: 'spell', name: 'نيزك الأبعاد', cost: 3, icon: 'star',
-      spell: { type: 'hitBack', dmg: 240, at: 3 }, text: 'القتال القادم: بعد 3 ثوانٍ يصيب الصف الخلفي للعدو بـ 240 ضرر.' },
+      spell: { type: 'hitBack', dmg: 240, at: 3 }, text: 'القتال الجاي: بعد 3 ثواني يضرب الصف الخلفي للعدو بـ 240 ضرر.' },
     time_wind: { id: 'time_wind', kind: 'spell', name: 'ريح الزمن', cost: 2, icon: 'wind',
-      spell: { type: 'hasteAll', asPct: 0.25, dur: 8 }, text: 'القتال القادم: +25% سرعة هجوم أول 8 ثوانٍ.' },
+      spell: { type: 'hasteAll', asPct: 0.25, dur: 8 }, text: 'القتال الجاي: +25% سرعة هجوم أول 8 ثواني.' },
   };
 
   /*
@@ -2633,40 +2633,40 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
    */
   const SYNERGIES = {
     ember: { id: 'ember', kind: 'world', name: 'مملكة الجمر', tiers: [
-      { n: 2, effects: [{ scope: 'members', stat: 'atkPct', value: 0.15 }], text: 'أعضاء الجمر +15% هجوم' },
-      { n: 4, effects: [{ scope: 'members', stat: 'atkPct', value: 0.35 }], text: 'أعضاء الجمر +35% هجوم' }] },
+      { n: 2, effects: [{ scope: 'members', stat: 'atkPct', value: 0.15 }], text: 'وحدات الجمر +15% هجوم' },
+      { n: 4, effects: [{ scope: 'members', stat: 'atkPct', value: 0.35 }], text: 'وحدات الجمر +35% هجوم' }] },
     tide: { id: 'tide', kind: 'world', name: 'المدّ القمري', tiers: [
-      { n: 2, effects: [{ scope: 'members', stat: 'startShieldPct', value: 0.22 }], text: 'أعضاء المدّ يبدؤون بدرع 22%' },
-      { n: 4, effects: [{ scope: 'members', stat: 'startShieldPct', value: 0.4 }, { scope: 'members', stat: 'regenPct', value: 0.02 }], text: 'درع 40% + تجدد 2%/ث' }] },
+      { n: 2, effects: [{ scope: 'members', stat: 'startShieldPct', value: 0.22 }], text: 'وحدات المدّ تبدأ بدرع 22%' },
+      { n: 4, effects: [{ scope: 'members', stat: 'startShieldPct', value: 0.4 }, { scope: 'members', stat: 'regenPct', value: 0.02 }], text: 'درع 40% + تجدد 2% كل ثانية' }] },
     neon: { id: 'neon', kind: 'world', name: 'نيون-٩', tiers: [
-      { n: 2, effects: [{ scope: 'members', stat: 'asPct', value: 0.18 }], text: 'أعضاء نيون +18% سرعة هجوم' },
-      { n: 4, effects: [{ scope: 'members', stat: 'asPct', value: 0.4 }], text: 'أعضاء نيون +40% سرعة هجوم' }] },
+      { n: 2, effects: [{ scope: 'members', stat: 'asPct', value: 0.18 }], text: 'وحدات نيون +18% سرعة هجوم' },
+      { n: 4, effects: [{ scope: 'members', stat: 'asPct', value: 0.4 }], text: 'وحدات نيون +40% سرعة هجوم' }] },
     sylvan: { id: 'sylvan', kind: 'world', name: 'الغابة الأزلية', tiers: [
-      { n: 2, effects: [{ scope: 'members', stat: 'hpPct', value: 0.2 }], text: 'أعضاء الغابة +20% صحة' },
-      { n: 4, effects: [{ scope: 'members', stat: 'hpPct', value: 0.45 }], text: 'أعضاء الغابة +45% صحة' }] },
+      { n: 2, effects: [{ scope: 'members', stat: 'hpPct', value: 0.2 }], text: 'وحدات الغابة +20% صحة' },
+      { n: 4, effects: [{ scope: 'members', stat: 'hpPct', value: 0.45 }], text: 'وحدات الغابة +45% صحة' }] },
 
     guardian: { id: 'guardian', kind: 'role', name: 'الحرّاس', tiers: [
-      { n: 2, effects: [{ scope: 'members', stat: 'dr', value: 0.15 }], text: 'الحراس +15% تقليل ضرر' },
-      { n: 4, effects: [{ scope: 'members', stat: 'dr', value: 0.25 }, { scope: 'all', stat: 'dr', value: 0.08 }], text: 'الحراس +25%، الجميع +8% تقليل ضرر' }] },
+      { n: 2, effects: [{ scope: 'members', stat: 'dr', value: 0.15 }], text: 'الحراس ياخذون 15% ضرر أقل' },
+      { n: 4, effects: [{ scope: 'members', stat: 'dr', value: 0.25 }, { scope: 'all', stat: 'dr', value: 0.08 }], text: 'الحراس ياخذون 25% ضرر أقل، والباقي 8%' }] },
     fighter: { id: 'fighter', kind: 'role', name: 'المقاتلون', tiers: [
-      { n: 2, effects: [{ scope: 'members', stat: 'lifesteal', value: 0.15 }], text: 'المقاتلون 15% سرقة حياة' },
-      { n: 4, effects: [{ scope: 'members', stat: 'lifesteal', value: 0.3 }, { scope: 'members', stat: 'atkPct', value: 0.1 }], text: '30% سرقة حياة +10% هجوم' }] },
+      { n: 2, effects: [{ scope: 'members', stat: 'lifesteal', value: 0.15 }], text: 'المقاتلون يسرقون 15% من ضررهم صحة' },
+      { n: 4, effects: [{ scope: 'members', stat: 'lifesteal', value: 0.3 }, { scope: 'members', stat: 'atkPct', value: 0.1 }], text: 'يسرقون 30% صحة، و+10% هجوم' }] },
     assassin: { id: 'assassin', kind: 'role', name: 'القتلة', tiers: [
-      { n: 2, effects: [{ scope: 'members', stat: 'crit', value: 0.15 }, { scope: 'members', stat: 'critDmg', value: 0.3 }], text: '+15% حرجة، +30% ضرر حرج' },
-      { n: 3, effects: [{ scope: 'members', stat: 'crit', value: 0.3 }, { scope: 'members', stat: 'critDmg', value: 0.6 }], text: '+30% حرجة، +60% ضرر حرج' }] },
+      { n: 2, effects: [{ scope: 'members', stat: 'crit', value: 0.15 }, { scope: 'members', stat: 'critDmg', value: 0.3 }], text: '+15% فرصة حرجة، و+30% ضرر الحرجة' },
+      { n: 3, effects: [{ scope: 'members', stat: 'crit', value: 0.3 }, { scope: 'members', stat: 'critDmg', value: 0.6 }], text: '+30% فرصة حرجة، و+60% ضرر الحرجة' }] },
     mage: { id: 'mage', kind: 'role', name: 'السحرة', tiers: [
-      { n: 2, effects: [{ scope: 'members', stat: 'skillPower', value: 0.35 }, { scope: 'members', stat: 'startMana', value: 30 }], text: '+35% قوة مهارة، +30 مانا' },
-      { n: 3, effects: [{ scope: 'members', stat: 'skillPower', value: 0.7 }, { scope: 'members', stat: 'startMana', value: 50 }], text: '+70% قوة مهارة، +50 مانا' }] },
+      { n: 2, effects: [{ scope: 'members', stat: 'skillPower', value: 0.35 }, { scope: 'members', stat: 'startMana', value: 30 }], text: '+35% قوة المهارة، و+30 مانا' },
+      { n: 3, effects: [{ scope: 'members', stat: 'skillPower', value: 0.7 }, { scope: 'members', stat: 'startMana', value: 50 }], text: '+70% قوة المهارة، و+50 مانا' }] },
     marksman: { id: 'marksman', kind: 'role', name: 'القناصة', tiers: [
-      { n: 2, effects: [{ scope: 'members', stat: 'atkPct', value: 0.15 }, { scope: 'members', stat: 'range', value: 1 }], text: '+15% هجوم، +1 مدى' },
-      { n: 3, effects: [{ scope: 'members', stat: 'atkPct', value: 0.35 }, { scope: 'members', stat: 'range', value: 1 }], text: '+35% هجوم، +1 مدى' }] },
+      { n: 2, effects: [{ scope: 'members', stat: 'atkPct', value: 0.15 }, { scope: 'members', stat: 'range', value: 1 }], text: '+15% هجوم، و+1 مدى' },
+      { n: 3, effects: [{ scope: 'members', stat: 'atkPct', value: 0.35 }, { scope: 'members', stat: 'range', value: 1 }], text: '+35% هجوم، و+1 مدى' }] },
     support: { id: 'support', kind: 'role', name: 'الداعمون', tiers: [
-      { n: 2, effects: [{ scope: 'all', stat: 'regenPct', value: 0.015 }], text: 'جميع الحلفاء يتجددون 1.5%/ث' },
-      { n: 3, effects: [{ scope: 'all', stat: 'regenPct', value: 0.03 }], text: 'جميع الحلفاء يتجددون 3%/ث' }] },
+      { n: 2, effects: [{ scope: 'all', stat: 'regenPct', value: 0.015 }], text: 'كل الفريق يتجدد 1.5% كل ثانية' },
+      { n: 3, effects: [{ scope: 'all', stat: 'regenPct', value: 0.03 }], text: 'كل الفريق يتجدد 3% كل ثانية' }] },
 
     convergence: { id: 'convergence', kind: 'special', name: 'تقارب العوالم', countBy: 'worlds', tiers: [
-      { n: 3, effects: [{ scope: 'all', stat: 'atkPct', value: 0.1 }, { scope: 'all', stat: 'hpPct', value: 0.1 }], text: '3 عوالم: الجميع +10% هجوم وصحة' },
-      { n: 4, effects: [{ scope: 'all', stat: 'atkPct', value: 0.2 }, { scope: 'all', stat: 'hpPct', value: 0.2 }], text: '4 عوالم: الجميع +20% هجوم وصحة' }] },
+      { n: 3, effects: [{ scope: 'all', stat: 'atkPct', value: 0.1 }, { scope: 'all', stat: 'hpPct', value: 0.1 }], text: '3 عوالم: الكل +10% هجوم وصحة' },
+      { n: 4, effects: [{ scope: 'all', stat: 'atkPct', value: 0.2 }, { scope: 'all', stat: 'hpPct', value: 0.2 }], text: '4 عوالم: الكل +20% هجوم وصحة' }] },
   };
 
   /*
@@ -3425,7 +3425,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
       const p = this.players[pi];
       const cost = AMB.CONFIG.economy.rerollCost;
       if (p.freeRerolls > 0) p.freeRerolls--;
-      else if (p.gold < cost) return this._fail('لا يوجد ذهب كافٍ للتحديث');
+      else if (p.gold < cost) return this._fail('ما عندك ذهب يكفي للتحديث');
       else { p.gold -= cost; p.stats.goldSpent += cost; }
       p.stats.rerolls++;
       this._rollShop(p);
@@ -3435,8 +3435,8 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
     buyXp(pi) {
       const p = this.players[pi];
       const E = AMB.CONFIG.economy;
-      if (p.level >= E.maxLevel) return this._fail('وصلت للمستوى الأقصى');
-      if (p.gold < E.xpCost) return this._fail('لا يوجد ذهب كافٍ');
+      if (p.level >= E.maxLevel) return this._fail('وصلت لأعلى مستوى');
+      if (p.gold < E.xpCost) return this._fail('ما عندك ذهب يكفي');
       p.gold -= E.xpCost; p.stats.goldSpent += E.xpCost;
       this._gainXp(p, E.xpPerBuy);
       return { ok: true };
@@ -3455,12 +3455,12 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
       const defId = p.shop[shopIdx];
       if (!defId) return { ok: false, reason: 'فارغ' };
       const def = AMB.DATA.UNITS[defId];
-      if (p.gold < def.cost) return { ok: false, reason: 'لا يوجد ذهب كافٍ' };
-      if (this.pool[defId] <= 0) return { ok: false, reason: 'نفدت النسخ من المخزون المشترك' };
+      if (p.gold < def.cost) return { ok: false, reason: 'ما عندك ذهب يكفي' };
+      if (this.pool[defId] <= 0) return { ok: false, reason: 'خلصت نسخ هالوحدة من المخزون' };
       const benchFree = p.bench.indexOf(null) >= 0;
       if (!benchFree) {
         const same = this.allUnits(p).filter((u) => u.defId === defId && u.star === 1).length;
-        if (same < AMB.CONFIG.stars.copiesPerStar - 1) return { ok: false, reason: 'مقعد الاحتياط ممتلئ' };
+        if (same < AMB.CONFIG.stars.copiesPerStar - 1) return { ok: false, reason: 'الاحتياط ممتلئ' };
       }
       return { ok: true };
     }
@@ -3541,7 +3541,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
     sell(pi, uid) {
       const p = this.players[pi];
       const u = this.findUnit(p, uid);
-      if (!u) return this._fail('الوحدة غير موجودة');
+      if (!u) return this._fail('ما لقيت الوحدة');
       this._remove(p, u);
       p.gold += this.sellValue(u);
       this.pool[u.defId] += this.copiesOf(u);
@@ -3553,15 +3553,15 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
     move(pi, uid, dest) {
       const p = this.players[pi];
       const u = this.findUnit(p, uid);
-      if (!u) return this._fail('الوحدة غير موجودة');
+      if (!u) return this._fail('ما لقيت الوحدة');
       const from = this._locate(p, u);
       if (dest.zone === 'board') {
         if (p.summoned && p.heroSlot === dest.slot) {
-          if (from.zone !== 'board') return this._fail('البطل يشغل هذه الخانة');
+          if (from.zone !== 'board') return this._fail('البطل واقف في هالخانة');
           p.heroSlot = from.slot; delete p.board[from.slot]; p.board[dest.slot] = u; return { ok: true };
         }
         const other = p.board[dest.slot] || null;
-        if (from.zone === 'bench' && !other && this.boardCount(p) >= p.level) return this._fail(`الساحة ممتلئة (${p.level}/${p.level}). بدّل بوحدة في الساحة، أو بع وحدة، أو ارفع مستواك بزر «خبرة»`);
+        if (from.zone === 'bench' && !other && this.boardCount(p) >= p.level) return this._fail(`الساحة ممتلئة (${p.level}/${p.level}). بدّل مع وحدة في الساحة، أو بع وحدة، أو ارفع مستواك بزر «خبرة»`);
         this._remove(p, u);
         if (other) { this._remove(p, other); this._put(p, other, from); }
         p.board[dest.slot] = u;
@@ -3581,7 +3581,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
       const id = p.itemShop[idx];
       if (!id) return this._fail('فارغ');
       const it = AMB.DATA.ITEMS[id];
-      if (p.gold < it.cost) return this._fail('لا يوجد ذهب كافٍ');
+      if (p.gold < it.cost) return this._fail('ما عندك ذهب يكفي');
       if (p.items.length >= AMB.CONFIG.economy.itemBenchSize) return this._fail('حقيبة المعدات ممتلئة');
       p.gold -= it.cost; p.stats.goldSpent += it.cost;
       p.items.push(id);
@@ -3592,10 +3592,10 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
     equip(pi, itemIdx, uid) {
       const p = this.players[pi];
       const id = p.items[itemIdx];
-      if (!id || AMB.DATA.ITEMS[id].kind !== 'equip') return this._fail('ليست معدة قابلة للتجهيز');
+      if (!id || AMB.DATA.ITEMS[id].kind !== 'equip') return this._fail('هذي مو معدة تنلبس');
       const u = this.findUnit(p, uid);
       if (!u) return this._fail('اختر وحدة');
-      if (u.items.length >= AMB.CONFIG.economy.maxItemsPerUnit) return this._fail('الوحدة تحمل الحد الأقصى من المعدات');
+      if (u.items.length >= AMB.CONFIG.economy.maxItemsPerUnit) return this._fail('الوحدة ما تشيل معدات زيادة');
       p.items.splice(itemIdx, 1);
       u.items.push(id);
       return { ok: true };
@@ -3604,7 +3604,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
     unequip(pi, uid) {
       const p = this.players[pi];
       const u = this.findUnit(p, uid);
-      if (!u || !u.items.length) return this._fail('لا توجد معدات');
+      if (!u || !u.items.length) return this._fail('ما فيه معدات');
       if (p.items.length + u.items.length > AMB.CONFIG.economy.itemBenchSize) return this._fail('الحقيبة ممتلئة');
       p.items.push(...u.items); u.items = [];
       return { ok: true };
@@ -3622,8 +3622,8 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
     armSpell(pi, itemIdx) {
       const p = this.players[pi];
       const id = p.items[itemIdx];
-      if (!id || AMB.DATA.ITEMS[id].kind !== 'spell') return this._fail('ليست تعويذة');
-      if (p.armedSpells.length >= AMB.CONFIG.economy.maxArmedSpells) return this._fail('الحد الأقصى للتعاويذ المجهزة');
+      if (!id || AMB.DATA.ITEMS[id].kind !== 'spell') return this._fail('هذي مو تعويذة');
+      if (p.armedSpells.length >= AMB.CONFIG.economy.maxArmedSpells) return this._fail('وصلت الحد الأقصى من التعاويذ');
       p.items.splice(itemIdx, 1);
       p.armedSpells.push(id);
       return { ok: true };
@@ -3649,11 +3649,11 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
       const p = this.players[pi];
       const hero = AMB.DATA.HEROES[p.heroId];
       const ab = hero.abilities.find((a) => a.id === abilityId);
-      if (!ab) return this._fail('قدرة غير معروفة');
+      if (!ab) return this._fail('ما أعرف هالقدرة');
       if (!trigger) { delete p.abilities[abilityId]; return { ok: true }; }
       const had = p.abilities[abilityId];
       if (!had) {
-        if (this.reservedEssence(p) + this.abilityCost(p, ab) > p.essence) return this._fail('الجوهر غير كافٍ');
+        if (this.reservedEssence(p) + this.abilityCost(p, ab) > p.essence) return this._fail('ما عندك جوهر يكفي');
       }
       p.abilities[abilityId] = trigger;
       return { ok: true };
@@ -3670,14 +3670,14 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
       if (p.summoned) { p.summoned = false; this._validateAbilities(p); return { ok: true }; }
       const s = slot || p.heroSlot;
       const target = !p.board[s] ? s : SLOTS.slice().reverse().find((x) => !p.board[x]);
-      if (!target) return this._fail('لا توجد خانة فارغة لاستدعاء البطل');
+      if (!target) return this._fail('ما فيه خانة فاضية تنزّل فيها البطل');
       p.heroSlot = target;
       p.summoned = true;
       return { ok: true };
     }
     moveHero(pi, slot) {
       const p = this.players[pi];
-      if (!p.summoned) return this._fail('البطل غير مستدعى');
+      if (!p.summoned) return this._fail('البطل مو في الساحة');
       const other = p.board[slot];
       if (other) { delete p.board[slot]; p.board[p.heroSlot] = other; }
       p.heroSlot = slot;
@@ -3852,8 +3852,8 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 
     claimReward(pi, idx) {
       const p = this.players[pi], o = p.rewardOffer;
-      if (!o || o.claimed) return this._fail('لا توجد مكافأة');
-      const id = o.options[idx]; if (!id) return this._fail('خيار غير صالح');
+      if (!o || o.claimed) return this._fail('ما فيه مكافأة');
+      const id = o.options[idx]; if (!id) return this._fail('هذا الخيار مو صحيح');
       const R = AMB.DATA.REWARDS[id], st = o.stage, out = { ok: true, id, text: R.name + ' — ' + this.rewardText(id, st) };
       switch (id) {
         case 'gold': p.gold += R.n[st]; break;
@@ -4309,7 +4309,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
     const exportJSON = () => JSON.stringify(root);
     function importJSON(text) {
       const r = JSON.parse(text);
-      if (!isObj(r) || !isObj(r.systems)) throw new Error('ملف حفظ غير صالح');
+      if (!isObj(r) || !isObj(r.systems)) throw new Error('ملف الحفظ مو صحيح');
       try { storage.setItem(KEY + '_preimport', JSON.stringify(root)); } catch (e) { /* ignore */ }   // the previous save stays recoverable
       root = r; root.sysV = root.sysV || {}; root.bakDay = dayOf(now()); write(); emit('*'); return true;
     }
@@ -4427,7 +4427,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 
   function Wallet(save, events) {
     const st = () => save.get('wallet');
-    const known = (id) => { if (!ECONOMY.currencies[id]) throw new Error('عملة غير معروفة: ' + id); };
+    const known = (id) => { if (!ECONOMY.currencies[id]) throw new Error('ما أعرف هالعملة: ' + id); };
     const clampAdd = (id, v) => Math.min(ECONOMY.currencies[id].max, v);
     return {
       balance: (id) => { known(id); return st().balances[id] || 0; },
@@ -4497,7 +4497,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
   function Collection(save, events) {
     const st = () => save.get('collection');
     const rec = (s, id) => (s.cards[id] = s.cards[id] || { owned: false, level: 1, copies: 0, got: 0 });
-    const R = (id) => { const d = defOf(id); if (!d) throw new Error('بطاقة غير معروفة: ' + id); return EC().rarities[d.rarity]; };
+    const R = (id) => { const d = defOf(id); if (!d) throw new Error('ما أعرف هالبطاقة: ' + id); return EC().rarities[d.rarity]; };
     const emit = (n, d) => events && events.emit(n, d);
 
     const api = {
@@ -4571,7 +4571,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
       },
       /** add/remove one unit; returns { ok, in, reason } */
       toggleDeck(id) {
-        if (!AMB.DATA.UNITS[id] || !api.owned(id)) return { ok: false, reason: 'لا تملك هذي الوحدة' };
+        if (!AMB.DATA.UNITS[id] || !api.owned(id)) return { ok: false, reason: 'ما تملك هالوحدة' };
         const cur = api.deck();
         if (cur.includes(id)) { api.setDeck(cur.filter((x) => x !== id)); return { ok: true, in: false }; }
         if (cur.length >= EC().deck.size) return { ok: false, reason: `الديك ممتلئ (${EC().deck.size})` };
@@ -4769,8 +4769,8 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
     stars: {
       rules: [
         { n: 1, text: 'فوز' },
-        { n: 2, text: 'فوز بدون خسارة أي جولة' },
-        { n: 3, text: 'فوز بدون خسارة جولة وبطلك بكامل حياته' },
+        { n: 2, text: 'فوز بدون ما تخسر جولة' },
+        { n: 3, text: 'فوز بدون ما تخسر جولة، وبطلك حياته كاملة' },
       ],
       chests: [
         { id: 'ch10', need: 10, name: 'صندوق برونزي', reward: { shards: 100 } },
@@ -4783,10 +4783,10 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 
   // boss specials: stat blessings + hero abilities fired at the start of every round
   const BOSS = {
-    ember: { name: 'غضب الجمر', text: 'وحدات الزعيم +20% هجوم، ويطلق «أمر الهجوم» مع بداية كل جولة.', blessings: { atkPct: 0.2 }, abilities: ['inferno_banner'] },
-    tide: { name: 'مدّ الحماية', text: 'وحدات الزعيم +25% صحة، ويطلق «حاجز المدّ» مع بداية كل جولة.', blessings: { hpPct: 0.25 }, abilities: ['tidal_ward'] },
-    neon: { name: 'كسر السرعة', text: 'وحدات الزعيم +20% سرعة هجوم، ويطلق «كسر السرعة» مع بداية كل جولة.', blessings: { asPct: 0.2 }, abilities: ['overclock'] },
-    sylvan: { name: 'جذور أزلية', text: 'وحدات الزعيم +20% صحة، ويطلق «جدار الأشواك» مع بداية كل جولة.', blessings: { hpPct: 0.2 }, abilities: ['thorn_wall'] },
+    ember: { name: 'غضب الجمر', text: 'وحدات الزعيم +20% هجوم، ويستخدم «أمر الهجوم» في بداية كل جولة.', blessings: { atkPct: 0.2 }, abilities: ['inferno_banner'] },
+    tide: { name: 'مدّ الحماية', text: 'وحدات الزعيم +25% صحة، ويستخدم «حاجز المدّ» في بداية كل جولة.', blessings: { hpPct: 0.25 }, abilities: ['tidal_ward'] },
+    neon: { name: 'كسر السرعة', text: 'وحدات الزعيم +20% سرعة هجوم، ويستخدم «كسر السرعة» في بداية كل جولة.', blessings: { asPct: 0.2 }, abilities: ['overclock'] },
+    sylvan: { name: 'جذور أزلية', text: 'وحدات الزعيم +20% صحة، ويستخدم «جدار الأشواك» في بداية كل جولة.', blessings: { hpPct: 0.2 }, abilities: ['thorn_wall'] },
   };
 
   const L = (id, world, hero, name, start, fights) => ({ id, world, hero, name, start, fights });
@@ -5168,13 +5168,13 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
   // the rotation (order = week order). `exclusive` = a unit flagged exclusive in core/data.js.
   const EVENTS = [
     { id: 'ember', world: 'ember', name: 'عاصفة الجمر', exclusive: 'hinotori',
-      boss: { name: 'سيّد الجمر المشتعل', text: 'وحدات الزعيم +30% هجوم و+10% صحة، ويطلق «أمر الهجوم» و«نيزك الجمر» كل جولة.', blessings: { atkPct: 0.3, hpPct: 0.1 }, abilities: ['inferno_banner', 'meteor'] } },
+      boss: { name: 'سيّد الجمر المشتعل', text: 'وحدات الزعيم +30% هجوم و+10% صحة، ويستخدم «أمر الهجوم» و«نيزك الجمر» كل جولة.', blessings: { atkPct: 0.3, hpPct: 0.1 }, abilities: ['inferno_banner', 'meteor'] } },
     { id: 'tide', world: 'tide', name: 'مدّ القمر الأسود', exclusive: 'mikazuki',
-      boss: { name: 'حارس المدّ الأبدي', text: 'وحدات الزعيم +30% صحة و+10% سرعة هجوم، ويطلق «حاجز المدّ» و«ينبوع القمر» كل جولة.', blessings: { hpPct: 0.3, asPct: 0.1 }, abilities: ['tidal_ward', 'moon_spring'] } },
+      boss: { name: 'حارس المدّ الأبدي', text: 'وحدات الزعيم +30% صحة و+10% سرعة هجوم، ويستخدم «حاجز المدّ» و«ينبوع القمر» كل جولة.', blessings: { hpPct: 0.3, asPct: 0.1 }, abilities: ['tidal_ward', 'moon_spring'] } },
     { id: 'neon', world: 'neon', name: 'انقطاع نيون', exclusive: 'kaminari',
-      boss: { name: 'عقل الشبكة المتمرّد', text: 'وحدات الزعيم +30% سرعة هجوم و+10% هجوم، ويطلق «كسر السرعة» و«انهيار النظام» كل جولة.', blessings: { asPct: 0.3, atkPct: 0.1 }, abilities: ['overclock', 'system_crash'] } },
+      boss: { name: 'عقل الشبكة المتمرّد', text: 'وحدات الزعيم +30% سرعة هجوم و+10% هجوم، ويستخدم «كسر السرعة» و«انهيار النظام» كل جولة.', blessings: { asPct: 0.3, atkPct: 0.1 }, abilities: ['overclock', 'system_crash'] } },
     { id: 'sylvan', world: 'sylvan', name: 'غضب الغابة', exclusive: 'kodama',
-      boss: { name: 'قلب الغابة الأزلي', text: 'وحدات الزعيم +30% صحة و+10% هجوم، ويطلق «جدار الأشواك» و«قيد الجذور» كل جولة.', blessings: { hpPct: 0.3, atkPct: 0.1 }, abilities: ['thorn_wall', 'rootbind'] } },
+      boss: { name: 'قلب الغابة الأزلي', text: 'وحدات الزعيم +30% صحة و+10% هجوم، ويستخدم «جدار الأشواك» و«قيد الجذور» كل جولة.', blessings: { hpPct: 0.3, atkPct: 0.1 }, abilities: ['thorn_wall', 'rootbind'] } },
   ];
 
   AMB.Save.register('events', { version: 1, defaults: () => ({ weeks: {} }) });   // weeks[idx] = { stage: stages cleared 0..3, got: exclusive card given }
@@ -5507,16 +5507,16 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
   // Stats count in every mode (quick matches, same device, campaign) except friendly matches.
   const DAILY = [
     { id: 'd_play2', name: 'العب مباراتين أو قتالين', stat: 'matches', target: 2, xp: 50, shards: 30 },
-    { id: 'd_win1', name: 'افز بمباراة', stat: 'wins', target: 1, xp: 60, shards: 30 },
-    { id: 'd_fights3', name: 'افز بـ٣ قتالات (أي نمط)', stat: 'fights_won', target: 3, xp: 60, shards: 50 },
-    { id: 'd_rounds5', name: 'افز بـ٥ جولات', stat: 'rounds_won', target: 5, xp: 50, shards: 30 },
-    { id: 'd_buy10', name: 'اشترِ ١٠ وحدات', stat: 'buys', target: 10, xp: 40, shards: 30 },
-    { id: 'd_merge1', name: 'رقِّ وحدة (٣ نسخ ← نجمة)', stat: 'merges', target: 1, xp: 50, shards: 30 },
-    { id: 'd_summon1', name: 'استدعِ بطلك إلى الساحة', stat: 'summons', target: 1, xp: 40, shards: 30 },
+    { id: 'd_win1', name: 'اكسب مباراة', stat: 'wins', target: 1, xp: 60, shards: 30 },
+    { id: 'd_fights3', name: 'اكسب ٣ قتالات (أي نمط)', stat: 'fights_won', target: 3, xp: 60, shards: 50 },
+    { id: 'd_rounds5', name: 'اكسب ٥ جولات', stat: 'rounds_won', target: 5, xp: 50, shards: 30 },
+    { id: 'd_buy10', name: 'اشتر ١٠ وحدات', stat: 'buys', target: 10, xp: 40, shards: 30 },
+    { id: 'd_merge1', name: 'طوّر وحدة (٣ نسخ ← نجمة)', stat: 'merges', target: 1, xp: 50, shards: 30 },
+    { id: 'd_summon1', name: 'نزّل بطلك الساحة', stat: 'summons', target: 1, xp: 40, shards: 30 },
     { id: 'd_reroll8', name: 'حدّث المتجر ٨ مرات', stat: 'rerolls', target: 8, xp: 30, shards: 30 },
-    { id: 'd_reward2', name: 'اختر مكافأتي مراحل', stat: 'stage_rewards', target: 2, xp: 40, shards: 30 },
-    { id: 'd_finale', name: 'افز بجولة الحسم', stat: 'finale_won', target: 1, xp: 70, shards: 40 },
-    { id: 'd_dmg', name: 'تسبّب بـ ٥٠٠٠ ضرر بوحداتك', stat: 'damage', target: 5000, xp: 40, shards: 30 },
+    { id: 'd_reward2', name: 'اختر مكافأة من مرحلتين', stat: 'stage_rewards', target: 2, xp: 40, shards: 30 },
+    { id: 'd_finale', name: 'اكسب جولة الحسم', stat: 'finale_won', target: 1, xp: 70, shards: 40 },
+    { id: 'd_dmg', name: 'اضرب ٥٠٠٠ ضرر بوحداتك', stat: 'damage', target: 5000, xp: 40, shards: 30 },
     { id: 'd_upgrade1', name: 'طوّر بطاقة', stat: 'upgrades', target: 1, xp: 40, shards: 40 },
     { id: 'd_pack1', name: 'افتح باكج', stat: 'packs', target: 1, xp: 30, shards: 30 },
     { id: 'd_stars3', name: 'اجمع ٣ نجوم جديدة في الحملة', stat: 'stars', target: 3, xp: 60, shards: 50 },
@@ -5524,13 +5524,13 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
     { id: 'd_campaign2', name: 'العب قتالين في الحملة', stat: 'campaign', target: 2, xp: 40, shards: 40 },
   ];
   const WEEKLY = [
-    { id: 'w_win5', name: 'افز بـ٥ مباريات', stat: 'wins', target: 5, xp: 200 },
+    { id: 'w_win5', name: 'اكسب ٥ مباريات', stat: 'wins', target: 5, xp: 200 },
     { id: 'w_play10', name: 'العب ١٠ مباريات', stat: 'matches', target: 10, xp: 150 },
-    { id: 'w_merge8', name: 'رقِّ ٨ وحدات', stat: 'merges', target: 8, xp: 180 },
-    { id: 'w_rounds30', name: 'افز بـ٣٠ جولة', stat: 'rounds_won', target: 30, xp: 200 },
+    { id: 'w_merge8', name: 'طوّر ٨ وحدات', stat: 'merges', target: 8, xp: 180 },
+    { id: 'w_rounds30', name: 'اكسب ٣٠ جولة', stat: 'rounds_won', target: 30, xp: 200 },
     { id: 'w_worlds', name: 'ادخل مباراة بوحدات من ٤ عوالم', stat: 'four_worlds', target: 1, xp: 150 },
     { id: 'w_event', name: 'أكمل الحدث الأسبوعي', stat: 'event_cleared', target: 1, xp: 150 },
-    { id: 'w_finale3', name: 'افز بـ٣ جولات حسم', stat: 'finale_won', target: 3, xp: 180 },
+    { id: 'w_finale3', name: 'اكسب ٣ جولات حسم', stat: 'finale_won', target: 3, xp: 180 },
   ];
 
   const dayKey = (t) => { const d = new Date(t); return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); };
@@ -6263,8 +6263,8 @@ AMB.IMAGES = {
   const starterPick = () => S.pickIdx === 0 && AMB.collection && AMB.collection.needsStarter();
   const heroLocked = (id) => S.pickIdx === 0 && AMB.collection && !starterPick() && !AMB.collection.owned(id);
   function renderHeroSelect() {
-    const who = starterPick() ? 'اختر بطلك الأول — اختيار دائم، والباقين تفتحهم من الباكجات أو الباتل باس'
-      : S.mode === 'hotseat' ? `اللاعب ${S.pickIdx + 1}: اختر بطلك${S.pickIdx === 1 ? ' (ضيف: كل الأبطال متاحة)' : ''}` : 'اختر بطلك';
+    const who = starterPick() ? 'اختر بطلك الأول. ما تقدر تغيّره، والباقين تفتحهم من الباكجات أو الباتل باس'
+      : S.mode === 'hotseat' ? `اللاعب ${S.pickIdx + 1}: اختر بطلك${S.pickIdx === 1 ? ' (ضيف: كل الأبطال متاحين)' : ''}` : 'اختر بطلك';
     $('hero-title').textContent = who;
     if (S.picks[S.pickIdx] && heroLocked(S.picks[S.pickIdx])) S.picks[S.pickIdx] = null;
     const cur = S.picks[S.pickIdx];
@@ -6278,14 +6278,14 @@ AMB.IMAGES = {
         <h3>${h.name}</h3><div class="title">${h.title}</div>
         <div class="world">${W.name}</div>
         <div class="style">${h.style}</div>
-        <div class="ab"><b>سلبية — ${h.passive.name}:</b> ${h.passive.text}</div>
+        <div class="ab"><b>سلبية: ${h.passive.name}</b> — ${h.passive.text}</div>
         ${h.abilities.map((a) => `<div class="ab"><b>${a.name}</b> <span style="color:var(--ess)">(${a.cost} جوهر)</span>: ${a.text}</div>`).join('')}
         <div class="ab" style="color:var(--muted)">وحدات عالمه (رنين +${CFG.hero.resonancePerAlly * 100}%): ${units}</div>
         <div style="text-align:center;margin-top:8px"><button class="btn small" data-act="heroInfo" data-id="${h.id}">تفاصيل</button></div>
       </div>`;
     }).join('');
     $('hero-confirm').disabled = !cur;
-    $('hero-confirm').textContent = starterPick() ? 'اعتمده بطلي الأول' : S.mode === 'hotseat' && S.pickIdx === 0 ? 'تأكيد والانتقال للاعب 2' : 'ابدأ المباراة';
+    $('hero-confirm').textContent = starterPick() ? 'خذه بطلي الأول' : S.mode === 'hotseat' && S.pickIdx === 0 ? 'تمام، دور اللاعب 2' : 'ابدأ المباراة';
   }
 
   const maxR = () => (S.match && S.match.rules ? S.match.rules.maxRounds : CFG.match.maxRounds);
@@ -6300,7 +6300,7 @@ AMB.IMAGES = {
       const styles = ['mono', 'mixed', 'balanced'];
       players = [
         { heroId: S.picks[0], name: 'أنت' },
-        { heroId: aiHero, name: 'الخصم الآلي', isAI: true, aiStyle: styles[Math.floor(Math.random() * 3)], difficulty: S.mode === 'friendly' ? 'easy' : S.difficulty },
+        { heroId: aiHero, name: 'الكمبيوتر', isAI: true, aiStyle: styles[Math.floor(Math.random() * 3)], difficulty: S.mode === 'friendly' ? 'easy' : S.difficulty },
       ];
     }
     // campaign fight (ui/campaign-ui.js): fixed enemy line-up, short best-of-3 rules, your card levels count
@@ -6373,12 +6373,12 @@ AMB.IMAGES = {
     const m = S.match, p = m.players[pi], o = p.rewardOffer, st = AMB.CONFIG.match.stages[o.stage];
     S.rewardFor = pi;
     overlay(`<div class="ov-card rw"><h2>🎁 مكافأة مرحلة «${st.name}»</h2>
-      <p class="hint">${S.mode === 'hotseat' ? esc(p.name) + ': ' : ''}اختر مكافأة واحدة.${o.trailing ? ' <b style="color:var(--red)">خيار إضافي لأنك متأخر بالحياة.</b>' : ''}</p>
+      <p class="hint">${S.mode === 'hotseat' ? esc(p.name) + ': ' : ''}اختر مكافأة واحدة.${o.trailing ? ' <b style="color:var(--red)">خيار زيادة لأنك متأخر بالحياة.</b>' : ''}</p>
       <div class="rw-grid">${o.options.map((id, i) => { const r = rewardHTML(id, o.stage); return `<button class="rw-card ${id.startsWith('bless') ? 'bless' : id}" data-act="claimReward" data-idx="${i}"><span class="rw-ic">${icon(r.R.icon)}</span><b>${r.R.name}</b><span class="rw-tx">${r.text}</span>${r.tags}</button>`; }).join('')}</div></div>`);
   }
   function rewardHandoff(pi) {
     const p = S.match.players[pi];
-    overlay(`<div class="ov-card"><h2>دور ${esc(p.name)}</h2><p class="hint">سلّم الجهاز لـ ${esc(p.name)} لاختيار المكافأة.</p>
+    overlay(`<div class="ov-card"><h2>دور ${esc(p.name)}</h2><p class="hint">عطِ الجهاز لـ ${esc(p.name)} عشان يختار المكافأة.</p>
       <button class="btn primary big" data-act="rewardGo" data-pi="${pi}">أنا جاهز</button></div>`);
   }
   function afterReward() {
@@ -6395,7 +6395,7 @@ AMB.IMAGES = {
     S.phase = 'handoff';
     renderMatch();
     overlay(`<div class="ov-card"><h2>دور ${esc(p.name)}</h2>
-      <p class="hint">الجولة ${S.match.round}. سلّم الجهاز لـ ${esc(p.name)}. لا ينظر الخصم أثناء التجهيز.</p>
+      <p class="hint">الجولة ${S.match.round}. عطِ الجهاز لـ ${esc(p.name)}، والخصم لا يطالع وقت التجهيز.</p>
       <p>${portrait(HEROES[p.heroId], { k: 'ho' }).replace('class="portrait', 'style="width:80px;height:80px" class="portrait')}</p>
       <button class="btn primary big" data-act="handoffGo" data-pi="${pi}">أنا جاهز</button></div>`);
   }
@@ -6771,13 +6771,13 @@ AMB.IMAGES = {
       } else if (e.type === 'heroAbility' || e.type === 'spell') {
         addFloat(50, e.side === S.combatViewer ? 62 : 38, (e.type === 'spell' ? '✦ ' : '⚡ ') + e.name, 'big');
       } else if (e.type === 'exposed') {
-        addFloat(50, e.side === S.combatViewer ? 84 : 16, 'سقط خط الدفاع — البطل مكشوف!', 'big');
+        addFloat(50, e.side === S.combatViewer ? 84 : 16, 'سقط خط الدفاع، البطل صار مكشوف!', 'big');
       } else if (e.type === 'assault') {
-        addFloat(50, e.side === S.combatViewer ? 80 : 20, 'هجوم على مركز القيادة!', 'big');
+        addFloat(50, e.side === S.combatViewer ? 80 : 20, 'يهجمون على البطل!', 'big');
       } else if (e.type === 'retreat') {
-        addFloat(50, e.side === S.combatViewer ? 80 : 20, 'انسحب البطل إلى مركز القيادة', 'big');
+        addFloat(50, e.side === S.combatViewer ? 80 : 20, 'البطل رجع لمركزه', 'big');
       } else if (e.type === 'sealed') {
-        addFloat(50, e.side === S.combatViewer ? 88 : 12, 'تحصّن مركز القيادة (حد الضرر)', 'label');
+        addFloat(50, e.side === S.combatViewer ? 88 : 12, 'البطل تحصّن (ضرر محدود)', 'label');
       } else if (e.type === 'leap' && f && el) {
         floatAt(el, 'قفزة!', 'label', 26);
       } else if (e.type === 'stun' && f && el) {
@@ -7007,7 +7007,7 @@ AMB.IMAGES = {
     const sc = m.players[1 - S.v].lineup ? m.buildCombatSpec(1 - S.v) : m.scout[1 - S.v];
     const oppSyn = sc ? AMB.synergy.evaluate(sc.units, sc.heroId).list.filter((x) => x.activeTier >= 0) : [];
     const timeline = m.history.map((r) => `<span class="${r.winner === null ? 'wd' : r.winner === S.v ? 'w0' : 'w1'}">${r.round}</span>`).join('');
-    AMB.TIPS.guard = () => ({ title: 'حماية البطل', html: '<p>ما دام عندك أي وحدة حيّة في الصف الأمامي، <b>ما يقدر العدو يستهدف بطلك</b>. إذا سقطت كلها ينكشف البطل ويتلقى الضرر.</p><p>القتلة يقفزون للصف الخلفي لكن لا يضربون البطل المحمي. وإذا استدعيت بطلك للساحة يتلقى الضرر كاملًا.</p>' });
+    AMB.TIPS.guard = () => ({ title: 'حماية البطل', html: '<p>طول ما عندك وحدة حية في الصف الأمامي، <b>العدو ما يقدر يضرب بطلك</b>. وإذا سقطت كلها ينكشف البطل ويتضرر.</p><p>القتلة يقفزون للصف الخلفي بس ما يقدرون يضربون البطل وهو محمي. وإذا نزّلت بطلك الساحة ياخذ الضرر كامل.</p>' });
     const guard = heroFront || front === 0 ? `<button class="guard risk" data-act="info" data-k="guard">${icon('warn')}</button>` : `<button class="guard safe" data-act="info" data-k="guard">${icon('shield')}<b>${front}</b></button>`;
     $('panel-left').innerHTML = `
       <section class="rail-guard">${guard}</section>
@@ -7043,9 +7043,9 @@ AMB.IMAGES = {
       bag.push(`<div class="bagslot ${it.kind} ${sel ? 'sel' : ''}" data-act="bagSel" data-idx="${i}">${icon(it.icon)}</div>`);
     }
     const armed = p.armedSpells.map((id, i) => `<span class="chip" data-act="disarm" data-idx="${i}">${icon(ITEMS[id].icon)} ✕</span>`).join('');
-    AMB.TIPS.summon = () => ({ title: 'استدعاء البطل', html: `<p>${p.summoned ? 'بطلك الحين يقاتل في الساحة (اسحبه لتغيير موقعه).' : 'بطلك الحين في مركز القيادة خلف صفوفك.'}</p>
-      <p><b>الفايدة:</b> يهاجم بقوة ${h.board.atk + CFG.hero.boardAtkPerRound * m.round}، والحلفاء +${CFG.hero.summonAuraAtk * 100}% هجوم، والقدرات أرخص بـ${CFG.hero.summonAbilityDiscount}.</p>
-      <p><b>المخاطرة:</b> يتلقى الضرر كاملًا (حتى الضرر المساحي)، وينسحب بعد خسارة ${CFG.combat.summonKnockout} حياة، ووصول حياته للصفر = خسارة فورية.</p>` });
+    AMB.TIPS.summon = () => ({ title: 'استدعاء البطل', html: `<p>${p.summoned ? 'بطلك الحين يقاتل في الساحة (اسحبه عشان تغيّر مكانه).' : 'بطلك الحين واقف خلف صفوفك.'}</p>
+      <p><b>الفايدة:</b> يهجم بقوة ${h.board.atk + CFG.hero.boardAtkPerRound * m.round}، والحلفاء +${CFG.hero.summonAuraAtk * 100}% هجوم، وقدراته أرخص بـ${CFG.hero.summonAbilityDiscount}.</p>
+      <p><b>المخاطرة:</b> ياخذ الضرر كامل (حتى ضرر المنطقة)، وينسحب بعد ما تخسر ${CFG.combat.summonKnockout} حياة، وإذا وصلت حياته صفر تخسر المباراة على طول.</p>` });
     $('panel-right').innerHTML = `
       <section class="hero-card-mini">${portrait(h, { k: 'rh' })}
         <div class="hcm-r"><div class="lifebar-big"><i style="width:${(p.life / p.maxLife) * 100}%"></i></div><div class="hcm-n">${icon('heart')} <b>${lifeStr(p.life)}</b></div></div>
@@ -7115,8 +7115,8 @@ AMB.IMAGES = {
     const W = WORLDS[d.world], R = ROLES[d.role];
     const SM = CFG.stars.mult;
     const rows = [
-      ['الصحة', (s) => d.hp * SM[s]], ['الهجوم', (s) => d.atk * SM[s]], ['سرعة الهجوم (ضربة/ث)', () => d.as, 2],
-      ['الضرر في الثانية', (s) => d.atk * SM[s] * d.as], ['المدى', () => d.range], ['الدفاع (تقليل ضرر)', () => d.def * 100, 0, '%'],
+      ['الصحة', (s) => d.hp * SM[s]], ['الهجوم', (s) => d.atk * SM[s]], ['سرعة الهجوم (ضربة في الثانية)', () => d.as, 2],
+      ['الضرر في الثانية', (s) => d.atk * SM[s] * d.as], ['المدى', () => d.range], ['الدفاع (ضرر أقل)', () => d.def * 100, 0, '%'],
       ['فرصة الحرجة', () => d.crit * 100, 0, '%'], ['المانا للمهارة', () => d.mana],
     ];
     const sk = d.skill;
@@ -7136,7 +7136,7 @@ AMB.IMAGES = {
       ${rows.map(([n, f, dg, suf]) => `<tr><td>${n}</td>${[1, 2, 3].map((s) => { const v = f(s), b = f(1); return `<td>${fmt(v, dg || 0)}${suf || ''}${s > 1 && v !== b ? `<div class="delta">+${Math.round(((v - b) / b) * 100)}%</div>` : ''}</td>`; }).join('')}</tr>`).join('')}</table>
       <div class="skillbox"><b>المهارة — ${sk.name}:</b> ${sk.text}
         ${skRows ? `<table><tr><th></th><th>★</th><th>★★</th><th>★★★</th></tr>${skRows}</table>` : ''}</div>
-      <div class="hint"><b>التطوير:</b> ${CFG.stars.copiesPerStar} نسخ ★ = ★★ ، و ${CFG.stars.copiesPerStar} نسخ ★★ = ★★★ (الحد الأقصى). الصحة والهجوم ×${SM[2]} ثم ×${SM[3]}؛ السرعة والمدى ثابتان كي لا تصبح وحدة واحدة غير قابلة للمواجهة.</div>
+      <div class="hint"><b>التطوير:</b> ${CFG.stars.copiesPerStar} نسخ ★ = ★★ ، و ${CFG.stars.copiesPerStar} نسخ ★★ = ★★★ (الحد الأقصى). الصحة والهجوم ×${SM[2]} ثم ×${SM[3]}؛ السرعة والمدى ما تتغير عشان ما تصير وحدة واحدة ما أحد يقدر عليها.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
         <div><span class="wtag" style="--w:${W.color}">${SYNERGIES[d.world].name}</span>${synOf(d.world)}</div>
         <div><b>${SYNERGIES[d.role].name}</b>${synOf(d.role)}</div></div>
@@ -7147,7 +7147,7 @@ AMB.IMAGES = {
     const h = HEROES[id], W = WORLDS[h.world];
     modal(`<div class="detail-head">${portrait(h, { k: 'mh' })}<div><h2>${h.name}</h2><div class="hint">${h.title}</div>
       <span class="pill" style="--pc:${W.color}">${W.name}</span><div class="hint">${h.style}</div></div></div>
-      <div class="skillbox"><b>سلبية — ${h.passive.name}:</b> ${h.passive.text}</div>
+      <div class="skillbox"><b>سلبية: ${h.passive.name}</b> — ${h.passive.text}</div>
       ${h.abilities.map((a) => `<div class="skillbox"><b>${a.name}</b> — <span style="color:var(--ess)">${a.cost} جوهر</span><br>${a.text}</div>`).join('')}
       <table><tr><th>عند الاستدعاء</th><th></th></tr>
       <tr><td>الصحة</td><td>الحياة × ${CFG.combat.heroHpScale}</td></tr><tr><td>الهجوم</td><td>${h.board.atk} + ${CFG.hero.boardAtkPerRound} لكل جولة</td></tr>
@@ -7167,27 +7167,27 @@ AMB.IMAGES = {
       const target = byStar[0] > 0 || byStar[1] === 0 ? 1 : 2;
       const have = byStar[target - 1];
       const SM = CFG.stars.mult;
-      const preview = maxed ? 'وصلت للحد الأقصى ★★★' : `عند ${'★'.repeat(target + 1)}: صحة ${fmt(d.hp * SM[target])} → <b>${fmt(d.hp * SM[target + 1])}</b>، هجوم ${fmt(d.atk * SM[target])} → <b>${fmt(d.atk * SM[target + 1])}</b>${d.skill.dmg ? `، ${d.skill.name} ${d.skill.dmg[target - 1]} → <b>${d.skill.dmg[target]}</b>` : d.skill.heal ? `، علاج ${d.skill.heal[target - 1]} → <b>${d.skill.heal[target]}</b>` : d.skill.shield ? `، درع ${d.skill.shield[target - 1]} → <b>${d.skill.shield[target]}</b>` : ''}`;
+      const preview = maxed ? 'وصلت لأعلى مستوى ★★★' : `عند ${'★'.repeat(target + 1)}: صحة ${fmt(d.hp * SM[target])} → <b>${fmt(d.hp * SM[target + 1])}</b>، هجوم ${fmt(d.atk * SM[target])} → <b>${fmt(d.atk * SM[target + 1])}</b>${d.skill.dmg ? `، ${d.skill.name} ${d.skill.dmg[target - 1]} → <b>${d.skill.dmg[target]}</b>` : d.skill.heal ? `، علاج ${d.skill.heal[target - 1]} → <b>${d.skill.heal[target]}</b>` : d.skill.shield ? `، درع ${d.skill.shield[target - 1]} → <b>${d.skill.shield[target]}</b>` : ''}`;
       const inShop = p.shop.map((x, i) => [x, i]).filter((e) => e[0] === id);
       const btn = inShop.length && !maxed ? `<button class="btn small primary" data-act="buyFromUpg" data-idx="${inShop[0][1]}">شراء من المتجر (${d.cost})</button>` : `<span class="hint">${maxed ? '' : 'غير متوفر في المتجر الآن'}</span>`;
       return `<div class="upg-row">${portrait(d, { k: 'up' + id })}<div><b>${d.name}</b> <span class="hint">★×${byStar[0]} ★★×${byStar[1]} ★★★×${byStar[2]} · المخزون ${m.pool[id]}</span>
         ${maxed ? '' : `<div class="hint">نسخ ${'★'.repeat(target)}: ${have}/${need} للترقية</div><div class="prog"><i style="width:${(have / need) * 100}%"></i></div>`}
         <div class="hint">${preview}</div></div>${btn}</div>`;
     }).join('');
-    modal(`<h2>شاشة التطوير</h2><p class="hint">اجمع ${need} نسخ متطابقة بنفس عدد النجوم ليتم دمجها تلقائيًا في وحدة أقوى (تنتقل المعدات معها). الحد الأقصى ★★★.
-      المخزون مشترك بين اللاعبين، فإذا جمع خصمك نفس الوحدة تصبح أصعب.</p>${rows || '<p class="hint">لا تملك وحدات بعد.</p>'}`);
+    modal(`<h2>شاشة التطوير</h2><p class="hint">اجمع ${need} نسخ متطابقة بنفس النجوم وتندمج لوحدة أقوى لحالها (والمعدات تنتقل معها). أعلى مستوى ★★★.
+      المخزون مشترك بين اللاعبين، فإذا خصمك جمع نفس الوحدة تصير أصعب عليك.</p>${rows || '<p class="hint">ما عندك وحدات للحين.</p>'}`);
   }
 
   function howto() {
     modal(`<h2>كيف ألعب؟</h2>
-      <div class="skillbox"><b>الهدف:</b> أوصل حياة بطل الخصم إلى الصفر. كل جولة: موارد ← شراء وتطوير ← ترتيب وقدرات ← قتال تلقائي ← نتائج.</div>
-      <div class="skillbox"><b>المتجر:</b> اشترِ الوحدات بالذهب، حدّث العروض (${CFG.economy.rerollCost} ذهب)، اشترِ خبرة لرفع المستوى (= عدد الوحدات في الساحة). الفائدة: +1 لكل ${CFG.economy.interestPer} ذهب مدخر (حتى ${CFG.economy.interestMax}). سلاسل الفوز/الخسارة تمنح ذهبًا إضافيًا.</div>
-      <div class="skillbox"><b>التطوير:</b> ${CFG.stars.copiesPerStar} نسخ متطابقة = نجمة إضافية تلقائيًا.</div>
-      <div class="skillbox"><b>الساحة:</b> صف أمامي (خط الدفاع) وصف خلفي. الحراس والمقاتلون في الأمام، السحرة والقناصة والدعم في الخلف. القتلة يقفزون إلى الصف الخلفي للعدو.</div>
-      <div class="skillbox"><b>البطل:</b> يبقى في مركز القيادة ولا يمكن استهدافه ما دام لديك وحدة حية في الصف الأمامي. إذا سقط خط الدفاع يصبح مكشوفًا. يمكنك استدعاؤه للساحة ليقاتل بنفسه — مكسب كبير ومخاطرة حقيقية.</div>
-      <div class="skillbox"><b>القدرات:</b> جهّز قدرات البطل واختر متى تُفعّل (بداية القتال، بعد 5 ثوانٍ، عند سقوط أول حليف، عند انكشاف البطل). تستهلك الجوهر.</div>
-      <div class="skillbox"><b>التآزر:</b> وحدات من نفس العالم أو الدور تفعّل مكافآت. وحدات عالم بطلك تكتسب رنينًا. وجود 3–4 عوالم مختلفة يفعّل "تقارب العوالم" فلا تكون التشكيلات المختلطة أضعف.</div>
-      <div class="skillbox"><b>المراحل والمكافآت:</b> المباراة ${CFG.match.maxRounds} جولات في 4 مراحل: ${CFG.match.stages.map((x) => x.name + ' (' + (x.rounds[0] === x.rounds[1] ? 'الجولة ' + x.rounds[0] : 'الجولتان ' + x.rounds[0] + '–' + x.rounds[1]) + ')').join('، ')}. بعد كل مرحلة (عدا الأخيرة) تختار <b>مكافأة من 3</b>: وحدة مجانية، ذهب، خبرة، جوهر، معدة، <b>بركة دائمة</b> للفريق، أو شفاء للبطل. جولة الحسم تضاعف ارتداد الخسارة ×${CFG.match.finaleLossMult}. إن لم يسقط بطل قبلها، يفوز الأعلى حياة. وفي القتال نفسه يتصاعد الضرر بعد ${CFG.combat.furyStart} ثانية (الغضب).</div>`);
+      <div class="skillbox"><b>الهدف:</b> نزّل حياة بطل الخصم لين تصير صفر. كل جولة: موارد ← شراء وتطوير ← ترتيب وقدرات ← قتال تلقائي ← نتيجة.</div>
+      <div class="skillbox"><b>المتجر:</b> اشتر الوحدات بالذهب، وحدّث العروض (${CFG.economy.rerollCost} ذهب)، واشتر خبرة عشان ترفع المستوى (المستوى = عدد الوحدات اللي تحطها في الساحة). والفايدة: +1 عن كل ${CFG.economy.interestPer} ذهب موفّر (لين ${CFG.economy.interestMax}). وسلسلة الفوز أو الخسارة تعطيك ذهب زيادة.</div>
+      <div class="skillbox"><b>التطوير:</b> ${CFG.stars.copiesPerStar} نسخ متطابقة = نجمة زيادة، وتنحسب لحالها.</div>
+      <div class="skillbox"><b>الساحة:</b> صف أمامي (خط الدفاع) وصف خلفي. الحراس والمقاتلين قدّام، والسحرة والقناصة والدعم ورا. القتلة يقفزون للصف الخلفي عند العدو.</div>
+      <div class="skillbox"><b>البطل:</b> يبقى خلف صفوفك وما أحد يقدر يضربه طول ما عندك وحدة حية في الصف الأمامي. وإذا سقط خط الدفاع ينكشف. تقدر تنزّله الساحة يقاتل بنفسه، وهذا مكسب كبير بس فيه مخاطرة.</div>
+      <div class="skillbox"><b>القدرات:</b> جهّز قدرات البطل واختر متى تشتغل (بداية القتال، بعد 5 ثواني، لما يسقط أول واحد من فريقك، أو لما ينكشف البطل). وتخسّر جوهر.</div>
+      <div class="skillbox"><b>التآزر:</b> وحدات من نفس العالم أو نفس الدور تعطيك مكافآت. ووحدات عالم بطلك تاخذ رنين. وإذا جمعت 3 أو 4 عوالم مختلفة يشتغل «تقارب العوالم» عشان التشكيلة المختلطة ما تكون أضعف.</div>
+      <div class="skillbox"><b>المراحل والمكافآت:</b> المباراة ${CFG.match.maxRounds} جولات في 4 مراحل: ${CFG.match.stages.map((x) => x.name + ' (' + (x.rounds[0] === x.rounds[1] ? 'الجولة ' + x.rounds[0] : 'الجولتان ' + x.rounds[0] + '–' + x.rounds[1]) + ')').join('، ')}. بعد كل مرحلة (عدا الأخيرة) تختار <b>مكافأة من 3</b>: وحدة مجانية، ذهب، خبرة، جوهر، معدة، <b>بركة دائمة</b> للفريق، أو شفاء للبطل. جولة الحسم تضاعف خسارة الحياة ×${CFG.match.finaleLossMult}. وإذا ما سقط أي بطل قبلها يفوز اللي حياته أعلى. وداخل القتال الضرر يزيد بعد ${CFG.combat.furyStart} ثانية (الغضب).</div>`);
   }
 
   function matchMenu() {
@@ -7198,8 +7198,8 @@ AMB.IMAGES = {
       <button class="btn" data-act="resumeMenu">متابعة</button>
       <button class="btn" data-act="tutorial">دليل سريع</button>
       <button class="btn" data-act="howto">كل القواعد</button>
-      <button class="btn danger" data-act="surrender">استسلام (${esc(me().name)})</button>
-      <button class="btn ghost" data-act="abandon">خروج للقائمة الرئيسية (لا تُسجَّل)</button></div>`);
+      <button class="btn danger" data-act="surrender">انسحب (${esc(me().name)})</button>
+      <button class="btn ghost" data-act="abandon">الخروج للقائمة (ما تنحسب)</button></div>`);
   }
 
   // ======================================================================= results / stats / codex
@@ -7249,7 +7249,7 @@ AMB.IMAGES = {
     const avDef = own ? myAvatar(m.players[0], 0) : heroDef;
     const ptitle = own && AMB.PassUI ? AMB.PassUI.titleName() : '';
     const stage = `<div class="res-stage ${m.winner == null ? 'draw' : myWin ? 'victory' : 'defeat'}" style="--wc:${WORLDS[heroDef.world].color}"><div class="res-rays"></div><div class="res-hero">${portrait(avDef, { bare: true, k: 'resh' })}<i class="sheen"></i></div><div class="res-hname">${avDef.name}</div>${ptitle ? `<div class="res-title">${ptitle}</div>` : ''}</div>`;
-    $('results').innerHTML = `${stage}<div class="res-banner"><h1>${title}</h1><p class="hint">${m.round} جولات · ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')} دقيقة ${S.mode === 'friendly' ? '· مباراة ودية (لم تُسجَّل)' : ''}</p>
+    $('results').innerHTML = `${stage}<div class="res-banner"><h1>${title}</h1><p class="hint">${m.round} جولات · ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')} دقيقة ${S.mode === 'friendly' ? '· مباراة ودية (ما تنحسب)' : ''}</p>
       <div class="timeline">${tl}</div></div>
       ${AMB.PassUI ? AMB.PassUI.resultPanel(S.passResult) : ''}
       <div class="res-quick">${m.players.map((p, i) => `<div class="rq ${m.winner === i ? 'won' : ''}"><b>${esc(p.name)}</b><span>${icon('heart')} ${lifeStr(p.life)}</span><span>${icon('sword')} ${p.stats.wins}–${p.stats.losses}</span><span>${fmt(p.stats.damageDealt)} ضرر</span></div>`).join('')}</div>
@@ -7268,7 +7268,7 @@ AMB.IMAGES = {
     const pct = (w, p) => (p ? Math.round(((w || 0) / p) * 100) : 0);
     const tbl = (obj, nameOf, extra) => {
       const rows = Object.entries(obj).sort((a, b) => b[1].picks - a[1].picks);
-      if (!rows.length) return '<p class="hint">لا توجد بيانات بعد — العب مباراة.</p>';
+      if (!rows.length) return '<p class="hint">ما فيه بيانات للحين، العب مباراة.</p>';
       return `<table><tr><th>الاسم</th><th>مرات</th><th>نسبة الفوز</th><th></th>${extra ? '<th>نهائي</th><th>★★★</th>' : ''}</tr>${rows.map(([k, v]) =>
         `<tr><td>${nameOf(k)}</td><td>${v.picks}</td><td>${pct(v.wins, v.picks)}%</td><td><div class="bar"><i style="width:${pct(v.wins, v.picks)}%"></i></div></td>${extra ? `<td>${v.final || 0}</td><td>${v.threeStar || 0}</td>` : ''}</tr>`).join('')}</table>`;
     };
@@ -7280,7 +7280,7 @@ AMB.IMAGES = {
           <div><div class="big-num">${d.matches ? fmt(d.totalRounds / d.matches, 1) : 0}</div><div class="hint">متوسط الجولات</div></div>
           <div><div class="big-num">${d.matches ? fmt(d.totalSeconds / d.matches / 60, 1) : 0}</div><div class="hint">متوسط الدقائق</div></div></div>
         <p class="hint">تعادلات: ${d.draws} · استدعاء البطل: ${d.summons.used} لاعب، فوز ${pct(d.summons.wins, d.summons.used)}%</p>
-        <p class="hint">لاختبار التوازن على نطاق واسع شغّل محاكي الذكاء الاصطناعي: <code>node tools/simulate.js 800</code></p>
+        <p class="hint">لاختبار التوازن على نطاق واسع شغّل محاكي الكمبيوتر: <code>node tools/simulate.js 800</code></p>
         <div style="display:flex;gap:8px"><button class="btn small" data-act="statsExport">تصدير JSON</button><button class="btn small danger" data-act="statsReset">مسح البيانات</button></div></div>
       <div class="box"><h3>الأبطال</h3>${tbl(d.heroes, (k) => HEROES[k] ? HEROES[k].name : k)}</div>
       <div class="box"><h3>أنماط اللاعبين</h3>${tbl(d.styles, (k) => k === 'human' ? 'بشري' : k.replace('ai:', 'ذكاء اصطناعي: '))}</div>
@@ -7313,7 +7313,7 @@ AMB.IMAGES = {
     const sel = S.sel;
     if (sel && sel.kind === 'item') {
       if (occ && res(m.equip(v, sel.idx, occ.uid))) { toast('تم التجهيز', 'good'); S.sel = null; }
-      else if (!occ) toast('اختر وحدة لتجهيزها', 'err');
+      else if (!occ) toast('اختر وحدة تجهّزها', 'err');
     } else if (sel && sel.kind === 'unit') {
       if (occ && occ.uid === sel.uid) S.sel = null;
       else if (res(m.move(v, sel.uid, { zone: 'board', slot }))) S.sel = null;
@@ -7350,14 +7350,14 @@ AMB.IMAGES = {
     mode: (d) => { S.mode = d.v; S.picks = [null, null]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
     pickHero: (d, el, e) => {
       if (e.target.closest('[data-act="heroInfo"]')) return;
-      if (heroLocked(d.id)) { toast('هذا البطل مقفل: افتحه من الباكجات (ليجندري) أو الباتل باس', 'err'); return; }
+      if (heroLocked(d.id)) { toast('هذا البطل مقفل: تفتحه من الباكجات (ليجندري) أو الباتل باس', 'err'); return; }
       S.picks[S.pickIdx] = d.id; renderHeroSelect();
     },
     heroInfo: (d, el, e) => { e.stopPropagation(); heroDetail(d.id); },
     heroConfirm: () => {
       if (!S.picks[S.pickIdx] || heroLocked(S.picks[S.pickIdx])) return;
       if (starterPick()) {   // one-time starter choice, then continue to the match as usual
-        AMB.collection.chooseStarter(S.picks[0]); sfx('merge'); toast(`${HEROES[S.picks[0]].name} صار بطلك! افتح الباقين من الباكجات أو الباتل باس`, 'good');
+        AMB.collection.chooseStarter(S.picks[0]); sfx('merge'); toast(`${HEROES[S.picks[0]].name} صار بطلك! الباقين تفتحهم من الباكجات أو الباتل باس`, 'good');
         renderHeroSelect(); return;
       }
       if (S.mode === 'hotseat' && S.pickIdx === 0) { S.pickIdx = 1; renderHeroSelect(); return; }
@@ -7379,7 +7379,7 @@ AMB.IMAGES = {
         } else {
           S.pop = { uid: r.unit.uid };
           const have = m0.allUnits(m0.players[S.v]).filter((x) => x.defId === r.unit.defId && x.star === 1).length;
-          if (have === 2) toast(`عندك نسختان من «${UNITS[r.unit.defId].name}»: اشترِ ثالثة وتترقى ★ تلقائيًا`, 'good');
+          if (have === 2) toast(`عندك نسختين من «${UNITS[r.unit.defId].name}»: اشتر ثالثة وتتطور ★ لحالها`, 'good');
         }
       }
       renderMatch();
@@ -7393,14 +7393,14 @@ AMB.IMAGES = {
     buyItem: (d) => { if (prepActive() && res(S.match.buyItem(S.v, +d.idx))) renderMatch(); },
     reroll: () => { if (prepActive() && res(S.match.reroll(S.v))) { sfx('reroll'); renderMatch(); } },
     sound: () => { SND.on = !SND.on; try { localStorage.setItem('amb_sound', SND.on ? '1' : '0'); } catch (e) { /* ignore */ } if (SND.on) sfx('click'); document.querySelectorAll('[data-act="sound"]').forEach((b) => { if (b.id === 'menu-sound') b.querySelector('.mt-ic').textContent = SND.on ? '🔊' : '🔇'; else b.textContent = SND.on ? '🔊' : '🔇'; }); },
-    xp: () => { if (prepActive()) { const lv = me().level; if (res(S.match.buyXp(S.v))) { if (me().level > lv) toast(`المستوى ${me().level}! يمكنك وضع ${me().level} وحدات`, 'good'); renderMatch(); } } },
+    xp: () => { if (prepActive()) { const lv = me().level; if (res(S.match.buyXp(S.v))) { if (me().level > lv) toast(`المستوى ${me().level}! تقدر تحط ${me().level} وحدات`, 'good'); renderMatch(); } } },
     lock: () => { if (prepActive()) { S.match.toggleLock(S.v); renderMatch(); } },
     ready: () => prepActive() && endPrep(),
     deselect: () => { S.sel = null; renderMatch(); },
-    autoArrange: () => { if (!prepActive()) return; S.match.autoArrange(S.v); S.sel = null; toast('تم ترتيب أقوى وحداتك: الحراس أمام والباقي خلف', 'good'); renderMatch(); },
+    autoArrange: () => { if (!prepActive()) return; S.match.autoArrange(S.v); S.sel = null; toast('رتبت لك أقوى وحداتك: الحراس قدّام والباقي ورا', 'good'); renderMatch(); },
     toBench: () => {
       const m = S.match, p = me(); if (!S.sel || S.sel.kind !== 'unit') return;
-      const bi = p.bench.indexOf(null); if (bi < 0) { toast('الاحتياط ممتلئ: بع وحدة أو بدّل مكانها', 'err'); return; }
+      const bi = p.bench.indexOf(null); if (bi < 0) { toast('الاحتياط ممتلئ: بع وحدة أو بدّل معها', 'err'); return; }
       if (res(m.move(S.v, S.sel.uid, { zone: 'bench', idx: bi }))) { S.sel = null; renderMatch(); }
     },
     toBoard: () => {
@@ -7408,16 +7408,16 @@ AMB.IMAGES = {
       const u = m.findUnit(p, S.sel.uid); if (!u) return;
       const sd = ROLES[UNITS[u.defId].role].side, F = ['f1', 'f2', 'f0', 'f3'], B = ['b1', 'b2', 'b0', 'b3'];
       const order = (sd === 'back' ? B.concat(F) : sd === 'front' ? F.concat(B) : F.concat(B)).filter((x) => !p.board[x] && !(p.summoned && p.heroSlot === x));
-      if (!order.length || Object.keys(p.board).length >= p.level) { toast(`الساحة ممتلئة (${p.level}/${p.level}). اضغط وحدة في الساحة لتبديلها، أو بع وحدة، أو ارفع مستواك`, 'err'); return; }
+      if (!order.length || Object.keys(p.board).length >= p.level) { toast(`الساحة ممتلئة (${p.level}/${p.level}). اضغط وحدة في الساحة تبدّل معها، أو بع وحدة، أو ارفع مستواك`, 'err'); return; }
       if (res(m.move(S.v, u.uid, { zone: 'board', slot: order[0] }))) { S.sel = null; renderMatch(); }
     },
     sell: () => { if (prepActive() && S.sel && S.sel.kind === 'unit' && res(S.match.sell(S.v, S.sel.uid))) { S.sel = null; renderMatch(); } },
     unequip: () => { if (S.sel && S.sel.kind === 'unit' && res(S.match.unequip(S.v, S.sel.uid))) renderMatch(); },
     bagSel: (d) => { if (!prepActive()) return; const i = +d.idx; S.sel = S.sel && S.sel.kind === 'item' && S.sel.idx === i ? null : { kind: 'item', idx: i }; renderMatch(); },
-    arm: () => { if (S.sel && S.sel.kind === 'item' && res(S.match.armSpell(S.v, S.sel.idx))) { S.sel = null; toast('جُهّزت التعويذة للقتال القادم', 'good'); renderMatch(); } },
+    arm: () => { if (S.sel && S.sel.kind === 'item' && res(S.match.armSpell(S.v, S.sel.idx))) { S.sel = null; toast('التعويذة جاهزة للقتال الجاي', 'good'); renderMatch(); } },
     disarm: (d) => { if (prepActive() && res(S.match.disarmSpell(S.v, +d.idx))) renderMatch(); },
     sellItem: () => { if (S.sel && S.sel.kind === 'item' && res(S.match.sellItem(S.v, S.sel.idx))) { S.sel = null; renderMatch(); } },
-    summon: () => { if (prepActive() && res(S.match.toggleSummon(S.v))) { S.sel = null; toast(me().summoned ? 'استُدعي البطل إلى الساحة' : 'عاد البطل إلى مركز القيادة', 'good'); renderMatch(); } },
+    summon: () => { if (prepActive() && res(S.match.toggleSummon(S.v))) { S.sel = null; toast(me().summoned ? 'البطل نزل الساحة' : 'البطل رجع لمركزه', 'good'); renderMatch(); } },
     detail: (d, el, e) => { e.stopPropagation(); unitDetail(d.id, d.star ? +d.star : 0); },
     upgrades: () => upgradesModal(),
     closeModal: () => { closeModal(); if (S._resumeAfterMenu) { ACT.resumeMenu(); } },
@@ -7472,7 +7472,7 @@ AMB.IMAGES = {
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'multiverse-telemetry.json'; a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     },
-    statsReset: () => { if (confirm('مسح جميع الإحصائيات؟')) { AMB.telemetry.reset(); renderStats(); } },
+    statsReset: () => { if (confirm('تبي تمسح كل الإحصائيات؟')) { AMB.telemetry.reset(); renderStats(); } },
     codexF: (d) => { S.codexF[d.k] = d.v; renderCodex(); },
   };
 
@@ -7668,15 +7668,15 @@ AMB.IMAGES = {
   // ---------------------------------------------------------------- results panel (xp gained)
   function resultPanel(r) {
     if (!r) return '';
-    if (r.mult === 0) return `<div class="xp-panel"><div class="xp-h"><b>ممر الصدع</b></div><p class="hint">المباراة الودية لا تمنح خبرة، جرّب «ضد الذكاء الاصطناعي» لتتقدم في الممر.</p></div>`;
+    if (r.mult === 0) return `<div class="xp-panel"><div class="xp-h"><b>ممر الصدع</b></div><p class="hint">المباراة الودية ما تعطي خبرة، جرّب «ضد الكمبيوتر» عشان تتقدم في الممر.</p></div>`;
     const lv = pass.level(), pct = pass.maxed() ? 100 : pass.xpInLevel();
     const up = r.levelAfter > r.levelBefore;
     return `<div class="xp-panel"><div class="xp-h"><b>ممر الصدع</b><span class="xp-gain">+${r.xp} خبرة</span></div>
-      ${r.ended ? '<p class="hint">انتهى الموسم: لا تُضاف خبرة جديدة.</p>' : ''}
+      ${r.ended ? '<p class="hint">انتهى الموسم، ما تنضاف خبرة جديدة.</p>' : ''}
       <ul class="xp-lines">${r.lines.map((l) => `<li><span>${l[0]}</span><b>+${l[1]}</b></li>`).join('')}</ul>
       <div class="xp-bar"><i style="width:${pct}%"></i></div>
       <div class="xp-lv">المستوى <b>${lv}</b>${up ? ` <span class="xp-up">ارتفعت من ${r.levelBefore} ← ${r.levelAfter} 🎉</span>` : ''}</div>
-      ${pass.unclaimedCount() ? `<button class="btn primary" data-act="go" data-to="pass">لديك ${pass.unclaimedCount()} مكافأة/مهمة جاهزة للاستلام</button>` : ''}</div>`;
+      ${pass.unclaimedCount() ? `<button class="btn primary" data-act="go" data-to="pass">عندك ${pass.unclaimedCount()} مكافأة أو مهمة جاهزة تستلمها</button>` : ''}</div>`;
   }
 
   function refreshMenu() {
@@ -7688,8 +7688,8 @@ AMB.IMAGES = {
   // ---------------------------------------------------------------- tips (ⓘ)
   const ibtnP = (k) => `<button class="ibtn" data-act="info" data-k="${k}" title="شرح">ⓘ</button>`;
   AMB.TIPS = AMB.TIPS || {};
-  AMB.TIPS.passinfo = () => ({ title: 'مكافآت الممر', html: '<p>كل المكافآت <b>تجميلية</b> (ألقاب، إطارات، ثيمات، تأثيرات، صور)، والشخصيات تفتح بطاقاتها.</p><p>الاستثناء الوحيد «مؤقت التجهيز»: وقت أطول للتفكير فقط. <b>ما فيه شي يقوّي الوحدات.</b></p><p>المسار المميز واجهة فقط حاليًا (قريبًا).</p>' });
-  AMB.TIPS.missinfo = () => ({ title: 'المهام', html: '<p>مهام اليوم تعطي <b>خبرة ممر + شظايا</b> تشتري فيها باكجات.</p><p>تُحتسب المباريات السريعة وعلى نفس الجهاز وقتالات الحملة، وتطوير البطاقات وفتح الباكجات. المباراة الودية لا تُحتسب.</p>' });
+  AMB.TIPS.passinfo = () => ({ title: 'مكافآت الممر', html: '<p>كل المكافآت <b>للشكل بس</b> (ألقاب، إطارات، ثيمات، تأثيرات، صور)، والشخصيات تفتح بطاقاتها.</p><p>الوحيد المختلف «مؤقت التجهيز»: وقت زيادة تفكر فيه بس. <b>ما فيه شي يقوّي الوحدات.</b></p><p>المسار المميز للعرض بس الحين (قريب).</p>' });
+  AMB.TIPS.missinfo = () => ({ title: 'المهام', html: '<p>مهام اليوم تعطي <b>خبرة ممر + شظايا</b> تشتري فيها باكجات.</p><p>تنحسب المباريات السريعة وعلى نفس الجهاز وقتالات الحملة، وتطوير البطاقات وفتح الباكجات. المباراة الودية ما تنحسب.</p>' });
 
   // ---------------------------------------------------------------- screen
   function cellHTML(level, track) {
@@ -7726,7 +7726,7 @@ AMB.IMAGES = {
     const d = new Date(), mid = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1), hrs = Math.max(1, Math.ceil((mid - d) / 3600000));
     return `<h3>مهام اليوم <small>تتجدد بعد ${hrs} ساعة</small></h3><div class="missions">${pass.dailyMissions().map(missionHTML).join('')}</div>
       <h3>مهام الأسبوع</h3><div class="missions">${pass.weeklyMissions().map(missionHTML).join('')}</div>
-      <p class="hint">${ibtnP('missinfo')} المباراة الودية لا تُحتسب</p>`;
+      <p class="hint">${ibtnP('missinfo')} المباراة الودية ما تنحسب</p>`;
   }
 
   function optionHTML(type, id) {
@@ -7757,8 +7757,8 @@ AMB.IMAGES = {
     const days = pass.daysLeft();
     root.innerHTML = `<div class="pass-head"><div class="ph-lv"><small>المستوى</small><b>${lv}</b></div>
       <div class="ph-mid"><div class="ph-name">${P.SEASON.name}</div><div class="xp-bar big"><i style="width:${pct}%"></i></div>
-        <div class="ph-sub">${pass.maxed() ? 'وصلت للحد الأقصى 🎉' : `${pass.xpInLevel()} / ${P.SEASON.xpPerLevel} خبرة للمستوى ${lv + 1}`} · ${pass.ended() ? '<b style="color:var(--red)">انتهى الموسم</b>' : `باقي ${days} يوم`}</div></div>
-      <button class="btn ph-prem" data-act="passPremium" title="غير متاح بعد">${pass.isPremium() ? '✓ بريميوم' : '👑 بريميوم · قريبًا'}</button></div>
+        <div class="ph-sub">${pass.maxed() ? 'وصلت لأعلى مستوى 🎉' : `${pass.xpInLevel()} / ${P.SEASON.xpPerLevel} خبرة للمستوى ${lv + 1}`} · ${pass.ended() ? '<b style="color:var(--red)">انتهى الموسم</b>' : `باقي ${days} يوم`}</div></div>
+      <button class="btn ph-prem" data-act="passPremium" title="مو متاح للحين">${pass.isPremium() ? '✓ بريميوم' : '👑 بريميوم · قريب'}</button></div>
       <div class="ptabs">${[['track', 'المسار'], ['missions', 'المهام'], ['profile', 'ملفي']].map(([k, n]) => `<button class="${tab === k ? 'on' : ''}" data-act="passTab" data-v="${k}">${n}${k === 'missions' && pass.dailyMissions().concat(pass.weeklyMissions()).some((m) => m.done && !m.claimed) ? ' <span class="dot sm"></span>' : ''}</button>`).join('')}</div>
       <div class="pbody">${tab === 'track' ? trackHTML() : tab === 'missions' ? missionsHTML() : profileHTML()}</div>`;
     if (tab === 'track') { const tr = $('ptrack'); if (tr) { const col = tr.querySelector(`[data-col="${Math.max(1, lv - 1)}"]`); if (col) tr.scrollLeft = col.offsetLeft - 8; } }
@@ -7787,7 +7787,7 @@ AMB.IMAGES = {
       passEquipReward: (d) => { const r = pass.reward(+d.level, d.track); if (r && pass.equip(r.type, r.id)) { UI().sfx('click'); toast(`تم تجهيز: ${pass.rewardName(r)}`, 'good'); after(); } },
       passEquip: (d) => { if (pass.equip(d.type, d.id === '' ? null : d.id)) { UI().sfx('click'); after(); } },
       passClaimMission: (d) => { const r = pass.claimMission(d.id); if (r) { UI().sfx('merge'); toast(`+${r.xp} خبرة${r.shards ? ` و +${r.shards} شظية` : ''}${r.levelUp ? ' — ارتفع مستواك!' : ''}`, 'good'); after(); } },
-      passPremium: () => toast('المسار المميز قريبًا · المجاني متاح لك كله', ''),
+      passPremium: () => toast('المسار المميز قريب · والمجاني متاح لك كله', ''),
     });
   }
 
@@ -7836,9 +7836,9 @@ AMB.IMAGES = {
   }
 
   AMB.TIPS = AMB.TIPS || {};
-  AMB.TIPS.colinfo = () => ({ title: 'تطوير البطاقات', html: `<p>كل مستوى +${Math.round(AMB.ECONOMY.cards.levelBonus * 100)}% صحة وهجوم، والندرة الأعلى أقوى لكنها تحتاج نسخًا أكثر.</p>
+  AMB.TIPS.colinfo = () => ({ title: 'تطوير البطاقات', html: `<p>كل مستوى +${Math.round(AMB.ECONOMY.cards.levelBonus * 100)}% صحة وهجوم، والندرة الأعلى أقوى بس تحتاج نسخ أكثر.</p>
     <p>النسخ المطلوبة للمستويات 2 إلى 5:</p>${Object.entries(RAR).map(([k, r]) => `<div class="hint">• <b style="color:${r.color}">${r.name}</b>: ${r.copies.join(' / ')}</div>`).join('')}
-    <p><b>المستويات والندرة تُحتسب في الحملة والبرج والأحداث فقط</b>، أما المباراة السريعة وعلى نفس الجهاز فالكل متساوٍ.</p>` });
+    <p><b>المستويات والندرة تنحسب في الحملة والبرج والأحداث بس</b>، أما المباراة السريعة وعلى نفس الجهاز فالكل متساوي.</p>` });
   // the deck strip: your 12 slots, role counts, auto-build. Progression fights shop only from this deck.
   function deckBar() {
     const L = C.deckLimits(), deck = C.deck(), rc = C.roleCounts(deck), ROLE = AMB.DATA.ROLES, ui = UI();
@@ -7861,7 +7861,7 @@ AMB.IMAGES = {
     root.innerHTML = `<div class="col-head">
         ${C.needsStarter() ? '' : deckBar()}
         ${C.needsStarter() ? '<div class="col-starter">ما اخترت بطلك الأول للحين: اضغط «العب» واختر واحد من الأربعة.</div>' : ''}
-        <div><b>${C.ownedCount()} / ${C.ids().length}</b> بطاقة · ${ready ? `<span class="col-ready">${ready} جاهزة للتطوير</span>` : 'لا توجد ترقيات جاهزة'}</div>
+        <div><b>${C.ownedCount()} / ${C.ids().length}</b> بطاقة · ${ready ? `<span class="col-ready">${ready} جاهزة للتطوير</span>` : 'ما فيه ترقيات جاهزة'}</div>
         <div class="up-how"><b>كيف أطوّر؟</b> كل نسخة <u>مكررة</u> من باكج تروح لبطاقتها. لما يكتمل شريط النسخ يطلع زر <b>⬆ طوّر</b> ويرفع قوتها <b>+${Math.round(AMB.ECONOMY.cards.levelBonus * 100)}%</b> في الحملة والبرج والأحداث.
           ${ready ? `<button class="btn small primary" data-act="colRole" data-v="up">⬆ ${ready} جاهزة الحين</button>` : '<span class="hint">ما فيه بطاقة جاهزة الحين، افتح باكجات.</span>'} <button class="ibtn" data-act="info" data-k="colinfo" title="شرح">ⓘ</button></div>
         <div class="rar-legend">${Object.entries(RAR).map(([k, r]) => `<span class="rl r-${k}"><i></i>${r.name} <small>+${Math.round((r.power - 1) * 100)}%</small></span>`).join('')}</div>
@@ -7928,7 +7928,7 @@ AMB.IMAGES = {
   AMB.TIPS = AMB.TIPS || {};
   AMB.TIPS.pity = () => { const d = P.def(PACK), R = RAR[d.pity.rarity]; return { title: 'ضمان ' + R.name, html: `<p>إذا فتحت ${d.pity.after} باكجات بدون ${R.name}، الباكج اللي بعدها يحتوي ${R.name} أكيد. العدّاد يرجع للصفر كلما طلعت لك ${R.name}.</p>` }; };
   AMB.TIPS.shards = () => ({ title: 'الشظايا', html: '<p>الشظايا تجيك من الحملة والمهام اليومية والدخول اليومي.</p><p>اللعبة ما تبيع شي بفلوس حقيقية.</p>' });
-  AMB.TIPS.odds = () => ({ title: 'النسب', html: `<p>مع الضمان، المعدل الفعلي للـ${RAR.legendary.name} تقريبًا بطاقة كل 8–9 باكجات.</p><p>النسخة المكررة تطوّر البطاقة، ونسخة بطاقة وصلت للمستوى الأقصى تتحوّل إلى شظايا.</p>` });
+  AMB.TIPS.odds = () => ({ title: 'النسب', html: `<p>مع الضمان، المعدل الفعلي للـ${RAR.legendary.name} تقريبًا بطاقة كل 8–9 باكجات.</p><p>النسخة المكررة تطوّر البطاقة، ونسخة بطاقة وصلت لأعلى مستوى تتحوّل إلى شظايا.</p>` });
   function pityHTML() {
     const d = P.def(PACK), left = P.pityLeft(PACK), done = d.pity.after - left;
     const segs = Array.from({ length: d.pity.after }, (_, i) => `<i class="${i < done ? 'on' : ''}"></i>`).join('');
@@ -8049,7 +8049,7 @@ AMB.IMAGES = {
   }
   function rewardText(rw) {
     const R = AMB.ECONOMY.rarities;
-    return [rw.shards ? `${rw.shards} شظية` : '', rw.packs ? `${rw.packs === 1 ? 'باكج' : rw.packs + ' باكجات'}` : '', rw.card ? `بطاقة ${R[rw.card].name} أو أندر مضمونة` : ''].filter(Boolean).join(' + ');
+    return [rw.shards ? `${rw.shards} شظية` : '', rw.packs ? `${rw.packs === 1 ? 'باكج' : rw.packs + ' باكجات'}` : '', rw.card ? `بطاقة ${R[rw.card].name} أو أندر أكيد` : ''].filter(Boolean).join(' + ');
   }
 
   function node(l, f, i) {
@@ -8063,7 +8063,7 @@ AMB.IMAGES = {
     const root = $('campaign'); if (!root) return;
     const R = LV.CAMPAIGN.rewards;
     if (C.needsStarter()) {   // brand-new player: pick the first hero right here, then straight to fight 1
-      root.innerHTML = `<div class="cam-starter"><h3>اختر بطلك الأول</h3><p class="hint">بطلك الدائم · الباقين تفتحهم لاحقًا</p>
+      root.innerHTML = `<div class="cam-starter"><h3>اختر بطلك الأول</h3><p class="hint">هذا بطلك الدائم، والباقين تفتحهم بعدين</p>
         <div class="cam-starter-row">${Object.values(AMB.DATA.HEROES).map((h) => `<div class="cs-pick">${UI().cardHTML(h, { k: 'cst' + h.id, attrs: `data-act="heroInfo" data-id="${h.id}"` })}
           <div class="cs-style">${esc(h.style.split('—')[0])}</div><button class="btn primary" data-act="camStarter" data-id="${h.id}">اختر ${esc(h.name)}</button></div>`).join('')}</div></div>`;
       return;
@@ -8072,16 +8072,16 @@ AMB.IMAGES = {
       root.innerHTML = `<div class="cam-starter"><div class="tut-cta"><button class="btn primary big" data-act="tutGo">${icon('sword')} ${icon('hand')}</button></div></div>`; return;
     }
     AMB.TIPS = AMB.TIPS || {};
-    AMB.TIPS.caminfo = () => ({ title: 'كيف تشتغل الحملة', html: `<p>كل قتال <b>أفضل من 3 جولات</b> ضد تشكيلة ثابتة. مستويات بطاقاتك وندرتها <b>تُحتسب هنا</b>، والمتجر يعرض الوحدات اللي تملكها فقط.</p>
+    AMB.TIPS.caminfo = () => ({ title: 'كيف تشتغل الحملة', html: `<p>كل قتال <b>تكسب جولتين من 3</b> ضد تشكيلة ثابتة. مستويات بطاقاتك وندرتها <b>تنحسب هنا</b>، والمتجر يعرض الوحدات اللي تملكها فقط.</p>
       <p>الفوز الأول: ${icon('gem')} ${R.fight.shards} + ${R.fight.passXp} خبرة ممر<br>الزعيم: ${icon('gem')} ${R.boss.shards} + ${R.boss.passXp} خبرة<br>إنهاء المستوى: باكج مجاني<br>الإعادة: ${icon('gem')} ${R.replay.shards}</p>
       <h4>النجوم</h4>${LV.CAMPAIGN.stars.rules.map((r) => `<div>${'★'.repeat(r.n)} ${r.text}</div>`).join('')}` });
-    root.innerHTML = `<div class="cam-note">⚔️ أفضل من 3 جولات · ⭐ نجوم · ${icon('gem')} شظايا · 🎁 باكج لكل مستوى <button class="ibtn" data-act="info" data-k="caminfo" title="شرح">ⓘ</button></div>
+    root.innerHTML = `<div class="cam-note">⚔️ تكسب جولتين من 3 · ⭐ نجوم · ${icon('gem')} شظايا · 🎁 باكج لكل مستوى <button class="ibtn" data-act="info" data-k="caminfo" title="شرح">ⓘ</button></div>
       ${chestsHTML()}
       <div class="cam-levels">${LV.LEVELS.map((l, li) => {
         const pr = CAM.progress(l.id), unlocked = CAM.levelUnlocked(li);
         return `<section class="cam-level ${unlocked ? '' : 'locked'} ${CAM.levelDone(l.id) ? 'done' : ''}" style="--wc:${W(l.world).color}">
           <header><span class="cl-n">${li + 1}</span><div><h3>${esc(l.name)}</h3><small>${W(l.world).name} · ${pr.cleared}/${pr.total} · ★ ${CAM.levelStars(l.id)}/${l.fights.length * 3}${CAM.levelDone(l.id) ? ' · ✓ مكتمل' : ''}</small></div>
-          ${unlocked ? '' : '<span class="cl-lock">🔒 أنهِ المستوى السابق</span>'}</header>
+          ${unlocked ? '' : '<span class="cl-lock">🔒 خلّص المستوى اللي قبله</span>'}</header>
           <div class="cpath">${l.fights.map((f, i) => node(l, f, i)).join('<i class="cline"></i>')}</div></section>`;
       }).join('')}</div>`;
     refreshMenu();
@@ -8131,13 +8131,13 @@ AMB.IMAGES = {
     const r = S.camResult, won = r.won, next = CAM.next(), nx = next && CAM.find(next);
     const score = `${m.players[0].stats.wins} – ${m.players[1].stats.wins}`;
     const pay = won ? [r.shards ? `${icon('gem')} +${r.shards} شظية` : '', r.passXp ? `+${r.passXp} خبرة ممر` : ''].filter(Boolean).join(' · ') : '';
-    const pack = r.pack ? `<div class="cam-pack"><b>🎁 أكملت المستوى! باكج مجاني:</b><div class="cam-pack-row">${r.pack.cards.map((c, i) => `<div class="cu">${ui.portrait(C.def(c.id), { k: 'crp' + i + c.id })}<small class="r-${c.rarity}">${c.isNew ? 'جديدة!' : c.refund ? '+' + c.refund + ' شظية' : '+1 نسخة'}</small></div>`).join('')}</div></div>` : '';
+    const pack = r.pack ? `<div class="cam-pack"><b>🎁 خلّصت المستوى! باكج مجاني:</b><div class="cam-pack-row">${r.pack.cards.map((c, i) => `<div class="cu">${ui.portrait(C.def(c.id), { k: 'crp' + i + c.id })}<small class="r-${c.rarity}">${c.isNew ? 'جديدة!' : c.refund ? '+' + c.refund + ' شظية' : '+1 نسخة'}</small></div>`).join('')}</div></div>` : '';
     $('results').innerHTML = `<div class="res-stage ${won ? 'victory' : 'defeat'}" style="--wc:${W(x.level.world).color}"><div class="res-rays"></div>
         <div class="res-hero">${ui.portrait(won ? AMB.DATA.HEROES[m.players[0].heroId] : AMB.DATA.HEROES[x.level.hero], { bare: true, k: 'crh' })}<i class="sheen"></i></div>
         <div class="res-hname">${esc(x.fight.name)}</div></div>
       <div class="res-banner"><h1>${won ? (x.fight.boss ? 'هزمت الزعيم!' : 'فوز!') : 'خسارة'}</h1><p class="hint">النتيجة ${score} · ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')} دقيقة</p>
         ${won ? `<div class="res-stars">${[1, 2, 3].map((k) => `<i class="${k <= r.stars ? 'on' : ''}" style="--d:${0.3 + k * 0.35}s">★</i>`).join('')}</div>
-          <p class="hint">${r.newBest ? (r.prevStars ? `رقم جديد! من ${r.prevStars} إلى ${r.stars} نجوم` : `${r.stars} من 3 نجوم`) : `أفضل نتيجة لك هنا: ${CAM.stars(fightId)} نجوم`}${r.stars < 3 ? ' · ' + LV.CAMPAIGN.stars.rules[r.stars].text + ' = ★' : ''}</p>` : ''}
+          <p class="hint">${r.newBest ? (r.prevStars ? `رقم جديد! من ${r.prevStars} لين ${r.stars} نجوم` : `${r.stars} من 3 نجوم`) : `أفضل نتيجة لك هنا: ${CAM.stars(fightId)} نجوم`}${r.stars < 3 ? ' · ' + LV.CAMPAIGN.stars.rules[r.stars].text + ' = ★' : ''}</p>` : ''}
         ${r.chestsReady > r.chestsBefore ? '<button class="btn primary" data-act="go" data-to="campaign">🎁 صندوق نجوم جاهز! افتحه من خريطة الحملة</button>' : ''}
         ${won ? `<p class="cam-pay">${r.first ? pay : `إعادة: ${pay || 'بدون جائزة'}`}</p>` : '<p class="hint">طوّر بطاقاتك وجرّب مرة ثانية</p>'}</div>
       ${pack}
@@ -8319,23 +8319,23 @@ AMB.IMAGES = {
       return { ic: AMB.art.WORLD_ICON[d.world], title: d.name, color: D.WORLDS[d.world].color, html: parts.map((c) => `<div class="tp-sec"><div class="tp-sh">${icon(c.ic)}<b>${esc(c.title)}</b></div>${c.html.replace(/<div class="tp-s">التآزر[^<]*<\/div>/, '')}</div>`).join('') };
     }
     switch (k) {
-      case 'world': { const W = D.WORLDS[d.world]; return { ic: AMB.art.WORLD_ICON[d.world], title: W.name, color: W.color, html: `<div class="tp-s">التآزر: كل ما جمعت وحدات من هذا العالم يقوون:</div>${synLines(d.world)}` }; }
+      case 'world': { const W = D.WORLDS[d.world]; return { ic: AMB.art.WORLD_ICON[d.world], title: W.name, color: W.color, html: `<div class="tp-s">التآزر: كل ما جمعت وحدات أكثر من هالعالم يقوون:</div>${synLines(d.world)}` }; }
       case 'role': { const R = D.ROLES[d.role]; return { ic: AMB.art.ROLE_ICON[d.role], title: R.name, html: `<div class="tp-l">${esc(R.desc)}</div><div class="tp-s">تُوضع: <b>${esc(R.place)}</b></div>${synLines(d.role)}` }; }
-      case 'herorole': return { ic: 'crown', title: 'بطل', html: `<div class="tp-l"><b>${esc(d.passive.name)}</b>: ${esc(d.passive.text)}</div><div class="tp-s">قائدك: حياته هي حياتك، وسقوطه = خسارة.</div>` };
+      case 'herorole': return { ic: 'crown', title: 'بطل', html: `<div class="tp-l"><b>${esc(d.passive.name)}</b>: ${esc(d.passive.text)}</div><div class="tp-s">هو قائدك: حياته هي حياتك، وإذا سقط تخسر.</div>` };
       case 'skill': {
         const s = d.skill, st = +x || 1, rows = [];
         Object.keys(s).forEach((key) => { if (Array.isArray(s[key]) && s[key].length === 3 && LABEL[key]) rows.push(`<div class="tp-l"><b>${LABEL[key]}</b>: <span class="tp-v ${st === 1 ? 'on' : ''}">★ ${s[key][0]}</span> <span class="tp-v ${st === 2 ? 'on' : ''}">★★ ${s[key][1]}</span> <span class="tp-v ${st === 3 ? 'on' : ''}">★★★ ${s[key][2]}</span></div>`); });
-        return { ic: AMB.art.SKILL_ICON[s.type] || 'star', title: s.name, html: `<div class="tp-l">${esc(s.text)}</div>${rows.join('')}<div class="tp-s">تنطلق لما تمتلئ المانا (${d.mana}).</div>` };
+        return { ic: AMB.art.SKILL_ICON[s.type] || 'star', title: s.name, html: `<div class="tp-l">${esc(s.text)}</div>${rows.join('')}<div class="tp-s">تشتغل لما تمتلئ المانا (${d.mana}).</div>` };
       }
       case 'atk': case 'hp': {
         const lab = k === 'atk' ? 'الهجوم' : 'الصحة', base = isHero ? (k === 'atk' ? d.board.atk : 100) : (k === 'atk' ? d.atk : d.hp), m = SM();
         const v = (s) => Math.round(base * (isHero ? 1 : m[s]));
-        return { ic: k === 'atk' ? 'sword' : 'heart', title: lab, html: isHero ? `<div class="tp-l">${k === 'atk' ? 'هجومه لما تستدعيه للساحة (ويكبر كل جولة).' : 'حياة البطل = حياتك في المباراة.'}</div>` : `<div class="tp-l"><span class="tp-v">★ ${v(1)}</span> <span class="tp-v">★★ ${v(2)}</span> <span class="tp-v">★★★ ${v(3)}</span></div><div class="tp-s">كل نجمة ترفع القوة. ٣ نسخ متطابقة = نجمة.</div>` };
+        return { ic: k === 'atk' ? 'sword' : 'heart', title: lab, html: isHero ? `<div class="tp-l">${k === 'atk' ? 'هجومه لما تنزّله الساحة (ويزيد كل جولة).' : 'حياة البطل = حياتك في المباراة.'}</div>` : `<div class="tp-l"><span class="tp-v">★ ${v(1)}</span> <span class="tp-v">★★ ${v(2)}</span> <span class="tp-v">★★★ ${v(3)}</span></div><div class="tp-s">كل نجمة ترفع القوة. ٣ نسخ متطابقة = نجمة.</div>` };
       }
       case 'rar': { const R = AMB.ECONOMY.rarities[d.rarity]; return { ic: 'gem', title: R.name, color: R.color, html: `<div class="tp-l">قوة إضافية <b>+${Math.round((R.power - 1) * 100)}%</b> في الحملة والبرج والأحداث.</div><div class="tp-s">نسخ التطوير للمستويات 2–5: ${R.copies.join(' / ')}</div>` }; }
       case 'lvl': return { ic: 'up', title: 'مستوى ' + x, html: `<div class="tp-l">كل مستوى <b>+${Math.round(AMB.ECONOMY.cards.levelBonus * 100)}%</b> صحة وهجوم، في الحملة والبرج والأحداث فقط.</div><div class="tp-s">تطوّره بالنسخ المكررة من «مجموعتي».</div>` };
-      case 'cost': return { ic: 'gold', title: d.cost + ' ذهب', html: `<div class="tp-l">سعر الشراء، وهو نفس رقم الفئة ${d.tier} (الجواهر).</div><div class="tp-s">البيع يرجّع نفس السعر.</div>` };
-      case 'own': return { ic: 'star', title: x === 'up' ? '↑' : '×' + x, html: x === 'up' ? '<div class="tp-l">عندك نسختين: شراؤها يرقّيها لنجمة أقوى!</div>' : `<div class="tp-l">عندك ${x} نسخة منها. ٣ نسخ متطابقة تندمج لنجمة.</div>` };
+      case 'cost': return { ic: 'gold', title: d.cost + ' ذهب', html: `<div class="tp-l">سعر الشراء (فئة ${d.tier}).</div><div class="tp-s">البيع يرجّع نفس السعر.</div>` };
+      case 'own': return { ic: 'star', title: x === 'up' ? '↑' : '×' + x, html: x === 'up' ? '<div class="tp-l">عندك نسختين: لو اشتريتها تتطور لنجمة أقوى!</div>' : `<div class="tp-l">عندك ${x} نسخة منها. ٣ نسخ متطابقة تندمج لنجمة.</div>` };
     }
     return null;
   }
@@ -8727,7 +8727,7 @@ AMB.IMAGES = {
   }
 
   AMB.TIPS = AMB.TIPS || {};
-  AMB.TIPS.albinfo = () => ({ title: 'الألبوم', html: `<p>كل بطاقات اللعبة هنا. البطاقة اللي ما تملكها تظهر ظلًا مع طريقة الحصول عليها.</p>
+  AMB.TIPS.albinfo = () => ({ title: 'الألبوم', html: `<p>كل بطاقات اللعبة هنا. البطاقة اللي ما تملكها تطلع ظل مع طريقة الحصول عليها.</p>
     <p>اجمع <b>الوحدات الخمس</b> لأي عالم واستلم جائزته مرة واحدة (شظايا + لقب + إطار بلون العالم). وكل الوحدات العشرين = باكجين + لقب «جامع الصدع».</p>` });
 
   function installActions() {
@@ -8775,7 +8775,7 @@ AMB.IMAGES = {
   function render() {
     const root = $('tower'); if (!root) return;
     if (C.needsStarter()) { root.innerHTML = '<div class="cam-note">اختر بطلك الأول من «الحملة» أول.</div>'; return; }
-    if (!TW.unlocked()) { root.innerHTML = `<div class="cam-note">🔒 البرج يفتح بعد ما تنهي <b>المستوى الأول من الحملة</b> (${CAM.progress('l1').cleared}/${CAM.progress('l1').total}).</div>`; return; }
+    if (!TW.unlocked()) { root.innerHTML = `<div class="cam-note">🔒 البرج يفتح بعد ما تخلّص <b>المستوى الأول من الحملة</b> (${CAM.progress('l1').cleared}/${CAM.progress('l1').total}).</div>`; return; }
     const best = TW.best(), N = TW.floors();
     const floors = []; for (let n = N; n >= 1; n--) floors.push(row(n));
     root.innerHTML = `<div class="tw-head"><div class="tw-best"><small>أعلى طابق</small><b>${best}</b><span>/ ${N}</span></div>
@@ -8796,8 +8796,8 @@ AMB.IMAGES = {
     const ui = UI(), L = TW.lineupFor(n), h = pickHero(), R = TW.rewardsFor(n), first = n > TW.best();
     const units = L.units.map(([id, star, , from], k) => `<div class="cu">${ui.portrait(AMB.DATA.UNITS[id], { k: 'twp' + k + id })}${ui.stars(star)}${from > 1 ? `<small>من الجولة ${from}</small>` : ''}</div>`).join('');
     const heroes = C.ownedHeroes().map((id) => `<button class="hchip ${id === h ? 'on' : ''}" data-act="towHero" data-id="${id}" data-n="${n}">${ui.portrait(AMB.DATA.HEROES[id], { k: 'twh' + id })}<span>${AMB.DATA.HEROES[id].name}</span></button>`).join('');
-    const reward = first ? `${icon('gem')} ${R.shards} شظية · +${R.passXp} خبرة ممر${R.pack ? ' · <b>باكج مجاني</b>' : ''}${R.card ? ' · <b>بطاقة إيبك أو أندر مضمونة</b>' : ''}` : 'أنهيت هذا الطابق: بدون جائزة (تدريب)';
-    ui.modal(`<div class="cam-pv" style="--wc:${W(L.world).color}"><h2>${L.boss ? '👑 ' : ''}${esc(L.name)}</h2><div class="hint">${W(L.world).name} · أفضل من 3 جولات${TW.attempts(n) ? ' · محاولات: ' + TW.attempts(n) : ''}</div>
+    const reward = first ? `${icon('gem')} ${R.shards} شظية · +${R.passXp} خبرة ممر${R.pack ? ' · <b>باكج مجاني</b>' : ''}${R.card ? ' · <b>بطاقة إيبك أو أندر مضمونة</b>' : ''}` : 'خلّصت هالطابق: بدون جائزة (تدريب)';
+    ui.modal(`<div class="cam-pv" style="--wc:${W(L.world).color}"><h2>${L.boss ? '👑 ' : ''}${esc(L.name)}</h2><div class="hint">${W(L.world).name} · تكسب جولتين من 3${TW.attempts(n) ? ' · محاولات: ' + TW.attempts(n) : ''}</div>
       ${L.boss ? `<div class="boss-box">${ui.portrait(AMB.DATA.HEROES[L.heroId], { k: 'twb' })}<div><b>قدرة الزعيم: ${esc(L.special.name)}</b><p>${esc(L.special.text)}</p></div></div>` : ''}
       <h4>تشكيلة الخصم</h4><div class="cam-units">${units}</div>
       <h4>الجائزة</h4><div class="cam-reward">${reward}</div>
@@ -8836,9 +8836,9 @@ AMB.IMAGES = {
   }
 
   AMB.TIPS = AMB.TIPS || {};
-  AMB.TIPS.towinfo = () => { const R = AMB.ECONOMY.tower.rewards; return { title: 'برج التحدي', html: `<p>${TW.floors()} طابقًا، كل طابق قتال <b>أفضل من 3 جولات</b> ضد تشكيلة تصعب كل ما صعدت. كل 5 طوابق زعيم بقدرة خاصة.</p>
-    <p>أول مرة تجتاز طابقًا: ${icon('gem')} ${R.shardsFirst}–${R.shardsLast} شظية + خبرة ممر. الزعيم: باكج مجاني. الطابق ${TW.floors()}: بطاقة إيبك أو أندر مضمونة.</p>
-    <p>لو خسرت تعيد نفس الطابق بدون أي عقوبة، وأعلى طابق وصلت له محفوظ. مستويات بطاقاتك تُحتسب هنا، وتقدر تعيد أي طابق سابق للتدريب بدون جائزة.</p>` }; };
+  AMB.TIPS.towinfo = () => { const R = AMB.ECONOMY.tower.rewards; return { title: 'برج التحدي', html: `<p>${TW.floors()} طابقًا، كل طابق قتال <b>تكسب جولتين من 3</b> ضد تشكيلة تصعب كل ما صعدت. كل 5 طوابق زعيم بقدرة خاصة.</p>
+    <p>أول مرة تعدّي طابق: ${icon('gem')} ${R.shardsFirst}–${R.shardsLast} شظية + خبرة ممر. الزعيم: باكج مجاني. الطابق ${TW.floors()}: بطاقة إيبك أو أندر مضمونة.</p>
+    <p>لو خسرت تعيد نفس الطابق بدون أي عقوبة، وأعلى طابق وصلت له محفوظ. مستويات بطاقاتك تنحسب هنا، وتقدر تعيد أي طابق سابق للتدريب بدون جائزة.</p>` }; };
 
   function installActions() {
     const ui = UI(); if (!ui || ui.ACT.towFloor) return;
@@ -8886,7 +8886,7 @@ AMB.IMAGES = {
     const root = $('event'); if (!root) return;
     clearInterval(timer);
     if (C.needsStarter()) { root.innerHTML = '<div class="cam-note">اختر بطلك الأول من «الحملة» أول.</div>'; return; }
-    if (!WK.unlocked()) { root.innerHTML = `<div class="cam-note">🔒 الحدث الأسبوعي يفتح بعد ما تنهي <b>المستوى الأول من الحملة</b>.</div>`; return; }
+    if (!WK.unlocked()) { root.innerHTML = `<div class="cam-note">🔒 الحدث الأسبوعي يفتح بعد ما تخلّص <b>المستوى الأول من الحملة</b>.</div>`; return; }
     const c = WK.current(), ev = c.event, ex = AMB.DATA.UNITS[ev.exclusive], owned = C.owned(ev.exclusive), next = WK.nextEvent();
     const card = UI().cardHTML(ex, { k: 'evx', lvl: owned ? C.level(ev.exclusive) : 0, cls: owned ? '' : 'unowned', attrs: `data-act="detail" data-id="${ev.exclusive}"` });
     const rows = []; for (let s = WK.stageCount(); s >= 1; s--) rows.push(stageRow(c, s));
@@ -8894,7 +8894,7 @@ AMB.IMAGES = {
         <div class="ev-time">⏳ باقي <b id="ev-left">${left(c.msLeft)}</b> · القادم: ${esc(next.name)}</div></div>
       <div class="ev-prize"><div class="ev-card">${card}</div><div class="ev-ptxt"><b>🌟 الجائزة الحصرية</b><p>${esc(ex.name)} <small>${esc(ex.en)}</small></p>
         <div class="hint">${owned ? '✓ تملكها (تعيد الحدث وتاخذ نسخة تطوير)' : 'ما تطلع من الباكجات، فقط من هذا الحدث'} <button class="ibtn" data-act="info" data-k="evinfo" title="شرح">ⓘ</button></div>
-        ${c.done ? '<div class="ev-done">✓ أنهيت حدث هذا الأسبوع</div>' : ''}</div></div>
+        ${c.done ? '<div class="ev-done">✓ خلّصت حدث هذا الأسبوع</div>' : ''}</div></div>
       <div class="twlist">${rows.join('')}</div>`;
     refreshMenu();
     timer = setInterval(() => { const e = $('ev-left'); if (!e || UI().S.screen !== 'event') { clearInterval(timer); return; } e.textContent = left(WK.current().msLeft); }, 30000);
@@ -8910,8 +8910,8 @@ AMB.IMAGES = {
     const ui = UI(), c = WK.current(), L = WK.lineupFor(c.event.id, stage), h = pickHero(), R = WK.rewardsFor(stage), first = stage === c.stage + 1;
     const units = L.units.map(([id, star, , from], k) => `<div class="cu">${ui.portrait(AMB.DATA.UNITS[id], { k: 'evp' + k + id })}${ui.stars(star)}${from > 1 ? `<small>من الجولة ${from}</small>` : ''}</div>`).join('');
     const heroes = C.ownedHeroes().map((id) => `<button class="hchip ${id === h ? 'on' : ''}" data-act="evHero" data-id="${id}" data-n="${stage}">${ui.portrait(AMB.DATA.HEROES[id], { k: 'evh' + id })}<span>${AMB.DATA.HEROES[id].name}</span></button>`).join('');
-    const reward = first ? `${icon('gem')} ${R.shards} شظية · +${R.passXp} خبرة ممر${R.pack ? ' · <b>باكج مجاني</b>' : ''}${R.exclusive ? ` · <b>🌟 ${esc(AMB.DATA.UNITS[c.event.exclusive].name)} (حصرية)</b>` : ''}` : 'أنهيت هذه المرحلة هذا الأسبوع: تدريب بدون جائزة';
-    ui.modal(`<div class="cam-pv" style="--wc:${W(c.event.world).color}"><h2>${L.boss ? '👑 ' : ''}${esc(L.name)}</h2><div class="hint">${esc(c.event.name)} · أفضل من 3 جولات</div>
+    const reward = first ? `${icon('gem')} ${R.shards} شظية · +${R.passXp} خبرة ممر${R.pack ? ' · <b>باكج مجاني</b>' : ''}${R.exclusive ? ` · <b>🌟 ${esc(AMB.DATA.UNITS[c.event.exclusive].name)} (حصرية)</b>` : ''}` : 'خلّصت هالمرحلة هذا الأسبوع: تدريب بدون جائزة';
+    ui.modal(`<div class="cam-pv" style="--wc:${W(c.event.world).color}"><h2>${L.boss ? '👑 ' : ''}${esc(L.name)}</h2><div class="hint">${esc(c.event.name)} · تكسب جولتين من 3</div>
       ${L.boss ? `<div class="boss-box">${ui.portrait(AMB.DATA.HEROES[L.heroId], { k: 'evb' })}<div><b>قدرة الزعيم: ${esc(L.special.name)}</b><p>${esc(L.special.text)}</p></div></div>` : ''}
       <h4>تشكيلة الخصم</h4><div class="cam-units">${units}</div><h4>الجائزة</h4><div class="cam-reward">${reward}</div>
       <h4>بطلك</h4><div class="hchips">${heroes}</div>${AMB.DeckGate ? AMB.DeckGate.line() : ''}
@@ -8946,7 +8946,7 @@ AMB.IMAGES = {
   }
 
   AMB.TIPS = AMB.TIPS || {};
-  AMB.TIPS.evinfo = () => { const R = AMB.ECONOMY.events.rewards; return { title: 'الحدث الأسبوعي', html: `<p>كل أسبوع (من الاثنين للأحد) حدث جديد من عالم مختلف: <b>${WK.stageCount()} مراحل</b> أفضل من 3 جولات، والأخيرة زعيم الحدث بقدرتين.</p>
+  AMB.TIPS.evinfo = () => { const R = AMB.ECONOMY.events.rewards; return { title: 'الحدث الأسبوعي', html: `<p>كل أسبوع (من الاثنين للأحد) حدث جديد من عالم مختلف: <b>${WK.stageCount()} مراحل</b> تكسب جولتين من 3، والأخيرة زعيم الحدث بقدرتين.</p>
     <p>كل مرحلة تعطي شظايا وخبرة ممر (والثانية باكج مجاني) مرة واحدة في الأسبوع. هزيمة الزعيم تعطيك <b>بطاقة حصرية</b> ما تطلع في الباكجات ولا تضيع بعد انتهاء الحدث.</p>
     <p>الأحداث الأربعة تدور، فلو فاتك حدث يرجع بعد 4 أسابيع (وتاخذ نسخة تطوير إضافية للبطاقة لو عندك). الخسارة بدون عقوبة وتقدر تعيد.</p>` }; };
 
@@ -8982,14 +8982,14 @@ AMB.IMAGES = {
   function open() {
     const sv = AMB.save;
     UI().modal(`<h2>💾 الحفظ</h2>
-      <div class="save-box ok">✓ <b>الحفظ تلقائي</b>: كل تقدّمك يُحفظ فورًا بعد أي تغيير، ما تحتاج تضغط شي.</div>
+      <div class="save-box ok">✓ <b>الحفظ تلقائي</b>: تقدمك ينحفظ لحاله مع كل تغيير، ما تحتاج تضغط شي.</div>
       <div class="save-kv"><span>آخر حفظ</span><b>${fmt(sv.updated())}</b></div>
       <div class="save-kv"><span>حجم البيانات</span><b style="direction:ltr">${sizeKB()} KB</b></div>
       <div class="save-kv"><span>الحماية من المسح التلقائي</span><b>${persisted === null ? 'غير معروفة' : persisted ? 'مفعّلة ✓' : 'يقرّرها المتصفح'}</b></div>
       <div class="save-kv"><span>نسخة احتياطية يومية</span><b>تلقائية ✓</b></div>
-      ${sv.recovered ? '<div class="save-box warn">تمّت استعادة تقدّمك من النسخة الاحتياطية بعد خلل في الحفظ.</div>' : ''}
+      ${sv.recovered ? '<div class="save-box warn">رجّعنا تقدمك من النسخة الاحتياطية بعد ما صار خلل في الحفظ.</div>' : ''}
       <h3>نقل التقدّم</h3>
-      <p class="hint">الحفظ مرتبط بهذا المتصفح وهذا الرابط. لو فتحت اللعبة من رابط أو جهاز ثاني ما يظهر تقدّمك، انقله بملف.</p>
+      <p class="hint">الحفظ مربوط بهالمتصفح وهالرابط. لو فتحت اللعبة من رابط أو جهاز ثاني ما يطلع تقدمك، انقله بملف.</p>
       <div class="save-btns">
         <button class="btn primary" data-act="saveExport">⬇ نزّل نسخة احتياطية</button>
         <button class="btn" data-act="saveImport">⬆ استرجع من ملف</button>
@@ -9000,7 +9000,7 @@ AMB.IMAGES = {
       const file = f.files && f.files[0]; if (!file) return;
       const rd = new FileReader();
       rd.onload = () => {
-        try { AMB.save.importJSON(String(rd.result)); UI().toast('تم استرجاع التقدّم ✓ — جاري إعادة التحميل', 'good'); setTimeout(() => location.reload(), 900); }
+        try { AMB.save.importJSON(String(rd.result)); UI().toast('رجع تقدمك ✓ جاري إعادة التحميل', 'good'); setTimeout(() => location.reload(), 900); }
         catch (e) { UI().toast('الملف غير صالح', 'err'); }
       };
       rd.readAsText(file);
@@ -9017,7 +9017,7 @@ AMB.IMAGES = {
         a.href = URL.createObjectURL(blob);
         a.download = `zor-save-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}.json`;
         document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
-        ui.toast('تم تنزيل النسخة الاحتياطية', 'good');
+        ui.toast('نزلت النسخة الاحتياطية', 'good');
       },
       saveImport: () => { const f = $('save-file'); if (f) f.click(); },
     });
@@ -9069,10 +9069,10 @@ AMB.IMAGES = {
 
   function tick() {
     if (!pending) return;
-    if (busy()) { showBanner('🔄 فيه تحديث جديد — يتطبّق بعد المباراة'); return; }
+    if (busy()) { showBanner('🔄 فيه تحديث جديد، ينزل بعد المباراة'); return; }
     if (ss.get('zor_upd') === pending) { showBanner('🔄 فيه تحديث جديد', true, 6000); return; }   // already tried once for this version: let the player decide
     const v = pending; pending = null;
-    showBanner('🔄 جاري تحديث اللعبة… تقدّمك محفوظ');
+    showBanner('🔄 جاري تحديث اللعبة… تقدمك محفوظ');
     setTimeout(() => apply(v), 1200);
   }
   async function check() {

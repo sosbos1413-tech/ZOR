@@ -16,7 +16,7 @@
   AMB.TIPS = AMB.TIPS || {};
   AMB.TIPS.pity = () => { const d = P.def(PACK), R = RAR[d.pity.rarity]; return { title: 'ضمان ' + R.name, html: `<p>إذا فتحت ${d.pity.after} باكجات بدون ${R.name}، الباكج اللي بعدها يحتوي ${R.name} أكيد. العدّاد يرجع للصفر كلما طلعت لك ${R.name}.</p>` }; };
   AMB.TIPS.shards = () => ({ title: 'الشظايا', html: '<p>الشظايا تجيك من الحملة والمهام اليومية والدخول اليومي.</p><p>اللعبة ما تبيع شي بفلوس حقيقية.</p>' });
-  AMB.TIPS.odds = () => ({ title: 'النسب', html: `<p>مع الضمان، المعدل الفعلي للـ${RAR.legendary.name} تقريبًا بطاقة كل 8–9 باكجات.</p><p>النسخة المكررة تطوّر البطاقة، ونسخة بطاقة وصلت للمستوى الأقصى تتحوّل إلى شظايا.</p>` });
+  AMB.TIPS.odds = () => ({ title: 'النسب', html: `<p>مع الضمان، المعدل الفعلي للـ${RAR.legendary.name} تقريبًا بطاقة كل 8–9 باكجات.</p><p>النسخة المكررة تطوّر البطاقة، ونسخة بطاقة وصلت لأعلى مستوى تتحوّل إلى شظايا.</p>` });
   function pityHTML() {
     const d = P.def(PACK), left = P.pityLeft(PACK), done = d.pity.after - left;
     const segs = Array.from({ length: d.pity.after }, (_, i) => `<i class="${i < done ? 'on' : ''}"></i>`).join('');

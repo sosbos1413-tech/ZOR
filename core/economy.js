@@ -103,7 +103,7 @@
 
   function Wallet(save, events) {
     const st = () => save.get('wallet');
-    const known = (id) => { if (!ECONOMY.currencies[id]) throw new Error('عملة غير معروفة: ' + id); };
+    const known = (id) => { if (!ECONOMY.currencies[id]) throw new Error('ما أعرف هالعملة: ' + id); };
     const clampAdd = (id, v) => Math.min(ECONOMY.currencies[id].max, v);
     return {
       balance: (id) => { known(id); return st().balances[id] || 0; },

@@ -18,14 +18,14 @@
   function open() {
     const sv = AMB.save;
     UI().modal(`<h2>💾 الحفظ</h2>
-      <div class="save-box ok">✓ <b>الحفظ تلقائي</b>: كل تقدّمك يُحفظ فورًا بعد أي تغيير، ما تحتاج تضغط شي.</div>
+      <div class="save-box ok">✓ <b>الحفظ تلقائي</b>: تقدمك ينحفظ لحاله مع كل تغيير، ما تحتاج تضغط شي.</div>
       <div class="save-kv"><span>آخر حفظ</span><b>${fmt(sv.updated())}</b></div>
       <div class="save-kv"><span>حجم البيانات</span><b style="direction:ltr">${sizeKB()} KB</b></div>
       <div class="save-kv"><span>الحماية من المسح التلقائي</span><b>${persisted === null ? 'غير معروفة' : persisted ? 'مفعّلة ✓' : 'يقرّرها المتصفح'}</b></div>
       <div class="save-kv"><span>نسخة احتياطية يومية</span><b>تلقائية ✓</b></div>
-      ${sv.recovered ? '<div class="save-box warn">تمّت استعادة تقدّمك من النسخة الاحتياطية بعد خلل في الحفظ.</div>' : ''}
+      ${sv.recovered ? '<div class="save-box warn">رجّعنا تقدمك من النسخة الاحتياطية بعد ما صار خلل في الحفظ.</div>' : ''}
       <h3>نقل التقدّم</h3>
-      <p class="hint">الحفظ مرتبط بهذا المتصفح وهذا الرابط. لو فتحت اللعبة من رابط أو جهاز ثاني ما يظهر تقدّمك، انقله بملف.</p>
+      <p class="hint">الحفظ مربوط بهالمتصفح وهالرابط. لو فتحت اللعبة من رابط أو جهاز ثاني ما يطلع تقدمك، انقله بملف.</p>
       <div class="save-btns">
         <button class="btn primary" data-act="saveExport">⬇ نزّل نسخة احتياطية</button>
         <button class="btn" data-act="saveImport">⬆ استرجع من ملف</button>
@@ -36,7 +36,7 @@
       const file = f.files && f.files[0]; if (!file) return;
       const rd = new FileReader();
       rd.onload = () => {
-        try { AMB.save.importJSON(String(rd.result)); UI().toast('تم استرجاع التقدّم ✓ — جاري إعادة التحميل', 'good'); setTimeout(() => location.reload(), 900); }
+        try { AMB.save.importJSON(String(rd.result)); UI().toast('رجع تقدمك ✓ جاري إعادة التحميل', 'good'); setTimeout(() => location.reload(), 900); }
         catch (e) { UI().toast('الملف غير صالح', 'err'); }
       };
       rd.readAsText(file);
@@ -53,7 +53,7 @@
         a.href = URL.createObjectURL(blob);
         a.download = `zor-save-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}.json`;
         document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
-        ui.toast('تم تنزيل النسخة الاحتياطية', 'good');
+        ui.toast('نزلت النسخة الاحتياطية', 'good');
       },
       saveImport: () => { const f = $('save-file'); if (f) f.click(); },
     });

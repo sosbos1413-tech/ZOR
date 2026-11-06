@@ -29,7 +29,7 @@
   function Collection(save, events) {
     const st = () => save.get('collection');
     const rec = (s, id) => (s.cards[id] = s.cards[id] || { owned: false, level: 1, copies: 0, got: 0 });
-    const R = (id) => { const d = defOf(id); if (!d) throw new Error('بطاقة غير معروفة: ' + id); return EC().rarities[d.rarity]; };
+    const R = (id) => { const d = defOf(id); if (!d) throw new Error('ما أعرف هالبطاقة: ' + id); return EC().rarities[d.rarity]; };
     const emit = (n, d) => events && events.emit(n, d);
 
     const api = {
@@ -103,7 +103,7 @@
       },
       /** add/remove one unit; returns { ok, in, reason } */
       toggleDeck(id) {
-        if (!AMB.DATA.UNITS[id] || !api.owned(id)) return { ok: false, reason: 'لا تملك هذي الوحدة' };
+        if (!AMB.DATA.UNITS[id] || !api.owned(id)) return { ok: false, reason: 'ما تملك هالوحدة' };
         const cur = api.deck();
         if (cur.includes(id)) { api.setDeck(cur.filter((x) => x !== id)); return { ok: true, in: false }; }
         if (cur.length >= EC().deck.size) return { ok: false, reason: `الديك ممتلئ (${EC().deck.size})` };

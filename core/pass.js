@@ -97,16 +97,16 @@
   // Stats count in every mode (quick matches, same device, campaign) except friendly matches.
   const DAILY = [
     { id: 'd_play2', name: 'العب مباراتين أو قتالين', stat: 'matches', target: 2, xp: 50, shards: 30 },
-    { id: 'd_win1', name: 'افز بمباراة', stat: 'wins', target: 1, xp: 60, shards: 30 },
-    { id: 'd_fights3', name: 'افز بـ٣ قتالات (أي نمط)', stat: 'fights_won', target: 3, xp: 60, shards: 50 },
-    { id: 'd_rounds5', name: 'افز بـ٥ جولات', stat: 'rounds_won', target: 5, xp: 50, shards: 30 },
-    { id: 'd_buy10', name: 'اشترِ ١٠ وحدات', stat: 'buys', target: 10, xp: 40, shards: 30 },
-    { id: 'd_merge1', name: 'رقِّ وحدة (٣ نسخ ← نجمة)', stat: 'merges', target: 1, xp: 50, shards: 30 },
-    { id: 'd_summon1', name: 'استدعِ بطلك إلى الساحة', stat: 'summons', target: 1, xp: 40, shards: 30 },
+    { id: 'd_win1', name: 'اكسب مباراة', stat: 'wins', target: 1, xp: 60, shards: 30 },
+    { id: 'd_fights3', name: 'اكسب ٣ قتالات (أي نمط)', stat: 'fights_won', target: 3, xp: 60, shards: 50 },
+    { id: 'd_rounds5', name: 'اكسب ٥ جولات', stat: 'rounds_won', target: 5, xp: 50, shards: 30 },
+    { id: 'd_buy10', name: 'اشتر ١٠ وحدات', stat: 'buys', target: 10, xp: 40, shards: 30 },
+    { id: 'd_merge1', name: 'طوّر وحدة (٣ نسخ ← نجمة)', stat: 'merges', target: 1, xp: 50, shards: 30 },
+    { id: 'd_summon1', name: 'نزّل بطلك الساحة', stat: 'summons', target: 1, xp: 40, shards: 30 },
     { id: 'd_reroll8', name: 'حدّث المتجر ٨ مرات', stat: 'rerolls', target: 8, xp: 30, shards: 30 },
-    { id: 'd_reward2', name: 'اختر مكافأتي مراحل', stat: 'stage_rewards', target: 2, xp: 40, shards: 30 },
-    { id: 'd_finale', name: 'افز بجولة الحسم', stat: 'finale_won', target: 1, xp: 70, shards: 40 },
-    { id: 'd_dmg', name: 'تسبّب بـ ٥٠٠٠ ضرر بوحداتك', stat: 'damage', target: 5000, xp: 40, shards: 30 },
+    { id: 'd_reward2', name: 'اختر مكافأة من مرحلتين', stat: 'stage_rewards', target: 2, xp: 40, shards: 30 },
+    { id: 'd_finale', name: 'اكسب جولة الحسم', stat: 'finale_won', target: 1, xp: 70, shards: 40 },
+    { id: 'd_dmg', name: 'اضرب ٥٠٠٠ ضرر بوحداتك', stat: 'damage', target: 5000, xp: 40, shards: 30 },
     { id: 'd_upgrade1', name: 'طوّر بطاقة', stat: 'upgrades', target: 1, xp: 40, shards: 40 },
     { id: 'd_pack1', name: 'افتح باكج', stat: 'packs', target: 1, xp: 30, shards: 30 },
     { id: 'd_stars3', name: 'اجمع ٣ نجوم جديدة في الحملة', stat: 'stars', target: 3, xp: 60, shards: 50 },
@@ -114,13 +114,13 @@
     { id: 'd_campaign2', name: 'العب قتالين في الحملة', stat: 'campaign', target: 2, xp: 40, shards: 40 },
   ];
   const WEEKLY = [
-    { id: 'w_win5', name: 'افز بـ٥ مباريات', stat: 'wins', target: 5, xp: 200 },
+    { id: 'w_win5', name: 'اكسب ٥ مباريات', stat: 'wins', target: 5, xp: 200 },
     { id: 'w_play10', name: 'العب ١٠ مباريات', stat: 'matches', target: 10, xp: 150 },
-    { id: 'w_merge8', name: 'رقِّ ٨ وحدات', stat: 'merges', target: 8, xp: 180 },
-    { id: 'w_rounds30', name: 'افز بـ٣٠ جولة', stat: 'rounds_won', target: 30, xp: 200 },
+    { id: 'w_merge8', name: 'طوّر ٨ وحدات', stat: 'merges', target: 8, xp: 180 },
+    { id: 'w_rounds30', name: 'اكسب ٣٠ جولة', stat: 'rounds_won', target: 30, xp: 200 },
     { id: 'w_worlds', name: 'ادخل مباراة بوحدات من ٤ عوالم', stat: 'four_worlds', target: 1, xp: 150 },
     { id: 'w_event', name: 'أكمل الحدث الأسبوعي', stat: 'event_cleared', target: 1, xp: 150 },
-    { id: 'w_finale3', name: 'افز بـ٣ جولات حسم', stat: 'finale_won', target: 3, xp: 180 },
+    { id: 'w_finale3', name: 'اكسب ٣ جولات حسم', stat: 'finale_won', target: 3, xp: 180 },
   ];
 
   const dayKey = (t) => { const d = new Date(t); return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); };
