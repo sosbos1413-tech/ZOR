@@ -620,7 +620,27 @@
     renderRight();
     renderCombatCtrl();
     if (AMB.FX) AMB.FX.watch();
+    fitMatch();
   }
+  // Phones: the browser's real usable height can be smaller than what the CSS assumes (address bar, gesture bar, PWA window).
+  // If the shop would end below the screen, shrink the field a little until everything fits.
+  function fitMatch() {
+    const fw = document.querySelector('#scr-match .field-wrap'), shop = $('shopbar');
+    if (!fw || !shop || S.screen !== 'match' || !matchMedia('(max-width: 860px) and (orientation: portrait)').matches) return;
+    fw.style.removeProperty('--cwv'); shop.style.removeProperty('height');
+    if (shop.scrollHeight > shop.clientHeight + 1) shop.style.height = shop.scrollHeight + 2 + 'px';   // the cards are taller than the shop box: grow the box, never cut a card
+    const scr = $('scr-match'), vv = (globalThis.visualViewport && visualViewport.height) || innerHeight;
+    const vh = Math.min(vv, innerHeight, scr ? scr.getBoundingClientRect().bottom : 1e5);   // whichever ends first: the window or the match screen itself
+    let over = shop.getBoundingClientRect().bottom - (vh - 2);
+    if (over <= 0) return;
+    let cw = fw.querySelector('#slots') ? fw.querySelector('#slots .cell').getBoundingClientRect().width : 80;
+    for (let i = 0; i < 4 && over > 0; i++) {
+      cw = Math.max(44, cw - over / 4.4 - 0.5);
+      fw.style.setProperty('--cwv', cw + 'px');
+      over = shop.getBoundingClientRect().bottom - (vh - 2);
+    }
+  }
+  window.addEventListener('resize', () => { try { if (S.match) fitMatch(); } catch (e) { /* ignore */ } });
 
   function renderTop() {
     const m = S.match, p = me(), o = opp();
