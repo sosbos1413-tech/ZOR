@@ -381,11 +381,11 @@
   }
   function itemCardHTML(it, o) {
     o = o || {};
-    return `<div class="tcard hc full item ${it.kind} ${o.cls || ''}" ${o.attrs || ''} title="${esc(it.name + ': ' + it.text)}">
+    return `<div class="tcard hc cv3 full item ${it.kind} ${o.cls || ''}" ${o.attrs || ''} title="${esc(it.name + ': ' + it.text)}">
       <div class="hc-frame"></div>
       <div class="hc-art iconart">${icon(it.icon, 'big-ic')}</div><div class="hc-ring"></div>
       <div class="hc-name"><b>${it.name}</b></div>
-      <div class="hc-chips">${itemChips(it)}</div>
+      <i class="hc-sbar"></i><div class="hc-chips">${itemChips(it)}</div>
       <span class="hc-cost"><i></i><b>${it.cost}</b></span></div>`;
   }
 

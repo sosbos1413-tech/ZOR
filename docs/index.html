@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="e2fa84efb3">
+<meta name="zor-build" content="600ed2898a">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1934,6 +1934,16 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 .tcard.hc.cv3.full .hc-lvl { bottom: auto; right: auto; width: auto; height: auto; min-width: 0; padding: calc(1 * var(--u)) calc(4 * var(--u)); line-height: 1.3; border-radius: calc(5 * var(--u)); font-size: calc(7.4 * var(--u)); }
 .tcard.hc.cv3.full .hc-name { left: calc(19 * var(--u)); }
 .tcard.hc.cv3.full .hc-name b { font-size: calc(9.8 * var(--u)); }
+/* v3 item cards: equipment = gold frame, spells = red frame, chips on the glass bar */
+.tcard.hc.cv3.item { --rc3: #c8a24a; --wc: #b8892e; }
+.tcard.hc.cv3.item.spell { --rc3: #ff5a64; --wc: #c4283a; }
+.tcard.hc.cv3.item .hc-art.iconart { background: repeating-conic-gradient(#2a221d 0 8deg, #1d1815 8deg 16deg); display: grid; place-items: center; }
+.tcard.hc.cv3.item .hc-art .big-ic { width: 40%; height: auto; margin-top: calc(-10 * var(--u)); }
+.tcard.hc.cv3.item .hc-chips { position: absolute; left: calc(19 * var(--u)); right: calc(4.6 * var(--u)); top: auto; bottom: calc(4 * var(--u)); height: calc(22 * var(--u)); flex-wrap: nowrap; align-content: center; align-items: center; justify-content: center; gap: calc(3 * var(--u)); z-index: 6; }
+.tcard.hc.cv3.item .hc-chips .sv { color: #ffd24a; font-size: calc(12 * var(--u)); font-weight: 900; text-shadow: 1px 1px 0 #000; }
+.tcard.hc.cv3.item .hc-chips .sv .ic { width: calc(9 * var(--u)); height: calc(9 * var(--u)); color: #ffd24a; }
+.tcard.hc.cv3.item .hc-cost { left: calc(3 * var(--u)); bottom: calc(2.6 * var(--u)); }
+.tcard.hc.cv3.item .hc-name { left: calc(8 * var(--u)); }
 
 </style>
 </head>
@@ -6548,11 +6558,11 @@ AMB.IMAGES = {
   }
   function itemCardHTML(it, o) {
     o = o || {};
-    return `<div class="tcard hc full item ${it.kind} ${o.cls || ''}" ${o.attrs || ''} title="${esc(it.name + ': ' + it.text)}">
+    return `<div class="tcard hc cv3 full item ${it.kind} ${o.cls || ''}" ${o.attrs || ''} title="${esc(it.name + ': ' + it.text)}">
       <div class="hc-frame"></div>
       <div class="hc-art iconart">${icon(it.icon, 'big-ic')}</div><div class="hc-ring"></div>
       <div class="hc-name"><b>${it.name}</b></div>
-      <div class="hc-chips">${itemChips(it)}</div>
+      <i class="hc-sbar"></i><div class="hc-chips">${itemChips(it)}</div>
       <span class="hc-cost"><i></i><b>${it.cost}</b></span></div>`;
   }
 
