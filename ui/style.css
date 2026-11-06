@@ -2051,3 +2051,26 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 .net-wait { text-align: center; } .net-wait h2 { font-size: 24px; }
 .net-dots { display: flex; gap: 8px; justify-content: center; margin: 12px 0; } .net-dots i { width: 12px; height: 12px; border-radius: 50%; background: var(--gold); animation: netdot 1s infinite; } .net-dots i:nth-child(2) { animation-delay: .2s; } .net-dots i:nth-child(3) { animation-delay: .4s; }
 @keyframes netdot { 0%, 100% { opacity: .25; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.15); } }
+
+/* =====================================================================
+   CARD FRAMES v4 — painted world frames (assets/frames/*.webp): the art shows through the window, the rim covers the rest.
+   `-sil` is the plain silhouette used to cut the art to the frame's outline (notched corners).
+   ===================================================================== */
+.tcard.hc.cv3.fr-ember  { --fr: url(../assets/frames/ember.webp);  --sil: url(../assets/frames/ember-sil.webp); }
+.tcard.hc.cv3.fr-tide   { --fr: url(../assets/frames/tide.webp);   --sil: url(../assets/frames/tide-sil.webp); }
+.tcard.hc.cv3.fr-neon   { --fr: url(../assets/frames/neon.webp);   --sil: url(../assets/frames/neon-sil.webp); }
+.tcard.hc.cv3.fr-sylvan { --fr: url(../assets/frames/sylvan.webp); --sil: url(../assets/frames/sylvan-sil.webp); }
+.tcard.hc.cv3[class*="fr-"]:not(.item) .hc-art { inset: 0; left: 0; right: 0; top: 0; bottom: 0; clip-path: none; border-radius: 0; z-index: 1;
+  -webkit-mask: var(--sil) center / 100% 100% no-repeat; mask: var(--sil) center / 100% 100% no-repeat; }
+.tcard.hc.cv3[class*="fr-"]:not(.item) .hc-art::after { background: linear-gradient(180deg, transparent 62%, #000a 100%); }
+.tcard.hc.cv3[class*="fr-"]:not(.item) .hc-frame { clip-path: none; background: var(--fr) center / 100% 100% no-repeat; z-index: 2; pointer-events: none; overflow: visible; }
+.tcard.hc.cv3[class*="fr-"]:not(.item) .hc-frame .sheen { display: none; }
+/* everything printed on the card sits above the frame */
+.tcard.hc.cv3[class*="fr-"]:not(.item) > :not(.hc-art):not(.hc-frame) { z-index: 5; }
+/* the painted frame brings its own rim: a lighter glow only (rarity colour), no hard box */
+.tcard.hc.cv3[class*="fr-"].full { filter: drop-shadow(0 0 3px var(--rc3)) drop-shadow(1px 3px 0 #000a); }
+.tcard.hc.cv3[class*="fr-"].full.r-epic { filter: drop-shadow(0 0 6px var(--rc3)) drop-shadow(1px 3px 0 #000a); }
+.tcard.hc.cv3[class*="fr-"].full.r-legendary { filter: drop-shadow(0 0 10px var(--rc3)) drop-shadow(0 0 3px var(--rc3)) drop-shadow(1px 3px 0 #000a); }
+.tcard.hc.cv3[class*="fr-"].mini { filter: drop-shadow(0 0 2px var(--rc3)) drop-shadow(1px 2px 0 #000a); }
+.tcard.hc.cv3[class*="fr-"].mini.r-epic { filter: drop-shadow(0 0 4px var(--rc3)) drop-shadow(1px 2px 0 #000a); }
+.tcard.hc.cv3[class*="fr-"].mini.r-legendary { filter: drop-shadow(0 0 7px var(--rc3)) drop-shadow(1px 2px 0 #000a); }

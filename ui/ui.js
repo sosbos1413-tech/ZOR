@@ -385,7 +385,7 @@
     if (o.size === 'mini') {
       const items = (o.items || []).map((it) => `<i title="${esc(ITEMS[it].name)}">${icon(ITEMS[it].icon)}</i>`).join('');
       const mid = o.live ? `<div class="hc-bar"><div class="hpb"><b></b><i></i></div>${isHero ? '' : '<div class="mpb"><i></i></div>'}</div>` : (items ? `<div class="hc-its">${items}</div>` : '');
-      return `<div class="tcard hc cv3 mini ${tier}${sc}${sel} r-${def.rarity || 'common'} ${o.cls || ''}" style="--wc:${W.color}" title="${esc(def.name)}" ${attrs}>
+      return `<div class="tcard hc cv3 mini fr-${def.world} ${tier}${sc}${sel} r-${def.rarity || 'common'} ${o.cls || ''}" style="--wc:${W.color}" title="${esc(def.name)}" ${attrs}>
         <i class="hc-halo"></i><div class="hc-frame"></div><div class="hc-art">${portrait(def, { bare: true, k: o.k })}<i class="sheen"></i></div><div class="hc-ring"></div>
         ${roleD}${isHero ? '' : stars(star)}${o.prog ? `<span class="hc-prog" title="نسخ متطابقة: واحدة إضافية وتترقى">${o.prog}</span>` : ''}<i class="hc-sbar"></i>${atkBd}${hpBd}${mid}</div>`;
     }
@@ -398,7 +398,7 @@
     const rar = RA ? `<span class="hc-rar" data-act="tip" data-k="rar" data-id="${def.id}">${RA.name}</span>` : '';
     const lvl = o.lvl ? `<span class="hc-lvl" data-act="tip" data-k="lvl" data-id="${def.id}" data-x="${o.lvl}">Lv ${o.lvl}</span>` : '';
     const gemN = RA ? RA.order : 1;
-    return `<div class="tcard hc cv3 full ${tier}${sc} r-${def.rarity || 'common'} ${o.cls || ''}" style="--wc:${W.color}" ${attrs}>
+    return `<div class="tcard hc cv3 full fr-${def.world} ${tier}${sc} r-${def.rarity || 'common'} ${o.cls || ''}" style="--wc:${W.color}" ${attrs}>
       <div class="hc-frame"><i class="sheen"></i></div>${rar}${lvl}
       <div class="hc-art">${portrait(def, { bare: true, k: o.k })}</div><div class="hc-ring"></div>
       <div class="hc-name ${def.name.length > 14 ? 'ln2' : def.name.length > 10 ? 'ln1' : ''}" data-act="tip" data-k="all" data-id="${def.id}" data-x="${star}"><b>${def.name}</b></div>
