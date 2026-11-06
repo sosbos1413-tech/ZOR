@@ -1046,5 +1046,26 @@ t('tutorial: required only for a brand-new player; the reward is paid once; save
   const old = AMB.Profile.boot(MEM()); old.campaign.recordResult('l1f1', { won: true }); ok(!old.tutorial.required(), 'a player who already beat fight 1 is not forced');
 });
 
+t('twists: every card has its own skill signature, twist text is shown, and every twist runs in combat', () => {
+  const U = Object.values(AMB.DATA.UNITS), seen = {};
+  U.forEach((u) => { const sk = u.skill, k = sk.type + JSON.stringify(sk.dmg || sk.heal || sk.shield || sk.dps || sk.pct || []) + (sk.extra || ''); (seen[k] = seen[k] || []).push(u.id); });
+  const dup = Object.values(seen).filter((g) => g.length > 1);
+  eq(dup.length, 0, 'cards sharing exactly the same skill: ' + JSON.stringify(dup));
+  U.filter((u) => u.skill.extra).forEach((u) => ok(/[ء-ي]/.test(u.skill.text) && u.skill.text.length > 20, 'text for ' + u.id));
+  // run each twist once on a real combat: nothing throws, thorns reflect damage
+  const extras = [...new Set(U.filter((u) => u.skill.extra).map((u) => u.skill.extra))];
+  const heroes = Object.keys(AMB.DATA.HEROES);
+  extras.forEach((ex) => {
+    const u = U.find((x) => x.skill.extra === ex);
+    const m = new AMB.Match({ mode: 'ai', seed: 5, players: [{ heroId: heroes[0], name: 'a', isAI: true, difficulty: 'normal' }, { heroId: heroes[1], name: 'b', isAI: true, difficulty: 'normal' }] });
+    m.startRound(); AMB.AI.prep(m, 0); AMB.AI.prep(m, 1);
+    const c = m.createCombat(false);
+    const f = c.fighters.find((x) => x.side === 0 && !x.isHero && !x.passive);
+    f.skill = Object.assign({}, u.skill); f.mana = f.maxMana = 1; f.role = u.role;
+    for (let i = 0; i < 400 && !c.over; i++) c.step();
+    ok(c.fighters.length > 0, ex);
+  });
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

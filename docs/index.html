@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="588f367a56">
+<meta name="zor-build" content="1844ca1428">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -2391,7 +2391,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
     fighter: { hp: 540, atk: 60, as: 0.75, range: 1, def: 0.12, crit: 0.05 },
     assassin: { hp: 420, atk: 68, as: 0.85, range: 1, def: 0.05, crit: 0.25 },
     mage: { hp: 470, atk: 46, as: 0.6, range: 3, def: 0, crit: 0.05 },
-    marksman: { hp: 390, atk: 62, as: 0.75, range: 4, def: 0, crit: 0.1 },
+    marksman: { hp: 410, atk: 66, as: 0.75, range: 4, def: 0, crit: 0.1 },
     support: { hp: 540, atk: 38, as: 0.6, range: 3, def: 0.05, crit: 0.05 },
   };
   const TIER_MULT = { 1: 1, 2: 1.22, 3: 1.5 };
@@ -2656,6 +2656,33 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
   unit('kodama', 'كوداما', 'Kodama', 'sylvan', 'support', 3, 80,
     { type: 'healAll', name: 'همس الأرواح', heal: [170, 290, 510], text: 'يعالج كل الفريق.' }, { rarity: 'legendary', exclusive: true });
 
+  /*
+   * Twists: cards of the same role and base skill used to play identically. Each repeated one now has its own
+   * extra effect (see Combat._twist). The first card of every group keeps the plain version; the rest get a twist
+   * and ~7% less base power to pay for it. Text is added to the skill description automatically.
+   */
+  const TWISTS = {
+    daigo: 'thorns', tetsuya: 'chill', kinoko: 'haste', mitsuki: 'barrier', tsubaki: 'cleanse', tomoe: 'thorns', ibara: 'sunder',
+    kagemaru: 'bleed', nagi: 'slow', mizuki: 'vampiric', kota: 'sunder', kaminari: 'rally', ryuji: 'bleed',
+    kogetsu: 'sunder', goka: 'rally', ryujin: 'vampiric', mugen: 'slow', juzo: 'bleed', momo: 'bolster',
+    reiji: 'bleed', natsuki: 'sunder', haruka: 'charge', yozora: 'barrier', otohime: 'bolster', kodama: 'cleanse',
+    yuta: 'slow', godo: 'wall', daikai: 'bash',
+  };
+  const TWIST_TEXT = {
+    bleed: 'وينزف الهدف بعدها 4 ثواني.', sunder: 'ويضعف دفاع الهدف 5 ثواني.', slow: 'ويبطّئ هجوم الهدف 4 ثواني.',
+    vampiric: 'ويرجّع له نص الضرر صحة.', rally: 'وتزيد سرعة هجومه 4 ثواني.', ward: 'وياخذ درع صغير.',
+    charge: 'وتزيد مانا أقرب حليفين.', barrier: { healAll: 'ويعطي الكل درع صغير.', _: 'ويعطيه درع صغير.' },
+    haste: 'وتزيد سرعة هجومه 4 ثواني.', cleanse: { healAll: 'ويفك الشلل عن الفريق.', _: 'ويفك الشلل عنه.' },
+    bolster: 'ويقلّل الضرر على الفريق 4 ثواني.', thorns: 'ويرد جزء من الضرر على اللي يضربه 4 ثواني.',
+    wall: 'ويقلّل الضرر اللي ياخذه 4 ثواني.', chill: 'ويبطّئ الأعداء القريبين منه.', mend: 'ويرجّع جزء من صحته.', bash: 'ويوقف أقرب عدو لحظة.',
+  };
+  U.forEach((u) => {
+    const tw = TWISTS[u.id]; if (!tw) return;
+    const sk = u.skill, t = TWIST_TEXT[tw];
+    sk.extra = tw;
+    sk.text = sk.text.replace(/[.،]\s*$/, '') + ' ' + (typeof t === 'string' ? t : (t[sk.type] || t._));
+    ['dmg', 'heal', 'shield', 'dps'].forEach((k) => { if (Array.isArray(sk[k])) sk[k] = sk[k].map((v) => Math.round(v * 0.93)); });
+  });
   const UNITS = {};
   U.forEach((u) => { if (u.exclusive) { u.hp = Math.round(u.hp * EXCLUSIVE_NERF); u.atk = Math.round(u.atk * EXCLUSIVE_NERF); } UNITS[u.id] = u; });
   // The starter roster: 8 basic units (every role covered). Everything else comes from the gift packs, packs, the pass or events.
@@ -3155,11 +3182,12 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
         return dmg;
       }
       tgt.hp -= dmg;
+      if (src && src !== tgt && tgt.thorns && tgt.thorns.until > this.t && !opts.dot && !opts.thorn) this.damage(null, src, dmg * tgt.thorns.pct, { thorn: true, skill: true });   // "thorns" twist: a share of the hit goes back
       if (src) {
         src.dmgDealt += dmg;
         if (src.lifesteal && !opts.dot) this.heal(src, dmg * src.lifesteal, true);
       }
-      if (!opts.dot && !tgt.passive) tgt.mana = Math.min(tgt.maxMana, tgt.mana + this.C.manaPerHit);
+      if (!opts.dot && !opts.thorn && !tgt.passive) tgt.mana = Math.min(tgt.maxMana, tgt.mana + this.C.manaPerHit);
       this.emit({ type: 'damage', id: tgt.id, amount: Math.round(dmg), crit: !!opts.crit, skill: !!opts.skill });
       if (tgt.hp <= 0) this.kill(tgt, src);
       return dmg;
@@ -3248,7 +3276,34 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
         case 'healAll': this.alliesOf(f).forEach((a) => this.heal(a, sk.heal[s] * p)); break;
         case 'hasteAllies': this.alliesOf(f).forEach((a) => a.buffs.push({ asPct: sk.pct[s], until: this.t + sk.dur })); break;
       }
+      if (sk.extra) this._twist(f, sk, tgt, s, p);
       return true;
+    }
+
+    // A card's own twist on top of its basic skill (units of the same role no longer play the same):
+    // bleed / sunder / slow / vampiric / rally / ward / charge · barrier / haste / cleanse / bolster · thorns / wall / chill / mend / bash
+    _twist(f, sk, tgt, s, p) {
+      const t = this.t, base = ((sk.dmg || sk.heal || sk.shield || sk.dps || [240, 400, 680])[s]) * p;
+      const allies = () => this.alliesOf(f), lowest = () => this.alliesOf(f).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp || a.id - b.id)[0];
+      switch (sk.extra) {
+        case 'bleed': if (tgt && tgt.alive) tgt.dots.push({ dps: base * 0.12, until: t + 4, src: f.id }); break;
+        case 'sunder': if (tgt && tgt.alive) tgt.buffs.push({ dr: -0.2, until: t + 5 }); break;
+        case 'slow': if (tgt && tgt.alive) tgt.buffs.push({ asPct: -0.3, until: t + 4 }); break;
+        case 'vampiric': this.heal(f, base * 0.5); break;
+        case 'rally': f.buffs.push({ asPct: 0.3, until: t + 4 }); break;
+        case 'ward': f.shield += base * 0.6; break;
+        case 'charge': allies().filter((a) => a !== f && !a.passive).sort((a, b) => dist(f, a) - dist(f, b)).slice(0, 2).forEach((a) => { a.mana = Math.min(a.maxMana, a.mana + 25); }); break;
+        case 'barrier': if (sk.type === 'healAll') allies().forEach((a) => { a.shield += base * 0.3; }); else { const l = lowest(); if (l) l.shield += base * 0.5; } break;
+        case 'haste': { const l = lowest(); if (l) l.buffs.push({ asPct: 0.2, until: t + 4 }); break; }
+        case 'cleanse': if (sk.type === 'healAll') allies().forEach((a) => { a.stun = 0; }); else { const l = lowest(); if (l) l.stun = 0; } break;
+        case 'bolster': allies().forEach((a) => a.buffs.push({ dr: 0.12, until: t + 4 })); break;
+        case 'thorns': f.thorns = { pct: 0.25, until: t + 4 }; break;
+        case 'wall': f.buffs.push({ dr: 0.3, until: t + 4 }); break;
+        case 'chill': this.enemiesOf(f).forEach((e) => { if (!e.passive && dist(e, f) <= 2.2) e.buffs.push({ asPct: -0.25, until: t + 4 }); }); break;
+        case 'mend': this.heal(f, base * 0.4); break;
+        case 'bash': { const e = this.enemiesOf(f).filter((x) => this.targetable(x)).sort((a, b) => dist(f, a) - dist(f, b) || a.id - b.id)[0]; if (e) this.stun(e, 0.8); break; }
+        default: break;
+      }
     }
 
     stun(f, dur) { if (f.alive && !f.passive) { f.stun = Math.max(f.stun, dur); this.emit({ type: 'stun', id: f.id }); } }

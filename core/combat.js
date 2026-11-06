@@ -238,11 +238,12 @@
         return dmg;
       }
       tgt.hp -= dmg;
+      if (src && src !== tgt && tgt.thorns && tgt.thorns.until > this.t && !opts.dot && !opts.thorn) this.damage(null, src, dmg * tgt.thorns.pct, { thorn: true, skill: true });   // "thorns" twist: a share of the hit goes back
       if (src) {
         src.dmgDealt += dmg;
         if (src.lifesteal && !opts.dot) this.heal(src, dmg * src.lifesteal, true);
       }
-      if (!opts.dot && !tgt.passive) tgt.mana = Math.min(tgt.maxMana, tgt.mana + this.C.manaPerHit);
+      if (!opts.dot && !opts.thorn && !tgt.passive) tgt.mana = Math.min(tgt.maxMana, tgt.mana + this.C.manaPerHit);
       this.emit({ type: 'damage', id: tgt.id, amount: Math.round(dmg), crit: !!opts.crit, skill: !!opts.skill });
       if (tgt.hp <= 0) this.kill(tgt, src);
       return dmg;
@@ -331,7 +332,34 @@
         case 'healAll': this.alliesOf(f).forEach((a) => this.heal(a, sk.heal[s] * p)); break;
         case 'hasteAllies': this.alliesOf(f).forEach((a) => a.buffs.push({ asPct: sk.pct[s], until: this.t + sk.dur })); break;
       }
+      if (sk.extra) this._twist(f, sk, tgt, s, p);
       return true;
+    }
+
+    // A card's own twist on top of its basic skill (units of the same role no longer play the same):
+    // bleed / sunder / slow / vampiric / rally / ward / charge · barrier / haste / cleanse / bolster · thorns / wall / chill / mend / bash
+    _twist(f, sk, tgt, s, p) {
+      const t = this.t, base = ((sk.dmg || sk.heal || sk.shield || sk.dps || [240, 400, 680])[s]) * p;
+      const allies = () => this.alliesOf(f), lowest = () => this.alliesOf(f).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp || a.id - b.id)[0];
+      switch (sk.extra) {
+        case 'bleed': if (tgt && tgt.alive) tgt.dots.push({ dps: base * 0.12, until: t + 4, src: f.id }); break;
+        case 'sunder': if (tgt && tgt.alive) tgt.buffs.push({ dr: -0.2, until: t + 5 }); break;
+        case 'slow': if (tgt && tgt.alive) tgt.buffs.push({ asPct: -0.3, until: t + 4 }); break;
+        case 'vampiric': this.heal(f, base * 0.5); break;
+        case 'rally': f.buffs.push({ asPct: 0.3, until: t + 4 }); break;
+        case 'ward': f.shield += base * 0.6; break;
+        case 'charge': allies().filter((a) => a !== f && !a.passive).sort((a, b) => dist(f, a) - dist(f, b)).slice(0, 2).forEach((a) => { a.mana = Math.min(a.maxMana, a.mana + 25); }); break;
+        case 'barrier': if (sk.type === 'healAll') allies().forEach((a) => { a.shield += base * 0.3; }); else { const l = lowest(); if (l) l.shield += base * 0.5; } break;
+        case 'haste': { const l = lowest(); if (l) l.buffs.push({ asPct: 0.2, until: t + 4 }); break; }
+        case 'cleanse': if (sk.type === 'healAll') allies().forEach((a) => { a.stun = 0; }); else { const l = lowest(); if (l) l.stun = 0; } break;
+        case 'bolster': allies().forEach((a) => a.buffs.push({ dr: 0.12, until: t + 4 })); break;
+        case 'thorns': f.thorns = { pct: 0.25, until: t + 4 }; break;
+        case 'wall': f.buffs.push({ dr: 0.3, until: t + 4 }); break;
+        case 'chill': this.enemiesOf(f).forEach((e) => { if (!e.passive && dist(e, f) <= 2.2) e.buffs.push({ asPct: -0.25, until: t + 4 }); }); break;
+        case 'mend': this.heal(f, base * 0.4); break;
+        case 'bash': { const e = this.enemiesOf(f).filter((x) => this.targetable(x)).sort((a, b) => dist(f, a) - dist(f, b) || a.id - b.id)[0]; if (e) this.stun(e, 0.8); break; }
+        default: break;
+      }
     }
 
     stun(f, dur) { if (f.alive && !f.passive) { f.stun = Math.max(f.stun, dur); this.emit({ type: 'stun', id: f.id }); } }

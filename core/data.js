@@ -37,7 +37,7 @@
     fighter: { hp: 540, atk: 60, as: 0.75, range: 1, def: 0.12, crit: 0.05 },
     assassin: { hp: 420, atk: 68, as: 0.85, range: 1, def: 0.05, crit: 0.25 },
     mage: { hp: 470, atk: 46, as: 0.6, range: 3, def: 0, crit: 0.05 },
-    marksman: { hp: 390, atk: 62, as: 0.75, range: 4, def: 0, crit: 0.1 },
+    marksman: { hp: 410, atk: 66, as: 0.75, range: 4, def: 0, crit: 0.1 },
     support: { hp: 540, atk: 38, as: 0.6, range: 3, def: 0.05, crit: 0.05 },
   };
   const TIER_MULT = { 1: 1, 2: 1.22, 3: 1.5 };
@@ -302,6 +302,33 @@
   unit('kodama', 'كوداما', 'Kodama', 'sylvan', 'support', 3, 80,
     { type: 'healAll', name: 'همس الأرواح', heal: [170, 290, 510], text: 'يعالج كل الفريق.' }, { rarity: 'legendary', exclusive: true });
 
+  /*
+   * Twists: cards of the same role and base skill used to play identically. Each repeated one now has its own
+   * extra effect (see Combat._twist). The first card of every group keeps the plain version; the rest get a twist
+   * and ~7% less base power to pay for it. Text is added to the skill description automatically.
+   */
+  const TWISTS = {
+    daigo: 'thorns', tetsuya: 'chill', kinoko: 'haste', mitsuki: 'barrier', tsubaki: 'cleanse', tomoe: 'thorns', ibara: 'sunder',
+    kagemaru: 'bleed', nagi: 'slow', mizuki: 'vampiric', kota: 'sunder', kaminari: 'rally', ryuji: 'bleed',
+    kogetsu: 'sunder', goka: 'rally', ryujin: 'vampiric', mugen: 'slow', juzo: 'bleed', momo: 'bolster',
+    reiji: 'bleed', natsuki: 'sunder', haruka: 'charge', yozora: 'barrier', otohime: 'bolster', kodama: 'cleanse',
+    yuta: 'slow', godo: 'wall', daikai: 'bash',
+  };
+  const TWIST_TEXT = {
+    bleed: 'وينزف الهدف بعدها 4 ثواني.', sunder: 'ويضعف دفاع الهدف 5 ثواني.', slow: 'ويبطّئ هجوم الهدف 4 ثواني.',
+    vampiric: 'ويرجّع له نص الضرر صحة.', rally: 'وتزيد سرعة هجومه 4 ثواني.', ward: 'وياخذ درع صغير.',
+    charge: 'وتزيد مانا أقرب حليفين.', barrier: { healAll: 'ويعطي الكل درع صغير.', _: 'ويعطيه درع صغير.' },
+    haste: 'وتزيد سرعة هجومه 4 ثواني.', cleanse: { healAll: 'ويفك الشلل عن الفريق.', _: 'ويفك الشلل عنه.' },
+    bolster: 'ويقلّل الضرر على الفريق 4 ثواني.', thorns: 'ويرد جزء من الضرر على اللي يضربه 4 ثواني.',
+    wall: 'ويقلّل الضرر اللي ياخذه 4 ثواني.', chill: 'ويبطّئ الأعداء القريبين منه.', mend: 'ويرجّع جزء من صحته.', bash: 'ويوقف أقرب عدو لحظة.',
+  };
+  U.forEach((u) => {
+    const tw = TWISTS[u.id]; if (!tw) return;
+    const sk = u.skill, t = TWIST_TEXT[tw];
+    sk.extra = tw;
+    sk.text = sk.text.replace(/[.،]\s*$/, '') + ' ' + (typeof t === 'string' ? t : (t[sk.type] || t._));
+    ['dmg', 'heal', 'shield', 'dps'].forEach((k) => { if (Array.isArray(sk[k])) sk[k] = sk[k].map((v) => Math.round(v * 0.93)); });
+  });
   const UNITS = {};
   U.forEach((u) => { if (u.exclusive) { u.hp = Math.round(u.hp * EXCLUSIVE_NERF); u.atk = Math.round(u.atk * EXCLUSIVE_NERF); } UNITS[u.id] = u; });
   // The starter roster: 8 basic units (every role covered). Everything else comes from the gift packs, packs, the pass or events.
