@@ -88,7 +88,7 @@
   unit('pyre_archer', 'رامية المحرقة', 'Pyre Archer', 'ember', 'marksman', 2, 80,
     { type: 'burn', name: 'سهم المحرقة', dps: [60, 100, 170], dur: 4,
       text: 'يحرق الهدف ضررًا متواصلًا لمدة 4 ثوانٍ.' });
-  unit('caldera_seer', 'عرّاف البركان', 'Caldera Seer', 'ember', 'mage', 3, 90,
+  unit('caldera_seer', 'عرّافة البركان', 'Caldera Seer', 'ember', 'mage', 3, 90,
     { type: 'aoe', name: 'انفجار الفوهة', dmg: [340, 560, 960], radius: 1.6,
       text: 'انفجار بركاني يصيب منطقة واسعة حول الهدف.' });
 
@@ -113,7 +113,7 @@
   unit('grid_hound', 'كلب الشبكة', 'Grid Hound', 'neon', 'assassin', 1, 60,
     { type: 'nuke', name: 'عضّة البيانات', dmg: [150, 260, 450],
       text: 'عضة إلكترونية بضرر عالٍ.' });
-  unit('pixel_sniper', 'قناصة البكسل', 'Pixel Sniper', 'neon', 'marksman', 1, 80,
+  unit('pixel_sniper', 'قنّاص البكسل', 'Pixel Sniper', 'neon', 'marksman', 1, 80,
     { type: 'snipe', name: 'تصويب دقيق', dmg: [200, 340, 580],
       text: 'تقنص العدو الأقل صحة أينما كان (ضمن الأهداف المسموحة).' });
   unit('firewall_unit', 'وحدة الجدار الناري', 'Firewall Unit', 'neon', 'guardian', 2, 90,
@@ -192,7 +192,7 @@
   unit('daigo', 'دايغو', 'Daigo', 'sylvan', 'guardian', 1, 90,
     { type: 'taunt', name: 'درع الطحلب', shield: [200, 350, 600], radius: 2.2, dur: 3,
       text: 'يجبر الأعداء القريبين على مهاجمته ويكتسب درعًا.' });
-  unit('wakaba', 'واكابا', 'Wakaba', 'sylvan', 'marksman', 1, 80,
+  unit('wakaba', 'سوتا', 'Souta', 'sylvan', 'marksman', 1, 80,
     { type: 'burn', name: 'سهم السمّ الأخضر', dps: [50, 85, 145], dur: 4,
       text: 'يحرق الهدف ضررًا متواصلًا لمدة 4 ثوانٍ.' });
 
@@ -253,7 +253,7 @@
   unit('yuta', 'يوتا', 'Yuta', 'ember', 'marksman', 1, 80,
     { type: 'burn', name: 'سهم الفحم', dps: [50, 85, 145], dur: 4,
       text: 'يحرق الهدف ضررًا متواصلًا لمدة 4 ثوانٍ.' });
-  unit('momo', 'مومو', 'Momo', 'ember', 'support', 2, 90,
+  unit('momo', 'شينغو', 'Shingo', 'ember', 'support', 2, 90,
     { type: 'hasteAllies', name: 'خطة اللهب', pct: [0.25, 0.38, 0.55], dur: 5,
       text: 'يزيد سرعة هجوم جميع الحلفاء مؤقتًا.' });
 
@@ -264,7 +264,7 @@
   unit('ryujin', 'ريوجين', 'Ryujin', 'tide', 'fighter', 3, 70,
     { type: 'cleave', name: 'رمح المدّ', dmg: [170, 290, 490], radius: 1.4,
       text: 'ضربة دائرية تصيب الهدف ومن حوله.' });
-  unit('mizuki', 'ميزوكي', 'Mizuki', 'tide', 'assassin', 1, 60,
+  unit('mizuki', 'ميزوتو', 'Mizuto', 'tide', 'assassin', 1, 60,
     { type: 'nuke', name: 'شفرة الموج', dmg: [150, 260, 450],
       text: 'طعنة خاطفة بضرر هائل للهدف.' });
   unit('miyuki', 'ميوكي', 'Miyuki', 'tide', 'support', 2, 80,
@@ -279,7 +279,7 @@
   unit('otohime', 'أوتوهيمي', 'Otohime', 'tide', 'support', 3, 80,
     { type: 'healAll', name: 'حضن البحر', heal: [170, 290, 510],
       text: 'يعالج جميع الحلفاء.' }, { rarity: 'legendary' });
-  unit('haruka', 'هاروكا', 'Haruka', 'tide', 'mage', 2, 90,
+  unit('haruka', 'هاروتو', 'Haruto', 'tide', 'mage', 2, 90,
     { type: 'aoe', name: 'دوّامة', dmg: [280, 460, 780], radius: 1.6,
       text: 'انفجار يصيب منطقة حول الهدف.' });
   unit('daikai', 'دايكاي', 'Daikai', 'tide', 'guardian', 3, 90,
