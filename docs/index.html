@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="45d14fc4f0">
+<meta name="zor-build" content="462a42fe97">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1758,6 +1758,29 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 @media (max-width: 400px) { #scr-match .topbar .stagechip .pips { display: none; } #scr-match .topbar .res { padding: 1px 4px; } #scr-match .topbar .timer { min-width: 38px; font-size: 15px; } }
 @media (max-width: 400px) { #scr-match .topbar { gap: 2px; padding: 2px 3px; } #scr-match .topbar .lifechip { padding: 1px 3px; } }
 @media (max-width: 370px) { #scr-match .topbar .lvl svg, #scr-match .topbar .lifechip .ic { display: none; } }
+
+/* ======================================================================= tap-a-badge pop-ups */
+.tcard.full [data-act="tip"] { cursor: help; position: relative; }
+.tcard.full .bd[data-act="tip"], .tcard.full .rolepill[data-act="tip"], .tcard.full .hc-atk, .tcard.full .hc-hp, .tcard.full .hc-cost, .tcard.full .hc-rar { z-index: 6; }
+.tip-pop { pointer-events: none; position: fixed; z-index: 95; width: min(264px, calc(100vw - 12px)); background: var(--paper); color: var(--ink); border: 3px solid var(--ink); box-shadow: var(--hard); padding: 8px 10px 9px; font-size: 13px; line-height: 1.55; animation: tipin .12s ease-out; pointer-events: none; }
+@keyframes tipin { from { transform: translateY(4px); opacity: 0; } }
+.tp-h { display: flex; align-items: center; gap: 7px; font: 400 19px var(--display); margin-bottom: 3px; padding-bottom: 3px; border-bottom: 2px solid var(--c, var(--ink)); } .tp-h svg { width: 22px; height: 22px; flex: none; color: var(--c, var(--red)); }
+.tp-l { margin: 2px 0; } .tp-s { margin-top: 5px; font-size: 12px; color: var(--muted); }
+.tp-v { display: inline-block; padding: 0 5px; border: 1.5px solid #0003; margin-inline-end: 3px; font-weight: 700; direction: ltr; } .tp-v.on { background: var(--gold); border-color: var(--ink); }
+.tp-arrow { position: absolute; bottom: -9px; width: 14px; height: 14px; background: var(--paper); border-right: 3px solid var(--ink); border-bottom: 3px solid var(--ink); transform: rotate(45deg); } .tp-arrow.dn { bottom: auto; top: -9px; transform: rotate(225deg); }
+.tp-sec + .tp-sec { margin-top: 6px; padding-top: 5px; border-top: 1px dashed #0004; } .tp-sh { display: flex; align-items: center; gap: 5px; font-size: 14px; } .tp-sh svg { width: 16px; height: 16px; color: var(--red); }
+/* tiny cards (phones): the whole icon strip is the tap target */
+@media (max-width: 860px) { .tcard.full .hc-icons .bd, .tcard.full .hc-icons .rolepill { pointer-events: none; } }
+.tcard.full .hc-name { cursor: help; }
+.tp-sec + .tp-sec { margin-top: 6px; padding-top: 5px; border-top: 1px dashed #0004; } .tp-sh { display: flex; align-items: center; gap: 5px; font-size: 14px; } .tp-sh svg { width: 16px; height: 16px; color: var(--red); }
+/* tiny cards (phones): the whole icon strip is the tap target */
+@media (max-width: 860px) { .tcard.full .hc-icons .bd, .tcard.full .hc-icons .rolepill { pointer-events: none; } }
+.tcard.full .hc-name { cursor: help; }
+/* world / role / skill discs: a column on the card's side, clear of the attack/health badges (they used to hide the world icon) */
+.tcard.hc.full .hc-icons { left: 4px; right: auto; top: 34px; bottom: auto; flex-direction: column; justify-content: flex-start; align-items: center; gap: 5px; width: 24px; }
+.tcard.hc.full .hc-icons .bd, .tcard.hc.full .hc-icons .rolepill { width: 24px; height: 24px; min-width: 24px; padding: 0; display: grid; place-items: center; font-size: 0; border-radius: 50%; }
+.tcard.hc.full .hc-icons .bd .ic, .tcard.hc.full .hc-icons .rolepill .ic { width: 14px; height: 14px; }
+.tcard.full .hc-icons { z-index: 7; }
 
 </style>
 </head>
@@ -6314,7 +6337,7 @@ AMB.IMAGES = {
   }
   // Icon language: every fact on a card is a symbol, only numbers (and one short name) remain as text.
   const ART = AMB.art;
-  const disc = (cls, iconName, title) => `<span class="bd ${cls}" title="${esc(title || '')}">${icon(iconName)}</span>`;
+  const disc = (cls, iconName, title, tip) => `<span class="bd ${cls}" title="${esc(title || '')}" ${tip ? `data-act="tip" data-k="${tip[0]}" data-id="${tip[1]}"${tip[2] ? ` data-x="${tip[2]}"` : ''}` : ''}>${icon(iconName)}</span>`;
   const gems = (n) => `<span class="gems t${n}">${icon('gem').repeat(n)}</span>`;
   const sv = (ic, v, cls) => `<span class="sv ${cls || ''}">${icon(ic)}<b>${v}</b></span>`;
 
@@ -6331,9 +6354,11 @@ AMB.IMAGES = {
     const atk = isHero ? def.board.atk : cardStats(def, star).atk;
     const hp = isHero ? (o.life != null ? o.life : 100) : cardStats(def, star).hp;
     const numCls = (n) => (String(n).length > 3 ? ' class="sm"' : '');
-    const atkBd = `<span class="hc-atk">${icon('sword')}<b${numCls(atk)}>${atk}</b></span>`;
-    const hpBd = `<span class="hc-hp">${icon('heart')}<b${numCls(hp)}>${hp}</b></span>`;
-    const roleD = isHero ? disc('role hero', 'crown', 'بطل') : disc('role', ART.ROLE_ICON[def.role], ROLES[def.role].name);
+    const tp = (k, id, x) => (o.size === 'mini' ? '' : ` data-act="tip" data-k="${k}" data-id="${id}"${x ? ` data-x="${x}"` : ''}`);   // full cards: every badge explains itself when tapped
+    const atkBd = `<span class="hc-atk"${tp('atk', def.id, star)}>${icon('sword')}<b${numCls(atk)}>${atk}</b></span>`;
+    const hpBd = `<span class="hc-hp"${tp('hp', def.id, star)}>${icon('heart')}<b${numCls(hp)}>${hp}</b></span>`;
+    const T3 = (k, id) => (o.size === 'mini' ? null : [k, id]);
+    const roleD = isHero ? disc('role hero', 'crown', 'بطل', T3('herorole', def.id)) : disc('role', ART.ROLE_ICON[def.role], ROLES[def.role].name, T3('role', def.id));
     if (o.size === 'mini') {
       const items = (o.items || []).map((it) => `<i title="${esc(ITEMS[it].name)}">${icon(ITEMS[it].icon)}</i>`).join('');
       const mid = o.live ? `<div class="hc-bar"><div class="hpb"><b></b><i></i></div>${isHero ? '' : '<div class="mpb"><i></i></div>'}</div>` : (items ? `<div class="hc-its">${items}</div>` : '');
@@ -6341,21 +6366,21 @@ AMB.IMAGES = {
         <i class="hc-halo"></i><div class="hc-art">${portrait(def, { bare: true, k: o.k })}<i class="sheen"></i></div><div class="hc-ring"></div>
         ${roleD}${isHero ? '' : stars(star)}${o.prog ? `<span class="hc-prog" title="نسخ متطابقة: واحدة إضافية وتترقى">${o.prog}</span>` : ''}${atkBd}${hpBd}${mid}</div>`;
     }
-    const own = o.own ? `<span class="hc-own ${o.own.pair ? 'up' : ''}">${o.own.pair ? '↑' : '×' + o.own.n}</span>` : '';
-    const rolePill = isHero ? '' : `<span class="rolepill ${ROLES[def.role].kind}" title="${esc(ROLES[def.role].desc)} · تُوضع: ${esc(ROLES[def.role].place)}">${icon(ART.ROLE_ICON[def.role])}${ROLES[def.role].name}</span>`;
+    const own = o.own ? `<span class="hc-own ${o.own.pair ? 'up' : ''}" data-act="tip" data-k="own" data-id="${def.id}" data-x="${o.own.pair ? 'up' : o.own.n}">${o.own.pair ? '↑' : '×' + o.own.n}</span>` : '';
+    const rolePill = isHero ? '' : `<span class="rolepill ${ROLES[def.role].kind}" data-act="tip" data-k="role" data-id="${def.id}">${icon(ART.ROLE_ICON[def.role])}${ROLES[def.role].name}</span>`;
     const iconsRow = isHero
-      ? disc('world', ART.WORLD_ICON[def.world], W.name) + roleD
-      : disc('world', ART.WORLD_ICON[def.world], W.name) + rolePill + disc('skill', ART.SKILL_ICON[def.skill.type] || 'star', def.skill.name);
+      ? disc('world', ART.WORLD_ICON[def.world], W.name, ['world', def.id]) + roleD
+      : disc('world', ART.WORLD_ICON[def.world], W.name, ['world', def.id]) + rolePill + disc('skill', ART.SKILL_ICON[def.skill.type] || 'star', def.skill.name, ['skill', def.id, star]);
     const RA = AMB.ECONOMY && AMB.ECONOMY.rarities[def.rarity];
-    const rar = RA ? `<span class="hc-rar" title="الندرة: ${RA.name}">${RA.name}</span>` : '';
-    const lvl = o.lvl ? `<span class="hc-lvl" title="مستوى البطاقة (في الحملة والبرج)">Lv ${o.lvl}</span>` : '';
+    const rar = RA ? `<span class="hc-rar" data-act="tip" data-k="rar" data-id="${def.id}">${RA.name}</span>` : '';
+    const lvl = o.lvl ? `<span class="hc-lvl" data-act="tip" data-k="lvl" data-id="${def.id}" data-x="${o.lvl}">Lv ${o.lvl}</span>` : '';
     return `<div class="tcard hc full ${tier}${sc} r-${def.rarity || 'common'} ${o.cls || ''}" style="--wc:${W.color}" ${attrs}>
       <div class="hc-frame"><i class="sheen"></i></div>${rar}${lvl}
       <div class="hc-art">${portrait(def, { bare: true, k: o.k })}</div><div class="hc-ring"></div>
-      <div class="hc-name"><b>${def.name}</b></div>
-      <div class="hc-icons">${iconsRow}</div>
-      ${isHero ? '' : gems(def.tier).replace('class="gems', 'class="hc-gems gems')}
-      ${isHero ? '' : `<span class="hc-cost"><i></i><b>${def.cost}</b></span>`}
+      <div class="hc-name" data-act="tip" data-k="all" data-id="${def.id}" data-x="${star}"><b>${def.name}</b></div>
+      <div class="hc-icons" data-act="tip" data-k="all" data-id="${def.id}" data-x="${star}">${iconsRow}</div>
+      ${isHero ? '' : gems(def.tier).replace('class="gems', 'data-act="tip" data-k="cost" data-id="' + def.id + '" class="hc-gems gems')}
+      ${isHero ? '' : `<span class="hc-cost" data-act="tip" data-k="cost" data-id="${def.id}"><i></i><b>${def.cost}</b></span>`}
       ${atkBd}${hpBd}${own}
       <span class="hc-info" data-act="${isHero ? 'heroInfo' : 'detail'}" data-id="${def.id}" title="تفاصيل">i</span></div>`;
   }
@@ -7945,6 +7970,79 @@ AMB.IMAGES = {
   AMB.CampaignUI = { render, refreshMenu, showResult, installActions, isNewbie };
   if (UI()) installActions();
   refreshMenu();
+})();
+
+</script>
+<script>
+/*
+ * Tap any badge on a card (world, role, skill, attack, health, rarity, cost, level, copies) and a small pop-up explains it.
+ * The pop-up is NOT a window: it points at the badge, closes on the next tap / scroll, and never buys or selects the card.
+ */
+(function () {
+  const AMB = globalThis.AMB, D = AMB.DATA;
+  const { icon } = AMB.art;
+  const UI = () => globalThis.AMB_UI;
+  let pop = null, timer = 0;
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const def = (id) => D.UNITS[id] || D.HEROES[id];
+  const SM = () => AMB.CONFIG.stars.mult;
+  const LABEL = { dmg: 'ضرر', heal: 'علاج', shield: 'درع', dps: 'ضرر/ث', stun: 'شلل (ث)', pct: 'نسبة' };
+  const synLines = (sid) => (D.SYNERGIES[sid] ? D.SYNERGIES[sid].tiers.map((t) => `<div class="tp-l">• <b>${t.n}</b>: ${esc(t.text)}</div>`).join('') : '');
+
+  function content(k, id, x) {
+    const d = def(id); if (!d) return null;
+    const isHero = !d.role;
+    if (k === 'all') {   // small cards (phones): the icon strip opens ONE pop-up that explains world + role + skill together
+      const parts = ['world', isHero ? 'herorole' : 'role'].concat(isHero ? [] : ['skill']).map((kk) => content(kk, id, x));
+      return { ic: AMB.art.WORLD_ICON[d.world], title: d.name, color: D.WORLDS[d.world].color, html: parts.map((c) => `<div class="tp-sec"><div class="tp-sh">${icon(c.ic)}<b>${esc(c.title)}</b></div>${c.html.replace(/<div class="tp-s">التآزر[^<]*<\/div>/, '')}</div>`).join('') };
+    }
+    switch (k) {
+      case 'world': { const W = D.WORLDS[d.world]; return { ic: AMB.art.WORLD_ICON[d.world], title: W.name, color: W.color, html: `<div class="tp-s">التآزر: كل ما جمعت وحدات من هذا العالم يقوون:</div>${synLines(d.world)}` }; }
+      case 'role': { const R = D.ROLES[d.role]; return { ic: AMB.art.ROLE_ICON[d.role], title: R.name, html: `<div class="tp-l">${esc(R.desc)}</div><div class="tp-s">تُوضع: <b>${esc(R.place)}</b></div>${synLines(d.role)}` }; }
+      case 'herorole': return { ic: 'crown', title: 'بطل', html: `<div class="tp-l"><b>${esc(d.passive.name)}</b>: ${esc(d.passive.text)}</div><div class="tp-s">قائدك: حياته هي حياتك، وسقوطه = خسارة.</div>` };
+      case 'skill': {
+        const s = d.skill, st = +x || 1, rows = [];
+        Object.keys(s).forEach((key) => { if (Array.isArray(s[key]) && s[key].length === 3 && LABEL[key]) rows.push(`<div class="tp-l"><b>${LABEL[key]}</b>: <span class="tp-v ${st === 1 ? 'on' : ''}">★ ${s[key][0]}</span> <span class="tp-v ${st === 2 ? 'on' : ''}">★★ ${s[key][1]}</span> <span class="tp-v ${st === 3 ? 'on' : ''}">★★★ ${s[key][2]}</span></div>`); });
+        return { ic: AMB.art.SKILL_ICON[s.type] || 'star', title: s.name, html: `<div class="tp-l">${esc(s.text)}</div>${rows.join('')}<div class="tp-s">تنطلق لما تمتلئ المانا (${d.mana}).</div>` };
+      }
+      case 'atk': case 'hp': {
+        const lab = k === 'atk' ? 'الهجوم' : 'الصحة', base = isHero ? (k === 'atk' ? d.board.atk : 100) : (k === 'atk' ? d.atk : d.hp), m = SM();
+        const v = (s) => Math.round(base * (isHero ? 1 : m[s]));
+        return { ic: k === 'atk' ? 'sword' : 'heart', title: lab, html: isHero ? `<div class="tp-l">${k === 'atk' ? 'هجومه لما تستدعيه للساحة (ويكبر كل جولة).' : 'حياة البطل = حياتك في المباراة.'}</div>` : `<div class="tp-l"><span class="tp-v">★ ${v(1)}</span> <span class="tp-v">★★ ${v(2)}</span> <span class="tp-v">★★★ ${v(3)}</span></div><div class="tp-s">كل نجمة ترفع القوة. ٣ نسخ متطابقة = نجمة.</div>` };
+      }
+      case 'rar': { const R = AMB.ECONOMY.rarities[d.rarity]; return { ic: 'gem', title: R.name, color: R.color, html: `<div class="tp-l">قوة إضافية <b>+${Math.round((R.power - 1) * 100)}%</b> في الحملة والبرج والأحداث.</div><div class="tp-s">نسخ التطوير للمستويات 2–5: ${R.copies.join(' / ')}</div>` }; }
+      case 'lvl': return { ic: 'up', title: 'مستوى ' + x, html: `<div class="tp-l">كل مستوى <b>+${Math.round(AMB.ECONOMY.cards.levelBonus * 100)}%</b> صحة وهجوم، في الحملة والبرج والأحداث فقط.</div><div class="tp-s">تطوّره بالنسخ المكررة من «مجموعتي».</div>` };
+      case 'cost': return { ic: 'gold', title: d.cost + ' ذهب', html: `<div class="tp-l">سعر الشراء، وهو نفس رقم الفئة ${d.tier} (الجواهر).</div><div class="tp-s">البيع يرجّع نفس السعر.</div>` };
+      case 'own': return { ic: 'star', title: x === 'up' ? '↑' : '×' + x, html: x === 'up' ? '<div class="tp-l">عندك نسختين: شراؤها يرقّيها لنجمة أقوى!</div>' : `<div class="tp-l">عندك ${x} نسخة منها. ٣ نسخ متطابقة تندمج لنجمة.</div>` };
+    }
+    return null;
+  }
+
+  function close() { if (pop) { pop.remove(); pop = null; } clearTimeout(timer); }
+  function open(el, c) {
+    close();
+    pop = document.createElement('div'); pop.className = 'tip-pop';
+    pop.innerHTML = `<div class="tp-h" style="${c.color ? `--c:${c.color}` : ''}">${icon(c.ic)}<b>${esc(c.title)}</b></div>${c.html}<i class="tp-arrow"></i>`;
+    document.body.appendChild(pop);
+    const r = el.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight, vw = innerWidth, vh = innerHeight;
+    let left = r.left + r.width / 2 - pw / 2; left = Math.max(6, Math.min(vw - pw - 6, left));
+    const above = r.top - ph - 12 > 4, top = above ? r.top - ph - 10 : Math.min(vh - ph - 6, r.bottom + 10);
+    pop.style.left = left + 'px'; pop.style.top = top + 'px';
+    const ar = pop.querySelector('.tp-arrow'); ar.style.left = Math.max(10, Math.min(pw - 22, r.left + r.width / 2 - left - 6)) + 'px'; ar.classList.toggle('dn', !above);
+    timer = setTimeout(close, 7000);
+  }
+
+  function installActions() {
+    const ui = UI(); if (!ui || ui.ACT.tip) return;
+    ui.ACT.tip = (d, el, e) => { if (e) e.stopPropagation(); const c = content(d.k, d.id, d.x); if (c) { ui.sfx && ui.sfx('click'); open(el, c); } };
+  }
+  // any other tap or a scroll closes it (capture phase so the tap still does its normal job)
+  document.addEventListener('click', (e) => { if (pop && !e.target.closest('[data-act="tip"]') && true) close(); }, true);
+  window.addEventListener('scroll', close, true);
+  window.addEventListener('resize', close);
+
+  AMB.TipsUI = { open, close, content, installActions };
+  if (UI()) installActions();
 })();
 
 </script>

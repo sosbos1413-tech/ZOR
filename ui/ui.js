@@ -323,7 +323,7 @@
   }
   // Icon language: every fact on a card is a symbol, only numbers (and one short name) remain as text.
   const ART = AMB.art;
-  const disc = (cls, iconName, title) => `<span class="bd ${cls}" title="${esc(title || '')}">${icon(iconName)}</span>`;
+  const disc = (cls, iconName, title, tip) => `<span class="bd ${cls}" title="${esc(title || '')}" ${tip ? `data-act="tip" data-k="${tip[0]}" data-id="${tip[1]}"${tip[2] ? ` data-x="${tip[2]}"` : ''}` : ''}>${icon(iconName)}</span>`;
   const gems = (n) => `<span class="gems t${n}">${icon('gem').repeat(n)}</span>`;
   const sv = (ic, v, cls) => `<span class="sv ${cls || ''}">${icon(ic)}<b>${v}</b></span>`;
 
@@ -340,9 +340,11 @@
     const atk = isHero ? def.board.atk : cardStats(def, star).atk;
     const hp = isHero ? (o.life != null ? o.life : 100) : cardStats(def, star).hp;
     const numCls = (n) => (String(n).length > 3 ? ' class="sm"' : '');
-    const atkBd = `<span class="hc-atk">${icon('sword')}<b${numCls(atk)}>${atk}</b></span>`;
-    const hpBd = `<span class="hc-hp">${icon('heart')}<b${numCls(hp)}>${hp}</b></span>`;
-    const roleD = isHero ? disc('role hero', 'crown', 'بطل') : disc('role', ART.ROLE_ICON[def.role], ROLES[def.role].name);
+    const tp = (k, id, x) => (o.size === 'mini' ? '' : ` data-act="tip" data-k="${k}" data-id="${id}"${x ? ` data-x="${x}"` : ''}`);   // full cards: every badge explains itself when tapped
+    const atkBd = `<span class="hc-atk"${tp('atk', def.id, star)}>${icon('sword')}<b${numCls(atk)}>${atk}</b></span>`;
+    const hpBd = `<span class="hc-hp"${tp('hp', def.id, star)}>${icon('heart')}<b${numCls(hp)}>${hp}</b></span>`;
+    const T3 = (k, id) => (o.size === 'mini' ? null : [k, id]);
+    const roleD = isHero ? disc('role hero', 'crown', 'بطل', T3('herorole', def.id)) : disc('role', ART.ROLE_ICON[def.role], ROLES[def.role].name, T3('role', def.id));
     if (o.size === 'mini') {
       const items = (o.items || []).map((it) => `<i title="${esc(ITEMS[it].name)}">${icon(ITEMS[it].icon)}</i>`).join('');
       const mid = o.live ? `<div class="hc-bar"><div class="hpb"><b></b><i></i></div>${isHero ? '' : '<div class="mpb"><i></i></div>'}</div>` : (items ? `<div class="hc-its">${items}</div>` : '');
@@ -350,21 +352,21 @@
         <i class="hc-halo"></i><div class="hc-art">${portrait(def, { bare: true, k: o.k })}<i class="sheen"></i></div><div class="hc-ring"></div>
         ${roleD}${isHero ? '' : stars(star)}${o.prog ? `<span class="hc-prog" title="نسخ متطابقة: واحدة إضافية وتترقى">${o.prog}</span>` : ''}${atkBd}${hpBd}${mid}</div>`;
     }
-    const own = o.own ? `<span class="hc-own ${o.own.pair ? 'up' : ''}">${o.own.pair ? '↑' : '×' + o.own.n}</span>` : '';
-    const rolePill = isHero ? '' : `<span class="rolepill ${ROLES[def.role].kind}" title="${esc(ROLES[def.role].desc)} · تُوضع: ${esc(ROLES[def.role].place)}">${icon(ART.ROLE_ICON[def.role])}${ROLES[def.role].name}</span>`;
+    const own = o.own ? `<span class="hc-own ${o.own.pair ? 'up' : ''}" data-act="tip" data-k="own" data-id="${def.id}" data-x="${o.own.pair ? 'up' : o.own.n}">${o.own.pair ? '↑' : '×' + o.own.n}</span>` : '';
+    const rolePill = isHero ? '' : `<span class="rolepill ${ROLES[def.role].kind}" data-act="tip" data-k="role" data-id="${def.id}">${icon(ART.ROLE_ICON[def.role])}${ROLES[def.role].name}</span>`;
     const iconsRow = isHero
-      ? disc('world', ART.WORLD_ICON[def.world], W.name) + roleD
-      : disc('world', ART.WORLD_ICON[def.world], W.name) + rolePill + disc('skill', ART.SKILL_ICON[def.skill.type] || 'star', def.skill.name);
+      ? disc('world', ART.WORLD_ICON[def.world], W.name, ['world', def.id]) + roleD
+      : disc('world', ART.WORLD_ICON[def.world], W.name, ['world', def.id]) + rolePill + disc('skill', ART.SKILL_ICON[def.skill.type] || 'star', def.skill.name, ['skill', def.id, star]);
     const RA = AMB.ECONOMY && AMB.ECONOMY.rarities[def.rarity];
-    const rar = RA ? `<span class="hc-rar" title="الندرة: ${RA.name}">${RA.name}</span>` : '';
-    const lvl = o.lvl ? `<span class="hc-lvl" title="مستوى البطاقة (في الحملة والبرج)">Lv ${o.lvl}</span>` : '';
+    const rar = RA ? `<span class="hc-rar" data-act="tip" data-k="rar" data-id="${def.id}">${RA.name}</span>` : '';
+    const lvl = o.lvl ? `<span class="hc-lvl" data-act="tip" data-k="lvl" data-id="${def.id}" data-x="${o.lvl}">Lv ${o.lvl}</span>` : '';
     return `<div class="tcard hc full ${tier}${sc} r-${def.rarity || 'common'} ${o.cls || ''}" style="--wc:${W.color}" ${attrs}>
       <div class="hc-frame"><i class="sheen"></i></div>${rar}${lvl}
       <div class="hc-art">${portrait(def, { bare: true, k: o.k })}</div><div class="hc-ring"></div>
-      <div class="hc-name"><b>${def.name}</b></div>
-      <div class="hc-icons">${iconsRow}</div>
-      ${isHero ? '' : gems(def.tier).replace('class="gems', 'class="hc-gems gems')}
-      ${isHero ? '' : `<span class="hc-cost"><i></i><b>${def.cost}</b></span>`}
+      <div class="hc-name" data-act="tip" data-k="all" data-id="${def.id}" data-x="${star}"><b>${def.name}</b></div>
+      <div class="hc-icons" data-act="tip" data-k="all" data-id="${def.id}" data-x="${star}">${iconsRow}</div>
+      ${isHero ? '' : gems(def.tier).replace('class="gems', 'data-act="tip" data-k="cost" data-id="' + def.id + '" class="hc-gems gems')}
+      ${isHero ? '' : `<span class="hc-cost" data-act="tip" data-k="cost" data-id="${def.id}"><i></i><b>${def.cost}</b></span>`}
       ${atkBd}${hpBd}${own}
       <span class="hc-info" data-act="${isHero ? 'heroInfo' : 'detail'}" data-id="${def.id}" title="تفاصيل">i</span></div>`;
   }

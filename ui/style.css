@@ -1738,3 +1738,26 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 @media (max-width: 400px) { #scr-match .topbar .stagechip .pips { display: none; } #scr-match .topbar .res { padding: 1px 4px; } #scr-match .topbar .timer { min-width: 38px; font-size: 15px; } }
 @media (max-width: 400px) { #scr-match .topbar { gap: 2px; padding: 2px 3px; } #scr-match .topbar .lifechip { padding: 1px 3px; } }
 @media (max-width: 370px) { #scr-match .topbar .lvl svg, #scr-match .topbar .lifechip .ic { display: none; } }
+
+/* ======================================================================= tap-a-badge pop-ups */
+.tcard.full [data-act="tip"] { cursor: help; position: relative; }
+.tcard.full .bd[data-act="tip"], .tcard.full .rolepill[data-act="tip"], .tcard.full .hc-atk, .tcard.full .hc-hp, .tcard.full .hc-cost, .tcard.full .hc-rar { z-index: 6; }
+.tip-pop { pointer-events: none; position: fixed; z-index: 95; width: min(264px, calc(100vw - 12px)); background: var(--paper); color: var(--ink); border: 3px solid var(--ink); box-shadow: var(--hard); padding: 8px 10px 9px; font-size: 13px; line-height: 1.55; animation: tipin .12s ease-out; pointer-events: none; }
+@keyframes tipin { from { transform: translateY(4px); opacity: 0; } }
+.tp-h { display: flex; align-items: center; gap: 7px; font: 400 19px var(--display); margin-bottom: 3px; padding-bottom: 3px; border-bottom: 2px solid var(--c, var(--ink)); } .tp-h svg { width: 22px; height: 22px; flex: none; color: var(--c, var(--red)); }
+.tp-l { margin: 2px 0; } .tp-s { margin-top: 5px; font-size: 12px; color: var(--muted); }
+.tp-v { display: inline-block; padding: 0 5px; border: 1.5px solid #0003; margin-inline-end: 3px; font-weight: 700; direction: ltr; } .tp-v.on { background: var(--gold); border-color: var(--ink); }
+.tp-arrow { position: absolute; bottom: -9px; width: 14px; height: 14px; background: var(--paper); border-right: 3px solid var(--ink); border-bottom: 3px solid var(--ink); transform: rotate(45deg); } .tp-arrow.dn { bottom: auto; top: -9px; transform: rotate(225deg); }
+.tp-sec + .tp-sec { margin-top: 6px; padding-top: 5px; border-top: 1px dashed #0004; } .tp-sh { display: flex; align-items: center; gap: 5px; font-size: 14px; } .tp-sh svg { width: 16px; height: 16px; color: var(--red); }
+/* tiny cards (phones): the whole icon strip is the tap target */
+@media (max-width: 860px) { .tcard.full .hc-icons .bd, .tcard.full .hc-icons .rolepill { pointer-events: none; } }
+.tcard.full .hc-name { cursor: help; }
+.tp-sec + .tp-sec { margin-top: 6px; padding-top: 5px; border-top: 1px dashed #0004; } .tp-sh { display: flex; align-items: center; gap: 5px; font-size: 14px; } .tp-sh svg { width: 16px; height: 16px; color: var(--red); }
+/* tiny cards (phones): the whole icon strip is the tap target */
+@media (max-width: 860px) { .tcard.full .hc-icons .bd, .tcard.full .hc-icons .rolepill { pointer-events: none; } }
+.tcard.full .hc-name { cursor: help; }
+/* world / role / skill discs: a column on the card's side, clear of the attack/health badges (they used to hide the world icon) */
+.tcard.hc.full .hc-icons { left: 4px; right: auto; top: 34px; bottom: auto; flex-direction: column; justify-content: flex-start; align-items: center; gap: 5px; width: 24px; }
+.tcard.hc.full .hc-icons .bd, .tcard.hc.full .hc-icons .rolepill { width: 24px; height: 24px; min-width: 24px; padding: 0; display: grid; place-items: center; font-size: 0; border-radius: 50%; }
+.tcard.hc.full .hc-icons .bd .ic, .tcard.hc.full .hc-icons .rolepill .ic { width: 14px; height: 14px; }
+.tcard.full .hc-icons { z-index: 7; }
