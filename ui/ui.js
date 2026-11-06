@@ -335,7 +335,7 @@
     const whyTxt = S.mode !== 'hotseat' && rep.winner === 1 ? (me0.exposed ? 'سقط خط الدفاع وانكشف بطلك' : 'العدو كان أقوى هالجولة') : '';
     overlay(`<div class="ov-card rr ${cls}"><div class="rr-title">${title}</div><div class="rr-big">${icon(rep.winner === null ? 'swap' : cls === 'lose' ? 'skull' : 'crown')}</div>
       <div class="rr-row">${side(0)}<div class="rr-vs">${icon('sword')}</div>${side(1)}</div>${why}${whyTxt ? `<div class="rr-note">${whyTxt}</div>` : ''}${rep.finale ? `<div class="rr-why">${icon('flame')} ×${CFG.match.finaleLossMult}</div>` : ''}
-      <button class="btn primary big rr-go" data-act="${over ? 'toResults' : m.rewardPending ? 'rewards' : 'nextRound'}">${over ? icon('check') : m.rewardPending ? '🎁' : icon('sword')}</button></div>`);
+      <button class="btn primary big rr-go" data-act="${over ? 'toResults' : m.rewardPending ? 'rewards' : 'nextRound'}">${over ? 'النتيجة' : m.rewardPending ? 'اختر مكافأتك' : 'الجولة الجاية'}</button></div>`);
   }
 
   // ---- card helpers shared by shop / bench / field / codex
@@ -804,15 +804,15 @@
     const freeR = p.freeRerolls > 0;
     $('shopbar').innerHTML = `
       <div class="shop-actions">
-        <button class="btn ib-act" data-act="reroll" title="D">${icon('refresh')}<span class="cost">${freeR ? '0' : icon('gold') + E.rerollCost}</span></button>
-        <button class="btn ib-act" data-act="xp" ${p.level >= E.maxLevel ? 'disabled' : ''} title="F">${icon('up')}<span class="cost">${icon('gold')}${E.xpCost}</span></button>
-        <button class="btn ib-act ${p.shopLocked ? 'on' : ''}" data-act="lock">${icon(p.shopLocked ? 'lock' : 'unlock')}</button>
+        <button class="btn ib-act" data-act="reroll" title="D"><span class="lb">تحديث</span><span class="cost">${freeR ? '0' : icon('gold') + E.rerollCost}</span></button>
+        <button class="btn ib-act" data-act="xp" ${p.level >= E.maxLevel ? 'disabled' : ''} title="F"><span class="lb">خبرة</span><span class="cost">${icon('gold')}${E.xpCost}</span></button>
+        <button class="btn ib-act ${p.shopLocked ? 'on' : ''}" data-act="lock"><span class="lb">${p.shopLocked ? 'مثبّت' : 'تثبيت'}</span></button>
       </div>
       <div class="shop-row"><div class="shop-cards">${cards}</div>
       <div class="item-cards">${items}</div></div>
       <div class="shop-actions">
-        <button class="btn ib-act" data-act="upgrades">${icon('star')}<span class="cost">×3</span></button>
-        <button class="btn primary ready-btn" data-act="ready" title="Enter">${icon('sword')}${icon('check')}</button>
+        <button class="btn ib-act" data-act="upgrades"><span class="lb">تطوير</span></button>
+        <button class="btn primary ready-btn" data-act="ready" title="Enter"><span class="lb">جاهز</span></button>
       </div>`;
   }
 
@@ -910,22 +910,22 @@
       if (u) {
         const d = UNITS[u.defId], R = ROLES[d.role], onBoard = Object.values(p.board).includes(u);
         return `<div class="pb sel"><span class="pb-name">${stars(u.star)} <span class="rolepill ${R.kind}">${icon(ART.ROLE_ICON[d.role])}</span></span>
-          <span class="pb-btns"><button class="btn small danger ib" data-act="sell">${icon('gold')}+${m.sellValue(u)}</button>
-          <button class="btn small ib" data-act="${onBoard ? 'toBench' : 'toBoard'}">${icon(onBoard ? 'box' : 'shield')}</button>
-          <button class="btn small ib" data-act="detail" data-id="${d.id}" data-star="${u.star}">ⓘ</button>
-          ${u.items.length ? `<button class="btn small ib" data-act="unequip">${icon('swap')}</button>` : ''}
-          <button class="btn small ghost ib" data-act="deselect">✕</button></span></div>`;
+          <span class="pb-btns"><button class="btn small danger ib" data-act="sell">بيع ${icon('gold')}+${m.sellValue(u)}</button>
+          <button class="btn small ib" data-act="${onBoard ? 'toBench' : 'toBoard'}">${onBoard ? 'للاحتياط' : 'للساحة'}</button>
+          <button class="btn small ib" data-act="detail" data-id="${d.id}" data-star="${u.star}">تفاصيل</button>
+          ${u.items.length ? `<button class="btn small ib" data-act="unequip">نزع المعدة</button>` : ''}
+          <button class="btn small ghost ib" data-act="deselect">إلغاء</button></span></div>`;
       }
     }
     if (sel && sel.kind === 'item') {
       const it = ITEMS[p.items[sel.idx]];
       if (it) return `<div class="pb sel"><span class="pb-name">${icon(it.icon)}</span>
-        <span class="pb-btns">${it.kind === 'spell' ? `<button class="btn small ib" data-act="arm">${icon('play')}</button>` : ''}<button class="btn small danger ib" data-act="sellItem">${icon('gold')}+${Math.floor(it.cost / 2)}</button><button class="btn small ghost ib" data-act="deselect">✕</button></span></div>`;
+        <span class="pb-btns">${it.kind === 'spell' ? `<button class="btn small ib" data-act="arm">تفعيل</button>` : ''}<button class="btn small danger ib" data-act="sellItem">بيع ${icon('gold')}+${Math.floor(it.cost / 2)}</button><button class="btn small ghost ib" data-act="deselect">إلغاء</button></span></div>`;
     }
     if (sel && sel.kind === 'hero') return `<div class="pb sel"><span class="pb-name">${icon('crown')}</span><span class="pb-btns"><button class="btn small ghost ib" data-act="deselect">✕</button></span></div>`;
     const bag = p.items.map((id, i) => `<button class="bagchip" data-act="bagSel" data-idx="${i}">${icon(ITEMS[id].icon)}</button>`).join('');
     return `<div class="pb"><span class="pb-count">${icon('shield')} ${cnt}${p.summoned ? ' +' + icon('crown') : ''}</span>${bag ? `<span class="pb-bag">${bag}</span>` : ''}
-      <span class="pb-btns"><button class="btn small ib" data-act="autoArrange">${icon('wand')}</button></span></div>`;
+      <span class="pb-btns"><button class="btn small ib" data-act="autoArrange">تلقائي</button></span></div>`;
   }
 
   function renderCombatCtrl() {
@@ -933,7 +933,7 @@
     if (S.phase === 'combat') {
       el.innerHTML = `<span class="clock">0.0s</span>
         ${[1, 2, 4].map((s) => `<button class="btn small ${S.speed === s ? 'on' : ''}" data-act="speed" data-v="${s}">${s}x</button>`).join('')}
-        <button class="btn small ib" data-act="skip">${icon('skip')}</button><span class="fury"></span>`;
+        <button class="btn small ib" data-act="skip">تخطي</button><span class="fury"></span>`;
     } else if (S.phase === 'prep' || S.phase === 'resources') {
       el.innerHTML = prepBarHTML();
     } else el.innerHTML = '';

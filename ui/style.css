@@ -1956,3 +1956,10 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 .ev-peek-card { display: flex; justify-content: center; margin-top: 12px; } .ev-peek-card .tcard.hc.full { zoom: 1.15; }
 .cam-level header { flex-wrap: wrap; row-gap: 4px; } .cam-level header .cl-lock { flex-basis: 100%; order: 3; font-size: 13px; }
 .cam-level header h3 { overflow-wrap: anywhere; }
+/* action buttons carry words, not symbols */
+#scr-match .ib-act .lb { font-weight: 800; white-space: nowrap; }
+#scr-match .ready-btn .lb { font-size: inherit; }
+#scr-match .ready-btn { font-size: 22px !important; letter-spacing: 0; }
+@media (max-width: 860px) { #scr-match .ready-btn { font-size: 18px !important; min-width: 72px; } #scr-match .ib-act { font-size: 14px; padding: 4px 7px; gap: 3px; } #scr-match .pb-btns .btn.ib { font-size: 13px; padding: 4px 8px; white-space: nowrap; } }
+.rr-go { font-size: 22px !important; }
+.pb .btn.ghost { color: var(--ink); background: transparent; border: 2px solid var(--ink); }
