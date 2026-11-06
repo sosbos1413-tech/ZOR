@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="462a42fe97">
+<meta name="zor-build" content="028126f600">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1698,7 +1698,7 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
 @media (max-width: 860px) {
   #scr-match .match-grid { display: contents; }
   #scr-match.show-panels .match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-content: start; }
-  #scr-match .field-wrap { --cwv: clamp(52px, min(calc((100dvh - 372px) / 4.44), calc((100vw - 22px) / 4)), 150px); --cwv: clamp(52px, min(calc((100vh - 372px) / 4.44), calc((100vw - 22px) / 4)), 150px); }
+  #scr-match .field-wrap { --cwv: clamp(52px, min(calc((100vh - 390px) / 4.44), calc((100vw - 22px) / 4)), 150px); --cwv: clamp(52px, min(calc((100dvh - 390px) / 4.44), calc((100vw - 22px) / 4)), 150px); }
   #scr-match .field { padding: 3px; } #scr-match .field #slots { gap: 4px; }
   #scr-match .topbar .lifechip { display: inline-flex; padding: 1px 5px 1px 2px; font-size: 14px; gap: 2px; } #scr-match .topbar .lifechip .portrait { width: 22px; height: 22px; } #scr-match .topbar .lifechip b { font-size: 14px; } #scr-match .topbar .lifechip .ic { width: 12px; height: 12px; }
   #scr-match .tb-round { font-size: 16px; } #scr-match .tb-round svg { width: 14px; height: 14px; }
@@ -1715,7 +1715,7 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
 @media (max-width: 860px) {
   #scr-match .side .post { display: none; }
   #scr-match .pb { min-height: 34px; padding: 2px 5px; }
-  #scr-match .field-wrap { --cwv: clamp(52px, min(calc((100dvh - 352px) / 4.7), calc((100vw - 22px) / 4)), 150px); --cwv: clamp(52px, min(calc((100vh - 352px) / 4.7), calc((100vw - 22px) / 4)), 150px); }
+  #scr-match .field-wrap { --cwv: clamp(52px, min(calc((100vh - 372px) / 4.7), calc((100vw - 22px) / 4)), 150px); --cwv: clamp(52px, min(calc((100dvh - 372px) / 4.7), calc((100vw - 22px) / 4)), 150px); }
 }
 #scr-match .ab { flex-wrap: wrap; justify-content: center; } #scr-match .ab-trg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; } #scr-match .trg { width: 34px; height: 34px; font-size: 16px; border-width: 2px; }
 @media (max-width: 860px) {
@@ -1781,6 +1781,9 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 .tcard.hc.full .hc-icons .bd, .tcard.hc.full .hc-icons .rolepill { width: 24px; height: 24px; min-width: 24px; padding: 0; display: grid; place-items: center; font-size: 0; border-radius: 50%; }
 .tcard.hc.full .hc-icons .bd .ic, .tcard.hc.full .hc-icons .rolepill .ic { width: 14px; height: 14px; }
 .tcard.full .hc-icons { z-index: 7; }
+
+/* the shop must never be squeezed or cut off: it keeps its height and the field gives way */
+@media (max-width: 860px) { #shopbar { flex: none; } #scr-match.active { height: 100dvh; } }
 
 </style>
 </head>
