@@ -42,15 +42,28 @@
     S.screen = screen;
     document.body.classList.toggle('in-match', screen === 'match');   // page scroll is locked only during a match
     window.scrollTo(0, 0);
-    if (globalThis.AMB && AMB.PassUI) { if (screen === 'menu') AMB.PassUI.refreshMenu(); if (screen === 'pass') AMB.PassUI.render(); }
-    if (globalThis.AMB && AMB.CollectionUI) { if (screen === 'menu') AMB.CollectionUI.refreshMenu(); if (screen === 'cards') AMB.CollectionUI.render(); }
-    if (globalThis.AMB && AMB.PacksUI) { if (screen === 'menu') AMB.PacksUI.refreshMenu(); if (screen === 'packs') AMB.PacksUI.render(); }
-    if (globalThis.AMB && AMB.EventUI) { if (screen === 'event') AMB.EventUI.render(); if (screen === 'menu') AMB.EventUI.refreshMenu(); }
-    if (globalThis.AMB && AMB.TowerUI) { if (screen === 'tower') AMB.TowerUI.render(); if (screen === 'menu') AMB.TowerUI.refreshMenu(); }
-    if (globalThis.AMB && AMB.CampaignUI) { if (screen === 'campaign') AMB.CampaignUI.render(); if (screen === 'menu') AMB.CampaignUI.refreshMenu(); }
-    if (globalThis.AMB && AMB.GiftUI && screen === 'menu') AMB.GiftUI.onMenu();
-    if (globalThis.AMB && AMB.DailyUI && screen === 'menu') AMB.DailyUI.onMenu();
+    // every screen refreshes on its own: one that fails must never stop the others (or leave the player stuck)
+    const T = (f) => { try { f(); } catch (err) { reportErr(err); } };
+    const A = globalThis.AMB, menu = screen === 'menu';
+    if (A && A.PassUI) { if (menu) T(() => A.PassUI.refreshMenu()); if (screen === 'pass') T(() => A.PassUI.render()); }
+    if (A && A.CollectionUI) { if (menu) T(() => A.CollectionUI.refreshMenu()); if (screen === 'cards') T(() => A.CollectionUI.render()); }
+    if (A && A.PacksUI) { if (menu) T(() => A.PacksUI.refreshMenu()); if (screen === 'packs') T(() => A.PacksUI.render()); }
+    if (A && A.EventUI) { if (screen === 'event') T(() => A.EventUI.render()); if (menu) T(() => A.EventUI.refreshMenu()); }
+    if (A && A.TowerUI) { if (screen === 'tower') T(() => A.TowerUI.render()); if (menu) T(() => A.TowerUI.refreshMenu()); }
+    if (A && A.CampaignUI) { if (screen === 'campaign') T(() => A.CampaignUI.render()); if (menu) T(() => A.CampaignUI.refreshMenu()); }
+    if (A && A.GiftUI && menu) T(() => A.GiftUI.onMenu());
+    if (A && A.DailyUI && menu) T(() => A.DailyUI.onMenu());
   }
+  // errors are shown on screen (short) so a problem on a real phone can be reported and fixed, instead of a button silently doing nothing
+  let lastErr = '';
+  function reportErr(err) {
+    const msg = String((err && err.message) || err || 'خطأ').slice(0, 90);
+    try { console.error(err); } catch (e) { /* ignore */ }
+    if (msg === lastErr) return; lastErr = msg; setTimeout(() => { lastErr = ''; }, 4000);
+    try { toast('⚠ ' + msg + (err && err.stack ? ' · ' + (String(err.stack).split('\n')[1] || '').trim().slice(-40) : ''), 'err'); } catch (e) { /* ignore */ }
+  }
+  window.addEventListener('error', (ev) => reportErr(ev.error || ev.message));
+  window.addEventListener('unhandledrejection', (ev) => reportErr(ev.reason));
   function modal(html) { $('modal').innerHTML = `<button class="btn small ghost x" data-act="closeModal">✕</button>` + html; $('modal-back').classList.add('on');
     // opening any details window stops the prep timer so you can read in peace
     if (S.phase === 'prep' && !S.paused) { S.paused = true; S.pausedLeft = S.deadline - Date.now(); S._mp = true; renderTop(); }
@@ -1270,7 +1283,7 @@
     const el = e.target.closest('[data-act]');
     if (!el) { if (S.sel && S.screen === 'match' && !e.target.closest('.panel,.shopbar,.field,.bench-row,.modal')) { S.sel = null; renderMatch(); } return; }
     const fn = ACT[el.dataset.act];
-    if (fn) fn(el.dataset, el, e);
+    if (fn) { try { fn(el.dataset, el, e); } catch (err) { reportErr(err); } }
   });
   document.addEventListener('change', (e) => {
     const sel = e.target.closest('select[data-ab]');
