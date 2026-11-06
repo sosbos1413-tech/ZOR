@@ -1988,3 +1988,52 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
   #scr-match #combat-ctrl, #scr-match .pb { min-height: 0; }
   #scr-match .topbar { min-height: 0; }
 }
+
+/* ===== role effects in combat (see ui/vfx-ui.js) ===== */
+.vf { position: fixed; z-index: 48; pointer-events: none; transform: translate(-50%, -50%); }
+/* fighter: two heavy strokes */
+.vf-slash { width: var(--w); height: 6px; background: linear-gradient(90deg, transparent, #fff 25%, var(--c) 70%, transparent); border-radius: 4px; box-shadow: 0 0 10px var(--c); opacity: 0; transform: translate(-50%, -50%) rotate(var(--r)) scaleX(.1); animation: vfslash .42s ease-out var(--d, 0ms) forwards; }
+@keyframes vfslash { 0% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--r)) scaleX(.1); } 25% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--r)) scaleX(1.05); } 100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--r)) scaleX(1.15) scaleY(.4); } }
+.vf-flashdot { width: var(--s); height: var(--s); border-radius: 50%; background: radial-gradient(circle, #fff 0, var(--c) 40%, transparent 70%); animation: vfpop .3s ease-out forwards; }
+@keyframes vfpop { from { opacity: .9; transform: translate(-50%, -50%) scale(.3); } to { opacity: 0; transform: translate(-50%, -50%) scale(1.3); } }
+/* assassin: streak + thin cuts, attacker blinks */
+.vf-dash { height: 3px; width: var(--len); transform-origin: 0 50%; transform: translate(0, -50%) rotate(var(--r)) scaleX(0); background: linear-gradient(90deg, transparent, var(--c) 40%, #fff); filter: drop-shadow(0 0 5px var(--c)); animation: vfdash .3s ease-out forwards; }
+@keyframes vfdash { 0% { opacity: 1; transform: translate(0, -50%) rotate(var(--r)) scaleX(0); } 45% { opacity: 1; transform: translate(0, -50%) rotate(var(--r)) scaleX(1); } 100% { opacity: 0; transform: translate(0, -50%) rotate(var(--r)) scaleX(1) scaleY(.2); } }
+.vf-cut { width: var(--w); height: 2.5px; background: linear-gradient(90deg, transparent, var(--c), transparent); box-shadow: 0 0 8px var(--c); opacity: 0; transform: translate(-50%, -50%) rotate(var(--r)) scaleX(0); animation: vfcut .28s ease-out var(--d, 0ms) forwards; }
+@keyframes vfcut { 0% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--r)) scaleX(0); } 30% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--r)) scaleX(1); } 100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--r)) scaleX(1.1); } }
+.tcard.vf-blink { animation: vfblink .26s steps(2) 1; } @keyframes vfblink { 0%, 100% { opacity: 1; } 50% { opacity: .35; filter: hue-rotate(40deg) brightness(1.4); } }
+/* mage: orb, rune circle, ring, stars */
+.vf-orb { width: 18px; height: 18px; border-radius: 50%; background: radial-gradient(circle, #fff 0, var(--c) 45%, transparent 72%); box-shadow: 0 0 14px var(--c), 0 0 28px var(--c); transition: left .21s cubic-bezier(.4, 0, .6, 1), top .21s cubic-bezier(.4, 0, .6, 1), opacity .15s; }
+.vf-ring { width: var(--s); height: var(--s); border-radius: 50%; border: 3px solid var(--c); box-shadow: 0 0 14px var(--c), inset 0 0 10px var(--c); opacity: 0; animation: vfring .5s ease-out forwards; }
+.vf-ring.soft { border-width: 2px; border-style: solid; background: radial-gradient(circle, color-mix(in srgb, var(--c) 35%, transparent), transparent 70%); box-shadow: 0 0 10px var(--c); }
+@keyframes vfring { 0% { opacity: .9; transform: translate(-50%, -50%) scale(.15); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1); } }
+.vf-rune { width: var(--s, 70px); height: var(--s, 70px); border-radius: 50%; border: 2px dashed var(--c); box-shadow: 0 0 12px var(--c), inset 0 0 14px var(--c); opacity: 0; animation: vfrune .85s ease-out forwards; }
+.vf-rune::after { content: ''; position: absolute; inset: 18%; border-radius: 50%; border: 2px solid var(--c); transform: rotate(45deg); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.vf-rune.small { --s: 46px; animation-duration: .5s; }
+@keyframes vfrune { 0% { opacity: .9; transform: translate(-50%, -50%) scale(.3) rotate(0); } 60% { opacity: .9; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.1) rotate(160deg); } }
+.vf-star { width: 8px; height: 8px; background: #fff; box-shadow: 0 0 8px var(--c); clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); animation: vfstar .55s ease-out forwards; }
+.vf-star.dark { background: var(--c); }
+@keyframes vfstar { from { opacity: 1; transform: translate(-50%, -50%) rotate(var(--a)) translateX(0) scale(.6); } to { opacity: 0; transform: translate(-50%, -50%) rotate(var(--a)) translateX(var(--dd)) scale(1.1); } }
+/* marksman: tracer + crosshair */
+.vf-bolt { height: 2px; width: var(--len); transform-origin: 0 50%; transform: translate(0, -50%) rotate(var(--r)) scaleX(0); background: linear-gradient(90deg, transparent 0, var(--c) 70%, #fff); filter: drop-shadow(0 0 4px var(--c)); animation: vfbolt .22s linear forwards; }
+@keyframes vfbolt { 0% { opacity: 1; transform: translate(0, -50%) rotate(var(--r)) scaleX(0); } 55% { opacity: 1; transform: translate(0, -50%) rotate(var(--r)) scaleX(1); } 100% { opacity: 0; transform: translate(0, -50%) rotate(var(--r)) scaleX(1); } }
+.vf-muzzle { width: 22px; height: 12px; background: radial-gradient(ellipse, #fff, var(--c) 55%, transparent 75%); transform: translate(-50%, -50%) rotate(var(--r)); animation: vfmuz .18s ease-out forwards; }
+@keyframes vfmuz { to { opacity: 0; transform: translate(-50%, -50%) rotate(var(--r)) scale(1.8); } }
+.vf-cross { width: var(--s); height: var(--s); border: 2px solid var(--c); border-radius: 50%; opacity: 0; animation: vfcross .4s ease-in forwards; }
+.vf-cross::before, .vf-cross::after { content: ''; position: absolute; background: var(--c); } .vf-cross::before { left: 50%; top: -30%; bottom: -30%; width: 2px; margin-left: -1px; } .vf-cross::after { top: 50%; left: -30%; right: -30%; height: 2px; margin-top: -1px; }
+@keyframes vfcross { 0% { opacity: .95; transform: translate(-50%, -50%) scale(1.8); } 70% { opacity: 1; transform: translate(-50%, -50%) scale(.9); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(.8); } }
+.vf-cross.big { animation-duration: .55s; }
+/* guardian: flat shockwave + sparks, dome */
+.vf-wave { width: var(--s); height: calc(var(--s) * .45); border-radius: 50%; border: 4px solid var(--c); box-shadow: 0 0 12px var(--c), 0 4px 0 #0006; opacity: 0; animation: vfring .48s ease-out forwards; }
+.vf-spark { width: 3px; height: 12px; background: #fff; box-shadow: 0 0 6px var(--c); animation: vfspark .38s ease-out forwards; }
+@keyframes vfspark { from { opacity: 1; transform: translate(-50%, -50%) rotate(var(--a)) translateY(0); } to { opacity: 0; transform: translate(-50%, -50%) rotate(var(--a)) translateY(calc(var(--dd) * -1)); } }
+.vf-dome { width: var(--s); height: var(--s); border-radius: 50%; background: radial-gradient(circle, transparent 52%, color-mix(in srgb, var(--c) 45%, transparent) 68%, var(--c) 72%, transparent 75%); animation: vfdome .75s ease-out forwards; }
+@keyframes vfdome { 0% { opacity: .9; transform: translate(-50%, -50%) scale(.3); } 60% { opacity: .8; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.08); } }
+/* fighter skill: ground quake · assassin skill: smoke */
+.vf-quake { width: var(--s); height: calc(var(--s) * .4); border-radius: 50%; border: 5px solid var(--c); box-shadow: 0 0 14px var(--c); opacity: 0; animation: vfring .62s ease-out forwards; }
+.vf-smoke { width: var(--s); height: var(--s); border-radius: 50%; background: radial-gradient(circle, #1a0a2ecc 0, color-mix(in srgb, var(--c) 40%, transparent) 55%, transparent 72%); animation: vfsmoke .65s ease-out forwards; }
+@keyframes vfsmoke { 0% { opacity: .95; transform: translate(-50%, -50%) scale(.3); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.25); } }
+/* support */
+.vf-mote { width: 7px; height: 7px; border-radius: 50%; background: #fff; box-shadow: 0 0 8px var(--c), 0 0 14px var(--c); opacity: 0; animation: vfmote .8s ease-out var(--d, 0ms) forwards; }
+@keyframes vfmote { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.5); } 25% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, calc(-50% - 36px)) scale(1); } }
+@media (prefers-reduced-motion: reduce) { .vf { display: none; } }

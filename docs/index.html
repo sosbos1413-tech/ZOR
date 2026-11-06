@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="883c2dea56">
+<meta name="zor-build" content="f2fc83158a">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -2008,6 +2008,55 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
   #scr-match #combat-ctrl, #scr-match .pb { min-height: 0; }
   #scr-match .topbar { min-height: 0; }
 }
+
+/* ===== role effects in combat (see ui/vfx-ui.js) ===== */
+.vf { position: fixed; z-index: 48; pointer-events: none; transform: translate(-50%, -50%); }
+/* fighter: two heavy strokes */
+.vf-slash { width: var(--w); height: 6px; background: linear-gradient(90deg, transparent, #fff 25%, var(--c) 70%, transparent); border-radius: 4px; box-shadow: 0 0 10px var(--c); opacity: 0; transform: translate(-50%, -50%) rotate(var(--r)) scaleX(.1); animation: vfslash .42s ease-out var(--d, 0ms) forwards; }
+@keyframes vfslash { 0% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--r)) scaleX(.1); } 25% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--r)) scaleX(1.05); } 100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--r)) scaleX(1.15) scaleY(.4); } }
+.vf-flashdot { width: var(--s); height: var(--s); border-radius: 50%; background: radial-gradient(circle, #fff 0, var(--c) 40%, transparent 70%); animation: vfpop .3s ease-out forwards; }
+@keyframes vfpop { from { opacity: .9; transform: translate(-50%, -50%) scale(.3); } to { opacity: 0; transform: translate(-50%, -50%) scale(1.3); } }
+/* assassin: streak + thin cuts, attacker blinks */
+.vf-dash { height: 3px; width: var(--len); transform-origin: 0 50%; transform: translate(0, -50%) rotate(var(--r)) scaleX(0); background: linear-gradient(90deg, transparent, var(--c) 40%, #fff); filter: drop-shadow(0 0 5px var(--c)); animation: vfdash .3s ease-out forwards; }
+@keyframes vfdash { 0% { opacity: 1; transform: translate(0, -50%) rotate(var(--r)) scaleX(0); } 45% { opacity: 1; transform: translate(0, -50%) rotate(var(--r)) scaleX(1); } 100% { opacity: 0; transform: translate(0, -50%) rotate(var(--r)) scaleX(1) scaleY(.2); } }
+.vf-cut { width: var(--w); height: 2.5px; background: linear-gradient(90deg, transparent, var(--c), transparent); box-shadow: 0 0 8px var(--c); opacity: 0; transform: translate(-50%, -50%) rotate(var(--r)) scaleX(0); animation: vfcut .28s ease-out var(--d, 0ms) forwards; }
+@keyframes vfcut { 0% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--r)) scaleX(0); } 30% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--r)) scaleX(1); } 100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--r)) scaleX(1.1); } }
+.tcard.vf-blink { animation: vfblink .26s steps(2) 1; } @keyframes vfblink { 0%, 100% { opacity: 1; } 50% { opacity: .35; filter: hue-rotate(40deg) brightness(1.4); } }
+/* mage: orb, rune circle, ring, stars */
+.vf-orb { width: 18px; height: 18px; border-radius: 50%; background: radial-gradient(circle, #fff 0, var(--c) 45%, transparent 72%); box-shadow: 0 0 14px var(--c), 0 0 28px var(--c); transition: left .21s cubic-bezier(.4, 0, .6, 1), top .21s cubic-bezier(.4, 0, .6, 1), opacity .15s; }
+.vf-ring { width: var(--s); height: var(--s); border-radius: 50%; border: 3px solid var(--c); box-shadow: 0 0 14px var(--c), inset 0 0 10px var(--c); opacity: 0; animation: vfring .5s ease-out forwards; }
+.vf-ring.soft { border-width: 2px; border-style: solid; background: radial-gradient(circle, color-mix(in srgb, var(--c) 35%, transparent), transparent 70%); box-shadow: 0 0 10px var(--c); }
+@keyframes vfring { 0% { opacity: .9; transform: translate(-50%, -50%) scale(.15); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1); } }
+.vf-rune { width: var(--s, 70px); height: var(--s, 70px); border-radius: 50%; border: 2px dashed var(--c); box-shadow: 0 0 12px var(--c), inset 0 0 14px var(--c); opacity: 0; animation: vfrune .85s ease-out forwards; }
+.vf-rune::after { content: ''; position: absolute; inset: 18%; border-radius: 50%; border: 2px solid var(--c); transform: rotate(45deg); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.vf-rune.small { --s: 46px; animation-duration: .5s; }
+@keyframes vfrune { 0% { opacity: .9; transform: translate(-50%, -50%) scale(.3) rotate(0); } 60% { opacity: .9; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.1) rotate(160deg); } }
+.vf-star { width: 8px; height: 8px; background: #fff; box-shadow: 0 0 8px var(--c); clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); animation: vfstar .55s ease-out forwards; }
+.vf-star.dark { background: var(--c); }
+@keyframes vfstar { from { opacity: 1; transform: translate(-50%, -50%) rotate(var(--a)) translateX(0) scale(.6); } to { opacity: 0; transform: translate(-50%, -50%) rotate(var(--a)) translateX(var(--dd)) scale(1.1); } }
+/* marksman: tracer + crosshair */
+.vf-bolt { height: 2px; width: var(--len); transform-origin: 0 50%; transform: translate(0, -50%) rotate(var(--r)) scaleX(0); background: linear-gradient(90deg, transparent 0, var(--c) 70%, #fff); filter: drop-shadow(0 0 4px var(--c)); animation: vfbolt .22s linear forwards; }
+@keyframes vfbolt { 0% { opacity: 1; transform: translate(0, -50%) rotate(var(--r)) scaleX(0); } 55% { opacity: 1; transform: translate(0, -50%) rotate(var(--r)) scaleX(1); } 100% { opacity: 0; transform: translate(0, -50%) rotate(var(--r)) scaleX(1); } }
+.vf-muzzle { width: 22px; height: 12px; background: radial-gradient(ellipse, #fff, var(--c) 55%, transparent 75%); transform: translate(-50%, -50%) rotate(var(--r)); animation: vfmuz .18s ease-out forwards; }
+@keyframes vfmuz { to { opacity: 0; transform: translate(-50%, -50%) rotate(var(--r)) scale(1.8); } }
+.vf-cross { width: var(--s); height: var(--s); border: 2px solid var(--c); border-radius: 50%; opacity: 0; animation: vfcross .4s ease-in forwards; }
+.vf-cross::before, .vf-cross::after { content: ''; position: absolute; background: var(--c); } .vf-cross::before { left: 50%; top: -30%; bottom: -30%; width: 2px; margin-left: -1px; } .vf-cross::after { top: 50%; left: -30%; right: -30%; height: 2px; margin-top: -1px; }
+@keyframes vfcross { 0% { opacity: .95; transform: translate(-50%, -50%) scale(1.8); } 70% { opacity: 1; transform: translate(-50%, -50%) scale(.9); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(.8); } }
+.vf-cross.big { animation-duration: .55s; }
+/* guardian: flat shockwave + sparks, dome */
+.vf-wave { width: var(--s); height: calc(var(--s) * .45); border-radius: 50%; border: 4px solid var(--c); box-shadow: 0 0 12px var(--c), 0 4px 0 #0006; opacity: 0; animation: vfring .48s ease-out forwards; }
+.vf-spark { width: 3px; height: 12px; background: #fff; box-shadow: 0 0 6px var(--c); animation: vfspark .38s ease-out forwards; }
+@keyframes vfspark { from { opacity: 1; transform: translate(-50%, -50%) rotate(var(--a)) translateY(0); } to { opacity: 0; transform: translate(-50%, -50%) rotate(var(--a)) translateY(calc(var(--dd) * -1)); } }
+.vf-dome { width: var(--s); height: var(--s); border-radius: 50%; background: radial-gradient(circle, transparent 52%, color-mix(in srgb, var(--c) 45%, transparent) 68%, var(--c) 72%, transparent 75%); animation: vfdome .75s ease-out forwards; }
+@keyframes vfdome { 0% { opacity: .9; transform: translate(-50%, -50%) scale(.3); } 60% { opacity: .8; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.08); } }
+/* fighter skill: ground quake · assassin skill: smoke */
+.vf-quake { width: var(--s); height: calc(var(--s) * .4); border-radius: 50%; border: 5px solid var(--c); box-shadow: 0 0 14px var(--c); opacity: 0; animation: vfring .62s ease-out forwards; }
+.vf-smoke { width: var(--s); height: var(--s); border-radius: 50%; background: radial-gradient(circle, #1a0a2ecc 0, color-mix(in srgb, var(--c) 40%, transparent) 55%, transparent 72%); animation: vfsmoke .65s ease-out forwards; }
+@keyframes vfsmoke { 0% { opacity: .95; transform: translate(-50%, -50%) scale(.3); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.25); } }
+/* support */
+.vf-mote { width: 7px; height: 7px; border-radius: 50%; background: #fff; box-shadow: 0 0 8px var(--c), 0 0 14px var(--c); opacity: 0; animation: vfmote .8s ease-out var(--d, 0ms) forwards; }
+@keyframes vfmote { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.5); } 25% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, calc(-50% - 36px)) scale(1); } }
+@media (prefers-reduced-motion: reduce) { .vf { display: none; } }
 
 </style>
 </head>
@@ -6741,6 +6790,18 @@ AMB.IMAGES = {
     heal: (c) => { tone(c, { f: 660, d: 0.12, v: 0.08 }); tone(c, { f: 880, d: 0.16, v: 0.08, at: 0.09 }); tone(c, { f: 1320, d: 0.2, v: 0.06, at: 0.18 }); },
     death: (c) => { noise(c, 0.3, 0.14, 300); tone(c, { f: 220, to: 40, d: 0.35, v: 0.16, type: 'sawtooth' }); },
     merge: (c) => { [523, 659, 784, 1047].forEach((f, i) => tone(c, { f, d: 0.22, v: 0.12, type: 'triangle', at: i * 0.07 })); noise(c, 0.25, 0.06, 4000); },
+    v_fighter: (c) => { noise(c, 0.09, 0.07, 1800); tone(c, { f: 220, to: 90, d: 0.12, v: 0.07, type: 'triangle' }); },
+    v_assassin: (c) => { noise(c, 0.07, 0.05, 3500); tone(c, { f: 1400, to: 500, d: 0.08, v: 0.04, type: 'sine' }); },
+    v_mage: (c) => { tone(c, { f: 500, to: 1100, d: 0.2, v: 0.05, type: 'sine' }); tone(c, { f: 760, to: 1500, d: 0.2, v: 0.025, type: 'triangle', at: 0.05 }); },
+    v_marksman: (c) => { tone(c, { f: 2000, to: 900, d: 0.06, v: 0.05, type: 'square' }); noise(c, 0.04, 0.04, 4000); },
+    v_guardian: (c) => { tone(c, { f: 140, to: 60, d: 0.16, v: 0.1, type: 'sine' }); noise(c, 0.1, 0.05, 900); tone(c, { f: 1500, d: 0.05, v: 0.03, type: 'square', at: 0.02 }); },
+    v_support: (c) => { tone(c, { f: 880, d: 0.14, v: 0.04, type: 'sine' }); tone(c, { f: 1320, d: 0.18, v: 0.03, type: 'sine', at: 0.06 }); },
+    c_fighter: (c) => { tone(c, { f: 110, to: 45, d: 0.32, v: 0.13, type: 'sawtooth' }); noise(c, 0.25, 0.08, 500); },
+    c_assassin: (c) => { noise(c, 0.3, 0.07, 2500); tone(c, { f: 900, to: 200, d: 0.28, v: 0.06, type: 'sine' }); },
+    c_mage: (c) => { tone(c, { f: 300, to: 1200, d: 0.4, v: 0.07, type: 'sine' }); tone(c, { f: 600, to: 1800, d: 0.4, v: 0.03, type: 'triangle', at: 0.05 }); },
+    c_marksman: (c) => { [0, 0.06, 0.12].forEach((t) => tone(c, { f: 1800, to: 800, d: 0.07, v: 0.05, type: 'square', at: t })); },
+    c_guardian: (c) => { tone(c, { f: 160, to: 70, d: 0.4, v: 0.12, type: 'sine' }); noise(c, 0.25, 0.06, 700); },
+    c_support: (c) => { [660, 880, 1320].forEach((f, i) => tone(c, { f, d: 0.3, v: 0.05, type: 'sine', at: i * 0.07 })); },
     land1: (c) => noise(c, 0.07, 0.05, 700),
     land2: (c) => { tone(c, { f: 130, to: 70, d: 0.16, v: 0.14, type: 'sine' }); noise(c, 0.12, 0.07, 500); },
     land3: (c) => { tone(c, { f: 100, to: 45, d: 0.3, v: 0.2, type: 'sawtooth' }); tone(c, { f: 60, to: 35, d: 0.35, v: 0.2, type: 'sine' }); noise(c, 0.26, 0.12, 300); },
@@ -6755,7 +6816,7 @@ AMB.IMAGES = {
   };
   function sfx(name) {
     const c = audio(); if (!c || !SFX[name]) return;
-    const now = performance.now(), gap = { hit: 70, crit: 120, heal: 150, cast: 120, death: 120 }[name] || 0;
+    const now = performance.now(), gap = { hit: 70, crit: 120, heal: 150, cast: 120, death: 120, v_fighter: 90, v_assassin: 90, v_mage: 110, v_marksman: 90, v_guardian: 110, v_support: 140, c_fighter: 120, c_assassin: 120, c_mage: 120, c_marksman: 120, c_guardian: 120, c_support: 120 }[name] || 0;
     if (gap && now - (SND.last[name] || 0) < gap) return;   // many hits in one tick = one sound
     SND.last[name] = now;
     try { SFX[name](c); } catch (e) { /* ignore */ }
@@ -6834,7 +6895,8 @@ AMB.IMAGES = {
         burst(el, '#5bf08b', 5, { up: true, cls: 'plus', r: 22, s: 7 }); sfx('heal');
       } else if (e.type === 'cast' && f && el) {
         flash(el, 'cast', 500); floatAt(el, e.name, 'label', 26);
-        burst(el, (WORLDS[f.world] || {}).color || '#ffd24a', 14, { r: 44, s: 6 }); sfx('cast');
+        if (AMB.VFX && f.role) AMB.VFX.cast(f, el, { sfx });
+        else { burst(el, (WORLDS[f.world] || {}).color || '#ffd24a', 14, { r: 44, s: 6 }); sfx('cast'); }
       } else if (e.type === 'attack' && byId[e.from] && byId[e.to]) {
         const ea = anchorEl(byId[e.from]), eb = anchorEl(byId[e.to]);
         if (!ea || !eb) continue;
@@ -6844,6 +6906,7 @@ AMB.IMAGES = {
         ea.style.setProperty('--dy', ((b.y - a.y) / L) * 9 + 'px');
         ea.style.setProperty('--bx', (-(b.x - a.x) / L) * 4 + 'px'); ea.style.setProperty('--by', (-(b.y - a.y) / L) * 4 + 'px');
         flash(ea, 'atk', 230);
+        if (AMB.VFX && AMB.VFX.attack(byId[e.from], byId[e.to], ea, eb, { sfx })) continue;
         if (!e.ranged) { const ring = document.createElement('i'); ring.className = 'impact'; const rb = eb.getBoundingClientRect(); ring.style.left = rb.left + rb.width / 2 + 'px'; ring.style.top = rb.top + rb.height / 2 + 'px'; document.body.appendChild(ring); setTimeout(() => ring.remove(), 330); }
         const ln = document.createElementNS('http://www.w3.org/2000/svg', 'line');
         ln.setAttribute('x1', a.x); ln.setAttribute('y1', a.y); ln.setAttribute('x2', b.x); ln.setAttribute('y2', b.y);
@@ -8395,6 +8458,94 @@ AMB.IMAGES = {
   }
 
   AMB.FX = { land, watch, reveal, charge, revealTimes, shake, tint, rings, ord };
+})();
+
+</script>
+<script>
+/*
+ * Role effects in combat (presentation only): every role attacks and casts with its own look and sound.
+ *   fighter  heavy crossing slash          assassin  violet dash + two thin cuts
+ *   mage     glowing orb + rune circle     marksman  fast tracer + crosshair
+ *   guardian metal shockwave + sparks      support   soft light pulse
+ * Called from the combat event loop in ui.js; nothing here touches the game rules.
+ */
+(function () {
+  const AMB = globalThis.AMB;
+  const calm = () => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
+  const COL = { fighter: '#ffb347', assassin: '#b66bff', mage: '#5fe3ff', marksman: '#fff0a0', guardian: '#8fd4ff', support: '#6dffa0' };
+  let live = 0;
+
+  function ctr(el) { const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width, h: r.height }; }
+  function mk(cls, css, ms) {
+    if (live > 70) return null;
+    const d = document.createElement('i'); d.className = 'vf ' + cls;
+    Object.entries(css || {}).forEach(([k, v]) => (k.startsWith('--') ? d.style.setProperty(k, v) : (d.style[k] = v)));
+    document.body.appendChild(d); live++;
+    setTimeout(() => { d.remove(); live--; }, ms || 600);
+    return d;
+  }
+  const ang = (a, b) => Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI;
+  const dst = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
+
+  const ATTACK = {
+    fighter(a, b, c) {   // two heavy strokes crossing on the target
+      [-38, 38].forEach((r, i) => mk('vf-slash', { left: b.x + 'px', top: b.y + 'px', '--r': r + 'deg', '--c': c, '--d': i * 55 + 'ms', '--w': Math.max(40, b.w * 0.95) + 'px' }, 520));
+      mk('vf-flashdot', { left: b.x + 'px', top: b.y + 'px', '--c': c, '--s': b.w * 0.8 + 'px' }, 320);
+    },
+    assassin(a, b, c) {   // a streak across the gap, two thin cuts, and the attacker blinks
+      mk('vf-dash', { left: a.x + 'px', top: a.y + 'px', '--len': dst(a, b) + 'px', '--r': ang(a, b) + 'deg', '--c': c }, 340);
+      [-14, 22].forEach((r, i) => mk('vf-cut', { left: b.x + 'px', top: b.y + 'px', '--r': r + 'deg', '--c': i ? '#ff5b82' : '#e7d2ff', '--d': 90 + i * 70 + 'ms', '--w': Math.max(34, b.w * 0.9) + 'px' }, 520));
+    },
+    mage(a, b, c) {   // an orb travels, then opens into a ring of light
+      mk('vf-rune small', { left: a.x + 'px', top: a.y + 'px', '--c': c }, 520);
+      const o = mk('vf-orb', { left: a.x + 'px', top: a.y + 'px', '--c': c }, 520);
+      if (o) { requestAnimationFrame(() => requestAnimationFrame(() => { o.style.left = b.x + 'px'; o.style.top = b.y + 'px'; })); setTimeout(() => { o.style.opacity = '0'; }, 230); }
+      setTimeout(() => {
+        mk('vf-ring', { left: b.x + 'px', top: b.y + 'px', '--c': c, '--s': b.w * 1.5 + 'px' }, 520);
+        for (let k = 0; k < 6; k++) mk('vf-star', { left: b.x + 'px', top: b.y + 'px', '--c': c, '--a': k * 60 + 'deg', '--dd': 26 + (k % 2) * 12 + 'px' }, 600);
+      }, 210);
+    },
+    marksman(a, b, c) {   // a thin fast tracer with a crosshair on the target
+      mk('vf-muzzle', { left: a.x + 'px', top: a.y + 'px', '--c': c, '--r': ang(a, b) + 'deg' }, 200);
+      mk('vf-bolt', { left: a.x + 'px', top: a.y + 'px', '--len': dst(a, b) + 'px', '--r': ang(a, b) + 'deg', '--c': c }, 300);
+      setTimeout(() => mk('vf-cross', { left: b.x + 'px', top: b.y + 'px', '--c': c, '--s': b.w * 0.9 + 'px' }, 420), 90);
+    },
+    guardian(a, b, c) {   // a flat metal shockwave with sparks
+      mk('vf-wave', { left: b.x + 'px', top: b.y + 'px', '--c': c, '--s': b.w * 1.7 + 'px' }, 520);
+      for (let k = 0; k < 5; k++) mk('vf-spark', { left: b.x + 'px', top: b.y + 'px', '--a': -80 + k * 40 + 'deg', '--c': '#fff', '--dd': 22 + (k % 2) * 10 + 'px' }, 420);
+    },
+    support(a, b, c) {   // a soft pulse and a few sparkles
+      mk('vf-ring soft', { left: b.x + 'px', top: b.y + 'px', '--c': c, '--s': b.w * 1.3 + 'px' }, 600);
+      for (let k = 0; k < 4; k++) mk('vf-mote', { left: b.x + (k - 1.5) * 10 + 'px', top: b.y + 'px', '--c': c, '--d': k * 60 + 'ms' }, 800);
+    },
+  };
+
+  const CAST = {
+    fighter(a, c) { mk('vf-quake', { left: a.x + 'px', top: a.y + a.h * 0.35 + 'px', '--c': c, '--s': a.w * 3.2 + 'px' }, 700); },
+    assassin(a, c) { mk('vf-smoke', { left: a.x + 'px', top: a.y + 'px', '--c': c, '--s': a.w * 2 + 'px' }, 700); for (let k = 0; k < 8; k++) mk('vf-star dark', { left: a.x + 'px', top: a.y + 'px', '--c': c, '--a': k * 45 + 'deg', '--dd': 36 + 'px' }, 600); },
+    mage(a, c) { mk('vf-rune', { left: a.x + 'px', top: a.y + 'px', '--c': c, '--s': a.w * 2.6 + 'px' }, 900); mk('vf-ring', { left: a.x + 'px', top: a.y + 'px', '--c': c, '--s': a.w * 2.2 + 'px' }, 600); },
+    marksman(a, c) { mk('vf-cross big', { left: a.x + 'px', top: a.y + 'px', '--c': c, '--s': a.w * 1.8 + 'px' }, 600); },
+    guardian(a, c) { mk('vf-dome', { left: a.x + 'px', top: a.y + 'px', '--c': c, '--s': a.w * 2.6 + 'px' }, 800); },
+    support(a, c) { mk('vf-ring soft big', { left: a.x + 'px', top: a.y + 'px', '--c': c, '--s': a.w * 3 + 'px' }, 800); for (let k = 0; k < 6; k++) mk('vf-mote', { left: a.x + (k - 2.5) * 12 + 'px', top: a.y + 'px', '--c': c, '--d': k * 70 + 'ms' }, 900); },
+  };
+
+  function attack(from, to, elFrom, elTo, ui) {
+    if (calm() || !from || !to || !elFrom || !elTo) return false;
+    const role = from.role || (from.isHero ? 'fighter' : null), fn = ATTACK[role]; if (!fn) return false;
+    const a = ctr(elFrom), b = ctr(elTo);
+    fn(a, b, COL[role]);
+    if (ui && ui.sfx) ui.sfx('v_' + role);
+    if (role === 'assassin') { elFrom.classList.add('vf-blink'); setTimeout(() => elFrom.classList.remove('vf-blink'), 260); }
+    return true;
+  }
+  function cast(f, el, ui) {
+    if (calm() || !f || !el) return;
+    const role = f.role || null, fn = CAST[role]; if (!fn) return;
+    const col = role === 'mage' ? ((AMB.DATA.WORLDS[f.world] || {}).color || COL.mage) : COL[role];
+    fn(ctr(el), col);
+    if (ui && ui.sfx) ui.sfx('c_' + role);
+  }
+  AMB.VFX = { attack, cast, COL };
 })();
 
 </script>

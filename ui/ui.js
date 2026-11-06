@@ -496,6 +496,18 @@
     heal: (c) => { tone(c, { f: 660, d: 0.12, v: 0.08 }); tone(c, { f: 880, d: 0.16, v: 0.08, at: 0.09 }); tone(c, { f: 1320, d: 0.2, v: 0.06, at: 0.18 }); },
     death: (c) => { noise(c, 0.3, 0.14, 300); tone(c, { f: 220, to: 40, d: 0.35, v: 0.16, type: 'sawtooth' }); },
     merge: (c) => { [523, 659, 784, 1047].forEach((f, i) => tone(c, { f, d: 0.22, v: 0.12, type: 'triangle', at: i * 0.07 })); noise(c, 0.25, 0.06, 4000); },
+    v_fighter: (c) => { noise(c, 0.09, 0.07, 1800); tone(c, { f: 220, to: 90, d: 0.12, v: 0.07, type: 'triangle' }); },
+    v_assassin: (c) => { noise(c, 0.07, 0.05, 3500); tone(c, { f: 1400, to: 500, d: 0.08, v: 0.04, type: 'sine' }); },
+    v_mage: (c) => { tone(c, { f: 500, to: 1100, d: 0.2, v: 0.05, type: 'sine' }); tone(c, { f: 760, to: 1500, d: 0.2, v: 0.025, type: 'triangle', at: 0.05 }); },
+    v_marksman: (c) => { tone(c, { f: 2000, to: 900, d: 0.06, v: 0.05, type: 'square' }); noise(c, 0.04, 0.04, 4000); },
+    v_guardian: (c) => { tone(c, { f: 140, to: 60, d: 0.16, v: 0.1, type: 'sine' }); noise(c, 0.1, 0.05, 900); tone(c, { f: 1500, d: 0.05, v: 0.03, type: 'square', at: 0.02 }); },
+    v_support: (c) => { tone(c, { f: 880, d: 0.14, v: 0.04, type: 'sine' }); tone(c, { f: 1320, d: 0.18, v: 0.03, type: 'sine', at: 0.06 }); },
+    c_fighter: (c) => { tone(c, { f: 110, to: 45, d: 0.32, v: 0.13, type: 'sawtooth' }); noise(c, 0.25, 0.08, 500); },
+    c_assassin: (c) => { noise(c, 0.3, 0.07, 2500); tone(c, { f: 900, to: 200, d: 0.28, v: 0.06, type: 'sine' }); },
+    c_mage: (c) => { tone(c, { f: 300, to: 1200, d: 0.4, v: 0.07, type: 'sine' }); tone(c, { f: 600, to: 1800, d: 0.4, v: 0.03, type: 'triangle', at: 0.05 }); },
+    c_marksman: (c) => { [0, 0.06, 0.12].forEach((t) => tone(c, { f: 1800, to: 800, d: 0.07, v: 0.05, type: 'square', at: t })); },
+    c_guardian: (c) => { tone(c, { f: 160, to: 70, d: 0.4, v: 0.12, type: 'sine' }); noise(c, 0.25, 0.06, 700); },
+    c_support: (c) => { [660, 880, 1320].forEach((f, i) => tone(c, { f, d: 0.3, v: 0.05, type: 'sine', at: i * 0.07 })); },
     land1: (c) => noise(c, 0.07, 0.05, 700),
     land2: (c) => { tone(c, { f: 130, to: 70, d: 0.16, v: 0.14, type: 'sine' }); noise(c, 0.12, 0.07, 500); },
     land3: (c) => { tone(c, { f: 100, to: 45, d: 0.3, v: 0.2, type: 'sawtooth' }); tone(c, { f: 60, to: 35, d: 0.35, v: 0.2, type: 'sine' }); noise(c, 0.26, 0.12, 300); },
@@ -510,7 +522,7 @@
   };
   function sfx(name) {
     const c = audio(); if (!c || !SFX[name]) return;
-    const now = performance.now(), gap = { hit: 70, crit: 120, heal: 150, cast: 120, death: 120 }[name] || 0;
+    const now = performance.now(), gap = { hit: 70, crit: 120, heal: 150, cast: 120, death: 120, v_fighter: 90, v_assassin: 90, v_mage: 110, v_marksman: 90, v_guardian: 110, v_support: 140, c_fighter: 120, c_assassin: 120, c_mage: 120, c_marksman: 120, c_guardian: 120, c_support: 120 }[name] || 0;
     if (gap && now - (SND.last[name] || 0) < gap) return;   // many hits in one tick = one sound
     SND.last[name] = now;
     try { SFX[name](c); } catch (e) { /* ignore */ }
@@ -589,7 +601,8 @@
         burst(el, '#5bf08b', 5, { up: true, cls: 'plus', r: 22, s: 7 }); sfx('heal');
       } else if (e.type === 'cast' && f && el) {
         flash(el, 'cast', 500); floatAt(el, e.name, 'label', 26);
-        burst(el, (WORLDS[f.world] || {}).color || '#ffd24a', 14, { r: 44, s: 6 }); sfx('cast');
+        if (AMB.VFX && f.role) AMB.VFX.cast(f, el, { sfx });
+        else { burst(el, (WORLDS[f.world] || {}).color || '#ffd24a', 14, { r: 44, s: 6 }); sfx('cast'); }
       } else if (e.type === 'attack' && byId[e.from] && byId[e.to]) {
         const ea = anchorEl(byId[e.from]), eb = anchorEl(byId[e.to]);
         if (!ea || !eb) continue;
@@ -599,6 +612,7 @@
         ea.style.setProperty('--dy', ((b.y - a.y) / L) * 9 + 'px');
         ea.style.setProperty('--bx', (-(b.x - a.x) / L) * 4 + 'px'); ea.style.setProperty('--by', (-(b.y - a.y) / L) * 4 + 'px');
         flash(ea, 'atk', 230);
+        if (AMB.VFX && AMB.VFX.attack(byId[e.from], byId[e.to], ea, eb, { sfx })) continue;
         if (!e.ranged) { const ring = document.createElement('i'); ring.className = 'impact'; const rb = eb.getBoundingClientRect(); ring.style.left = rb.left + rb.width / 2 + 'px'; ring.style.top = rb.top + rb.height / 2 + 'px'; document.body.appendChild(ring); setTimeout(() => ring.remove(), 330); }
         const ln = document.createElementNS('http://www.w3.org/2000/svg', 'line');
         ln.setAttribute('x1', a.x); ln.setAttribute('y1', a.y); ln.setAttribute('x2', b.x); ln.setAttribute('y2', b.y);
