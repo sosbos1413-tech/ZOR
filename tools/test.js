@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* Rule tests for the core (no browser needed):  node tools/test.js */
 const path = require('path');
-['config', 'data', 'util', 'synergy', 'combat', 'match', 'ai', 'telemetry', 'pass', 'save', 'economy', 'collection', 'packs', 'levels', 'campaign', 'daily', 'album', 'tower', 'events', 'profile'].forEach((f) => require(path.join(__dirname, '..', 'core', f + '.js')));
+['config', 'data', 'util', 'synergy', 'combat', 'match', 'ai', 'telemetry', 'pass', 'save', 'economy', 'collection', 'packs', 'levels', 'campaign', 'daily', 'album', 'tower', 'events', 'tutorial', 'profile'].forEach((f) => require(path.join(__dirname, '..', 'core', f + '.js')));
 const AMB = globalThis.AMB;
 let pass = 0, fail = 0;
 function t(name, fn) {
@@ -1012,6 +1012,38 @@ t('deck: progression fights shop only from the deck; quick matches ignore it', (
   eq(C.playableUnits().join(), deck.join()); C.setDeck(deck.slice(0, 5)); ok(!C.deckValid()); eq(C.playableUnits().length, C.ownedUnits().length, 'no valid deck -> all owned units');
   const cam = AMB.Campaign(p.save, { collection: C }); eq(cam.matchOptions('l1f1', 'orath', 1).players[0].allowedUnits.length, C.ownedUnits().length);
   C.setDeck(deck); eq(cam.matchOptions('l1f1', 'orath', 1).players[0].allowedUnits.join(), deck.join(), 'campaign uses the deck');
+});
+
+console.log('guided tutorial');
+// plays the scripted steps (buy the guardian, place it in front, buy the sniper, place it behind, ready; round 2: three copies merge, ready)
+function playTutorial(prof, seed, hero) {
+  const m = new AMB.Match(prof.tutorial.matchOptions(hero || 'orath', seed)); const p = m.players[0];
+  const place = (defId, slot) => { const u = m.allUnits(p).find((x) => x.defId === defId && !Object.values(p.board).includes(x)); return m.move(0, u.uid, { zone: 'board', slot }); };
+  m.startRound(); prof.tutorial.onRound(m);
+  m.buy(0, 0); place('forge_bulwark', 'f1'); m.buy(0, 2); place('pixel_sniper', 'b1');
+  m.resolveCombat(m.createCombat(false).runToEnd());
+  if (!m.isOver) { m.startRound(); prof.tutorial.onRound(m); m.buy(0, 0); m.buy(0, 1); m.buy(0, 2); const merged = m.allUnits(p).some((u) => u.star === 2); m.resolveCombat(m.createCombat(false).runToEnd()); return { m, merged }; }
+  return { m, merged: false };
+}
+t('tutorial: scripted shops, short rules, a weak scripted enemy; the guided moves win and the merge works', () => {
+  const prof = AMB.Profile.boot(MEM());
+  const o = prof.tutorial.matchOptions('orath'); eq(o.rules.maxRounds, 2); eq(o.players[1].lineup.units.length, 2); eq(o.mode, 'tutorial');
+  eq(prof.tutorial.matchOptions('merin').players[1].heroId, 'zerokai', 'enemy hero differs from yours');
+  let wins = 0, merges = 0;
+  for (let seed = 1; seed <= 40; seed++) { const r = playTutorial(prof, seed, ['orath', 'kagira', 'merin', 'zerokai'][seed % 4]); ok(r.m.round <= 2); if (r.m.winner === 0) wins++; if (r.merged) merges++; }
+  ok(wins >= 38, 'guided play should almost always win: ' + wins + '/40'); eq(merges, 40, 'three copies always merge to a star');
+  const m = new AMB.Match(prof.tutorial.matchOptions('orath', 5)); m.startRound(); prof.tutorial.onRound(m);
+  eq(m.players[0].shop.join(), AMB.Tutorial(prof.save).SHOP[1].join()); ok(m.players[0].gold >= 12, 'enough gold for the whole round');
+});
+t('tutorial: required only for a brand-new player; the reward is paid once; saved', () => {
+  const mem = MEM(), prof = AMB.Profile.boot(mem);
+  ok(prof.tutorial.required() && !prof.tutorial.done());
+  const bal = prof.wallet.balance('shards');
+  const r = prof.tutorial.complete(); ok(r.first); eq(r.shards, AMB.ECONOMY.tutorial.reward.shards); eq(prof.wallet.balance('shards'), bal + r.shards);
+  ok(prof.tutorial.done() && !prof.tutorial.required());
+  const r2 = prof.tutorial.complete(); ok(!r2.first); eq(r2.shards, 0); eq(prof.wallet.balance('shards'), bal + r.shards, 'no second reward');
+  ok(AMB.Profile.boot(mem).tutorial.done(), 'saved');
+  const old = AMB.Profile.boot(MEM()); old.campaign.recordResult('l1f1', { won: true }); ok(!old.tutorial.required(), 'a player who already beat fight 1 is not forced');
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

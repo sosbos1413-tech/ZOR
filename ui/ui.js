@@ -25,15 +25,15 @@
   const ibtn = (k, extra) => `<button class="ibtn" data-act="info" data-k="${k}" ${extra || ''} title="شرح">ⓘ</button>`;
   // beginners (fewer than 2 finished matches) get the extra hints, then they disappear
   const coach = () => { try { return +(localStorage.getItem('amb_played') || 0) < 2; } catch (e) { return false; } };
-  function toast(msg, kind) {
+  function toast(msg, kind, html) {
     const box = $('toasts');
     // never pile up: the same message just restarts its timer, and at most 2 toasts show at once
-    const same = [...box.children].find((x) => x.textContent === msg);
+    const same = [...box.children].find((x) => (x._m || x.textContent) === msg);
     if (same) { same.style.animation = 'none'; void same.offsetWidth; same.style.animation = ''; clearTimeout(same._t); same._t = setTimeout(() => same.remove(), kind === 'err' ? 4200 : 2500); return; }
     while (box.children.length >= 2) box.firstChild.remove();
     const el = document.createElement('div');
     el.className = 'toast ' + (kind || '');
-    el.textContent = msg;
+    el._m = msg; if (html) el.innerHTML = msg; else el.textContent = msg;
     box.appendChild(el);
     el._t = setTimeout(() => el.remove(), kind === 'err' ? 4200 : 2500);
   }
@@ -115,6 +115,7 @@
     S.match = S.mode === 'campaign' ? new AMB.Match(AMB.campaign.matchOptions(S.campaign.fightId, S.picks[0]))
       : S.mode === 'tower' ? new AMB.Match(AMB.tower.matchOptions(S.tower.floor, S.picks[0]))
       : S.mode === 'event' ? new AMB.Match(AMB.weekly.matchOptions(S.event.stage, S.picks[0]))
+      : S.mode === 'tutorial' ? new AMB.Match(AMB.tutorial.matchOptions(S.picks[0]))
       : new AMB.Match({ mode: S.mode, players });
     // same hero on both sides (e.g. your Kiro vs the Ember boss Kiro): the enemy becomes its "shadow"
     const mirror = S.match.players[0].heroId === S.match.players[1].heroId;
@@ -128,6 +129,7 @@
 
   // ======================================================================= round flow
   function prepSeconds() {
+    if (S.mode === 'tutorial') return 9999;   // no clock while you learn
     const bonus = AMB.pass ? AMB.pass.prepBonus() : 0;   // battle-pass perk (+ a few seconds, never stats)
     return prepBase() + bonus;
   }
@@ -141,6 +143,7 @@
   function nextRound() {
     const m = S.match;
     m.startRound();
+    if (S.mode === 'tutorial') AMB.tutorial.onRound(m);   // fixed shop for the guided match
     S.combat = null;
     if (S.mode === 'hotseat') {
       S.queue = m.round % 2 ? [0, 1] : [1, 0]; // alternate who shops first (shared pool)
@@ -214,25 +217,23 @@
     S.paused = false;
     renderMatch();
     // the first-run guide opens in a moment: skip the round banner and income toast so nothing stacks on it
-    let tutNext = false; try { tutNext = S.match.round === 1 && localStorage.getItem('amb_tut') !== '1'; } catch (e) { /* ignore */ }
+    const tutNext = false;
     if (!tutNext) { const st = S.match.stageInfo(), first = st.rounds[0] === S.match.round;
-      if (S.match.rules) banner(`الجولة ${S.match.round} من ${maxR()}<small>أول من يفوز بجولتين يكسب القتال</small>`, S.match.round === 1 ? '' : 'fight');
-      else if (st.id === 'finale') banner('الحسم!<small>جولة أخيرة: الخسارة هنا تتضاعف</small>', 'fight');
-      else if (first) banner(`${st.name}<small>الجولة ${S.match.round} من ${CFG.match.maxRounds}</small>`);
-      else banner('الجولة ' + S.match.round); }
+      if (S.match.rules) banner(`${icon('flag')} ${S.match.round}<small>/${maxR()}</small>`, S.match.round === 1 ? '' : 'fight');
+      else if (st.id === 'finale') banner(`${icon('sword')}${icon('sword')} ${S.match.round}<small>/${CFG.match.maxRounds}</small>`, 'fight');
+      else banner(`${icon('flag')} ${S.match.round}<small>/${CFG.match.maxRounds}</small>`); }
     const p = me();
     const inc = p.lastIncome;
     if (inc && !tutNext) {
       const ess = S.match.round > 1 ? CFG.economy.essencePerRound + (HEROES[p.heroId].passive.id === 'deep_reserve' ? 1 : 0) : 0;
-      toast(`+${inc.total} ذهب${ess ? ` · +${ess} جوهر` : ''}`, 'good');
+      toast(`+${inc.total} ${icon('gold')}${ess ? ` &nbsp; +${ess} ${icon('essence')}` : ''}`, 'good', true);
     }
     setTimeout(() => {
       if (S.phase !== 'resources') return;
       S.phase = 'prep';
       S.deadline = Date.now() + prepSeconds() * 1000;
       renderMatch();
-      let seen = true; try { seen = localStorage.getItem('amb_tut') === '1'; } catch (e) { /* ignore */ }
-      if (!seen && S.match.round === 1) showTutorial();
+      if (AMB.TutorialUI) AMB.TutorialUI.poke();
     }, 900);
   }
 
@@ -252,7 +253,7 @@
     const el = document.querySelector('.timer');
     if (S.paused) return;
     const left = Math.max(0, S.deadline - Date.now());
-    if (el) { el.textContent = Math.ceil(left / 1000) + 's'; el.classList.toggle('warn', left < 6000); }
+    if (el) { el.textContent = S.mode === 'tutorial' ? '∞' : Math.ceil(left / 1000) + 's'; el.classList.toggle('warn', left < 6000 && S.mode !== 'tutorial'); }
     if (left <= 0) endPrep();
   }, 200);
 
@@ -267,7 +268,7 @@
     S.phase = 'combat';
     renderMatch();
     buildTokens();
-    banner('قتال!', 'fight');
+    banner(`${icon('sword')}`, 'fight');
     let last = performance.now(), acc = 0;
     const step = (ts) => {
       if (S.phase !== 'combat') return;
@@ -301,27 +302,18 @@
     S.lastReport = rep;
     renderMatch(true);
     if (rep.winner != null) sfx(S.mode === 'hotseat' || rep.winner === 0 ? 'win' : 'lose');
-    const names = m.players.map((p) => p.name);
-    let title, cls;
-    if (rep.winner === null) { title = 'تعادل'; cls = ''; }
-    else if (S.mode === 'hotseat') { title = `فاز ${esc(names[rep.winner])} بالجولة`; cls = 'win'; }
-    else { title = rep.winner === 0 ? 'فزت بالجولة!' : 'خسرت الجولة'; cls = rep.winner === 0 ? 'win' : 'lose'; }
-    const rows = rep.players.map((r, i) => `<tr><td>${esc(names[i])} ${r.heroKilled ? '— <b style="color:var(--red)">سقط البطل!</b>' : ''}</td>
-      <td>${fmt(r.direct, 1)}</td><td>${r.backlash}</td><td><b>${lifeStr(r.lifeAfter)}</b></td></tr>`).join('');
+    let cls;
+    if (rep.winner === null) cls = 'draw';
+    else if (S.mode === 'hotseat') cls = 'win';
+    else cls = rep.winner === 0 ? 'win' : 'lose';
     const over = m.isOver;
-    overlay(`<div class="ov-card"><h2 class="${cls}">${title}</h2>
-      <div class="hint">الجولة ${rep.round} · مدة القتال ${fmt(rep.duration, 1)} ث</div>
-      <table><tr><th></th><th>ضرر مباشر</th><th>ارتداد الخسارة</th><th>الحياة</th></tr>${rows}</table>
-      ${(() => {
-        if (S.mode === 'hotseat') return '';
-        const me0 = rep.players[0];
-        if (rep.winner === 1 && me0.exposed) return `<p class="tip"><b>لماذا خسرت؟</b> سقطت وحداتك الأمامية فانكشف بطلك وصار قابلًا للهجوم. ضع حرّاسًا ومقاتلين في الصف الأمامي (4 وحدات كحد أقصى)، أو ارفع مستواك لتزيد وحداتك.</p>`;
-        if (rep.winner === 1) return `<p class="tip"><b>لماذا خسرت؟</b> قوة تشكيلة الخصم كانت أعلى. جرّب تفعيل التآزر (وحدات من نفس العالم أو الدور)، وجهّز معدات وقدرات البطل.</p>`;
-        return '';
-      })()}
-      ${rep.finale ? `<p class="tip"><b>جولة الحسم:</b> ارتداد الخسارة تضاعف ×${CFG.match.finaleLossMult}. ${over ? 'الأعلى حياة يفوز.' : ''}</p>` : ''}
-      <p class="hint">الضرر المباشر = ضربات تلقاها البطل بعد انكشافه أو في الساحة. ارتداد الخسارة = ${CFG.damage.lossBase} + الجولة×${CFG.damage.lossPerRound} + نجوم وحدات الخصم الناجية (حتى ${CFG.damage.survivorCap}).</p>
-      <button class="btn primary big" data-act="${over ? 'toResults' : m.rewardPending ? 'rewards' : 'nextRound'}">${over ? 'عرض النتائج' : m.rewardPending ? '🎁 اختر مكافأتك' : 'الجولة التالية'}</button></div>`);
+    const side = (i) => { const r = rep.players[i], pl = m.players[i]; return `<div class="rr-side ${rep.winner === i ? 'won' : ''}">${portrait(r.heroKilled ? HEROES[pl.heroId] : HEROES[pl.heroId], { k: 'rr' + i })}
+        <div class="rr-life">${icon(r.heroKilled ? 'skull' : 'heart')} <b>${lifeStr(r.lifeAfter)}</b></div>${(r.backlash + r.direct) > 0 ? `<div class="rr-dmg">−${Math.round(r.backlash + r.direct)}</div>` : '<div class="rr-dmg">&nbsp;</div>'}</div>`; };
+    const me0 = rep.players[0];
+    const why = S.mode !== 'hotseat' && rep.winner === 1 ? (me0.exposed ? `<div class="rr-why">${icon('shield')}<i>✗</i> ➜ ${icon('warn')}</div>` : `<div class="rr-why">${icon('star')} ➜ ${icon('sword')}</div>`) : '';
+    overlay(`<div class="ov-card rr ${cls}"><div class="rr-big">${icon(rep.winner === null ? 'swap' : cls === 'lose' ? 'skull' : 'crown')}</div>
+      <div class="rr-row">${side(0)}<div class="rr-vs">${icon('sword')}</div>${side(1)}</div>${why}${rep.finale ? `<div class="rr-why">${icon('flame')} ×${CFG.match.finaleLossMult}</div>` : ''}
+      <button class="btn primary big rr-go" data-act="${over ? 'toResults' : m.rewardPending ? 'rewards' : 'nextRound'}">${over ? icon('check') : m.rewardPending ? '🎁' : icon('sword')}</button></div>`);
   }
 
   // ---- card helpers shared by shop / bench / field / codex
@@ -532,7 +524,7 @@
     const clock = document.querySelector('.combat-ctrl .clock');
     if (clock) clock.textContent = fmt(c.t, 1) + 's';
     const fury = document.querySelector('.combat-ctrl .fury');
-    if (fury) fury.textContent = c.t > CFG.combat.furyStart ? `غضب ×${fmt(c.fury(), 2)}` : (c.assault ? 'هجوم على مركز القيادة!' : '');
+    if (fury) fury.innerHTML = c.t > CFG.combat.furyStart ? `${icon('flame')}×${fmt(c.fury(), 2)}` : (c.assault ? icon('warn') : '');
 
     const events = c.drainEvents();
     if (skipFx) return;
@@ -608,29 +600,24 @@
   function renderTop() {
     const m = S.match, p = me(), o = opp();
     const ph = S.phase;
-    const steps = [['resources', 'الموارد'], ['shop', 'الشراء والتطوير'], ['form', 'الترتيب والقدرات'], ['combat', 'القتال'], ['result', 'النتائج']];
-    const activeIdx = { resources: [0], prep: [1, 2], handoff: [], combat: [3], result: [4] }[ph] || [];
-    const phases = steps.map(([, n], i) => `<span class="phase ${activeIdx.includes(i) ? 'on' : activeIdx.length && i < Math.min(...activeIdx) ? 'done' : ''}">${i + 1}. ${n}</span>`).join('');
     const need = m.xpNeeded(p);
-    const left = ph === 'prep' ? Math.ceil(Math.max(0, S.deadline - Date.now()) / 1000) + 's' : '—';
+    const left = ph === 'prep' ? (S.mode === 'tutorial' ? '∞' : Math.ceil(Math.max(0, S.deadline - Date.now()) / 1000) + 's') : '—';
     const avail = p.essence - m.reservedEssence(p);
+    const lc = (pl, hid, k, me) => `<span class="lifechip ${me ? 'me' : ''}">${portrait(hid, { k })}${icon('heart')} <b>${lifeStr(pl.life)}</b><i class="lc-st"></i></span>`;
     $('topbar').innerHTML = `
-      <span class="tb-round">الجولة ${m.round}<small>/${maxR()}</small></span>
-      ${m.rules ? `<span class="stagechip" title="أول من يفوز بجولتين يكسب القتال"><b>${p.stats.wins} – ${o.stats.wins}</b><span class="pips">${[0, 1].map((k) => `<i class="pip ${k < p.stats.wins ? 'done' : ''}"></i>`).join('')}</span></span>` : ''}
-      <span ${m.rules ? 'style="display:none" ' : ''}class="stagechip" title="المراحل: كل مرحلة تنتهي بمكافأة تختارها (ما عدا الأخيرة)"><b>${m.stageInfo().name}</b><span class="pips">${[1, 2, 3, 4, 5, 6, 7].map((r) => `<i class="pip ${r < m.round ? 'done' : r === m.round ? 'now' : ''} ${CFG.match.stages.some((st) => st.rounds[1] === r && r < 7) ? 'gap' : ''}"></i>`).join('')}</span></span>
-      <div class="phases">${phases}</div>
-      <span class="timer" title="مؤقت مرحلة التجهيز">${S.paused ? '⏸' : left}</span>
+      <span class="tb-round" title="${icon('flag').replace(/<[^>]+>/g, '')}">${icon('flag')} ${m.round}<small>/${maxR()}</small></span>
+      ${m.rules ? `<span class="stagechip"><b>${p.stats.wins} – ${o.stats.wins}</b><span class="pips">${[0, 1].map((k) => `<i class="pip ${k < p.stats.wins ? 'done' : ''}"></i>`).join('')}</span></span>`
+        : `<span class="stagechip"><span class="pips">${[1, 2, 3, 4, 5, 6, 7].map((r) => `<i class="pip ${r < m.round ? 'done' : r === m.round ? 'now' : ''} ${CFG.match.stages.some((st) => st.rounds[1] === r && r < 7) ? 'gap' : ''}"></i>`).join('')}</span></span>`}
+      <span class="timer">${S.paused ? icon('pause') : left}</span>
       <span class="tb-spacer"></span>
-      <span class="lifechip me" title="حياة بطلك">${portrait(myAvatar(p, 0), { k: 'tb0' })}${esc(p.name)} ${icon('heart')} ${lifeStr(p.life)}</span>
-      <span class="lifechip" title="حياة بطل الخصم">${portrait(HEROES[o.heroId], { k: 'tb1' })}${esc(o.name)} ${icon('heart')} ${lifeStr(o.life)}</span>
-      <span class="res gold" title="الذهب">${icon('gold')} ${p.gold}</span>
-      <span class="res ess" title="الجوهر: متاح / الإجمالي (يُدفع فقط عند تفعيل القدرة)">${icon('essence')} ${avail}/${p.essence}</span>
-      <span class="lvl" title="المستوى = الحد الأقصى للوحدات في الساحة"><span class="lw">مستوى</span> ${p.level} <span class="xpbar"><i style="width:${need ? (p.xp / need) * 100 : 100}%"></i></span> <small style="color:var(--muted)">${need ? p.xp + '/' + need : 'MAX'}</small></span>
-      <button class="btn small mob-hide" data-act="tutorial" title="دليل سريع">؟</button>
-      <button class="btn small mob-only" data-act="panels" title="التآزر وقدرات البطل">${S.panels ? 'إغلاق' : 'البطل'}</button>
-      <button class="btn small" data-act="pause" title="إيقاف مؤقت">${S.paused ? '▶' : '⏸'}</button>
+      ${lc(p, myAvatar(p, 0), 'tb0', true)}${lc(o, HEROES[o.heroId], 'tb1', false)}
+      <span class="res gold">${icon('gold')} ${p.gold}</span>
+      <span class="res ess">${icon('essence')} ${avail}/${p.essence}</span>
+      <span class="lvl">${icon('crown')} <b>${p.level}</b> <span class="xpbar"><i style="width:${need ? (p.xp / need) * 100 : 100}%"></i></span></span>
+      <button class="btn small mob-only ibtn2" data-act="panels">${S.panels ? '✕' : icon('crown')}</button>
+      <button class="btn small ibtn2" data-act="pause">${S.paused ? icon('play') : icon('pause')}</button>
       ${soundBtn()}
-      <button class="btn small" data-act="menuMatch">☰</button>`;
+      <button class="btn small ibtn2" data-act="menuMatch">☰</button>`;
   }
 
   // Field = a CSS grid of cards:  enemy post / enemy back / enemy front / rift / my front / my back / my post
@@ -665,7 +652,8 @@
       const act = mine && !inCombat ? `data-act="slot" data-slot="${slot}" data-drop="board:${slot}"` : '';
       let rec = '';
       if (mine && !inCombat && S.sel && S.sel.kind === 'unit') { const su = m.findUnit(p, S.sel.uid); if (su) { const sd = ROLES[UNITS[su.defId].role].side; if (sd === 'any' || (sd === 'front') === (slot[0] === 'f')) rec = ' rec'; } }
-      return `<div class="cell ${cls}${rec}" ${act} data-row="${slot[0] === 'f' ? 'أمامي' : 'خلفي'}">${inner}</div>`;
+      if (!inner && mine && !inCombat) inner = `<i class="rowic">${icon(slot[0] === 'f' ? 'shield' : 'bow')}</i>`;   // empty cell: front row = shield, back row = bow
+      return `<div class="cell ${cls}${rec}" ${act}>${inner}</div>`;
     };
     const row = (side, ch, mine) => [0, 1, 2, 3].map((k) => cell(side, ch + (mine ? k : 3 - k), mine)).join('');
     const o = 1 - v;
@@ -675,7 +663,7 @@
     fe.style.setProperty('--ew', WORLDS[HEROES[m.players[o].heroId].world].color);
     $('slots').innerHTML =
       row(o, 'b', false) + row(o, 'f', false) +
-      `<div class="divider"><span>${sc && !inCombat ? (m.players[1 - v].lineup ? 'تشكيلة الخصم لهذه الجولة' : 'آخر تشكيلة للخصم (استطلاع)') : inCombat ? '' : 'الخصم — لم يقاتل بعد'}</span></div>` +
+      `<div class="divider"><span>${inCombat ? '' : icon('eye')}</span></div>` +
       row(v, 'f', true) + row(v, 'b', true);
   }
 
@@ -688,25 +676,27 @@
       if (!el) return;
       const p = m.players[side];
       const h = HEROES[p.heroId];
-      let life = p.life, onBoard = p.summoned, exposed = false, status;
+      let life = p.life, onBoard = p.summoned, exposed = false, safe = true, front = null;
       if (inCombat) {
         const hf = S.combat.sides[side].hero;
         life = hf.hp / CFG.combat.heroHpScale;
         onBoard = hf.onBoard;
         exposed = S.combat.sides[side].exposed;
-        status = onBoard ? (S.combat.targetable(hf) ? '<span class="st risk">في الساحة — قابل للاستهداف</span>' : '<span class="st safe">في الساحة — محمي بخط الدفاع</span>')
-          : hf.sealed ? '<span class="st safe">مركز القيادة محصّن</span>' : exposed ? '<span class="st risk">مكشوف! يمكن مهاجمته</span>' : '<span class="st safe">محمي بخط الدفاع</span>';
+        safe = onBoard ? !S.combat.targetable(hf) : !exposed;
       } else {
         const board = side === S.v ? p.board : null;
-        const front = board ? Object.keys(board).filter((x) => x[0] === 'f').length : null;
-        status = onBoard ? '<span class="st">مستدعى إلى الساحة</span>' : front === 0 ? '<span class="st risk">لا يوجد خط دفاع!</span>' : front ? `<span class="st safe">محمي (${front} في الصف الأمامي)</span>` : '<span class="st">مركز القيادة</span>';
+        front = board ? Object.keys(board).filter((x) => x[0] === 'f').length : null;
+        safe = !onBoard && front !== 0;
       }
+      // a shield with the number of front-row defenders (green) or a red warning (exposed); a crown when the hero fights on the field
+      const st = onBoard && !inCombat ? `<span class="st">${icon('crown')}</span>` : safe ? `<span class="st safe">${icon('shield')}${front ? `<b>${front}</b>` : ''}</span>` : `<span class="st risk">${icon('warn')}</span>`;
       el.style.setProperty('--wc', WORLDS[h.world].color);
-      el.className = 'post' + (onBoard && !inCombat ? ' empty-hero' : '') + (exposed && !onBoard ? ' exposed' : '');
+      el.className = 'post' + (onBoard && !inCombat ? ' empty-hero' : '') + (exposed && !onBoard ? ' exposed' : '') + (safe ? '' : ' risk');
+      const chip = document.querySelectorAll('#topbar .lifechip')[side === viewer ? 0 : 1];   // the phone shows hero life + safety in the top bar (the posts are hidden there)
+      if (chip) { const b = chip.querySelector('b'); if (b) b.textContent = lifeStr(life); const ls = chip.querySelector('.lc-st'); if (ls) ls.innerHTML = onBoard && !inCombat ? icon('crown') : safe ? icon('shield') : icon('warn'); chip.classList.toggle('risk', !safe && !(onBoard && !inCombat)); }
       el.innerHTML = `${portrait(h, { k: 'post' + side })}
-        <div class="pl"><div class="pn">${esc(p.name)} · ${h.name}</div>
-        <div class="lifebar"><i style="width:${Math.max(0, (life / p.maxLife) * 100)}%"></i></div>
-        <div class="st">${icon('heart')} ${lifeStr(life)}/${p.maxLife} — ${status}</div></div>`;
+        <div class="pl"><div class="lifebar"><i style="width:${Math.max(0, (life / p.maxLife) * 100)}%"></i></div>
+        <div class="st">${icon('heart')} <b>${lifeStr(life)}</b></div></div>${st}`;
     });
   }
 
@@ -723,11 +713,12 @@
 
   function renderBench() {
     const p = me();
+    const lbl = `<span class="lbl">${icon('box')}</span>`;
     if (S.phase === 'combat' || S.phase === 'result') {
-      $('bench').innerHTML = `<span class="lbl">احتياط</span>` + p.bench.map((u) => `<div class="bslot">${u ? cardHTML(UNITS[u.defId], { size: 'mini', star: u.star, items: u.items, k: 'bc' + u.uid, cls: 'ghost' }) : ''}</div>`).join('');
+      $('bench').innerHTML = lbl + p.bench.map((u) => `<div class="bslot">${u ? cardHTML(UNITS[u.defId], { size: 'mini', star: u.star, items: u.items, k: 'bc' + u.uid, cls: 'ghost' }) : ''}</div>`).join('');
       return;
     }
-    $('bench').innerHTML = `<span class="lbl">احتياط</span>` + p.bench.map((u, i) =>
+    $('bench').innerHTML = lbl + p.bench.map((u, i) =>
       `<div class="bslot" data-act="bench" data-idx="${i}" data-drop="bench:${i}">${u ? pieceHTML(u, { sel: S.sel && S.sel.kind === 'unit' && S.sel.uid === u.uid }) : ''}</div>`).join('');
   }
 
@@ -736,7 +727,7 @@
     const prep = S.phase === 'prep' || S.phase === 'resources';
     const E = CFG.economy;
     if (!prep) {
-      $('shopbar').innerHTML = `<div class="hint" style="padding:10px">🔒 ${S.phase === 'combat' ? 'القتال جارٍ' : 'المتجر مغلق'}${coach() && S.phase === 'combat' ? ' · تلقائي بالكامل' : ''}</div>`;
+      $('shopbar').innerHTML = `<div class="shop-closed">${icon(S.phase === 'combat' ? 'sword' : 'lock')}</div>`;
       return;
     }
     const owned = {};
@@ -759,130 +750,100 @@
     const freeR = p.freeRerolls > 0;
     $('shopbar').innerHTML = `
       <div class="shop-actions">
-        <button class="btn" data-act="reroll" title="اختصار: D">تحديث <span>${freeR ? 'مجاني' : icon('gold') + E.rerollCost}</span></button>
-        <button class="btn" data-act="xp" ${p.level >= E.maxLevel ? 'disabled' : ''} title="اختصار: F">+${E.xpPerBuy} خبرة <span>${icon('gold')}${E.xpCost}</span></button>
-        <button class="btn ${p.shopLocked ? 'on' : ''}" data-act="lock" title="يبقي نفس العروض للجولة القادمة">${p.shopLocked ? '🔒 مقفل' : '🔓 قفل'}</button>
+        <button class="btn ib-act" data-act="reroll" title="D">${icon('refresh')}<span class="cost">${freeR ? '0' : icon('gold') + E.rerollCost}</span></button>
+        <button class="btn ib-act" data-act="xp" ${p.level >= E.maxLevel ? 'disabled' : ''} title="F">${icon('up')}<span class="cost">${icon('gold')}${E.xpCost}</span></button>
+        <button class="btn ib-act ${p.shopLocked ? 'on' : ''}" data-act="lock">${icon(p.shopLocked ? 'lock' : 'unlock')}</button>
       </div>
       <div class="shop-row"><div class="shop-cards">${cards}</div>
       <div class="item-cards">${items}</div></div>
       <div class="shop-actions">
-        <button class="btn" data-act="upgrades" title="تقدّم الترقية لكل وحدة">ترقية ★</button>
-        <button class="btn primary ready-btn" data-act="ready" title="Enter">جاهز ⚔</button>
+        <button class="btn ib-act" data-act="upgrades">${icon('star')}<span class="cost">×3</span></button>
+        <button class="btn primary ready-btn" data-act="ready" title="Enter">${icon('sword')}${icon('check')}</button>
       </div>`;
   }
 
+  const SYN_ICON = (s) => (s.kind === 'world' ? ART.WORLD_ICON[s.id] : s.kind === 'special' ? 'star' : ART.ROLE_ICON[s.id]);
   function synergyHTML(list) {
-    if (!list.length) return '<div class="hint">ضع وحدات لتفعيل التآزر</div>';
-    // active synergies show their effect; the rest are one short row each (3 at most) with "+N" opening the full list
-    const act = list.filter((s) => s.activeTier >= 0), rest = list.filter((s) => s.activeTier < 0);
-    const shown = act.concat(rest.slice(0, 3)), hidden = rest.length - 3;
+    if (!list.length) return `<div class="syn-empty">${icon('star')}</div>`;
     AMB.TIPS.syn = () => ({ title: 'كل التآزرات', html: list.map((s) => `<div class="syn-full"><b>${s.name}</b> <small>(${s.count}${s.nextN ? '/' + s.nextN : ''})</small>${s.tiers.map((t) => `<div class="hint">• ${t.n}: ${t.text}</div>`).join('')}</div>`).join('') });
-    return shown.map((s) => {
-      const color = s.kind === 'world' ? WORLDS[s.id].color : s.kind === 'special' ? '#ffcf4a' : '#3ee6ff';
-      const tiers = s.tiers.map((t, i) => (i === s.activeTier ? `<b>${t.n}</b>` : t.n)).join(' › ');
-      const on = s.activeTier >= 0;
-      const desc = on ? s.tiers[s.activeTier].text : `عند ${s.tiers[0].n}: ${s.tiers[0].text}`;
-      return `<div class="syn ${on ? 'on' : ''}" style="--sc:${color}" title="${esc(s.tiers.map((t) => t.n + ': ' + t.text).join('\n'))}">
-        <span class="cnt">${s.count}${s.nextN ? '/' + s.nextN : ''}</span><span class="nm">${s.name}</span><span class="tiers">${tiers}</span></div>
-        ${on ? `<div class="syn-desc">${desc}</div>` : ''}`;
-    }).join('') + (hidden > 0 ? `<button class="btn small ghost syn-more" data-act="info" data-k="syn">+${hidden} تآزر آخر</button>` : '');
+    // one chip per synergy: its icon + how many units you have / the next step; lit when active. Tap = the full list.
+    return `<div class="synchips">${list.map((s) => {
+      const color = s.kind === 'world' ? WORLDS[s.id].color : s.kind === 'special' ? '#ffcf4a' : '#3ee6ff', on = s.activeTier >= 0;
+      return `<button class="schip ${on ? 'on' : ''}" style="--sc:${color}" data-act="info" data-k="syn">${icon(SYN_ICON(s))}<b>${s.count}</b>${s.nextN ? `<small>/${s.nextN}</small>` : ''}</button>`;
+    }).join('')}</div>`;
   }
 
   function renderLeft() {
     const m = S.match, p = me(), o = opp();
     const board = Object.values(p.board);
     const ev = AMB.synergy.evaluate(board, p.heroId);
-    const front = Object.keys(p.board).filter((s) => s[0] === 'f').length;
+    const front = Object.keys(p.board).filter((x) => x[0] === 'f').length;
     const heroFront = p.summoned && p.heroSlot[0] === 'f';
-    let guard;
-    AMB.TIPS.guard = () => ({ title: 'حماية البطل', html: '<p>ما دام عندك أي وحدة حيّة في الصف الأمامي، <b>ما يقدر العدو يستهدف بطلك</b>. إذا سقطت كلها ينكشف البطل ويتلقى الضرر.</p><p>القتلة يقفزون للصف الخلفي لكن لا يضربون البطل المحمي. وإذا استدعيت بطلك للساحة يتلقى الضرر كاملًا.</p>' });
-    if (heroFront) guard = `<div class="guard-status risk">${icon('shield')}<b>البطل في الأمام: مكشوف</b>${ibtn('guard')}</div>`;
-    else if (front === 0) guard = `<div class="guard-status risk">${icon('shield')}<b>مكشوف!</b>${coach() ? ' ضع وحدات أمامية' : ''}${ibtn('guard')}</div>`;
-    else guard = `<div class="guard-status safe">${icon('shield')}<b>خط الدفاع: ${front}</b>${ibtn('guard')}</div>`;
     const hw = WORLDS[HEROES[p.heroId].world];
     const sc = m.players[1 - S.v].lineup ? m.buildCombatSpec(1 - S.v) : m.scout[1 - S.v];
-    const oppSyn = sc ? AMB.synergy.evaluate(sc.units, sc.heroId).list.filter((s) => s.activeTier >= 0) : [];
-    const timeline = m.history.map((r) => `<span class="${r.winner === null ? 'wd' : r.winner === S.v ? 'w0' : 'w1'}" title="الجولة ${r.round}">${r.round}</span>`).join('');
+    const oppSyn = sc ? AMB.synergy.evaluate(sc.units, sc.heroId).list.filter((x) => x.activeTier >= 0) : [];
+    const timeline = m.history.map((r) => `<span class="${r.winner === null ? 'wd' : r.winner === S.v ? 'w0' : 'w1'}">${r.round}</span>`).join('');
+    AMB.TIPS.guard = () => ({ title: 'حماية البطل', html: '<p>ما دام عندك أي وحدة حيّة في الصف الأمامي، <b>ما يقدر العدو يستهدف بطلك</b>. إذا سقطت كلها ينكشف البطل ويتلقى الضرر.</p><p>القتلة يقفزون للصف الخلفي لكن لا يضربون البطل المحمي. وإذا استدعيت بطلك للساحة يتلقى الضرر كاملًا.</p>' });
+    const guard = heroFront || front === 0 ? `<button class="guard risk" data-act="info" data-k="guard">${icon('warn')}</button>` : `<button class="guard safe" data-act="info" data-k="guard">${icon('shield')}<b>${front}</b></button>`;
     $('panel-left').innerHTML = `
-      <section><h4>حماية البطل</h4>${guard}</section>
-      <section><h4>التآزر <small>${board.length}/${p.level} وحدات</small></h4>
-        <div class="syn ${ev.resonance ? 'on' : ''}" style="--sc:${hw.color}" title="كل وحدة من عالم بطلك تكتسب +${CFG.hero.resonancePerAlly * 100}% صحة وهجوم"><span class="cnt">${ev.resonance}</span><span class="nm">رنين البطل (${hw.name})</span></div>
+      <section class="rail-guard">${guard}</section>
+      <section><div class="rail-title">${icon('star')}<small>${board.length}/${p.level}</small></div>
+        <div class="synchips"><button class="schip ${ev.resonance ? 'on' : ''}" style="--sc:${hw.color}" data-act="info" data-k="syn">${icon(ART.WORLD_ICON[HEROES[p.heroId].world])}<b>${ev.resonance}</b><small>♥</small></button></div>
         ${synergyHTML(ev.list)}</section>
-      <section><h4>الخصم</h4>
-        <div class="hero-box">${portrait(HEROES[o.heroId], { k: 'lo' })}<div><div class="nm">${esc(o.name)}</div><div class="ti">${HEROES[o.heroId].name} · ${WORLDS[HEROES[o.heroId].world].name}</div>
-        <div class="ti">مستوى ${o.level} · ${icon('heart')} ${lifeStr(o.life)}</div></div></div>
-        ${oppSyn.length ? '<div class="hint" style="margin-top:6px">تآزره: ' + oppSyn.slice(0, 3).map((s) => s.name).join('، ') + '</div>' : ''}
-        ${sc && sc.summoned ? '<div class="hint">استدعى بطله</div>' : ''}</section>
-      <section><h4>سجل الجولات</h4><div class="timeline">${timeline || '<span class="hint">—</span>'}</div></section>`;
+      <section><div class="rail-title">${icon('skull')}</div>
+        <div class="opp-mini">${portrait(HEROES[o.heroId], { k: 'lo' })}<div class="om-n"><span>${icon('crown')} ${o.level}</span><span>${icon('heart')} ${lifeStr(o.life)}</span></div></div>
+        ${oppSyn.length ? `<div class="synchips">${oppSyn.slice(0, 4).map((x) => `<span class="schip on" style="--sc:${x.kind === 'world' ? WORLDS[x.id].color : '#3ee6ff'}">${icon(SYN_ICON(x))}<b>${x.count}</b></span>`).join('')}</div>` : ''}</section>
+      <section><div class="timeline">${timeline || '<span class="wd">·</span>'}</div></section>`;
   }
 
+  const ABILITY_ICON = { buffAllies: 'sword', damageCluster: 'blast', shieldAllies: 'shield', healAllies: 'healall', stunEnemies: 'bolt', frontDR: 'taunt', stunFront: 'snow' };
   function renderRight() {
     const m = S.match, p = me();
     const h = HEROES[p.heroId];
     const prep = S.phase === 'prep' || S.phase === 'resources';
     const avail = p.essence - m.reservedEssence(p);
+    const TR = { start: '▶', t5: '⏱', firstDeath: '☠', exposed: '⚠' };   // when the ability fires: start / after 5 s / first ally dies / hero exposed
     const abil = h.abilities.map((a) => {
       const cost = m.abilityCost(p, a);
       const trig = p.abilities[a.id] || '';
       const fired = S.combat && S.phase !== 'prep' && S.combat.sides[S.v] && S.combat.sides[S.v].abilities.find((x) => x.def.id === a.id && x.fired);
-      const opts = [`<option value="">— غير مجهزة —</option>`].concat(Object.values(ABILITY_TRIGGERS).map((t) => `<option value="${t.id}" ${trig === t.id ? 'selected' : ''}>تفعيل: ${t.name}</option>`)).join('');
-      return `<div class="ability ${trig ? 'armed' : ''}" title="${esc(a.text)}"><div class="ah"><span>${a.name} ${ibtn('hero', `data-id="${h.id}"`)}</span><span class="cost">${icon('essence')}${cost}${cost !== a.cost ? ` <s style="opacity:.5">${a.cost}</s>` : ''}</span></div>
-        ${prep ? `<select data-ab="${a.id}">${opts}</select>` : `<div class="hint">${trig ? (fired ? '✔ فُعّلت في هذا القتال' : 'مجهزة: ' + ABILITY_TRIGGERS[trig].name) : 'غير مجهزة'}</div>`}</div>`;
+      const trigs = Object.values(ABILITY_TRIGGERS).map((t) => `<button class="trg ${trig === t.id ? 'on' : ''}" data-act="abTrig" data-ab="${a.id}" data-t="${t.id}" ${prep ? '' : 'disabled'}>${TR[t.id] || '•'}</button>`).join('');
+      return `<div class="ab ${trig ? 'armed' : ''} ${fired ? 'fired' : ''}"><button class="ab-ic" data-act="info" data-k="hero" data-id="${h.id}">${icon(ABILITY_ICON[a.type] || 'burst')}<span class="ab-cost">${icon('essence')}${cost}</span></button><div class="ab-trg">${trigs}</div></div>`;
     }).join('');
-    AMB.TIPS.summon = () => ({ title: 'استدعاء البطل', html: `<p>${p.summoned ? 'بطلك الحين يقاتل في الساحة (اسحبه لتغيير موقعه).' : 'بطلك الحين في مركز القيادة خلف صفوفك.'}</p>
-      <p><b>الفايدة:</b> يهاجم بقوة ${h.board.atk + CFG.hero.boardAtkPerRound * m.round}، والحلفاء +${CFG.hero.summonAuraAtk * 100}% هجوم، والقدرات أرخص بـ${CFG.hero.summonAbilityDiscount}.</p>
-      <p><b>المخاطرة:</b> يتلقى الضرر كاملًا (حتى الضرر المساحي)، وينسحب بعد خسارة ${CFG.combat.summonKnockout} حياة، ووصول حياته للصفر = خسارة فورية.</p>` });
-    const summonTxt = p.summoned ? 'إعادة البطل إلى مركز القيادة' : 'استدعاء البطل إلى الساحة';
     const bag = [];
     for (let i = 0; i < CFG.economy.itemBenchSize; i++) {
       const id = p.items[i];
       if (!id) { bag.push('<div class="bagslot"></div>'); continue; }
       const it = ITEMS[id];
       const sel = S.sel && S.sel.kind === 'item' && S.sel.idx === i;
-      bag.push(`<div class="bagslot ${it.kind} ${sel ? 'sel' : ''}" data-act="bagSel" data-idx="${i}" title="${esc(it.name + ': ' + it.text)}">${icon(it.icon)}</div>`);
+      bag.push(`<div class="bagslot ${it.kind} ${sel ? 'sel' : ''}" data-act="bagSel" data-idx="${i}">${icon(it.icon)}</div>`);
     }
-    const armed = p.armedSpells.map((id, i) => `<span class="chip" data-act="disarm" data-idx="${i}" title="اضغط لإلغاء التجهيز">${icon(ITEMS[id].icon)} ${ITEMS[id].name} ✕</span>`).join('');
+    const armed = p.armedSpells.map((id, i) => `<span class="chip" data-act="disarm" data-idx="${i}">${icon(ITEMS[id].icon)} ✕</span>`).join('');
+    AMB.TIPS.summon = () => ({ title: 'استدعاء البطل', html: `<p>${p.summoned ? 'بطلك الحين يقاتل في الساحة (اسحبه لتغيير موقعه).' : 'بطلك الحين في مركز القيادة خلف صفوفك.'}</p>
+      <p><b>الفايدة:</b> يهاجم بقوة ${h.board.atk + CFG.hero.boardAtkPerRound * m.round}، والحلفاء +${CFG.hero.summonAuraAtk * 100}% هجوم، والقدرات أرخص بـ${CFG.hero.summonAbilityDiscount}.</p>
+      <p><b>المخاطرة:</b> يتلقى الضرر كاملًا (حتى الضرر المساحي)، وينسحب بعد خسارة ${CFG.combat.summonKnockout} حياة، ووصول حياته للصفر = خسارة فورية.</p>` });
     $('panel-right').innerHTML = `
-      <section><div class="hero-box">${portrait(h, { k: 'rh' })}<div style="flex:1"><div class="nm">${h.name}</div><div class="ti">${h.title} · ${WORLDS[h.world].name}</div>
-        <div class="lifebar-big"><i style="width:${(p.life / p.maxLife) * 100}%"></i></div><div class="ti">${icon('heart')} ${lifeStr(p.life)} / ${p.maxLife}</div></div></div>
-        <div class="passive" title="${esc(h.passive.text)}"><b>${h.passive.name}</b> ${ibtn('hero', `data-id="${h.id}"`)}</div>
-        ${prep ? `<div class="summon-row"><button class="btn summon-btn ${p.summoned ? 'on' : ''}" data-act="summon">${summonTxt}</button>${ibtn('summon')}</div>` : ''}
-      </section>
-      <section><h4>قدرات البطل <span class="cost" style="color:var(--ess)">${icon('essence')} متاح ${avail}</span></h4>${abil}
-        ${coach() ? '<div class="hint">الجوهر يُصرف فقط إذا تفعّلت القدرة</div>' : ''}</section>
-      <section><h4>المعدات والتعاويذ</h4><div class="bag">${bag.join('')}</div>
-        ${armed ? `<div class="armed-spells">${armed}</div>` : ''}
-        ${coach() ? '<div class="hint" style="margin-top:6px">اضغط معدة ثم وحدة لتجهيزها</div>' : ''}</section>
-      <section><h4>التحديد</h4>${selectionHTML()}</section>
-      ${coach() ? `<section class="hint">اضغط وحدة ثم خانة لنقلها، أو اسحبها · <span class="kbd">D</span> تحديث · <span class="kbd">F</span> خبرة · <span class="kbd">Enter</span> جاهز</section>` : ''}`;
+      <section class="hero-card-mini">${portrait(h, { k: 'rh' })}
+        <div class="hcm-r"><div class="lifebar-big"><i style="width:${(p.life / p.maxLife) * 100}%"></i></div><div class="hcm-n">${icon('heart')} <b>${lifeStr(p.life)}</b></div></div>
+        <button class="chip-ic" data-act="info" data-k="hero" data-id="${h.id}">${icon('star')}</button></section>
+      ${prep ? `<section><div class="summon-row"><button class="btn summon-btn ${p.summoned ? 'on' : ''}" data-act="summon">${icon('crown')}${icon('swap')}${icon('sword')}</button><button class="ibtn" data-act="info" data-k="summon">ⓘ</button></div></section>` : ''}
+      <section><div class="rail-title">${icon('essence')}<small>${avail}</small></div><div class="abils">${abil}</div></section>
+      <section><div class="bag">${bag.join('')}</div>${armed ? `<div class="armed-spells">${armed}</div>` : ''}</section>
+      <section class="selbox">${selectionHTML()}</section>`;
   }
 
   function selectionHTML() {
     const m = S.match, p = me();
     const prep = S.phase === 'prep' || S.phase === 'resources';
-    if (!S.sel || !prep) return '<div class="hint">لا شيء محدد.</div>';
+    if (!S.sel || !prep) return '';
     if (S.sel.kind === 'unit') {
       const u = m.findUnit(p, S.sel.uid);
       if (!u) return '';
-      const d = UNITS[u.defId];
-      const sm = CFG.stars.mult[u.star];
-      return `<div class="selinfo"><b>${d.name}</b> ${stars(u.star)}<br>
-        <span class="pill" style="--pc:${WORLDS[d.world].color}">${WORLDS[d.world].name}</span><span class="pill">${ROLES[d.role].name}</span><span class="pill" style="--pc:var(--t${d.tier})">فئة ${d.tier}</span><br>
-        صحة ${fmt(d.hp * sm)} · هجوم ${fmt(d.atk * sm)} · مدى ${d.range}<br>
-        <b>${d.skill.name}:</b> ${d.skill.text}
-        ${u.items.length ? '<br>معدات: ' + u.items.map((i) => ITEMS[i].name).join('، ') : ''}
-        <div class="row"><button class="btn small" data-act="detail" data-id="${d.id}" data-star="${u.star}">التفاصيل</button>
-        <button class="btn small danger" data-act="sell">بيع +${m.sellValue(u)} ذهب</button>
-        ${u.items.length ? '<button class="btn small" data-act="unequip">نزع المعدات</button>' : ''}</div></div>`;
+      const d = UNITS[u.defId], sm = CFG.stars.mult[u.star];
+      return `<div class="selinfo">${portrait(d, { k: 'sel' })}<div class="si-r">${stars(u.star)}
+        <span>${icon('sword')} ${fmt(d.atk * sm)}</span><span>${icon('heart')} ${fmt(d.hp * sm)}</span><span>${icon('target')} ${d.range}</span><span>${icon(ART.SKILL_ICON[d.skill.type] || 'star')}</span></div></div>`;
     }
-    if (S.sel.kind === 'item') {
-      const it = ITEMS[p.items[S.sel.idx]];
-      if (!it) return '';
-      return `<div class="selinfo"><b>${it.name}</b> (${it.kind === 'equip' ? 'معدة' : 'تعويذة'})<br>${it.text}
-        <div class="row">${it.kind === 'spell' ? '<button class="btn small" data-act="arm">تجهيز للقتال القادم</button>' : '<span class="hint">اضغط على وحدة لتجهيزها بهذه المعدة.</span>'}
-        <button class="btn small danger" data-act="sellItem">بيع +${Math.floor(it.cost / 2)}</button></div></div>`;
-    }
-    if (S.sel.kind === 'hero') return '<div class="hint">البطل محدد: اضغط خانة في ساحتك لنقله.</div>';
+    if (S.sel.kind === 'item') { const it = ITEMS[p.items[S.sel.idx]]; return it ? `<div class="selinfo item">${icon(it.icon, 'big-ic')}</div>` : ''; }
     return '';
   }
 
@@ -894,25 +855,23 @@
       const u = m.findUnit(p, sel.uid);
       if (u) {
         const d = UNITS[u.defId], R = ROLES[d.role], onBoard = Object.values(p.board).includes(u);
-        return `<div class="pb sel"><span class="pb-name">${d.name} ${stars(u.star)} <span class="rolepill ${R.kind}">${icon(ART.ROLE_ICON[d.role])}${R.name}</span></span>
-          <span class="pb-tip">تُوضع: <b>${R.place}</b> · اضغط خانة مضيئة لنقلها</span>
-          <span class="pb-btns"><button class="btn small danger" data-act="sell">بيع +${m.sellValue(u)}</button>
-          <button class="btn small" data-act="${onBoard ? 'toBench' : 'toBoard'}">${onBoard ? 'للاحتياط' : 'للساحة'}</button>
-          <button class="btn small" data-act="detail" data-id="${d.id}" data-star="${u.star}">تفاصيل</button>
-          ${u.items.length ? '<button class="btn small" data-act="unequip">نزع المعدات</button>' : ''}
-          <button class="btn small ghost" data-act="deselect">✕</button></span></div>`;
+        return `<div class="pb sel"><span class="pb-name">${stars(u.star)} <span class="rolepill ${R.kind}">${icon(ART.ROLE_ICON[d.role])}</span></span>
+          <span class="pb-btns"><button class="btn small danger ib" data-act="sell">${icon('gold')}+${m.sellValue(u)}</button>
+          <button class="btn small ib" data-act="${onBoard ? 'toBench' : 'toBoard'}">${icon(onBoard ? 'box' : 'shield')}</button>
+          <button class="btn small ib" data-act="detail" data-id="${d.id}" data-star="${u.star}">ⓘ</button>
+          ${u.items.length ? `<button class="btn small ib" data-act="unequip">${icon('swap')}</button>` : ''}
+          <button class="btn small ghost ib" data-act="deselect">✕</button></span></div>`;
       }
     }
     if (sel && sel.kind === 'item') {
       const it = ITEMS[p.items[sel.idx]];
-      if (it) return `<div class="pb sel"><span class="pb-name">${icon(it.icon)} ${it.name}</span><span class="pb-tip">${it.kind === 'equip' ? 'اضغط وحدة لتجهيزها بها' : it.text}</span>
-        <span class="pb-btns">${it.kind === 'spell' ? '<button class="btn small" data-act="arm">جهّز للقتال</button>' : ''}<button class="btn small danger" data-act="sellItem">بيع +${Math.floor(it.cost / 2)}</button><button class="btn small ghost" data-act="deselect">✕</button></span></div>`;
+      if (it) return `<div class="pb sel"><span class="pb-name">${icon(it.icon)}</span>
+        <span class="pb-btns">${it.kind === 'spell' ? `<button class="btn small ib" data-act="arm">${icon('play')}</button>` : ''}<button class="btn small danger ib" data-act="sellItem">${icon('gold')}+${Math.floor(it.cost / 2)}</button><button class="btn small ghost ib" data-act="deselect">✕</button></span></div>`;
     }
-    if (sel && sel.kind === 'hero') return `<div class="pb sel"><span class="pb-name">البطل</span><span class="pb-tip">اضغط خانة في ساحتك لنقله</span><span class="pb-btns"><button class="btn small ghost" data-act="deselect">✕</button></span></div>`;
-    const bag = p.items.map((id, i) => `<button class="bagchip" data-act="bagSel" data-idx="${i}" title="${esc(ITEMS[id].name)}: ${esc(ITEMS[id].text)}">${icon(ITEMS[id].icon)}</button>`).join('');
-    return `<div class="pb"><span class="pb-count">في الساحة ${cnt}${p.summoned ? ' + البطل' : ''}</span>${bag ? `<span class="pb-bag" title="معداتك: اضغط واحدة ثم وحدة">${bag}</span>` : ''}
-      ${coach() ? '<span class="pb-tip">اضغط وحدة لتغييرها · ٣ نسخ = ★</span>' : ''}
-      <span class="pb-btns"><button class="btn small" data-act="autoArrange" title="يختار أقوى وحداتك ويضع الحراس أمام والباقي خلف">ترتيب تلقائي</button></span></div>`;
+    if (sel && sel.kind === 'hero') return `<div class="pb sel"><span class="pb-name">${icon('crown')}</span><span class="pb-btns"><button class="btn small ghost ib" data-act="deselect">✕</button></span></div>`;
+    const bag = p.items.map((id, i) => `<button class="bagchip" data-act="bagSel" data-idx="${i}">${icon(ITEMS[id].icon)}</button>`).join('');
+    return `<div class="pb"><span class="pb-count">${icon('shield')} ${cnt}${p.summoned ? ' +' + icon('crown') : ''}</span>${bag ? `<span class="pb-bag">${bag}</span>` : ''}
+      <span class="pb-btns"><button class="btn small ib" data-act="autoArrange">${icon('wand')}</button></span></div>`;
   }
 
   function renderCombatCtrl() {
@@ -920,7 +879,7 @@
     if (S.phase === 'combat') {
       el.innerHTML = `<span class="clock">0.0s</span>
         ${[1, 2, 4].map((s) => `<button class="btn small ${S.speed === s ? 'on' : ''}" data-act="speed" data-v="${s}">${s}x</button>`).join('')}
-        <button class="btn small" data-act="skip">تخطي ⏭</button><span class="fury"></span>`;
+        <button class="btn small ib" data-act="skip">${icon('skip')}</button><span class="fury"></span>`;
     } else if (S.phase === 'prep' || S.phase === 'resources') {
       el.innerHTML = prepBarHTML();
     } else el.innerHTML = '';
@@ -1034,6 +993,7 @@
     if (S.mode === 'campaign') return AMB.CampaignUI.showResult(m, secs);   // campaign and tower have their own results screens
     if (S.mode === 'tower') return AMB.TowerUI.showResult(m, secs);
     if (S.mode === 'event') return AMB.EventUI.showResult(m, secs);
+    if (S.mode === 'tutorial') return AMB.TutorialUI.showResult(m, secs);
     if (S.mode !== 'friendly' && !m._recorded) { AMB.telemetry.recordMatch(m, { seconds: secs }); m._recorded = true; }
     if (!m._counted) { m._counted = true; try { localStorage.setItem('amb_played', String(+(localStorage.getItem('amb_played') || 0) + 1)); } catch (e) { /* ignore */ } }
     if (!m._passDone) { m._passDone = true; try { S.passResult = AMB.pass.recordMatch(m.summary(0)); } catch (e) { S.passResult = null; } }
@@ -1160,7 +1120,7 @@
 
   const ACT = {
     go: (d) => { show(d.to); if (d.to === 'stats') renderStats(); if (d.to === 'codex') renderCodex(); },
-    howto: () => howto(),
+    howto: () => (AMB.TutorialUI ? AMB.TutorialUI.start({ replay: true }) : howto()),
     tutorial: () => showTutorial(),
     diff: (d) => { S.difficulty = d.v; document.querySelectorAll('#diff-seg button').forEach((b) => b.classList.toggle('on', b.dataset.v === d.v)); },
     mode: (d) => { S.mode = d.v; S.picks = [null, null]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
@@ -1201,7 +1161,7 @@
       renderMatch();
       if (S.pop) {
         const pe = document.querySelector(`[data-drag="unit:${S.pop.uid}"]`);
-        if (pe) { if (S.pop.merged) { burst(pe, '#ffd24a', 26, { r: 60, s: 7 }); burst(pe, '#ffffff', 10, { r: 40 }); banner('★ ترقية!', 'merge'); } else burst(pe, '#ffffff', 6, { r: 26 }); }
+        if (pe) { if (S.pop.merged) { burst(pe, '#ffd24a', 26, { r: 60, s: 7 }); burst(pe, '#ffffff', 10, { r: 40 }); banner(`${icon('star')}${icon('up')}`, 'merge'); } else burst(pe, '#ffffff', 6, { r: 26 }); }
         setTimeout(() => { S.pop = null; }, 800);
       }
     },
@@ -1280,8 +1240,9 @@
       afterReward();
     },
     toResults: () => showResults(),
+    abTrig: (d) => { if (!prepActive()) return; const cur = S.match.players[S.v].abilities[d.ab]; res(S.match.setAbility(S.v, d.ab, cur === d.t ? null : d.t)); renderMatch(); },
     info: (d, el, e) => { if (e) e.stopPropagation(); if (d.k === 'hero') { heroDetail(d.id); return; } const t = AMB.TIPS[d.k]; if (!t) return; const x = t(); modal(`<h2>${x.title}</h2><div class="tip-body">${x.html}</div>`); },
-    again: () => { if (S.mode === 'campaign' || S.mode === 'tower' || S.mode === 'event') { startMatch(); return; } S.picks = [S.picks[0], S.picks[1]]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
+    again: () => { if (S.mode === 'tutorial') { AMB.TutorialUI.start(); return; } if (S.mode === 'campaign' || S.mode === 'tower' || S.mode === 'event') { startMatch(); return; } S.picks = [S.picks[0], S.picks[1]]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
     statsExport: () => {
       const blob = new Blob([JSON.stringify(AMB.telemetry.load(), null, 2)], { type: 'application/json' });
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'multiverse-telemetry.json'; a.click();

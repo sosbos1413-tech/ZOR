@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="984c5832f0">
+<meta name="zor-build" content="45d14fc4f0">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1639,6 +1639,125 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
 @media (max-width: 700px) { .db-slots { grid-template-columns: repeat(6, 1fr); } .deck-bar { padding: 6px 8px; position: static; } }
 .up-how { background: #ffffff10; border: 2px dashed var(--paper3); padding: 8px 10px; margin: 6px 0; font-size: 14px; line-height: 1.8; } .up-how b { color: var(--gold); } .up-how .btn { margin-inline-start: 6px; }
 .cp-need { font-size: 12px; color: var(--paper3); text-align: center; }
+
+/* ======================================================================= match HUD v2: no sentences, only symbols; bigger field and cards */
+#scr-match .topbar .phases { display: none; }
+#scr-match .tb-round { display: inline-flex; align-items: center; gap: 4px; font-size: 24px; } #scr-match .tb-round svg { width: 20px; height: 20px; }
+#scr-match .topbar .ic { width: 18px; height: 18px; vertical-align: -3px; }
+#scr-match .lifechip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px 2px 4px; font-size: 18px; }
+#scr-match .lifechip .portrait { width: 30px; height: 30px; } #scr-match .lifechip b { font-size: 18px; }
+#scr-match .lvl { display: inline-flex; align-items: center; gap: 4px; font-size: 18px; } #scr-match .lvl b { font-size: 20px; }
+#scr-match .topbar .res { font-size: 18px; padding: 2px 10px; }
+#scr-match .ibtn2 { min-width: 34px; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; } #scr-match .ibtn2 svg { width: 16px; height: 16px; }
+#scr-match .topbar .btn.small svg { width: 16px; height: 16px; vertical-align: -3px; }
+/* rails */
+#scr-match .match-grid { grid-template-columns: 148px minmax(0, 1fr) 176px; gap: 8px; }
+#scr-match .panel { padding: 8px; }
+#scr-match .panel section + section { margin-top: 10px; }
+#scr-match .rail-title { display: flex; align-items: center; justify-content: space-between; gap: 6px; border-bottom: 3px solid var(--ink); padding-bottom: 3px; margin-bottom: 6px; } #scr-match .rail-title svg { width: 22px; height: 22px; } #scr-match .rail-title small { font: 700 16px system-ui; direction: ltr; }
+#scr-match .guard { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 6px; border: 3px solid var(--ink); font-family: inherit; cursor: pointer; font-size: 26px; font-weight: 800; }
+#scr-match .guard svg { width: 34px; height: 34px; } #scr-match .guard.safe { background: #cfe9cf; color: var(--green); } #scr-match .guard.risk { background: var(--red); color: #fff; animation: pcpulse .7s infinite alternate; }
+#scr-match .synchips { display: flex; flex-wrap: wrap; gap: 6px; }
+#scr-match .schip { display: inline-flex; align-items: center; gap: 3px; padding: 3px 7px; border: 2px solid var(--sc); background: #00000010; color: var(--ink); font-family: inherit; cursor: pointer; opacity: .55; }
+#scr-match .schip svg { width: 22px; height: 22px; color: var(--sc); } #scr-match .schip b { font-size: 18px; } #scr-match .schip small { font-size: 12px; opacity: .8; direction: ltr; }
+#scr-match .schip.on { opacity: 1; background: var(--sc); color: #000; box-shadow: var(--hard-sm); } #scr-match .schip.on svg { color: #000; }
+#scr-match .syn-empty svg { width: 26px; height: 26px; opacity: .4; }
+#scr-match .opp-mini { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; } #scr-match .opp-mini .portrait { width: 52px; height: 52px; flex: none; }
+#scr-match .om-n { display: flex; flex-direction: column; gap: 2px; font-weight: 800; font-size: 17px; } #scr-match .om-n svg { width: 16px; height: 16px; vertical-align: -2px; }
+#scr-match .timeline { display: flex; flex-wrap: wrap; gap: 4px; }
+#scr-match .hero-card-mini { display: flex; align-items: center; gap: 8px; } #scr-match .hero-card-mini .portrait { width: 60px; height: 60px; flex: none; }
+#scr-match .hcm-r { flex: 1; min-width: 0; } #scr-match .hcm-n { font-weight: 800; font-size: 18px; } #scr-match .hcm-n svg { width: 16px; height: 16px; vertical-align: -2px; color: var(--red); }
+#scr-match .chip-ic { width: 34px; height: 34px; border: 2px solid var(--ink); background: var(--gold); display: grid; place-items: center; padding: 0; cursor: pointer; } #scr-match .chip-ic svg { width: 20px; height: 20px; }
+#scr-match .summon-row { display: flex; align-items: center; gap: 6px; } #scr-match .summon-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 6px 4px; } #scr-match .summon-btn svg { width: 24px; height: 24px; }
+#scr-match .abils { display: flex; flex-direction: column; gap: 8px; }
+#scr-match .ab { display: flex; align-items: center; gap: 8px; padding: 4px; border: 2px dashed var(--paper3); } #scr-match .ab.armed { border: 2px solid var(--ess); background: #0087a315; } #scr-match .ab.fired { background: var(--gold); }
+#scr-match .ab-ic { position: relative; width: 52px; height: 52px; border-radius: 50%; border: 3px solid var(--ink); background: var(--paper2); display: grid; place-items: center; padding: 0; cursor: pointer; flex: none; } #scr-match .ab-ic > svg { width: 30px; height: 30px; }
+#scr-match .ab-cost { position: absolute; bottom: -6px; right: -6px; background: var(--ink); color: #fff; font-size: 13px; font-weight: 800; padding: 0 5px; border-radius: 9px; display: inline-flex; align-items: center; } #scr-match .ab-cost svg { width: 11px; height: 11px; }
+#scr-match .ab-trg { display: flex; gap: 6px; } #scr-match .trg { width: 40px; height: 40px; font-size: 20px; border: 3px solid var(--ink); background: var(--paper); cursor: pointer; font-family: inherit; padding: 0; } #scr-match .trg.on { background: var(--ess); color: #fff; box-shadow: var(--hard-sm); } #scr-match .trg:disabled { opacity: .5; }
+#scr-match .selbox:empty { display: none; }
+#scr-match .selinfo { display: flex; align-items: center; gap: 8px; border: 2px solid var(--ink); padding: 4px; background: #fff3c4; } #scr-match .selinfo .portrait { width: 52px; height: 52px; flex: none; }
+#scr-match .si-r { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; font-weight: 800; font-size: 14px; } #scr-match .si-r svg { width: 14px; height: 14px; vertical-align: -2px; } #scr-match .si-r .stars { grid-column: 1 / -1; }
+#scr-match .selinfo.item { justify-content: center; } #scr-match .selinfo .big-ic { width: 40px; height: 40px; }
+/* posts (hero bars on the field) */
+#scr-match .post .pl { display: flex; flex-direction: column; justify-content: center; } #scr-match .post .st { font-size: 15px; font-weight: 800; }
+#scr-match .post > .st { display: inline-flex; align-items: center; gap: 2px; font-size: 18px; } #scr-match .post > .st svg { width: 22px; height: 22px; } #scr-match .post > .st.safe { color: var(--green); } #scr-match .post > .st.risk { color: #fff; }
+#scr-match .post .st svg { width: 14px; height: 14px; vertical-align: -2px; } #scr-match .post.risk:not(.exposed) { box-shadow: 0 0 0 3px var(--red); }
+#scr-match .field .cell .rowic { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; opacity: .28; color: #f3ead6; } #scr-match .field .cell .rowic svg { width: 38%; height: 38%; }
+#scr-match .field .divider span { display: inline-grid; place-items: center; } #scr-match .field .divider svg { width: 18px; height: 18px; opacity: .8; }
+#scr-match .field .cell.mine[data-row]:not(:has(.tcard))::after { content: none; }
+#scr-match .bench-row .lbl { writing-mode: horizontal-tb; transform: none; padding: 4px; display: grid; place-items: center; } #scr-match .bench-row .lbl svg { width: 18px; height: 18px; }
+/* shop + action buttons: icons */
+#scr-match .ib-act { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 46px; padding: 6px 12px; font-size: 18px; font-weight: 800; } #scr-match .ib-act > svg { width: 24px; height: 24px; } #scr-match .ib-act .cost { display: inline-flex; align-items: center; gap: 2px; } #scr-match .ib-act .cost svg { width: 16px; height: 16px; }
+#scr-match .ready-btn { min-width: 84px; min-height: 54px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; } #scr-match .ready-btn svg { width: 28px; height: 28px; }
+#scr-match .shop-closed { display: grid; place-items: center; width: 100%; min-height: 80px; color: var(--muted); } #scr-match .shop-closed svg { width: 40px; height: 40px; opacity: .6; }
+#scr-match .pb .ib { display: inline-flex; align-items: center; gap: 3px; font-size: 15px; padding: 4px 9px; } #scr-match .pb .ib svg { width: 18px; height: 18px; } #scr-match .pb-count { display: inline-flex; align-items: center; gap: 3px; font-size: 16px; } #scr-match .pb-count svg { width: 18px; height: 18px; }
+#scr-match .pb-name .stars { font-size: 16px; }
+.round-banner span svg { width: .9em; height: .9em; vertical-align: -.1em; }
+/* the tcard names stay (they identify a character); tooltips/hints inside the match are gone */
+#scr-match .field-wrap { --cwv: clamp(80px, calc((100vh - 332px) / 4.44), 150px); }
+@media (max-width: 860px) {
+  #scr-match .match-grid { display: contents; }
+  #scr-match.show-panels .match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-content: start; }
+  #scr-match .field-wrap { --cwv: clamp(52px, min(calc((100dvh - 372px) / 4.44), calc((100vw - 22px) / 4)), 150px); --cwv: clamp(52px, min(calc((100vh - 372px) / 4.44), calc((100vw - 22px) / 4)), 150px); }
+  #scr-match .field { padding: 3px; } #scr-match .field #slots { gap: 4px; }
+  #scr-match .topbar .lifechip { display: inline-flex; padding: 1px 5px 1px 2px; font-size: 14px; gap: 2px; } #scr-match .topbar .lifechip .portrait { width: 22px; height: 22px; } #scr-match .topbar .lifechip b { font-size: 14px; } #scr-match .topbar .lifechip .ic { width: 12px; height: 12px; }
+  #scr-match .tb-round { font-size: 16px; } #scr-match .tb-round svg { width: 14px; height: 14px; }
+  #scr-match .topbar .lvl { font-size: 14px; } #scr-match .topbar .lvl b { font-size: 15px; } #scr-match .topbar .xpbar { display: none; }
+  #scr-match .topbar .res { font-size: 13px; padding: 1px 5px; }
+  #scr-match .ib-act { min-height: 38px; padding: 4px 8px; font-size: 15px; } #scr-match .ib-act > svg { width: 20px; height: 20px; }
+  #scr-match .ready-btn { min-width: 64px; min-height: 44px; } #scr-match .ready-btn svg { width: 22px; height: 22px; }
+  #scr-match .side .post { min-height: 30px; } #scr-match .side .post .st { font-size: 13px; } #scr-match .side .post > .st svg { width: 18px; height: 18px; }
+  #scr-match .panel { background: var(--paper); }
+}
+#scr-match .lifechip.risk { background: var(--red); color: #fff; } #scr-match .lc-st { display: inline-flex; } #scr-match .lc-st svg { width: 16px; height: 16px; color: var(--green); } #scr-match .lifechip.risk .lc-st svg { color: #fff; }
+#scr-match .combat-ctrl .fury svg { width: 14px; height: 14px; vertical-align: -2px; }
+#scr-match .field-wrap { --cwv: clamp(80px, calc((100vh - 352px) / 4.44), 150px); }
+@media (max-width: 860px) {
+  #scr-match .side .post { display: none; }
+  #scr-match .pb { min-height: 34px; padding: 2px 5px; }
+  #scr-match .field-wrap { --cwv: clamp(52px, min(calc((100dvh - 352px) / 4.7), calc((100vw - 22px) / 4)), 150px); --cwv: clamp(52px, min(calc((100vh - 352px) / 4.7), calc((100vw - 22px) / 4)), 150px); }
+}
+#scr-match .ab { flex-wrap: wrap; justify-content: center; } #scr-match .ab-trg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; } #scr-match .trg { width: 34px; height: 34px; font-size: 16px; border-width: 2px; }
+@media (max-width: 860px) {
+  #scr-match .topbar .ibtn2[data-act="pause"], #scr-match .topbar [data-act="sound"], #scr-match .topbar .ibtn2[data-act="tutorial"] { display: none; }
+  #scr-match .topbar .lifechip .portrait { display: none; }
+  #scr-match .topbar { gap: 4px; padding: 2px 6px; }
+}
+
+/* ======================================================================= guided tutorial */
+.tut-ring { position: fixed; z-index: 64; pointer-events: none; border: 4px solid var(--gold); border-radius: 12px; box-shadow: 0 0 0 100vmax rgba(0,0,0,.58), 0 0 18px 4px var(--gold); animation: tutpulse 1s ease-in-out infinite alternate; transition: left .25s, top .25s, width .25s, height .25s; }
+@keyframes tutpulse { to { box-shadow: 0 0 0 100vmax rgba(0,0,0,.58), 0 0 30px 10px var(--gold); } }
+.tut-hand { position: fixed; z-index: 66; pointer-events: none; width: 54px; height: 54px; transform: translate(-30%, 0) rotate(-20deg); filter: drop-shadow(2px 3px 0 #000); animation: tuthand .8s ease-in-out infinite alternate; transition: left .25s, top .25s; }
+.tut-hand svg { width: 100%; height: 100%; }
+@keyframes tuthand { to { transform: translate(-30%, -12px) rotate(-20deg); } }
+.tut-bar { position: fixed; z-index: 67; top: 52px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; background: var(--paper); color: var(--ink); border: 4px solid var(--ink); box-shadow: var(--hard); padding: 6px 16px; max-width: calc(100vw - 16px); }
+.tg-ic { display: inline-flex; align-items: center; gap: 8px; font-size: 30px; line-height: 1; direction: ltr; } .tg-ic svg { width: 34px; height: 34px; } .tg-arr { font-style: normal; font-size: 26px; color: var(--red); }
+.tg-ok { background: var(--green); color: #fff; border: 3px solid var(--ink); width: 48px; height: 44px; display: grid; place-items: center; cursor: pointer; padding: 0; animation: pcpulse .6s infinite alternate; } .tg-ok svg { width: 28px; height: 28px; }
+.tg-skip { background: transparent; border: 2px solid var(--muted); color: var(--muted); width: 30px; height: 30px; display: grid; place-items: center; cursor: pointer; padding: 0; } .tg-skip svg { width: 14px; height: 14px; }
+.tg-dots { display: inline-flex; gap: 4px; } .tg-dots i { width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--ink); } .tg-dots i.done { background: var(--green); } .tg-dots i.now { background: var(--gold); transform: scale(1.3); }
+/* while guided: only the highlighted thing can be pressed */
+body.tut-on #scr-match #shopbar .btn:not(.tut-target), body.tut-on #scr-match #shopbar .tcard:not(.tut-target), body.tut-on #scr-match #slots .cell:not(.tut-target),
+body.tut-on #scr-match #bench .bslot:not(.tut-target), body.tut-on #scr-match .topbar .btn, body.tut-on #scr-match .panel, body.tut-on #scr-match #combat-ctrl, body.tut-on #scr-match .tcard[data-drag]:not(.tut-target) { pointer-events: none; }
+body.tut-on #scr-match .tut-target { position: relative; z-index: 65; }
+.tut-done { text-align: center; } .td-big svg { width: 110px; height: 110px; color: var(--gold); filter: drop-shadow(4px 4px 0 #000); } .td-reward { font: 400 54px var(--display); color: var(--gold); text-shadow: 3px 3px 0 var(--red); } .td-reward svg { width: 46px; height: 46px; vertical-align: -6px; color: #5fe3ff; }
+.tut-cta { text-align: center; padding: 40px 0; } .tut-cta .btn { font-size: 40px; padding: 18px 40px; } .tut-cta svg { width: 54px; height: 54px; vertical-align: middle; }
+/* round-result overlay: symbols */
+.ov-card.rr { text-align: center; min-width: min(92vw, 440px); } .rr-big svg { width: 90px; height: 90px; filter: drop-shadow(3px 3px 0 #000); } .ov-card.rr.win .rr-big svg { color: var(--gold); } .ov-card.rr.lose .rr-big svg { color: var(--red); } .ov-card.rr.draw .rr-big svg { color: var(--muted); }
+.rr-row { display: flex; align-items: center; justify-content: center; gap: 18px; margin: 12px 0; } .rr-vs svg { width: 34px; height: 34px; }
+.rr-side { display: flex; flex-direction: column; align-items: center; gap: 4px; opacity: .8; } .rr-side.won { opacity: 1; } .rr-side .portrait { width: 84px; height: 84px; } .rr-side.won .portrait { box-shadow: 0 0 0 4px var(--gold); }
+.rr-life { font: 800 26px system-ui; } .rr-life svg { width: 22px; height: 22px; vertical-align: -3px; color: var(--red); } .rr-dmg { font: 800 20px system-ui; color: var(--red); min-height: 24px; }
+.rr-why { font-size: 26px; margin: 4px 0; } .rr-why svg { width: 30px; height: 30px; vertical-align: -6px; } .rr-why i { font-style: normal; color: var(--red); font-weight: 900; }
+.rr-go { min-width: 120px; } .rr-go svg { width: 32px; height: 32px; }
+body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { pointer-events: auto; }
+.td-reward { direction: ltr; }
+@media (max-width: 860px) {
+  #scr-match .topbar .res.ess { display: none; }
+  #scr-match .topbar { overflow: visible; }
+  #scr-match .topbar .tb-spacer { display: none; }
+}
+@media (max-width: 400px) { #scr-match .topbar .stagechip .pips { display: none; } #scr-match .topbar .res { padding: 1px 4px; } #scr-match .topbar .timer { min-width: 38px; font-size: 15px; } }
+@media (max-width: 400px) { #scr-match .topbar { gap: 2px; padding: 2px 3px; } #scr-match .topbar .lifechip { padding: 1px 3px; } }
+@media (max-width: 370px) { #scr-match .topbar .lvl svg, #scr-match .topbar .lifechip .ic { display: none; } }
 
 </style>
 </head>
@@ -4077,6 +4196,8 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
       rewards: [{ shards: 40, passXp: 10 }, { shards: 60, passXp: 20, pack: 'basic' }, { shards: 100, passXp: 50, exclusive: true }],
       power: { ember: [1.17, 1.43, 0.83], tide: [1.31, 1.19, 0.94], neon: [1.19, 1.21, 0.88], sylvan: [0.98, 1.33, 0.99] },
     },
+    // Guided first match: a fixed weak enemy (2 units, the 2nd joins in round 2), a little extra gold/level, a reward once
+    tutorial: { start: { gold: 10, level: 4 }, enemy: [['thorn_fox', 1, 'f1', 1], ['pixel_sniper', 1, 'b1', 2]], reward: { shards: 50 } },
     // album: own all 5 units of a world -> its reward (once); own all 20 -> the grand reward
     album: {
       worlds: {
@@ -4950,6 +5071,63 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
 </script>
 <script>
 /*
+ * Guided first match ("التدريب"): 2 short rounds against a fixed, weak enemy with a scripted shop, so a new player learns
+ * buy -> place (front/back) -> ready -> merge -> refresh by DOING each move. Mandatory for brand-new players (they get a
+ * reward once). The step-by-step guide itself is ui/tutorial-ui.js; this file holds the match, the scripted shop and the reward.
+ */
+(function () {
+  const AMB = globalThis.AMB;
+  const T = () => AMB.ECONOMY.tutorial;
+
+  AMB.Save.register('tutorial', { version: 1, defaults: () => ({ done: false, rewarded: false, plays: 0 }) });
+
+  // the shop of each round is fixed (round 2 has three copies of one unit so a merge to a star is guaranteed)
+  const SHOP = { 1: ['forge_bulwark', 'ash_ronin', 'pixel_sniper', 'wave_caller', 'grid_hound'], 2: ['ash_ronin', 'ash_ronin', 'ash_ronin', 'thorn_fox', 'moss_warden'] };
+
+  function Tutorial(save, deps) {
+    deps = deps || {};
+    const st = () => save.get('tutorial');
+    const api = {
+      SHOP,
+      done: () => !!st().done,
+      rewarded: () => !!st().rewarded,
+      /** a brand-new player must do it: nothing cleared in the campaign yet and the tutorial not finished */
+      required() { return !st().done && !(deps.campaign && deps.campaign.isCleared('l1f1')); },
+      /** options for new AMB.Match(...) */
+      matchOptions(heroId, seed) {
+        const enemyHero = heroId === 'merin' ? 'zerokai' : 'merin';
+        return {
+          mode: 'tutorial', seed: seed || 4242, progression: false,
+          rules: { maxRounds: 2, winsNeeded: 2, start: T().start },
+          players: [{ heroId, name: 'أنت' },
+            { heroId: enemyHero, name: '', isAI: true, lineup: { units: T().enemy, summon: null, blessings: { atkPct: -0.15, hpPct: -0.15, asPct: 0 }, abilities: [] } }],
+        };
+      },
+      /** put the scripted shop in place (call right after match.startRound()) */
+      onRound(match) {
+        const p = match.players[0], s = SHOP[match.round];
+        if (s) { p.shop = s.slice(); p.itemShop = []; p.shopLocked = false; }
+      },
+      /** finish: marks done, pays the reward once. Returns { shards, first } */
+      complete() {
+        const first = !st().rewarded;
+        save.update('tutorial', (s) => { s.done = true; s.plays++; s.rewarded = true; });
+        let shards = 0;
+        if (first && deps.wallet && T().reward.shards) { deps.wallet.add('shards', T().reward.shards, 'tutorial'); shards = T().reward.shards; }
+        if (deps.events) deps.events.emit('tutorialDone', { first, shards });
+        return { shards, first };
+      },
+      /** skip without finishing (replays only): no reward */
+      markSeen() { save.update('tutorial', (s) => { s.done = true; }); },
+    };
+    return api;
+  }
+  AMB.Tutorial = Tutorial;
+})();
+
+</script>
+<script>
+/*
  * Card album: every card in the game; missing ones show as shadows. Own every unit of a world
  * (5 each) to claim that world's set reward once: shards + a title + a frame in the world's colour.
  * Own all 20 units: bonus packs + the title "جامع الصدع". Heroes are listed but belong to no set
@@ -5030,12 +5208,13 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
     const album = AMB.Album(save, { wallet, packs, collection, events });
     const tower = AMB.Tower(save, { wallet, packs, collection, events, campaign, addPassXp: (n) => AMB.pass && AMB.pass.addXp(n) });
     const weekly = AMB.WeeklyEvents(save, { wallet, packs, collection, events, campaign, now: nowFn, addPassXp: (n) => AMB.pass && AMB.pass.addXp(n) });
-    return { save, events, wallet, collection, packs, campaign, login, album, tower, weekly };
+    const tutorial = AMB.Tutorial(save, { wallet, campaign, events });
+    return { save, events, wallet, collection, packs, campaign, login, album, tower, weekly, tutorial };
   }
   AMB.Profile = { boot };
   if (typeof document !== 'undefined' && !AMB.save) {
     const p = boot();
-    AMB.save = p.save; AMB.events = p.events; AMB.wallet = p.wallet; AMB.collection = p.collection; AMB.packs = p.packs; AMB.campaign = p.campaign; AMB.login = p.login; AMB.album = p.album; AMB.tower = p.tower; AMB.weekly = p.weekly;
+    AMB.save = p.save; AMB.events = p.events; AMB.wallet = p.wallet; AMB.collection = p.collection; AMB.packs = p.packs; AMB.campaign = p.campaign; AMB.login = p.login; AMB.album = p.album; AMB.tower = p.tower; AMB.weekly = p.weekly; AMB.tutorial = p.tutorial;
   }
 })();
 
@@ -5716,6 +5895,20 @@ AMB.IMAGES = {
     healall: '<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 6h4v4h4v4h-4v4h-4v-4H6v-4h4z" fill="currentColor"/>',
     gem: '<path d="M12 2l8 9-8 11-8-11z" fill="currentColor"/><path d="M4 11h16M12 2l-3 9 3 11 3-11z" fill="none" stroke="#000" stroke-width=".9" opacity=".45"/>',
     coin: '<circle cx="12" cy="12" r="9" fill="currentColor"/><circle cx="12" cy="12" r="6" fill="none" stroke="#000" stroke-width="1.4" opacity=".45"/>',
+    refresh: '<path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>',
+    lock: '<rect x="5" y="10.5" width="14" height="10.5" rx="2" fill="currentColor"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2.4"/>',
+    unlock: '<rect x="5" y="10.5" width="14" height="10.5" rx="2" fill="currentColor"/><path d="M8 10.5V7.5a4 4 0 0 1 7.6-1.7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>',
+    up: '<path d="M12 3l8 9h-5v9H9v-9H4z" fill="currentColor"/>',
+    box: '<path d="M3 8l9-5 9 5v9l-9 5-9-5z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M3 8l9 5 9-5M12 13v9" fill="none" stroke="currentColor" stroke-width="2"/>',
+    play: '<path d="M7 4l13 8-13 8z" fill="currentColor"/>',
+    pause: '<path d="M6 4h4v16H6zM14 4h4v16h-4z" fill="currentColor"/>',
+    skip: '<path d="M4 4l10 8-10 8zM15 4l7 8-7 8z" fill="currentColor"/>',
+    check: '<path d="M4 12.5l5.2 5.2L20 6.5" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>',
+    warn: '<path d="M12 2.8l10 17.7H2z" fill="currentColor"/><path d="M12 9v5.4M12 17.2v.6" stroke="#000" stroke-width="2.2" stroke-linecap="round"/>',
+    hand: '<path d="M9 11V4.6a1.6 1.6 0 0 1 3.2 0V11l5.1 1.4c1.2.3 1.9 1.4 1.7 2.6l-.8 4.7c-.2 1.2-1.2 2.1-2.4 2.1H11c-.8 0-1.5-.4-1.9-1.1L5.5 15c-.5-.9 0-2 1-2.3 1-.3 1.9.3 2.5 1.1z" fill="#fff" stroke="#000" stroke-width="1.4" stroke-linejoin="round"/>',
+    swap: '<path d="M4 8h14l-3.5-3.5M20 16H6l3.5 3.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>',
+    wand: '<path d="M4 20L16 8l2 2L6 22z" fill="currentColor"/><path d="M17 2l1 3 3 1-3 1-1 3-1-3-3-1 3-1zM6 3l.6 1.7L8.3 5l-1.7.6L6 7.3l-.6-1.7L3.7 5l1.7-.3z" fill="currentColor"/>',
+    flag: '<path d="M5 22V3M5 4h13l-3 4.5 3 4.5H5" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
     heart: '<path d="M12 20.5S3 15 3 8.8A4.6 4.6 0 0 1 12 6.6a4.6 4.6 0 0 1 9 2.2C21 15 12 20.5 12 20.5z" fill="currentColor"/>',
   };
   const ROLE_ICON = { guardian: 'shield', fighter: 'sword', assassin: 'dagger', mage: 'orb', marksman: 'bow', support: 'wings', hero: 'crown' };
@@ -5823,15 +6016,15 @@ AMB.IMAGES = {
   const ibtn = (k, extra) => `<button class="ibtn" data-act="info" data-k="${k}" ${extra || ''} title="شرح">ⓘ</button>`;
   // beginners (fewer than 2 finished matches) get the extra hints, then they disappear
   const coach = () => { try { return +(localStorage.getItem('amb_played') || 0) < 2; } catch (e) { return false; } };
-  function toast(msg, kind) {
+  function toast(msg, kind, html) {
     const box = $('toasts');
     // never pile up: the same message just restarts its timer, and at most 2 toasts show at once
-    const same = [...box.children].find((x) => x.textContent === msg);
+    const same = [...box.children].find((x) => (x._m || x.textContent) === msg);
     if (same) { same.style.animation = 'none'; void same.offsetWidth; same.style.animation = ''; clearTimeout(same._t); same._t = setTimeout(() => same.remove(), kind === 'err' ? 4200 : 2500); return; }
     while (box.children.length >= 2) box.firstChild.remove();
     const el = document.createElement('div');
     el.className = 'toast ' + (kind || '');
-    el.textContent = msg;
+    el._m = msg; if (html) el.innerHTML = msg; else el.textContent = msg;
     box.appendChild(el);
     el._t = setTimeout(() => el.remove(), kind === 'err' ? 4200 : 2500);
   }
@@ -5913,6 +6106,7 @@ AMB.IMAGES = {
     S.match = S.mode === 'campaign' ? new AMB.Match(AMB.campaign.matchOptions(S.campaign.fightId, S.picks[0]))
       : S.mode === 'tower' ? new AMB.Match(AMB.tower.matchOptions(S.tower.floor, S.picks[0]))
       : S.mode === 'event' ? new AMB.Match(AMB.weekly.matchOptions(S.event.stage, S.picks[0]))
+      : S.mode === 'tutorial' ? new AMB.Match(AMB.tutorial.matchOptions(S.picks[0]))
       : new AMB.Match({ mode: S.mode, players });
     // same hero on both sides (e.g. your Kiro vs the Ember boss Kiro): the enemy becomes its "shadow"
     const mirror = S.match.players[0].heroId === S.match.players[1].heroId;
@@ -5926,6 +6120,7 @@ AMB.IMAGES = {
 
   // ======================================================================= round flow
   function prepSeconds() {
+    if (S.mode === 'tutorial') return 9999;   // no clock while you learn
     const bonus = AMB.pass ? AMB.pass.prepBonus() : 0;   // battle-pass perk (+ a few seconds, never stats)
     return prepBase() + bonus;
   }
@@ -5939,6 +6134,7 @@ AMB.IMAGES = {
   function nextRound() {
     const m = S.match;
     m.startRound();
+    if (S.mode === 'tutorial') AMB.tutorial.onRound(m);   // fixed shop for the guided match
     S.combat = null;
     if (S.mode === 'hotseat') {
       S.queue = m.round % 2 ? [0, 1] : [1, 0]; // alternate who shops first (shared pool)
@@ -6012,25 +6208,23 @@ AMB.IMAGES = {
     S.paused = false;
     renderMatch();
     // the first-run guide opens in a moment: skip the round banner and income toast so nothing stacks on it
-    let tutNext = false; try { tutNext = S.match.round === 1 && localStorage.getItem('amb_tut') !== '1'; } catch (e) { /* ignore */ }
+    const tutNext = false;
     if (!tutNext) { const st = S.match.stageInfo(), first = st.rounds[0] === S.match.round;
-      if (S.match.rules) banner(`الجولة ${S.match.round} من ${maxR()}<small>أول من يفوز بجولتين يكسب القتال</small>`, S.match.round === 1 ? '' : 'fight');
-      else if (st.id === 'finale') banner('الحسم!<small>جولة أخيرة: الخسارة هنا تتضاعف</small>', 'fight');
-      else if (first) banner(`${st.name}<small>الجولة ${S.match.round} من ${CFG.match.maxRounds}</small>`);
-      else banner('الجولة ' + S.match.round); }
+      if (S.match.rules) banner(`${icon('flag')} ${S.match.round}<small>/${maxR()}</small>`, S.match.round === 1 ? '' : 'fight');
+      else if (st.id === 'finale') banner(`${icon('sword')}${icon('sword')} ${S.match.round}<small>/${CFG.match.maxRounds}</small>`, 'fight');
+      else banner(`${icon('flag')} ${S.match.round}<small>/${CFG.match.maxRounds}</small>`); }
     const p = me();
     const inc = p.lastIncome;
     if (inc && !tutNext) {
       const ess = S.match.round > 1 ? CFG.economy.essencePerRound + (HEROES[p.heroId].passive.id === 'deep_reserve' ? 1 : 0) : 0;
-      toast(`+${inc.total} ذهب${ess ? ` · +${ess} جوهر` : ''}`, 'good');
+      toast(`+${inc.total} ${icon('gold')}${ess ? ` &nbsp; +${ess} ${icon('essence')}` : ''}`, 'good', true);
     }
     setTimeout(() => {
       if (S.phase !== 'resources') return;
       S.phase = 'prep';
       S.deadline = Date.now() + prepSeconds() * 1000;
       renderMatch();
-      let seen = true; try { seen = localStorage.getItem('amb_tut') === '1'; } catch (e) { /* ignore */ }
-      if (!seen && S.match.round === 1) showTutorial();
+      if (AMB.TutorialUI) AMB.TutorialUI.poke();
     }, 900);
   }
 
@@ -6050,7 +6244,7 @@ AMB.IMAGES = {
     const el = document.querySelector('.timer');
     if (S.paused) return;
     const left = Math.max(0, S.deadline - Date.now());
-    if (el) { el.textContent = Math.ceil(left / 1000) + 's'; el.classList.toggle('warn', left < 6000); }
+    if (el) { el.textContent = S.mode === 'tutorial' ? '∞' : Math.ceil(left / 1000) + 's'; el.classList.toggle('warn', left < 6000 && S.mode !== 'tutorial'); }
     if (left <= 0) endPrep();
   }, 200);
 
@@ -6065,7 +6259,7 @@ AMB.IMAGES = {
     S.phase = 'combat';
     renderMatch();
     buildTokens();
-    banner('قتال!', 'fight');
+    banner(`${icon('sword')}`, 'fight');
     let last = performance.now(), acc = 0;
     const step = (ts) => {
       if (S.phase !== 'combat') return;
@@ -6099,27 +6293,18 @@ AMB.IMAGES = {
     S.lastReport = rep;
     renderMatch(true);
     if (rep.winner != null) sfx(S.mode === 'hotseat' || rep.winner === 0 ? 'win' : 'lose');
-    const names = m.players.map((p) => p.name);
-    let title, cls;
-    if (rep.winner === null) { title = 'تعادل'; cls = ''; }
-    else if (S.mode === 'hotseat') { title = `فاز ${esc(names[rep.winner])} بالجولة`; cls = 'win'; }
-    else { title = rep.winner === 0 ? 'فزت بالجولة!' : 'خسرت الجولة'; cls = rep.winner === 0 ? 'win' : 'lose'; }
-    const rows = rep.players.map((r, i) => `<tr><td>${esc(names[i])} ${r.heroKilled ? '— <b style="color:var(--red)">سقط البطل!</b>' : ''}</td>
-      <td>${fmt(r.direct, 1)}</td><td>${r.backlash}</td><td><b>${lifeStr(r.lifeAfter)}</b></td></tr>`).join('');
+    let cls;
+    if (rep.winner === null) cls = 'draw';
+    else if (S.mode === 'hotseat') cls = 'win';
+    else cls = rep.winner === 0 ? 'win' : 'lose';
     const over = m.isOver;
-    overlay(`<div class="ov-card"><h2 class="${cls}">${title}</h2>
-      <div class="hint">الجولة ${rep.round} · مدة القتال ${fmt(rep.duration, 1)} ث</div>
-      <table><tr><th></th><th>ضرر مباشر</th><th>ارتداد الخسارة</th><th>الحياة</th></tr>${rows}</table>
-      ${(() => {
-        if (S.mode === 'hotseat') return '';
-        const me0 = rep.players[0];
-        if (rep.winner === 1 && me0.exposed) return `<p class="tip"><b>لماذا خسرت؟</b> سقطت وحداتك الأمامية فانكشف بطلك وصار قابلًا للهجوم. ضع حرّاسًا ومقاتلين في الصف الأمامي (4 وحدات كحد أقصى)، أو ارفع مستواك لتزيد وحداتك.</p>`;
-        if (rep.winner === 1) return `<p class="tip"><b>لماذا خسرت؟</b> قوة تشكيلة الخصم كانت أعلى. جرّب تفعيل التآزر (وحدات من نفس العالم أو الدور)، وجهّز معدات وقدرات البطل.</p>`;
-        return '';
-      })()}
-      ${rep.finale ? `<p class="tip"><b>جولة الحسم:</b> ارتداد الخسارة تضاعف ×${CFG.match.finaleLossMult}. ${over ? 'الأعلى حياة يفوز.' : ''}</p>` : ''}
-      <p class="hint">الضرر المباشر = ضربات تلقاها البطل بعد انكشافه أو في الساحة. ارتداد الخسارة = ${CFG.damage.lossBase} + الجولة×${CFG.damage.lossPerRound} + نجوم وحدات الخصم الناجية (حتى ${CFG.damage.survivorCap}).</p>
-      <button class="btn primary big" data-act="${over ? 'toResults' : m.rewardPending ? 'rewards' : 'nextRound'}">${over ? 'عرض النتائج' : m.rewardPending ? '🎁 اختر مكافأتك' : 'الجولة التالية'}</button></div>`);
+    const side = (i) => { const r = rep.players[i], pl = m.players[i]; return `<div class="rr-side ${rep.winner === i ? 'won' : ''}">${portrait(r.heroKilled ? HEROES[pl.heroId] : HEROES[pl.heroId], { k: 'rr' + i })}
+        <div class="rr-life">${icon(r.heroKilled ? 'skull' : 'heart')} <b>${lifeStr(r.lifeAfter)}</b></div>${(r.backlash + r.direct) > 0 ? `<div class="rr-dmg">−${Math.round(r.backlash + r.direct)}</div>` : '<div class="rr-dmg">&nbsp;</div>'}</div>`; };
+    const me0 = rep.players[0];
+    const why = S.mode !== 'hotseat' && rep.winner === 1 ? (me0.exposed ? `<div class="rr-why">${icon('shield')}<i>✗</i> ➜ ${icon('warn')}</div>` : `<div class="rr-why">${icon('star')} ➜ ${icon('sword')}</div>`) : '';
+    overlay(`<div class="ov-card rr ${cls}"><div class="rr-big">${icon(rep.winner === null ? 'swap' : cls === 'lose' ? 'skull' : 'crown')}</div>
+      <div class="rr-row">${side(0)}<div class="rr-vs">${icon('sword')}</div>${side(1)}</div>${why}${rep.finale ? `<div class="rr-why">${icon('flame')} ×${CFG.match.finaleLossMult}</div>` : ''}
+      <button class="btn primary big rr-go" data-act="${over ? 'toResults' : m.rewardPending ? 'rewards' : 'nextRound'}">${over ? icon('check') : m.rewardPending ? '🎁' : icon('sword')}</button></div>`);
   }
 
   // ---- card helpers shared by shop / bench / field / codex
@@ -6330,7 +6515,7 @@ AMB.IMAGES = {
     const clock = document.querySelector('.combat-ctrl .clock');
     if (clock) clock.textContent = fmt(c.t, 1) + 's';
     const fury = document.querySelector('.combat-ctrl .fury');
-    if (fury) fury.textContent = c.t > CFG.combat.furyStart ? `غضب ×${fmt(c.fury(), 2)}` : (c.assault ? 'هجوم على مركز القيادة!' : '');
+    if (fury) fury.innerHTML = c.t > CFG.combat.furyStart ? `${icon('flame')}×${fmt(c.fury(), 2)}` : (c.assault ? icon('warn') : '');
 
     const events = c.drainEvents();
     if (skipFx) return;
@@ -6406,29 +6591,24 @@ AMB.IMAGES = {
   function renderTop() {
     const m = S.match, p = me(), o = opp();
     const ph = S.phase;
-    const steps = [['resources', 'الموارد'], ['shop', 'الشراء والتطوير'], ['form', 'الترتيب والقدرات'], ['combat', 'القتال'], ['result', 'النتائج']];
-    const activeIdx = { resources: [0], prep: [1, 2], handoff: [], combat: [3], result: [4] }[ph] || [];
-    const phases = steps.map(([, n], i) => `<span class="phase ${activeIdx.includes(i) ? 'on' : activeIdx.length && i < Math.min(...activeIdx) ? 'done' : ''}">${i + 1}. ${n}</span>`).join('');
     const need = m.xpNeeded(p);
-    const left = ph === 'prep' ? Math.ceil(Math.max(0, S.deadline - Date.now()) / 1000) + 's' : '—';
+    const left = ph === 'prep' ? (S.mode === 'tutorial' ? '∞' : Math.ceil(Math.max(0, S.deadline - Date.now()) / 1000) + 's') : '—';
     const avail = p.essence - m.reservedEssence(p);
+    const lc = (pl, hid, k, me) => `<span class="lifechip ${me ? 'me' : ''}">${portrait(hid, { k })}${icon('heart')} <b>${lifeStr(pl.life)}</b><i class="lc-st"></i></span>`;
     $('topbar').innerHTML = `
-      <span class="tb-round">الجولة ${m.round}<small>/${maxR()}</small></span>
-      ${m.rules ? `<span class="stagechip" title="أول من يفوز بجولتين يكسب القتال"><b>${p.stats.wins} – ${o.stats.wins}</b><span class="pips">${[0, 1].map((k) => `<i class="pip ${k < p.stats.wins ? 'done' : ''}"></i>`).join('')}</span></span>` : ''}
-      <span ${m.rules ? 'style="display:none" ' : ''}class="stagechip" title="المراحل: كل مرحلة تنتهي بمكافأة تختارها (ما عدا الأخيرة)"><b>${m.stageInfo().name}</b><span class="pips">${[1, 2, 3, 4, 5, 6, 7].map((r) => `<i class="pip ${r < m.round ? 'done' : r === m.round ? 'now' : ''} ${CFG.match.stages.some((st) => st.rounds[1] === r && r < 7) ? 'gap' : ''}"></i>`).join('')}</span></span>
-      <div class="phases">${phases}</div>
-      <span class="timer" title="مؤقت مرحلة التجهيز">${S.paused ? '⏸' : left}</span>
+      <span class="tb-round" title="${icon('flag').replace(/<[^>]+>/g, '')}">${icon('flag')} ${m.round}<small>/${maxR()}</small></span>
+      ${m.rules ? `<span class="stagechip"><b>${p.stats.wins} – ${o.stats.wins}</b><span class="pips">${[0, 1].map((k) => `<i class="pip ${k < p.stats.wins ? 'done' : ''}"></i>`).join('')}</span></span>`
+        : `<span class="stagechip"><span class="pips">${[1, 2, 3, 4, 5, 6, 7].map((r) => `<i class="pip ${r < m.round ? 'done' : r === m.round ? 'now' : ''} ${CFG.match.stages.some((st) => st.rounds[1] === r && r < 7) ? 'gap' : ''}"></i>`).join('')}</span></span>`}
+      <span class="timer">${S.paused ? icon('pause') : left}</span>
       <span class="tb-spacer"></span>
-      <span class="lifechip me" title="حياة بطلك">${portrait(myAvatar(p, 0), { k: 'tb0' })}${esc(p.name)} ${icon('heart')} ${lifeStr(p.life)}</span>
-      <span class="lifechip" title="حياة بطل الخصم">${portrait(HEROES[o.heroId], { k: 'tb1' })}${esc(o.name)} ${icon('heart')} ${lifeStr(o.life)}</span>
-      <span class="res gold" title="الذهب">${icon('gold')} ${p.gold}</span>
-      <span class="res ess" title="الجوهر: متاح / الإجمالي (يُدفع فقط عند تفعيل القدرة)">${icon('essence')} ${avail}/${p.essence}</span>
-      <span class="lvl" title="المستوى = الحد الأقصى للوحدات في الساحة"><span class="lw">مستوى</span> ${p.level} <span class="xpbar"><i style="width:${need ? (p.xp / need) * 100 : 100}%"></i></span> <small style="color:var(--muted)">${need ? p.xp + '/' + need : 'MAX'}</small></span>
-      <button class="btn small mob-hide" data-act="tutorial" title="دليل سريع">؟</button>
-      <button class="btn small mob-only" data-act="panels" title="التآزر وقدرات البطل">${S.panels ? 'إغلاق' : 'البطل'}</button>
-      <button class="btn small" data-act="pause" title="إيقاف مؤقت">${S.paused ? '▶' : '⏸'}</button>
+      ${lc(p, myAvatar(p, 0), 'tb0', true)}${lc(o, HEROES[o.heroId], 'tb1', false)}
+      <span class="res gold">${icon('gold')} ${p.gold}</span>
+      <span class="res ess">${icon('essence')} ${avail}/${p.essence}</span>
+      <span class="lvl">${icon('crown')} <b>${p.level}</b> <span class="xpbar"><i style="width:${need ? (p.xp / need) * 100 : 100}%"></i></span></span>
+      <button class="btn small mob-only ibtn2" data-act="panels">${S.panels ? '✕' : icon('crown')}</button>
+      <button class="btn small ibtn2" data-act="pause">${S.paused ? icon('play') : icon('pause')}</button>
       ${soundBtn()}
-      <button class="btn small" data-act="menuMatch">☰</button>`;
+      <button class="btn small ibtn2" data-act="menuMatch">☰</button>`;
   }
 
   // Field = a CSS grid of cards:  enemy post / enemy back / enemy front / rift / my front / my back / my post
@@ -6463,7 +6643,8 @@ AMB.IMAGES = {
       const act = mine && !inCombat ? `data-act="slot" data-slot="${slot}" data-drop="board:${slot}"` : '';
       let rec = '';
       if (mine && !inCombat && S.sel && S.sel.kind === 'unit') { const su = m.findUnit(p, S.sel.uid); if (su) { const sd = ROLES[UNITS[su.defId].role].side; if (sd === 'any' || (sd === 'front') === (slot[0] === 'f')) rec = ' rec'; } }
-      return `<div class="cell ${cls}${rec}" ${act} data-row="${slot[0] === 'f' ? 'أمامي' : 'خلفي'}">${inner}</div>`;
+      if (!inner && mine && !inCombat) inner = `<i class="rowic">${icon(slot[0] === 'f' ? 'shield' : 'bow')}</i>`;   // empty cell: front row = shield, back row = bow
+      return `<div class="cell ${cls}${rec}" ${act}>${inner}</div>`;
     };
     const row = (side, ch, mine) => [0, 1, 2, 3].map((k) => cell(side, ch + (mine ? k : 3 - k), mine)).join('');
     const o = 1 - v;
@@ -6473,7 +6654,7 @@ AMB.IMAGES = {
     fe.style.setProperty('--ew', WORLDS[HEROES[m.players[o].heroId].world].color);
     $('slots').innerHTML =
       row(o, 'b', false) + row(o, 'f', false) +
-      `<div class="divider"><span>${sc && !inCombat ? (m.players[1 - v].lineup ? 'تشكيلة الخصم لهذه الجولة' : 'آخر تشكيلة للخصم (استطلاع)') : inCombat ? '' : 'الخصم — لم يقاتل بعد'}</span></div>` +
+      `<div class="divider"><span>${inCombat ? '' : icon('eye')}</span></div>` +
       row(v, 'f', true) + row(v, 'b', true);
   }
 
@@ -6486,25 +6667,27 @@ AMB.IMAGES = {
       if (!el) return;
       const p = m.players[side];
       const h = HEROES[p.heroId];
-      let life = p.life, onBoard = p.summoned, exposed = false, status;
+      let life = p.life, onBoard = p.summoned, exposed = false, safe = true, front = null;
       if (inCombat) {
         const hf = S.combat.sides[side].hero;
         life = hf.hp / CFG.combat.heroHpScale;
         onBoard = hf.onBoard;
         exposed = S.combat.sides[side].exposed;
-        status = onBoard ? (S.combat.targetable(hf) ? '<span class="st risk">في الساحة — قابل للاستهداف</span>' : '<span class="st safe">في الساحة — محمي بخط الدفاع</span>')
-          : hf.sealed ? '<span class="st safe">مركز القيادة محصّن</span>' : exposed ? '<span class="st risk">مكشوف! يمكن مهاجمته</span>' : '<span class="st safe">محمي بخط الدفاع</span>';
+        safe = onBoard ? !S.combat.targetable(hf) : !exposed;
       } else {
         const board = side === S.v ? p.board : null;
-        const front = board ? Object.keys(board).filter((x) => x[0] === 'f').length : null;
-        status = onBoard ? '<span class="st">مستدعى إلى الساحة</span>' : front === 0 ? '<span class="st risk">لا يوجد خط دفاع!</span>' : front ? `<span class="st safe">محمي (${front} في الصف الأمامي)</span>` : '<span class="st">مركز القيادة</span>';
+        front = board ? Object.keys(board).filter((x) => x[0] === 'f').length : null;
+        safe = !onBoard && front !== 0;
       }
+      // a shield with the number of front-row defenders (green) or a red warning (exposed); a crown when the hero fights on the field
+      const st = onBoard && !inCombat ? `<span class="st">${icon('crown')}</span>` : safe ? `<span class="st safe">${icon('shield')}${front ? `<b>${front}</b>` : ''}</span>` : `<span class="st risk">${icon('warn')}</span>`;
       el.style.setProperty('--wc', WORLDS[h.world].color);
-      el.className = 'post' + (onBoard && !inCombat ? ' empty-hero' : '') + (exposed && !onBoard ? ' exposed' : '');
+      el.className = 'post' + (onBoard && !inCombat ? ' empty-hero' : '') + (exposed && !onBoard ? ' exposed' : '') + (safe ? '' : ' risk');
+      const chip = document.querySelectorAll('#topbar .lifechip')[side === viewer ? 0 : 1];   // the phone shows hero life + safety in the top bar (the posts are hidden there)
+      if (chip) { const b = chip.querySelector('b'); if (b) b.textContent = lifeStr(life); const ls = chip.querySelector('.lc-st'); if (ls) ls.innerHTML = onBoard && !inCombat ? icon('crown') : safe ? icon('shield') : icon('warn'); chip.classList.toggle('risk', !safe && !(onBoard && !inCombat)); }
       el.innerHTML = `${portrait(h, { k: 'post' + side })}
-        <div class="pl"><div class="pn">${esc(p.name)} · ${h.name}</div>
-        <div class="lifebar"><i style="width:${Math.max(0, (life / p.maxLife) * 100)}%"></i></div>
-        <div class="st">${icon('heart')} ${lifeStr(life)}/${p.maxLife} — ${status}</div></div>`;
+        <div class="pl"><div class="lifebar"><i style="width:${Math.max(0, (life / p.maxLife) * 100)}%"></i></div>
+        <div class="st">${icon('heart')} <b>${lifeStr(life)}</b></div></div>${st}`;
     });
   }
 
@@ -6521,11 +6704,12 @@ AMB.IMAGES = {
 
   function renderBench() {
     const p = me();
+    const lbl = `<span class="lbl">${icon('box')}</span>`;
     if (S.phase === 'combat' || S.phase === 'result') {
-      $('bench').innerHTML = `<span class="lbl">احتياط</span>` + p.bench.map((u) => `<div class="bslot">${u ? cardHTML(UNITS[u.defId], { size: 'mini', star: u.star, items: u.items, k: 'bc' + u.uid, cls: 'ghost' }) : ''}</div>`).join('');
+      $('bench').innerHTML = lbl + p.bench.map((u) => `<div class="bslot">${u ? cardHTML(UNITS[u.defId], { size: 'mini', star: u.star, items: u.items, k: 'bc' + u.uid, cls: 'ghost' }) : ''}</div>`).join('');
       return;
     }
-    $('bench').innerHTML = `<span class="lbl">احتياط</span>` + p.bench.map((u, i) =>
+    $('bench').innerHTML = lbl + p.bench.map((u, i) =>
       `<div class="bslot" data-act="bench" data-idx="${i}" data-drop="bench:${i}">${u ? pieceHTML(u, { sel: S.sel && S.sel.kind === 'unit' && S.sel.uid === u.uid }) : ''}</div>`).join('');
   }
 
@@ -6534,7 +6718,7 @@ AMB.IMAGES = {
     const prep = S.phase === 'prep' || S.phase === 'resources';
     const E = CFG.economy;
     if (!prep) {
-      $('shopbar').innerHTML = `<div class="hint" style="padding:10px">🔒 ${S.phase === 'combat' ? 'القتال جارٍ' : 'المتجر مغلق'}${coach() && S.phase === 'combat' ? ' · تلقائي بالكامل' : ''}</div>`;
+      $('shopbar').innerHTML = `<div class="shop-closed">${icon(S.phase === 'combat' ? 'sword' : 'lock')}</div>`;
       return;
     }
     const owned = {};
@@ -6557,130 +6741,100 @@ AMB.IMAGES = {
     const freeR = p.freeRerolls > 0;
     $('shopbar').innerHTML = `
       <div class="shop-actions">
-        <button class="btn" data-act="reroll" title="اختصار: D">تحديث <span>${freeR ? 'مجاني' : icon('gold') + E.rerollCost}</span></button>
-        <button class="btn" data-act="xp" ${p.level >= E.maxLevel ? 'disabled' : ''} title="اختصار: F">+${E.xpPerBuy} خبرة <span>${icon('gold')}${E.xpCost}</span></button>
-        <button class="btn ${p.shopLocked ? 'on' : ''}" data-act="lock" title="يبقي نفس العروض للجولة القادمة">${p.shopLocked ? '🔒 مقفل' : '🔓 قفل'}</button>
+        <button class="btn ib-act" data-act="reroll" title="D">${icon('refresh')}<span class="cost">${freeR ? '0' : icon('gold') + E.rerollCost}</span></button>
+        <button class="btn ib-act" data-act="xp" ${p.level >= E.maxLevel ? 'disabled' : ''} title="F">${icon('up')}<span class="cost">${icon('gold')}${E.xpCost}</span></button>
+        <button class="btn ib-act ${p.shopLocked ? 'on' : ''}" data-act="lock">${icon(p.shopLocked ? 'lock' : 'unlock')}</button>
       </div>
       <div class="shop-row"><div class="shop-cards">${cards}</div>
       <div class="item-cards">${items}</div></div>
       <div class="shop-actions">
-        <button class="btn" data-act="upgrades" title="تقدّم الترقية لكل وحدة">ترقية ★</button>
-        <button class="btn primary ready-btn" data-act="ready" title="Enter">جاهز ⚔</button>
+        <button class="btn ib-act" data-act="upgrades">${icon('star')}<span class="cost">×3</span></button>
+        <button class="btn primary ready-btn" data-act="ready" title="Enter">${icon('sword')}${icon('check')}</button>
       </div>`;
   }
 
+  const SYN_ICON = (s) => (s.kind === 'world' ? ART.WORLD_ICON[s.id] : s.kind === 'special' ? 'star' : ART.ROLE_ICON[s.id]);
   function synergyHTML(list) {
-    if (!list.length) return '<div class="hint">ضع وحدات لتفعيل التآزر</div>';
-    // active synergies show their effect; the rest are one short row each (3 at most) with "+N" opening the full list
-    const act = list.filter((s) => s.activeTier >= 0), rest = list.filter((s) => s.activeTier < 0);
-    const shown = act.concat(rest.slice(0, 3)), hidden = rest.length - 3;
+    if (!list.length) return `<div class="syn-empty">${icon('star')}</div>`;
     AMB.TIPS.syn = () => ({ title: 'كل التآزرات', html: list.map((s) => `<div class="syn-full"><b>${s.name}</b> <small>(${s.count}${s.nextN ? '/' + s.nextN : ''})</small>${s.tiers.map((t) => `<div class="hint">• ${t.n}: ${t.text}</div>`).join('')}</div>`).join('') });
-    return shown.map((s) => {
-      const color = s.kind === 'world' ? WORLDS[s.id].color : s.kind === 'special' ? '#ffcf4a' : '#3ee6ff';
-      const tiers = s.tiers.map((t, i) => (i === s.activeTier ? `<b>${t.n}</b>` : t.n)).join(' › ');
-      const on = s.activeTier >= 0;
-      const desc = on ? s.tiers[s.activeTier].text : `عند ${s.tiers[0].n}: ${s.tiers[0].text}`;
-      return `<div class="syn ${on ? 'on' : ''}" style="--sc:${color}" title="${esc(s.tiers.map((t) => t.n + ': ' + t.text).join('\n'))}">
-        <span class="cnt">${s.count}${s.nextN ? '/' + s.nextN : ''}</span><span class="nm">${s.name}</span><span class="tiers">${tiers}</span></div>
-        ${on ? `<div class="syn-desc">${desc}</div>` : ''}`;
-    }).join('') + (hidden > 0 ? `<button class="btn small ghost syn-more" data-act="info" data-k="syn">+${hidden} تآزر آخر</button>` : '');
+    // one chip per synergy: its icon + how many units you have / the next step; lit when active. Tap = the full list.
+    return `<div class="synchips">${list.map((s) => {
+      const color = s.kind === 'world' ? WORLDS[s.id].color : s.kind === 'special' ? '#ffcf4a' : '#3ee6ff', on = s.activeTier >= 0;
+      return `<button class="schip ${on ? 'on' : ''}" style="--sc:${color}" data-act="info" data-k="syn">${icon(SYN_ICON(s))}<b>${s.count}</b>${s.nextN ? `<small>/${s.nextN}</small>` : ''}</button>`;
+    }).join('')}</div>`;
   }
 
   function renderLeft() {
     const m = S.match, p = me(), o = opp();
     const board = Object.values(p.board);
     const ev = AMB.synergy.evaluate(board, p.heroId);
-    const front = Object.keys(p.board).filter((s) => s[0] === 'f').length;
+    const front = Object.keys(p.board).filter((x) => x[0] === 'f').length;
     const heroFront = p.summoned && p.heroSlot[0] === 'f';
-    let guard;
-    AMB.TIPS.guard = () => ({ title: 'حماية البطل', html: '<p>ما دام عندك أي وحدة حيّة في الصف الأمامي، <b>ما يقدر العدو يستهدف بطلك</b>. إذا سقطت كلها ينكشف البطل ويتلقى الضرر.</p><p>القتلة يقفزون للصف الخلفي لكن لا يضربون البطل المحمي. وإذا استدعيت بطلك للساحة يتلقى الضرر كاملًا.</p>' });
-    if (heroFront) guard = `<div class="guard-status risk">${icon('shield')}<b>البطل في الأمام: مكشوف</b>${ibtn('guard')}</div>`;
-    else if (front === 0) guard = `<div class="guard-status risk">${icon('shield')}<b>مكشوف!</b>${coach() ? ' ضع وحدات أمامية' : ''}${ibtn('guard')}</div>`;
-    else guard = `<div class="guard-status safe">${icon('shield')}<b>خط الدفاع: ${front}</b>${ibtn('guard')}</div>`;
     const hw = WORLDS[HEROES[p.heroId].world];
     const sc = m.players[1 - S.v].lineup ? m.buildCombatSpec(1 - S.v) : m.scout[1 - S.v];
-    const oppSyn = sc ? AMB.synergy.evaluate(sc.units, sc.heroId).list.filter((s) => s.activeTier >= 0) : [];
-    const timeline = m.history.map((r) => `<span class="${r.winner === null ? 'wd' : r.winner === S.v ? 'w0' : 'w1'}" title="الجولة ${r.round}">${r.round}</span>`).join('');
+    const oppSyn = sc ? AMB.synergy.evaluate(sc.units, sc.heroId).list.filter((x) => x.activeTier >= 0) : [];
+    const timeline = m.history.map((r) => `<span class="${r.winner === null ? 'wd' : r.winner === S.v ? 'w0' : 'w1'}">${r.round}</span>`).join('');
+    AMB.TIPS.guard = () => ({ title: 'حماية البطل', html: '<p>ما دام عندك أي وحدة حيّة في الصف الأمامي، <b>ما يقدر العدو يستهدف بطلك</b>. إذا سقطت كلها ينكشف البطل ويتلقى الضرر.</p><p>القتلة يقفزون للصف الخلفي لكن لا يضربون البطل المحمي. وإذا استدعيت بطلك للساحة يتلقى الضرر كاملًا.</p>' });
+    const guard = heroFront || front === 0 ? `<button class="guard risk" data-act="info" data-k="guard">${icon('warn')}</button>` : `<button class="guard safe" data-act="info" data-k="guard">${icon('shield')}<b>${front}</b></button>`;
     $('panel-left').innerHTML = `
-      <section><h4>حماية البطل</h4>${guard}</section>
-      <section><h4>التآزر <small>${board.length}/${p.level} وحدات</small></h4>
-        <div class="syn ${ev.resonance ? 'on' : ''}" style="--sc:${hw.color}" title="كل وحدة من عالم بطلك تكتسب +${CFG.hero.resonancePerAlly * 100}% صحة وهجوم"><span class="cnt">${ev.resonance}</span><span class="nm">رنين البطل (${hw.name})</span></div>
+      <section class="rail-guard">${guard}</section>
+      <section><div class="rail-title">${icon('star')}<small>${board.length}/${p.level}</small></div>
+        <div class="synchips"><button class="schip ${ev.resonance ? 'on' : ''}" style="--sc:${hw.color}" data-act="info" data-k="syn">${icon(ART.WORLD_ICON[HEROES[p.heroId].world])}<b>${ev.resonance}</b><small>♥</small></button></div>
         ${synergyHTML(ev.list)}</section>
-      <section><h4>الخصم</h4>
-        <div class="hero-box">${portrait(HEROES[o.heroId], { k: 'lo' })}<div><div class="nm">${esc(o.name)}</div><div class="ti">${HEROES[o.heroId].name} · ${WORLDS[HEROES[o.heroId].world].name}</div>
-        <div class="ti">مستوى ${o.level} · ${icon('heart')} ${lifeStr(o.life)}</div></div></div>
-        ${oppSyn.length ? '<div class="hint" style="margin-top:6px">تآزره: ' + oppSyn.slice(0, 3).map((s) => s.name).join('، ') + '</div>' : ''}
-        ${sc && sc.summoned ? '<div class="hint">استدعى بطله</div>' : ''}</section>
-      <section><h4>سجل الجولات</h4><div class="timeline">${timeline || '<span class="hint">—</span>'}</div></section>`;
+      <section><div class="rail-title">${icon('skull')}</div>
+        <div class="opp-mini">${portrait(HEROES[o.heroId], { k: 'lo' })}<div class="om-n"><span>${icon('crown')} ${o.level}</span><span>${icon('heart')} ${lifeStr(o.life)}</span></div></div>
+        ${oppSyn.length ? `<div class="synchips">${oppSyn.slice(0, 4).map((x) => `<span class="schip on" style="--sc:${x.kind === 'world' ? WORLDS[x.id].color : '#3ee6ff'}">${icon(SYN_ICON(x))}<b>${x.count}</b></span>`).join('')}</div>` : ''}</section>
+      <section><div class="timeline">${timeline || '<span class="wd">·</span>'}</div></section>`;
   }
 
+  const ABILITY_ICON = { buffAllies: 'sword', damageCluster: 'blast', shieldAllies: 'shield', healAllies: 'healall', stunEnemies: 'bolt', frontDR: 'taunt', stunFront: 'snow' };
   function renderRight() {
     const m = S.match, p = me();
     const h = HEROES[p.heroId];
     const prep = S.phase === 'prep' || S.phase === 'resources';
     const avail = p.essence - m.reservedEssence(p);
+    const TR = { start: '▶', t5: '⏱', firstDeath: '☠', exposed: '⚠' };   // when the ability fires: start / after 5 s / first ally dies / hero exposed
     const abil = h.abilities.map((a) => {
       const cost = m.abilityCost(p, a);
       const trig = p.abilities[a.id] || '';
       const fired = S.combat && S.phase !== 'prep' && S.combat.sides[S.v] && S.combat.sides[S.v].abilities.find((x) => x.def.id === a.id && x.fired);
-      const opts = [`<option value="">— غير مجهزة —</option>`].concat(Object.values(ABILITY_TRIGGERS).map((t) => `<option value="${t.id}" ${trig === t.id ? 'selected' : ''}>تفعيل: ${t.name}</option>`)).join('');
-      return `<div class="ability ${trig ? 'armed' : ''}" title="${esc(a.text)}"><div class="ah"><span>${a.name} ${ibtn('hero', `data-id="${h.id}"`)}</span><span class="cost">${icon('essence')}${cost}${cost !== a.cost ? ` <s style="opacity:.5">${a.cost}</s>` : ''}</span></div>
-        ${prep ? `<select data-ab="${a.id}">${opts}</select>` : `<div class="hint">${trig ? (fired ? '✔ فُعّلت في هذا القتال' : 'مجهزة: ' + ABILITY_TRIGGERS[trig].name) : 'غير مجهزة'}</div>`}</div>`;
+      const trigs = Object.values(ABILITY_TRIGGERS).map((t) => `<button class="trg ${trig === t.id ? 'on' : ''}" data-act="abTrig" data-ab="${a.id}" data-t="${t.id}" ${prep ? '' : 'disabled'}>${TR[t.id] || '•'}</button>`).join('');
+      return `<div class="ab ${trig ? 'armed' : ''} ${fired ? 'fired' : ''}"><button class="ab-ic" data-act="info" data-k="hero" data-id="${h.id}">${icon(ABILITY_ICON[a.type] || 'burst')}<span class="ab-cost">${icon('essence')}${cost}</span></button><div class="ab-trg">${trigs}</div></div>`;
     }).join('');
-    AMB.TIPS.summon = () => ({ title: 'استدعاء البطل', html: `<p>${p.summoned ? 'بطلك الحين يقاتل في الساحة (اسحبه لتغيير موقعه).' : 'بطلك الحين في مركز القيادة خلف صفوفك.'}</p>
-      <p><b>الفايدة:</b> يهاجم بقوة ${h.board.atk + CFG.hero.boardAtkPerRound * m.round}، والحلفاء +${CFG.hero.summonAuraAtk * 100}% هجوم، والقدرات أرخص بـ${CFG.hero.summonAbilityDiscount}.</p>
-      <p><b>المخاطرة:</b> يتلقى الضرر كاملًا (حتى الضرر المساحي)، وينسحب بعد خسارة ${CFG.combat.summonKnockout} حياة، ووصول حياته للصفر = خسارة فورية.</p>` });
-    const summonTxt = p.summoned ? 'إعادة البطل إلى مركز القيادة' : 'استدعاء البطل إلى الساحة';
     const bag = [];
     for (let i = 0; i < CFG.economy.itemBenchSize; i++) {
       const id = p.items[i];
       if (!id) { bag.push('<div class="bagslot"></div>'); continue; }
       const it = ITEMS[id];
       const sel = S.sel && S.sel.kind === 'item' && S.sel.idx === i;
-      bag.push(`<div class="bagslot ${it.kind} ${sel ? 'sel' : ''}" data-act="bagSel" data-idx="${i}" title="${esc(it.name + ': ' + it.text)}">${icon(it.icon)}</div>`);
+      bag.push(`<div class="bagslot ${it.kind} ${sel ? 'sel' : ''}" data-act="bagSel" data-idx="${i}">${icon(it.icon)}</div>`);
     }
-    const armed = p.armedSpells.map((id, i) => `<span class="chip" data-act="disarm" data-idx="${i}" title="اضغط لإلغاء التجهيز">${icon(ITEMS[id].icon)} ${ITEMS[id].name} ✕</span>`).join('');
+    const armed = p.armedSpells.map((id, i) => `<span class="chip" data-act="disarm" data-idx="${i}">${icon(ITEMS[id].icon)} ✕</span>`).join('');
+    AMB.TIPS.summon = () => ({ title: 'استدعاء البطل', html: `<p>${p.summoned ? 'بطلك الحين يقاتل في الساحة (اسحبه لتغيير موقعه).' : 'بطلك الحين في مركز القيادة خلف صفوفك.'}</p>
+      <p><b>الفايدة:</b> يهاجم بقوة ${h.board.atk + CFG.hero.boardAtkPerRound * m.round}، والحلفاء +${CFG.hero.summonAuraAtk * 100}% هجوم، والقدرات أرخص بـ${CFG.hero.summonAbilityDiscount}.</p>
+      <p><b>المخاطرة:</b> يتلقى الضرر كاملًا (حتى الضرر المساحي)، وينسحب بعد خسارة ${CFG.combat.summonKnockout} حياة، ووصول حياته للصفر = خسارة فورية.</p>` });
     $('panel-right').innerHTML = `
-      <section><div class="hero-box">${portrait(h, { k: 'rh' })}<div style="flex:1"><div class="nm">${h.name}</div><div class="ti">${h.title} · ${WORLDS[h.world].name}</div>
-        <div class="lifebar-big"><i style="width:${(p.life / p.maxLife) * 100}%"></i></div><div class="ti">${icon('heart')} ${lifeStr(p.life)} / ${p.maxLife}</div></div></div>
-        <div class="passive" title="${esc(h.passive.text)}"><b>${h.passive.name}</b> ${ibtn('hero', `data-id="${h.id}"`)}</div>
-        ${prep ? `<div class="summon-row"><button class="btn summon-btn ${p.summoned ? 'on' : ''}" data-act="summon">${summonTxt}</button>${ibtn('summon')}</div>` : ''}
-      </section>
-      <section><h4>قدرات البطل <span class="cost" style="color:var(--ess)">${icon('essence')} متاح ${avail}</span></h4>${abil}
-        ${coach() ? '<div class="hint">الجوهر يُصرف فقط إذا تفعّلت القدرة</div>' : ''}</section>
-      <section><h4>المعدات والتعاويذ</h4><div class="bag">${bag.join('')}</div>
-        ${armed ? `<div class="armed-spells">${armed}</div>` : ''}
-        ${coach() ? '<div class="hint" style="margin-top:6px">اضغط معدة ثم وحدة لتجهيزها</div>' : ''}</section>
-      <section><h4>التحديد</h4>${selectionHTML()}</section>
-      ${coach() ? `<section class="hint">اضغط وحدة ثم خانة لنقلها، أو اسحبها · <span class="kbd">D</span> تحديث · <span class="kbd">F</span> خبرة · <span class="kbd">Enter</span> جاهز</section>` : ''}`;
+      <section class="hero-card-mini">${portrait(h, { k: 'rh' })}
+        <div class="hcm-r"><div class="lifebar-big"><i style="width:${(p.life / p.maxLife) * 100}%"></i></div><div class="hcm-n">${icon('heart')} <b>${lifeStr(p.life)}</b></div></div>
+        <button class="chip-ic" data-act="info" data-k="hero" data-id="${h.id}">${icon('star')}</button></section>
+      ${prep ? `<section><div class="summon-row"><button class="btn summon-btn ${p.summoned ? 'on' : ''}" data-act="summon">${icon('crown')}${icon('swap')}${icon('sword')}</button><button class="ibtn" data-act="info" data-k="summon">ⓘ</button></div></section>` : ''}
+      <section><div class="rail-title">${icon('essence')}<small>${avail}</small></div><div class="abils">${abil}</div></section>
+      <section><div class="bag">${bag.join('')}</div>${armed ? `<div class="armed-spells">${armed}</div>` : ''}</section>
+      <section class="selbox">${selectionHTML()}</section>`;
   }
 
   function selectionHTML() {
     const m = S.match, p = me();
     const prep = S.phase === 'prep' || S.phase === 'resources';
-    if (!S.sel || !prep) return '<div class="hint">لا شيء محدد.</div>';
+    if (!S.sel || !prep) return '';
     if (S.sel.kind === 'unit') {
       const u = m.findUnit(p, S.sel.uid);
       if (!u) return '';
-      const d = UNITS[u.defId];
-      const sm = CFG.stars.mult[u.star];
-      return `<div class="selinfo"><b>${d.name}</b> ${stars(u.star)}<br>
-        <span class="pill" style="--pc:${WORLDS[d.world].color}">${WORLDS[d.world].name}</span><span class="pill">${ROLES[d.role].name}</span><span class="pill" style="--pc:var(--t${d.tier})">فئة ${d.tier}</span><br>
-        صحة ${fmt(d.hp * sm)} · هجوم ${fmt(d.atk * sm)} · مدى ${d.range}<br>
-        <b>${d.skill.name}:</b> ${d.skill.text}
-        ${u.items.length ? '<br>معدات: ' + u.items.map((i) => ITEMS[i].name).join('، ') : ''}
-        <div class="row"><button class="btn small" data-act="detail" data-id="${d.id}" data-star="${u.star}">التفاصيل</button>
-        <button class="btn small danger" data-act="sell">بيع +${m.sellValue(u)} ذهب</button>
-        ${u.items.length ? '<button class="btn small" data-act="unequip">نزع المعدات</button>' : ''}</div></div>`;
+      const d = UNITS[u.defId], sm = CFG.stars.mult[u.star];
+      return `<div class="selinfo">${portrait(d, { k: 'sel' })}<div class="si-r">${stars(u.star)}
+        <span>${icon('sword')} ${fmt(d.atk * sm)}</span><span>${icon('heart')} ${fmt(d.hp * sm)}</span><span>${icon('target')} ${d.range}</span><span>${icon(ART.SKILL_ICON[d.skill.type] || 'star')}</span></div></div>`;
     }
-    if (S.sel.kind === 'item') {
-      const it = ITEMS[p.items[S.sel.idx]];
-      if (!it) return '';
-      return `<div class="selinfo"><b>${it.name}</b> (${it.kind === 'equip' ? 'معدة' : 'تعويذة'})<br>${it.text}
-        <div class="row">${it.kind === 'spell' ? '<button class="btn small" data-act="arm">تجهيز للقتال القادم</button>' : '<span class="hint">اضغط على وحدة لتجهيزها بهذه المعدة.</span>'}
-        <button class="btn small danger" data-act="sellItem">بيع +${Math.floor(it.cost / 2)}</button></div></div>`;
-    }
-    if (S.sel.kind === 'hero') return '<div class="hint">البطل محدد: اضغط خانة في ساحتك لنقله.</div>';
+    if (S.sel.kind === 'item') { const it = ITEMS[p.items[S.sel.idx]]; return it ? `<div class="selinfo item">${icon(it.icon, 'big-ic')}</div>` : ''; }
     return '';
   }
 
@@ -6692,25 +6846,23 @@ AMB.IMAGES = {
       const u = m.findUnit(p, sel.uid);
       if (u) {
         const d = UNITS[u.defId], R = ROLES[d.role], onBoard = Object.values(p.board).includes(u);
-        return `<div class="pb sel"><span class="pb-name">${d.name} ${stars(u.star)} <span class="rolepill ${R.kind}">${icon(ART.ROLE_ICON[d.role])}${R.name}</span></span>
-          <span class="pb-tip">تُوضع: <b>${R.place}</b> · اضغط خانة مضيئة لنقلها</span>
-          <span class="pb-btns"><button class="btn small danger" data-act="sell">بيع +${m.sellValue(u)}</button>
-          <button class="btn small" data-act="${onBoard ? 'toBench' : 'toBoard'}">${onBoard ? 'للاحتياط' : 'للساحة'}</button>
-          <button class="btn small" data-act="detail" data-id="${d.id}" data-star="${u.star}">تفاصيل</button>
-          ${u.items.length ? '<button class="btn small" data-act="unequip">نزع المعدات</button>' : ''}
-          <button class="btn small ghost" data-act="deselect">✕</button></span></div>`;
+        return `<div class="pb sel"><span class="pb-name">${stars(u.star)} <span class="rolepill ${R.kind}">${icon(ART.ROLE_ICON[d.role])}</span></span>
+          <span class="pb-btns"><button class="btn small danger ib" data-act="sell">${icon('gold')}+${m.sellValue(u)}</button>
+          <button class="btn small ib" data-act="${onBoard ? 'toBench' : 'toBoard'}">${icon(onBoard ? 'box' : 'shield')}</button>
+          <button class="btn small ib" data-act="detail" data-id="${d.id}" data-star="${u.star}">ⓘ</button>
+          ${u.items.length ? `<button class="btn small ib" data-act="unequip">${icon('swap')}</button>` : ''}
+          <button class="btn small ghost ib" data-act="deselect">✕</button></span></div>`;
       }
     }
     if (sel && sel.kind === 'item') {
       const it = ITEMS[p.items[sel.idx]];
-      if (it) return `<div class="pb sel"><span class="pb-name">${icon(it.icon)} ${it.name}</span><span class="pb-tip">${it.kind === 'equip' ? 'اضغط وحدة لتجهيزها بها' : it.text}</span>
-        <span class="pb-btns">${it.kind === 'spell' ? '<button class="btn small" data-act="arm">جهّز للقتال</button>' : ''}<button class="btn small danger" data-act="sellItem">بيع +${Math.floor(it.cost / 2)}</button><button class="btn small ghost" data-act="deselect">✕</button></span></div>`;
+      if (it) return `<div class="pb sel"><span class="pb-name">${icon(it.icon)}</span>
+        <span class="pb-btns">${it.kind === 'spell' ? `<button class="btn small ib" data-act="arm">${icon('play')}</button>` : ''}<button class="btn small danger ib" data-act="sellItem">${icon('gold')}+${Math.floor(it.cost / 2)}</button><button class="btn small ghost ib" data-act="deselect">✕</button></span></div>`;
     }
-    if (sel && sel.kind === 'hero') return `<div class="pb sel"><span class="pb-name">البطل</span><span class="pb-tip">اضغط خانة في ساحتك لنقله</span><span class="pb-btns"><button class="btn small ghost" data-act="deselect">✕</button></span></div>`;
-    const bag = p.items.map((id, i) => `<button class="bagchip" data-act="bagSel" data-idx="${i}" title="${esc(ITEMS[id].name)}: ${esc(ITEMS[id].text)}">${icon(ITEMS[id].icon)}</button>`).join('');
-    return `<div class="pb"><span class="pb-count">في الساحة ${cnt}${p.summoned ? ' + البطل' : ''}</span>${bag ? `<span class="pb-bag" title="معداتك: اضغط واحدة ثم وحدة">${bag}</span>` : ''}
-      ${coach() ? '<span class="pb-tip">اضغط وحدة لتغييرها · ٣ نسخ = ★</span>' : ''}
-      <span class="pb-btns"><button class="btn small" data-act="autoArrange" title="يختار أقوى وحداتك ويضع الحراس أمام والباقي خلف">ترتيب تلقائي</button></span></div>`;
+    if (sel && sel.kind === 'hero') return `<div class="pb sel"><span class="pb-name">${icon('crown')}</span><span class="pb-btns"><button class="btn small ghost ib" data-act="deselect">✕</button></span></div>`;
+    const bag = p.items.map((id, i) => `<button class="bagchip" data-act="bagSel" data-idx="${i}">${icon(ITEMS[id].icon)}</button>`).join('');
+    return `<div class="pb"><span class="pb-count">${icon('shield')} ${cnt}${p.summoned ? ' +' + icon('crown') : ''}</span>${bag ? `<span class="pb-bag">${bag}</span>` : ''}
+      <span class="pb-btns"><button class="btn small ib" data-act="autoArrange">${icon('wand')}</button></span></div>`;
   }
 
   function renderCombatCtrl() {
@@ -6718,7 +6870,7 @@ AMB.IMAGES = {
     if (S.phase === 'combat') {
       el.innerHTML = `<span class="clock">0.0s</span>
         ${[1, 2, 4].map((s) => `<button class="btn small ${S.speed === s ? 'on' : ''}" data-act="speed" data-v="${s}">${s}x</button>`).join('')}
-        <button class="btn small" data-act="skip">تخطي ⏭</button><span class="fury"></span>`;
+        <button class="btn small ib" data-act="skip">${icon('skip')}</button><span class="fury"></span>`;
     } else if (S.phase === 'prep' || S.phase === 'resources') {
       el.innerHTML = prepBarHTML();
     } else el.innerHTML = '';
@@ -6832,6 +6984,7 @@ AMB.IMAGES = {
     if (S.mode === 'campaign') return AMB.CampaignUI.showResult(m, secs);   // campaign and tower have their own results screens
     if (S.mode === 'tower') return AMB.TowerUI.showResult(m, secs);
     if (S.mode === 'event') return AMB.EventUI.showResult(m, secs);
+    if (S.mode === 'tutorial') return AMB.TutorialUI.showResult(m, secs);
     if (S.mode !== 'friendly' && !m._recorded) { AMB.telemetry.recordMatch(m, { seconds: secs }); m._recorded = true; }
     if (!m._counted) { m._counted = true; try { localStorage.setItem('amb_played', String(+(localStorage.getItem('amb_played') || 0) + 1)); } catch (e) { /* ignore */ } }
     if (!m._passDone) { m._passDone = true; try { S.passResult = AMB.pass.recordMatch(m.summary(0)); } catch (e) { S.passResult = null; } }
@@ -6958,7 +7111,7 @@ AMB.IMAGES = {
 
   const ACT = {
     go: (d) => { show(d.to); if (d.to === 'stats') renderStats(); if (d.to === 'codex') renderCodex(); },
-    howto: () => howto(),
+    howto: () => (AMB.TutorialUI ? AMB.TutorialUI.start({ replay: true }) : howto()),
     tutorial: () => showTutorial(),
     diff: (d) => { S.difficulty = d.v; document.querySelectorAll('#diff-seg button').forEach((b) => b.classList.toggle('on', b.dataset.v === d.v)); },
     mode: (d) => { S.mode = d.v; S.picks = [null, null]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
@@ -6999,7 +7152,7 @@ AMB.IMAGES = {
       renderMatch();
       if (S.pop) {
         const pe = document.querySelector(`[data-drag="unit:${S.pop.uid}"]`);
-        if (pe) { if (S.pop.merged) { burst(pe, '#ffd24a', 26, { r: 60, s: 7 }); burst(pe, '#ffffff', 10, { r: 40 }); banner('★ ترقية!', 'merge'); } else burst(pe, '#ffffff', 6, { r: 26 }); }
+        if (pe) { if (S.pop.merged) { burst(pe, '#ffd24a', 26, { r: 60, s: 7 }); burst(pe, '#ffffff', 10, { r: 40 }); banner(`${icon('star')}${icon('up')}`, 'merge'); } else burst(pe, '#ffffff', 6, { r: 26 }); }
         setTimeout(() => { S.pop = null; }, 800);
       }
     },
@@ -7078,8 +7231,9 @@ AMB.IMAGES = {
       afterReward();
     },
     toResults: () => showResults(),
+    abTrig: (d) => { if (!prepActive()) return; const cur = S.match.players[S.v].abilities[d.ab]; res(S.match.setAbility(S.v, d.ab, cur === d.t ? null : d.t)); renderMatch(); },
     info: (d, el, e) => { if (e) e.stopPropagation(); if (d.k === 'hero') { heroDetail(d.id); return; } const t = AMB.TIPS[d.k]; if (!t) return; const x = t(); modal(`<h2>${x.title}</h2><div class="tip-body">${x.html}</div>`); },
-    again: () => { if (S.mode === 'campaign' || S.mode === 'tower' || S.mode === 'event') { startMatch(); return; } S.picks = [S.picks[0], S.picks[1]]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
+    again: () => { if (S.mode === 'tutorial') { AMB.TutorialUI.start(); return; } if (S.mode === 'campaign' || S.mode === 'tower' || S.mode === 'event') { startMatch(); return; } S.picks = [S.picks[0], S.picks[1]]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
     statsExport: () => {
       const blob = new Blob([JSON.stringify(AMB.telemetry.load(), null, 2)], { type: 'application/json' });
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'multiverse-telemetry.json'; a.click();
@@ -7674,6 +7828,9 @@ AMB.IMAGES = {
           <div class="cs-style">${esc(h.style.split('—')[0])}</div><button class="btn primary" data-act="camStarter" data-id="${h.id}">اختر ${esc(h.name)}</button></div>`).join('')}</div></div>`;
       return;
     }
+    if (AMB.tutorial && AMB.tutorial.required()) {   // brand-new player: the guided match comes first
+      root.innerHTML = `<div class="cam-starter"><div class="tut-cta"><button class="btn primary big" data-act="tutGo">${icon('sword')} ${icon('hand')}</button></div></div>`; return;
+    }
     AMB.TIPS = AMB.TIPS || {};
     AMB.TIPS.caminfo = () => ({ title: 'كيف تشتغل الحملة', html: `<p>كل قتال <b>أفضل من 3 جولات</b> ضد تشكيلة ثابتة. مستويات بطاقاتك وندرتها <b>تُحتسب هنا</b>، والمتجر يعرض الوحدات اللي تملكها فقط.</p>
       <p>الفوز الأول: ${icon('gem')} ${R.fight.shards} + ${R.fight.passXp} خبرة ممر<br>الزعيم: ${icon('gem')} ${R.boss.shards} + ${R.boss.passXp} خبرة<br>إنهاء المستوى: باكج مجاني<br>الإعادة: ${icon('gem')} ${R.replay.shards}</p>
@@ -7761,12 +7918,15 @@ AMB.IMAGES = {
       camFight: (d) => preview(d.id),
       camHero: (d) => { hero = d.id; preview(d.f); },
       camGo: (d) => start(d.id),
+      tutGo: () => AMB.TutorialUI.start({ after: () => { render(); preview(CAM.next()); } }),
       camStarter: (d) => {
         if (!C.chooseStarter(d.id)) return;
         hero = d.id; ui.sfx('merge'); ui.toast(`${AMB.DATA.HEROES[d.id].name} صار بطلك!`, 'good');
         render();
-        if (!C.giftClaimed() && AMB.GiftUI) setTimeout(() => AMB.GiftUI.intro(() => { render(); preview(CAM.next()); }), 250);
-        else setTimeout(() => preview(CAM.next()), 250);
+        const afterTut = () => { render(); preview(CAM.next()); };
+        const goTut = () => (AMB.tutorial.required() ? AMB.TutorialUI.start({ after: afterTut }) : afterTut());
+        if (!C.giftClaimed() && AMB.GiftUI) setTimeout(() => AMB.GiftUI.intro(goTut), 250);
+        else setTimeout(goTut, 250);
       },
       camChest: (d) => {
         const r = CAM.claimChest(d.id); if (!r) return;
@@ -7871,6 +8031,137 @@ AMB.IMAGES = {
   AMB.GiftUI = { intro, onMenu, installActions };
   if (UI()) installActions();
   if (document.querySelector('#scr-menu.active')) onMenu();
+})();
+
+</script>
+<script>
+/*
+ * The guided first match. A ring + a pointing hand show the next move, a small bar shows it as symbols, and everything
+ * else is locked until the move is done (so a beginner cannot get lost). No sentences: only icons and numbers.
+ * Core (match, scripted shop, reward): core/tutorial.js.
+ */
+(function () {
+  const AMB = globalThis.AMB;
+  const $ = (id) => document.getElementById(id);
+  const TU = AMB.tutorial, C = AMB.collection;
+  const { icon } = AMB.art;
+  const UI = () => globalThis.AMB_UI;
+  let active = false, idx = 0, replay = false, after = null, rerolled = 0, timer = 0, lastKey = '';
+  let ring, hand, bar;
+
+  // ---------------------------------------------------------------- finding things on the screen
+  const q = (sel) => document.querySelector(sel);
+  const vis = (el) => el && el.offsetParent !== null && el.getBoundingClientRect().width > 4;
+  const shopCard = (n) => { const defId = TU.SHOP[UI().S.match.round][n]; return q(`.shop-cards .tcard[data-idx="${n}"]`) || null; };
+  const firstShopWith = (id) => { const p = UI().S.match.players[0]; const i = p.shop.findIndex((x) => x === id); return i < 0 ? null : q(`.shop-cards .tcard[data-idx="${i}"]`); };
+  const benchUnit = () => q('#bench .bslot .tcard');
+  const cell = (slot) => q(`#slots .cell.mine[data-slot="${slot}"]`);
+  const ready = () => q('.ready-btn');
+  const reroll = () => q('#shopbar [data-act="reroll"]');
+  const guardEl = () => { const a = q('#panel-left .guard'); return vis(a) ? a : q('#topbar .lifechip.me'); };
+  const sel = () => UI().S.sel;
+  const P = () => UI().S.match.players[0];
+  const front = () => Object.keys(P().board).filter((s) => s[0] === 'f').length;
+  const back = () => Object.keys(P().board).filter((s) => s[0] === 'b').length;
+  const units = () => UI().S.match.allUnits(P()).length;
+
+  const G = (n) => icon(n);
+  const ARR = '<i class="tg-arr">➜</i>';
+  const STEPS = [
+    { id: 'buy1', round: 1, bar: [G('gold'), ARR, '🃏'], target: () => shopCard(0), done: () => units() >= 1 },
+    { id: 'front', round: 1, bar: ['🃏', ARR, G('shield')], target: () => (sel() && sel().kind === 'unit' ? { point: cell('f1'), allow: [cell('f1'), benchUnit()] } : { point: benchUnit(), allow: [benchUnit(), cell('f1')] }), done: () => front() >= 1 },
+    { id: 'buy2', round: 1, bar: [G('gold'), ARR, '🃏'], target: () => shopCard(2), done: () => units() >= 2 },
+    { id: 'back', round: 1, bar: ['🃏', ARR, G('bow')], target: () => (sel() && sel().kind === 'unit' ? { point: cell('b1'), allow: [cell('b1'), benchUnit()] } : { point: benchUnit(), allow: [benchUnit(), cell('b1')] }), done: () => back() >= 1 },
+    { id: 'guard', round: 1, ack: true, bar: [G('shield'), '=', G('check')], target: () => guardEl() },
+    { id: 'ready1', round: 1, bar: [G('sword'), G('check')], target: () => ready(), done: () => UI().S.phase === 'combat' || UI().S.match.round > 1 },
+    { id: 'merge', round: 2, bar: ['🃏', '🃏', '🃏', ARR, G('star')], target: () => { for (let i = 0; i < 3; i++) { const el = q(`.shop-cards .tcard[data-idx="${i}"]:not(.empty)`); if (el && P().shop[i]) return el; } return null; }, done: () => UI().S.match.allUnits(P()).some((u) => u.star >= 2) },
+    { id: 'reroll', round: 2, bar: [G('gold'), G('refresh')], target: () => reroll(), done: () => P().stats.rerolls >= 1 },
+    { id: 'ready2', round: 2, bar: [G('sword'), G('check')], target: () => ready(), done: () => UI().S.phase === 'combat' },
+  ];
+
+  // ---------------------------------------------------------------- layers
+  function mount() {
+    if (ring) return;
+    ring = document.createElement('div'); ring.className = 'tut-ring'; document.body.appendChild(ring);
+    hand = document.createElement('div'); hand.className = 'tut-hand'; hand.innerHTML = icon('hand'); document.body.appendChild(hand);
+    bar = document.createElement('div'); bar.className = 'tut-bar'; document.body.appendChild(bar);
+    bar.addEventListener('click', (e) => { if (e.target.closest('[data-tut="ok"]')) { idx++; lastKey = ''; tick(); } else if (e.target.closest('[data-tut="skip"]')) skip(); });
+  }
+  function hide() { if (ring) { ring.style.display = 'none'; hand.style.display = 'none'; bar.style.display = 'none'; } document.querySelectorAll('.tut-target').forEach((e) => e.classList.remove('tut-target')); document.body.classList.remove('tut-on'); }
+  function unmount() { [ring, hand, bar].forEach((e) => e && e.remove()); ring = hand = bar = null; document.querySelectorAll('.tut-target').forEach((e) => e.classList.remove('tut-target')); document.body.classList.remove('tut-on'); }
+
+  function place(targets, st) {
+    const spec = targets && targets.point !== undefined ? targets : { point: targets, allow: [targets] };
+    const list = [].concat(spec.allow).filter(Boolean).filter(vis);
+    document.querySelectorAll('.tut-target').forEach((e) => { if (!list.includes(e)) e.classList.remove('tut-target'); });
+    list.forEach((e) => e.classList.add('tut-target'));
+    // the ring + hand mark the thing to tap now; the other allowed element stays clickable (e.g. to change the selected unit)
+    const t = vis(spec.point) ? spec.point : null;
+    if (!t) { ring.style.display = 'none'; hand.style.display = 'none'; return; }
+    const row = t.closest('.shop-row'); if (row && t.closest('.shop-cards')) { const r = t.getBoundingClientRect(), rr = row.getBoundingClientRect(); if (r.left < rr.left || r.right > rr.right) t.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); }
+    const r = t.getBoundingClientRect(), pad = 6;
+    Object.assign(ring.style, { display: 'block', left: r.left - pad + 'px', top: r.top - pad + 'px', width: r.width + pad * 2 + 'px', height: r.height + pad * 2 + 'px' });
+    const hx = r.left + r.width / 2, hy = r.top + r.height * 0.62;
+    Object.assign(hand.style, { display: 'block', left: Math.min(innerWidth - 40, Math.max(4, hx - 4)) + 'px', top: Math.min(innerHeight - 50, hy) + 'px' });
+  }
+
+  // ---------------------------------------------------------------- the loop
+  function tick() {
+    if (!active) return;
+    const ui = UI(), S = ui.S;
+    if (S.screen !== 'match' || S.mode !== 'tutorial' || !S.match) { hide(); if (S.screen !== 'match' && S.screen !== 'results' && S.mode === 'tutorial') { /* left the match: stop the guide */ stop(); } return; }
+    if (S.phase !== 'prep' || $('overlay').classList.contains('on') || $('modal-back').classList.contains('on')) { hide(); return; }
+    const m = S.match;
+    while (STEPS[idx] && STEPS[idx].round < m.round) idx++;                 // never get stuck on a past round
+    while (STEPS[idx] && STEPS[idx].done && STEPS[idx].round === m.round && STEPS[idx].done()) { idx++; lastKey = ''; }
+    const st = STEPS[idx];
+    if (!st || st.round !== m.round) { hide(); return; }
+    mount(); document.body.classList.add('tut-on');
+    bar.style.display = 'flex'; ring.style.display = 'block'; hand.style.display = 'block';
+    const key = idx + ':' + (sel() ? sel().kind : '') + ':' + m.round;
+    if (key !== lastKey) {
+      lastKey = key;
+      bar.innerHTML = `<span class="tg-ic">${st.bar.join('')}</span>${st.ack ? `<button class="tg-ok" data-tut="ok">${icon('check')}</button>` : ''}<span class="tg-dots">${STEPS.map((x, i) => `<i class="${i < idx ? 'done' : i === idx ? 'now' : ''}"></i>`).join('')}</span>${replay ? `<button class="tg-skip" data-tut="skip">${icon('skip')}</button>` : ''}`;
+    }
+    place(st.target(), st);
+  }
+  function poke() { if (active) tick(); }
+  function stop() { active = false; clearInterval(timer); unmount(); }
+
+  // ---------------------------------------------------------------- start / finish
+  function start(o) {
+    o = o || {};
+    const ui = UI(), S = ui.S;
+    replay = !!o.replay || !TU.required(); after = o.after || null;
+    if (o.replay && C.needsStarter()) { ui.toast('اختر بطلك أول', 'err'); return; }
+    ui.closeOverlay(); ui.closeModal();
+    S.mode = 'tutorial'; S.picks = [C.starterHero() || Object.keys(AMB.DATA.HEROES)[0], null]; S.pickIdx = 0;
+    idx = 0; rerolled = 0; lastKey = ''; active = true;
+    clearInterval(timer); timer = setInterval(tick, 220);
+    ui.startMatch();
+  }
+  function skip() {   // replays only
+    stop(); const ui = UI(); ui.closeOverlay(); ui.show('menu');
+  }
+  /** called from ui.js when the guided match ends */
+  function showResult(m, secs) {
+    const ui = UI(); stop();
+    const won = m.winner === 0, r = TU.complete();
+    $('results').innerHTML = `<div class="res-stage victory" style="--wc:#ffd24a"><div class="res-rays"></div>
+        <div class="res-hero">${ui.portrait(AMB.DATA.HEROES[m.players[0].heroId], { bare: true, k: 'tur' })}<i class="sheen"></i></div></div>
+      <div class="res-banner tut-done"><div class="td-big">${icon('crown')}</div>
+        ${r.shards ? `<div class="td-reward">${icon('gem')} +${r.shards}</div>` : `<div class="td-reward">${icon('check')}</div>`}</div>
+      <div class="cam-btns"><button class="btn primary big" data-act="tutDone">${icon('sword')}</button>${replay ? `<button class="btn big ghost" data-act="again">${icon('refresh')}</button>` : ''}</div>`;
+    ui.show('results'); ui.sfx('win');
+    setTimeout(() => { const el = document.querySelector('.res-hero'); if (el) ['#ffd24a', '#ffffff', '#5fe3ff'].forEach((c) => ui.burst(el, c, 16, { r: 150, s: 8 })); }, 250);
+  }
+  function installActions() {
+    const ui = UI(); if (!ui || ui.ACT.tutDone) return;
+    Object.assign(ui.ACT, { tutDone: () => { const f = after; after = null; ['PacksUI', 'CampaignUI', 'CollectionUI'].forEach((k) => AMB[k] && AMB[k].refreshMenu && AMB[k].refreshMenu()); if (f) f(); else ui.show('menu'); } });
+  }
+
+  AMB.TutorialUI = { start, poke, showResult, installActions, active: () => active };
+  if (UI()) installActions();
 })();
 
 </script>

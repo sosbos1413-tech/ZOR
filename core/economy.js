@@ -60,6 +60,8 @@
       rewards: [{ shards: 40, passXp: 10 }, { shards: 60, passXp: 20, pack: 'basic' }, { shards: 100, passXp: 50, exclusive: true }],
       power: { ember: [1.17, 1.43, 0.83], tide: [1.31, 1.19, 0.94], neon: [1.19, 1.21, 0.88], sylvan: [0.98, 1.33, 0.99] },
     },
+    // Guided first match: a fixed weak enemy (2 units, the 2nd joins in round 2), a little extra gold/level, a reward once
+    tutorial: { start: { gold: 10, level: 4 }, enemy: [['thorn_fox', 1, 'f1', 1], ['pixel_sniper', 1, 'b1', 2]], reward: { shards: 50 } },
     // album: own all 5 units of a world -> its reward (once); own all 20 -> the grand reward
     album: {
       worlds: {

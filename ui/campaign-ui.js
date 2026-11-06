@@ -50,6 +50,9 @@
           <div class="cs-style">${esc(h.style.split('—')[0])}</div><button class="btn primary" data-act="camStarter" data-id="${h.id}">اختر ${esc(h.name)}</button></div>`).join('')}</div></div>`;
       return;
     }
+    if (AMB.tutorial && AMB.tutorial.required()) {   // brand-new player: the guided match comes first
+      root.innerHTML = `<div class="cam-starter"><div class="tut-cta"><button class="btn primary big" data-act="tutGo">${icon('sword')} ${icon('hand')}</button></div></div>`; return;
+    }
     AMB.TIPS = AMB.TIPS || {};
     AMB.TIPS.caminfo = () => ({ title: 'كيف تشتغل الحملة', html: `<p>كل قتال <b>أفضل من 3 جولات</b> ضد تشكيلة ثابتة. مستويات بطاقاتك وندرتها <b>تُحتسب هنا</b>، والمتجر يعرض الوحدات اللي تملكها فقط.</p>
       <p>الفوز الأول: ${icon('gem')} ${R.fight.shards} + ${R.fight.passXp} خبرة ممر<br>الزعيم: ${icon('gem')} ${R.boss.shards} + ${R.boss.passXp} خبرة<br>إنهاء المستوى: باكج مجاني<br>الإعادة: ${icon('gem')} ${R.replay.shards}</p>
@@ -137,12 +140,15 @@
       camFight: (d) => preview(d.id),
       camHero: (d) => { hero = d.id; preview(d.f); },
       camGo: (d) => start(d.id),
+      tutGo: () => AMB.TutorialUI.start({ after: () => { render(); preview(CAM.next()); } }),
       camStarter: (d) => {
         if (!C.chooseStarter(d.id)) return;
         hero = d.id; ui.sfx('merge'); ui.toast(`${AMB.DATA.HEROES[d.id].name} صار بطلك!`, 'good');
         render();
-        if (!C.giftClaimed() && AMB.GiftUI) setTimeout(() => AMB.GiftUI.intro(() => { render(); preview(CAM.next()); }), 250);
-        else setTimeout(() => preview(CAM.next()), 250);
+        const afterTut = () => { render(); preview(CAM.next()); };
+        const goTut = () => (AMB.tutorial.required() ? AMB.TutorialUI.start({ after: afterTut }) : afterTut());
+        if (!C.giftClaimed() && AMB.GiftUI) setTimeout(() => AMB.GiftUI.intro(goTut), 250);
+        else setTimeout(goTut, 250);
       },
       camChest: (d) => {
         const r = CAM.claimChest(d.id); if (!r) return;
