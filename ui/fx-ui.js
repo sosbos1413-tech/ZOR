@@ -15,14 +15,14 @@
 
   function shake(el, level) {   // level 1..4 → how far and how long the ground moves
     if (!el || calm()) return;
-    const amp = [0, 0, 3, 6, 12][level] || 0, ms = [0, 0, 220, 380, 800][level] || 0; if (!amp) return;
+    const amp = [0, 0, 2, 3.5, 5][level] || 0, ms = [0, 0, 200, 320, 520][level] || 0;   // heavy but calm: a deep, short tremor, never a jolt if (!amp) return;
     el.style.setProperty('--amp', amp + 'px'); el.style.setProperty('--ms', ms + 'ms');
     el.classList.remove('fx-shake'); void el.offsetWidth; el.classList.add('fx-shake');
     setTimeout(() => el.classList.remove('fx-shake'), ms + 40);
   }
   function tint(color, level, ms) {   // a flash over the whole screen
     if (calm()) return;
-    const d = document.createElement('div'); d.className = 'fx-flash'; d.style.setProperty('--c', color); d.style.setProperty('--a', [0, 0, 0.18, 0.32, 0.85][level] || 0.2); d.style.setProperty('--ms', (ms || 520) + 'ms');
+    const d = document.createElement('div'); d.className = 'fx-flash'; d.style.setProperty('--c', color); d.style.setProperty('--a', [0, 0, 0.08, 0.14, 0.26][level] || 0.1); d.style.setProperty('--ms', (ms || 520) + 'ms');
     document.body.appendChild(d); setTimeout(() => d.remove(), (ms || 520) + 60);
   }
   function rings(el, color, n, size) {   // shock-waves spreading from an element
@@ -45,14 +45,14 @@
   function land(el, rarity) {
     const ui = UI(), L = ord(rarity), c = col(rarity); if (!el || !ui) return;
     ui.sfx('land' + L);
-    if (L >= 2 && ui.burst) ui.burst(el, c, [0, 6, 12, 20, 42][L], { r: [0, 30, 46, 70, 120][L], s: L >= 4 ? 9 : 6 });
+    if (L >= 2 && ui.burst) ui.burst(el, c, [0, 6, 10, 14, 22][L], { r: [0, 30, 42, 56, 84][L], s: L >= 4 ? 8 : 6 });
     if (L === 1 && ui.burst) ui.burst(el, '#d8cfb8', 5, { r: 22, s: 4 });
-    if (L >= 2) rings(el, c, L - 1, [0, 0, 120, 190, 320][L]);
-    if (L >= 3) tint(c, L, L === 4 ? 650 : 420);
-    if (L >= 4) { cracks(el, c); ui.burst && ui.burst(el, '#ffffff', 18, { r: 90, s: 7 }); }
+    if (L >= 2) rings(el, c, L >= 4 ? 2 : 1, [0, 0, 110, 160, 240][L]);
+    if (L >= 3) tint(c, L, L === 4 ? 900 : 600);
+    if (L >= 4) cracks(el, c);
     shake(L >= 4 ? document.getElementById('scr-match') : document.getElementById('field'), L);
     if (L >= 3 && !calm()) { const t = el.querySelector('.tcard') || el; t.classList.remove('fx-slam'); void t.offsetWidth; t.classList.add('fx-slam'); if (L >= 4) t.classList.add('big'); setTimeout(() => t.classList.remove('fx-slam', 'big'), 700); }
-    buzz([0, 0, 15, 35, [60, 40, 110]][L] || 0);
+    buzz([0, 0, 10, 20, [30, 30, 50]][L] || 0);
   }
 
   // called after every match render: any of my cards that just arrived on the field gets its landing
@@ -85,11 +85,11 @@
     if (L === 2) { ui.sfx('merge'); ui.burst && ui.burst(el, c, 14, { r: 100, s: 7 }); rings(el, c, 1, 220); return; }
     const ov = document.getElementById('overlay');
     ui.sfx(L === 3 ? 'epicHit' : 'legend');
-    ui.burst && [c, '#ffffff', '#ffd24a'].forEach((cc, k) => ui.burst(el, cc, L === 4 ? 30 : 16, { r: L === 4 ? 190 + k * 30 : 130, s: L === 4 ? 10 : 8 }));
-    rings(el, c, L === 4 ? 4 : 2, L === 4 ? 560 : 340);
-    tint(L === 4 ? '#fff6d0' : c, L, L === 4 ? 900 : 500);
+    ui.burst && [c, '#ffd24a'].forEach((cc, k) => ui.burst(el, cc, L === 4 ? 18 : 12, { r: L === 4 ? 120 + k * 20 : 100, s: L === 4 ? 8 : 7 }));
+    rings(el, c, L === 4 ? 2 : 1, L === 4 ? 420 : 280);
+    tint(c, L, L === 4 ? 1100 : 700);
     shake(ov && ov.firstElementChild, L === 4 ? 4 : 3);
-    buzz(L === 4 ? [80, 50, 160, 50, 260] : [50, 30, 80]);
+    buzz(L === 4 ? [40, 40, 80] : [25, 25, 40]);
     if (wrap) { wrap.classList.add('rv-hit-' + rarity); setTimeout(() => wrap.classList.remove('rv-hit-' + rarity), 1500); }
   }
   /** Build-up before a rare card turns: the screen darkens and a rumble grows. */

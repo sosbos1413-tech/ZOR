@@ -289,7 +289,8 @@
       if (needsTarget && !tgt) return false;
       f.mana = 0;
       this.emit({ type: 'cast', id: f.id, name: sk.name });
-      const enemiesNear = (c, r) => this.enemiesOf(f).filter((e) => (this.targetable(e) || (e.isHero && e.onBoard)) && dist(e, c) <= r);
+      // splash spreads sideways along the target's row (it no longer drags the squishy back row down with the front line)
+      const enemiesNear = (c, r) => this.enemiesOf(f).filter((e) => (this.targetable(e) || (e.isHero && e.onBoard)) && dist(e, c) <= r && (e === c || Math.abs(e.y - c.y) < 0.6));
       switch (sk.type) {
         case 'nuke': this.damage(f, tgt, sk.dmg[s] * p, { skill: true }); break;
         case 'cleave':

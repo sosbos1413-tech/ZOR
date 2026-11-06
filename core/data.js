@@ -36,9 +36,9 @@
     guardian: { hp: 620, atk: 44, as: 0.6, range: 1, def: 0.25, crit: 0.05 },
     fighter: { hp: 540, atk: 60, as: 0.75, range: 1, def: 0.12, crit: 0.05 },
     assassin: { hp: 420, atk: 68, as: 0.85, range: 1, def: 0.05, crit: 0.25 },
-    mage: { hp: 460, atk: 42, as: 0.6, range: 3, def: 0, crit: 0.05 },
+    mage: { hp: 470, atk: 46, as: 0.6, range: 3, def: 0, crit: 0.05 },
     marksman: { hp: 390, atk: 62, as: 0.75, range: 4, def: 0, crit: 0.1 },
-    support: { hp: 500, atk: 36, as: 0.6, range: 3, def: 0.05, crit: 0.05 },
+    support: { hp: 540, atk: 38, as: 0.6, range: 3, def: 0.05, crit: 0.05 },
   };
   const TIER_MULT = { 1: 1, 2: 1.22, 3: 1.5 };
 

@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="df2c85571b">
+<meta name="zor-build" content="883c2dea56">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1807,9 +1807,9 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
   filter: drop-shadow(0 0 6px var(--c)); animation: fxcrack 1.4s ease-out forwards; }
 @keyframes fxcrack { 0% { opacity: 1; transform: translate(-50%, -50%) scaleY(.5) scale(.3); } 25% { opacity: 1; transform: translate(-50%, -50%) scaleY(.5) scale(1); } 100% { opacity: 0; transform: translate(-50%, -50%) scaleY(.5) scale(1.15); } }
 .fx-slam { animation: fxslam .45s cubic-bezier(.2, 1.6, .4, 1); z-index: 9; position: relative; }
-.fx-slam.big { animation: fxslambig .65s cubic-bezier(.2, 1.7, .35, 1); filter: drop-shadow(0 0 16px #ff9f1a) brightness(1.4); }
+.fx-slam.big { animation: fxslambig .75s cubic-bezier(.25, 1, .4, 1); filter: drop-shadow(0 0 12px #ff9f1a) brightness(1.12); }
 @keyframes fxslam { 0% { transform: translateY(-34px) scale(1.25); } 100% { transform: none; } }
-@keyframes fxslambig { 0% { transform: translateY(-110px) scale(1.7); opacity: .4; } 55% { transform: translateY(0) scale(.92); opacity: 1; } 75% { transform: scale(1.08); } 100% { transform: none; } }
+@keyframes fxslambig { 0% { transform: translateY(-46px) scale(1.3); opacity: .55; } 60% { transform: translateY(0) scale(.97); opacity: 1; } 80% { transform: scale(1.03); } 100% { transform: none; } }
 
 /* pack reveal build-up */
 .rv { position: relative; }
@@ -1984,18 +1984,18 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 .rot-btn { display: none; }
 @media (orientation: landscape) and (max-height: 520px) and (max-width: 1100px) {
   .rot-btn { display: inline-flex; }
-  #scr-match.active { display: grid !important; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto auto minmax(0, 1fr); height: 100dvh; padding: 3px; gap: 4px; overflow: hidden; --cwl: clamp(40px, calc((100dvh - 96px) / 4.6), 96px); }
+  #scr-match.active { display: grid !important; grid-template-columns: auto minmax(0, 380px); justify-content: center; grid-template-rows: auto auto auto minmax(0, 1fr); height: 100dvh; padding: 3px; gap: 4px 10px; overflow: hidden; --cwl: clamp(40px, calc((100dvh - 66px) / 5.35), 120px); }
   #scr-match .topbar { grid-column: 1 / -1; grid-row: 1; }
   #scr-match .match-grid, #scr-match .center, #scr-match .field-wrap { display: contents !important; }
-  #scr-match .field { grid-column: 1; grid-row: 2 / 5; --cw: var(--cwl); width: auto; align-self: start; margin: 0; }
+  #scr-match .field { grid-column: 1; grid-row: 2 / 5; --cw: var(--cwl) !important; width: auto !important; max-width: none !important; height: auto !important; align-self: start; justify-self: center; margin: 0 !important; }
   #scr-match #bench { grid-column: 2; grid-row: 2; width: auto !important; max-width: none; }
   #scr-match #combat-ctrl { grid-column: 2; grid-row: 3; }
   #scr-match #shopbar { grid-column: 2; grid-row: 4; height: auto !important; min-height: 0; align-self: start; overflow: hidden; flex-wrap: wrap; }
   #scr-match .panel { display: none !important; }
   #scr-match .side .post { display: none; }
-  #scr-match .tcard.hc.full { zoom: .64; }
+  #scr-match .tcard.hc.full { zoom: .5; }
   #scr-match .tcard.hc.full.empty { height: 140px; }
-  #scr-match #bench .bslot, #scr-match .side .bslot { width: 50px; height: 56px; }
+  #scr-match #bench .bslot, #scr-match .side .bslot { width: 40px; height: 46px; }
   #scr-match #shopbar { padding: 3px 5px; gap: 3px 6px; }
   #scr-match #shopbar .shop-actions { flex: 1 1 46%; flex-direction: row; flex-wrap: nowrap; width: auto; min-width: 0; gap: 4px; order: 1; }
   #scr-match #shopbar .shop-row { order: 3; display: flex; flex-wrap: nowrap; gap: 6px; align-items: flex-start; }
@@ -2263,7 +2263,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
       meleeRange: 1.15,
       moveSpeed: 1.3,
       assassinMoveSpeed: 2.2,
-      assassinLeapAt: 0.6,      // assassins jump to the enemy back line at this time
+      assassinLeapAt: 4.5,      // assassins jump to the enemy back line at this time
       critMult: 1.5,
       skillDefFactor: 0.5,      // skills ignore half of the target's defence
       maxDef: 0.7,
@@ -2335,9 +2335,9 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
     guardian: { hp: 620, atk: 44, as: 0.6, range: 1, def: 0.25, crit: 0.05 },
     fighter: { hp: 540, atk: 60, as: 0.75, range: 1, def: 0.12, crit: 0.05 },
     assassin: { hp: 420, atk: 68, as: 0.85, range: 1, def: 0.05, crit: 0.25 },
-    mage: { hp: 460, atk: 42, as: 0.6, range: 3, def: 0, crit: 0.05 },
+    mage: { hp: 470, atk: 46, as: 0.6, range: 3, def: 0, crit: 0.05 },
     marksman: { hp: 390, atk: 62, as: 0.75, range: 4, def: 0, crit: 0.1 },
-    support: { hp: 500, atk: 36, as: 0.6, range: 3, def: 0.05, crit: 0.05 },
+    support: { hp: 540, atk: 38, as: 0.6, range: 3, def: 0.05, crit: 0.05 },
   };
   const TIER_MULT = { 1: 1, 2: 1.22, 3: 1.5 };
 
@@ -3151,7 +3151,8 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
       if (needsTarget && !tgt) return false;
       f.mana = 0;
       this.emit({ type: 'cast', id: f.id, name: sk.name });
-      const enemiesNear = (c, r) => this.enemiesOf(f).filter((e) => (this.targetable(e) || (e.isHero && e.onBoard)) && dist(e, c) <= r);
+      // splash spreads sideways along the target's row (it no longer drags the squishy back row down with the front line)
+      const enemiesNear = (c, r) => this.enemiesOf(f).filter((e) => (this.targetable(e) || (e.isHero && e.onBoard)) && dist(e, c) <= r && (e === c || Math.abs(e.y - c.y) < 0.6));
       switch (sk.type) {
         case 'nuke': this.damage(f, tgt, sk.dmg[s] * p, { skill: true }); break;
         case 'cleave':
@@ -6743,11 +6744,11 @@ AMB.IMAGES = {
     land1: (c) => noise(c, 0.07, 0.05, 700),
     land2: (c) => { tone(c, { f: 130, to: 70, d: 0.16, v: 0.14, type: 'sine' }); noise(c, 0.12, 0.07, 500); },
     land3: (c) => { tone(c, { f: 100, to: 45, d: 0.3, v: 0.2, type: 'sawtooth' }); tone(c, { f: 60, to: 35, d: 0.35, v: 0.2, type: 'sine' }); noise(c, 0.26, 0.12, 300); },
-    land4: (c) => { tone(c, { f: 70, to: 28, d: 0.7, v: 0.32, type: 'sine' }); tone(c, { f: 150, to: 45, d: 0.45, v: 0.22, type: 'sawtooth' }); noise(c, 0.6, 0.2, 160); [784, 1047, 1319].forEach((f, i) => tone(c, { f, d: 0.35, v: 0.08, type: 'triangle', at: 0.18 + i * 0.09 })); },
-    charge: (c) => { tone(c, { f: 60, to: 420, d: 1.4, v: 0.16, type: 'sawtooth' }); tone(c, { f: 120, to: 840, d: 1.4, v: 0.06, type: 'triangle' }); noise(c, 1.4, 0.06, 900); },
+    land4: (c) => { tone(c, { f: 64, to: 36, d: 0.9, v: 0.16, type: 'sine' }); noise(c, 0.5, 0.05, 140); [659, 880].forEach((f, i) => tone(c, { f, d: 0.5, v: 0.035, type: 'sine', at: 0.2 + i * 0.12 })); },
+    charge: (c) => { tone(c, { f: 60, to: 300, d: 1.4, v: 0.07, type: 'sine' }); tone(c, { f: 120, to: 600, d: 1.4, v: 0.03, type: 'triangle' }); },
     epicCharge: (c) => { tone(c, { f: 100, to: 380, d: 0.6, v: 0.1, type: 'sawtooth' }); },
     epicHit: (c) => { tone(c, { f: 90, to: 40, d: 0.4, v: 0.22, type: 'sine' }); noise(c, 0.3, 0.12, 400); [523, 659, 784, 988].forEach((f, i) => tone(c, { f, d: 0.3, v: 0.1, type: 'triangle', at: 0.05 + i * 0.07 })); },
-    legend: (c) => { tone(c, { f: 60, to: 26, d: 0.9, v: 0.34, type: 'sine' }); noise(c, 0.7, 0.18, 160); [392, 523, 659, 784, 1047, 1319].forEach((f, i) => tone(c, { f, d: 0.7, v: 0.1, type: 'triangle', at: 0.08 + i * 0.1 })); },
+    legend: (c) => { tone(c, { f: 58, to: 34, d: 1.1, v: 0.16, type: 'sine' }); noise(c, 0.5, 0.05, 140); [392, 523, 659, 784].forEach((f, i) => tone(c, { f, d: 0.9, v: 0.05, type: 'sine', at: 0.1 + i * 0.12 })); },
     banner: (c) => { tone(c, { f: 90, to: 50, d: 0.35, v: 0.2, type: 'sawtooth' }); noise(c, 0.25, 0.08, 500); },
     win: (c) => { [523, 659, 784, 1047, 1319].forEach((f, i) => tone(c, { f, d: 0.28, v: 0.13, type: 'triangle', at: i * 0.11 })); },
     lose: (c) => { [392, 330, 262, 196].forEach((f, i) => tone(c, { f, d: 0.34, v: 0.13, type: 'sawtooth', at: i * 0.16 })); },
@@ -8308,14 +8309,14 @@ AMB.IMAGES = {
 
   function shake(el, level) {   // level 1..4 → how far and how long the ground moves
     if (!el || calm()) return;
-    const amp = [0, 0, 3, 6, 12][level] || 0, ms = [0, 0, 220, 380, 800][level] || 0; if (!amp) return;
+    const amp = [0, 0, 2, 3.5, 5][level] || 0, ms = [0, 0, 200, 320, 520][level] || 0;   // heavy but calm: a deep, short tremor, never a jolt if (!amp) return;
     el.style.setProperty('--amp', amp + 'px'); el.style.setProperty('--ms', ms + 'ms');
     el.classList.remove('fx-shake'); void el.offsetWidth; el.classList.add('fx-shake');
     setTimeout(() => el.classList.remove('fx-shake'), ms + 40);
   }
   function tint(color, level, ms) {   // a flash over the whole screen
     if (calm()) return;
-    const d = document.createElement('div'); d.className = 'fx-flash'; d.style.setProperty('--c', color); d.style.setProperty('--a', [0, 0, 0.18, 0.32, 0.85][level] || 0.2); d.style.setProperty('--ms', (ms || 520) + 'ms');
+    const d = document.createElement('div'); d.className = 'fx-flash'; d.style.setProperty('--c', color); d.style.setProperty('--a', [0, 0, 0.08, 0.14, 0.26][level] || 0.1); d.style.setProperty('--ms', (ms || 520) + 'ms');
     document.body.appendChild(d); setTimeout(() => d.remove(), (ms || 520) + 60);
   }
   function rings(el, color, n, size) {   // shock-waves spreading from an element
@@ -8338,14 +8339,14 @@ AMB.IMAGES = {
   function land(el, rarity) {
     const ui = UI(), L = ord(rarity), c = col(rarity); if (!el || !ui) return;
     ui.sfx('land' + L);
-    if (L >= 2 && ui.burst) ui.burst(el, c, [0, 6, 12, 20, 42][L], { r: [0, 30, 46, 70, 120][L], s: L >= 4 ? 9 : 6 });
+    if (L >= 2 && ui.burst) ui.burst(el, c, [0, 6, 10, 14, 22][L], { r: [0, 30, 42, 56, 84][L], s: L >= 4 ? 8 : 6 });
     if (L === 1 && ui.burst) ui.burst(el, '#d8cfb8', 5, { r: 22, s: 4 });
-    if (L >= 2) rings(el, c, L - 1, [0, 0, 120, 190, 320][L]);
-    if (L >= 3) tint(c, L, L === 4 ? 650 : 420);
-    if (L >= 4) { cracks(el, c); ui.burst && ui.burst(el, '#ffffff', 18, { r: 90, s: 7 }); }
+    if (L >= 2) rings(el, c, L >= 4 ? 2 : 1, [0, 0, 110, 160, 240][L]);
+    if (L >= 3) tint(c, L, L === 4 ? 900 : 600);
+    if (L >= 4) cracks(el, c);
     shake(L >= 4 ? document.getElementById('scr-match') : document.getElementById('field'), L);
     if (L >= 3 && !calm()) { const t = el.querySelector('.tcard') || el; t.classList.remove('fx-slam'); void t.offsetWidth; t.classList.add('fx-slam'); if (L >= 4) t.classList.add('big'); setTimeout(() => t.classList.remove('fx-slam', 'big'), 700); }
-    buzz([0, 0, 15, 35, [60, 40, 110]][L] || 0);
+    buzz([0, 0, 10, 20, [30, 30, 50]][L] || 0);
   }
 
   // called after every match render: any of my cards that just arrived on the field gets its landing
@@ -8378,11 +8379,11 @@ AMB.IMAGES = {
     if (L === 2) { ui.sfx('merge'); ui.burst && ui.burst(el, c, 14, { r: 100, s: 7 }); rings(el, c, 1, 220); return; }
     const ov = document.getElementById('overlay');
     ui.sfx(L === 3 ? 'epicHit' : 'legend');
-    ui.burst && [c, '#ffffff', '#ffd24a'].forEach((cc, k) => ui.burst(el, cc, L === 4 ? 30 : 16, { r: L === 4 ? 190 + k * 30 : 130, s: L === 4 ? 10 : 8 }));
-    rings(el, c, L === 4 ? 4 : 2, L === 4 ? 560 : 340);
-    tint(L === 4 ? '#fff6d0' : c, L, L === 4 ? 900 : 500);
+    ui.burst && [c, '#ffd24a'].forEach((cc, k) => ui.burst(el, cc, L === 4 ? 18 : 12, { r: L === 4 ? 120 + k * 20 : 100, s: L === 4 ? 8 : 7 }));
+    rings(el, c, L === 4 ? 2 : 1, L === 4 ? 420 : 280);
+    tint(c, L, L === 4 ? 1100 : 700);
     shake(ov && ov.firstElementChild, L === 4 ? 4 : 3);
-    buzz(L === 4 ? [80, 50, 160, 50, 260] : [50, 30, 80]);
+    buzz(L === 4 ? [40, 40, 80] : [25, 25, 40]);
     if (wrap) { wrap.classList.add('rv-hit-' + rarity); setTimeout(() => wrap.classList.remove('rv-hit-' + rarity), 1500); }
   }
   /** Build-up before a rare card turns: the screen darkens and a rumble grows. */
