@@ -673,7 +673,21 @@
       over = shop.getBoundingClientRect().bottom - (vh - 2);
     }
   }
-  window.addEventListener('resize', () => { try { if (S.match) fitMatch(); } catch (e) { /* ignore */ } });
+  // the visible height changes while the page is open (Chrome's address bar hides, the phone rotates, the app comes back from the background):
+  // keep one CSS variable in step with the real visible height and re-fit the match whenever it changes
+  let lastAppH = 0;
+  function syncViewport() {
+    try {
+      const h = Math.round((globalThis.visualViewport && visualViewport.height) || innerHeight);
+      if (h !== lastAppH) { lastAppH = h; document.documentElement.style.setProperty('--app-h', h + 'px'); }
+      if (S.match && S.screen === 'match') fitMatch();
+    } catch (e) { /* ignore */ }
+  }
+  ['resize', 'orientationchange', 'pageshow', 'focus', 'scroll'].forEach((ev) => window.addEventListener(ev, syncViewport, { passive: true }));
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { syncViewport(); setTimeout(syncViewport, 300); } });
+  if (globalThis.visualViewport) { visualViewport.addEventListener('resize', syncViewport); visualViewport.addEventListener('scroll', syncViewport); }
+  setInterval(() => { if (S.screen === 'match') syncViewport(); }, 800);   // safety net for browsers that skip the events
+  syncViewport();
 
   function renderTop() {
     const m = S.match, p = me(), o = opp();

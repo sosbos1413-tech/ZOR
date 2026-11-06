@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="f2fc83158a">
+<meta name="zor-build" content="588f367a56">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1981,10 +1981,10 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 .pb .btn.ghost { color: var(--ink); background: transparent; border: 2px solid var(--ink); }
 
 /* ===== landscape phones: field on one side, bench + shop on the other ===== */
-.rot-btn { display: none; }
+.rot-btn, #scr-match .topbar .rot-btn { display: none !important; }
 @media (orientation: landscape) and (max-height: 520px) and (max-width: 1100px) {
-  .rot-btn { display: inline-flex; }
-  #scr-match.active { display: grid !important; grid-template-columns: auto minmax(0, 380px); justify-content: center; grid-template-rows: auto auto auto minmax(0, 1fr); height: 100dvh; padding: 3px; gap: 4px 10px; overflow: hidden; --cwl: clamp(40px, calc((100dvh - 66px) / 5.35), 120px); }
+  #scr-match .topbar .rot-btn { display: inline-flex !important; }
+  #scr-match.active { display: grid !important; grid-template-columns: auto minmax(0, 380px); justify-content: center; grid-template-rows: auto auto auto minmax(0, 1fr); height: var(--app-h, 100dvh) !important; padding: 3px; gap: 4px 10px; overflow: hidden; --cwl: clamp(40px, calc((var(--app-h, 100dvh) - 66px) / 5.35), 120px); }
   #scr-match .topbar { grid-column: 1 / -1; grid-row: 1; }
   #scr-match .match-grid, #scr-match .center, #scr-match .field-wrap { display: contents !important; }
   #scr-match .field { grid-column: 1; grid-row: 2 / 5; --cw: var(--cwl) !important; width: auto !important; max-width: none !important; height: auto !important; align-self: start; justify-self: center; margin: 0 !important; }
@@ -2057,6 +2057,12 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 .vf-mote { width: 7px; height: 7px; border-radius: 50%; background: #fff; box-shadow: 0 0 8px var(--c), 0 0 14px var(--c); opacity: 0; animation: vfmote .8s ease-out var(--d, 0ms) forwards; }
 @keyframes vfmote { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.5); } 25% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, calc(-50% - 36px)) scale(1); } }
 @media (prefers-reduced-motion: reduce) { .vf { display: none; } }
+
+/* the match always uses the REAL visible height (kept in --app-h by ui.js), not what the browser reported at load */
+@media (max-width: 860px) and (orientation: portrait) {
+  #scr-match.active { height: var(--app-h, 100dvh) !important; min-height: 0; }
+  #scr-match .field-wrap { --cwv: clamp(48px, min(calc((var(--app-h, 100dvh) - 372px) / 4.7), calc((100vw - 22px) / 4)), 150px); }
+}
 
 </style>
 </head>
@@ -6967,7 +6973,21 @@ AMB.IMAGES = {
       over = shop.getBoundingClientRect().bottom - (vh - 2);
     }
   }
-  window.addEventListener('resize', () => { try { if (S.match) fitMatch(); } catch (e) { /* ignore */ } });
+  // the visible height changes while the page is open (Chrome's address bar hides, the phone rotates, the app comes back from the background):
+  // keep one CSS variable in step with the real visible height and re-fit the match whenever it changes
+  let lastAppH = 0;
+  function syncViewport() {
+    try {
+      const h = Math.round((globalThis.visualViewport && visualViewport.height) || innerHeight);
+      if (h !== lastAppH) { lastAppH = h; document.documentElement.style.setProperty('--app-h', h + 'px'); }
+      if (S.match && S.screen === 'match') fitMatch();
+    } catch (e) { /* ignore */ }
+  }
+  ['resize', 'orientationchange', 'pageshow', 'focus', 'scroll'].forEach((ev) => window.addEventListener(ev, syncViewport, { passive: true }));
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { syncViewport(); setTimeout(syncViewport, 300); } });
+  if (globalThis.visualViewport) { visualViewport.addEventListener('resize', syncViewport); visualViewport.addEventListener('scroll', syncViewport); }
+  setInterval(() => { if (S.screen === 'match') syncViewport(); }, 800);   // safety net for browsers that skip the events
+  syncViewport();
 
   function renderTop() {
     const m = S.match, p = me(), o = opp();
