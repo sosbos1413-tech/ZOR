@@ -59,22 +59,29 @@
   }
 
   function reveal(res) {
-    const ui = UI();
+    const ui = UI(), FX = AMB.FX;
     const best = res.cards.reduce((b, c) => (RAR[c.rarity].order > RAR[b.rarity].order ? c : b), res.cards[0]);
-    const cards = res.cards.map((c, i) => `<div class="rv" style="--d:${i * 0.45}s;--rc:${RAR[c.rarity].color}" data-r="${c.rarity}">
-        <div class="rv-in"><div class="rv-back"><span>ZOR</span></div><div class="rv-front">${ui.cardHTML(C.def(c.id), { k: 'rv' + i + c.id, lvl: c.level })}${tagFor(c)}</div></div></div>`).join('');
+    // the rarest cards turn last, after a build-up
+    const order = res.cards.map((c, i) => ({ c, i })).sort((a, b) => RAR[a.c.rarity].order - RAR[b.c.rarity].order || a.i - b.i).map((x) => x.c);
+    const T = FX ? FX.revealTimes(order) : order.map((_, i) => 0.35 + i * 0.45);
+    const cards = order.map((c, i) => `<div class="rv" style="--d:${T[i].toFixed(2)}s;--rc:${RAR[c.rarity].color}" data-r="${c.rarity}">
+        ${RAR[c.rarity].order >= 3 ? '<i class="rv-rays"></i>' : ''}<div class="rv-in"><div class="rv-back"><span>ZOR</span></div><div class="rv-front">${ui.cardHTML(C.def(c.id), { k: 'rv' + i + c.id, lvl: c.level })}${tagFor(c)}</div></div></div>`).join('');
     ui.overlay(`<div class="rv-wrap ${'best-' + best.rarity}"><h2>${res.forced ? 'الضمان اشتغل! ' : ''}${RAR[best.rarity].name === RAR.legendary.name ? '✨ ليجندري! ✨' : 'باكج الصدع'}</h2>
       <div class="rv-row">${cards}</div>
       ${res.refund ? `<p class="hint">نسخ بطاقات بالمستوى الأقصى تحوّلت إلى ${res.refund} شظية.</p>` : ''}
       <p class="rv-pity">${res.pityLeft === 0 ? 'الباكج الجاي فيه ليجندري مضمون!' : `باقي ${res.pityLeft} على ضمان الليجندري`}</p>
       <div class="rv-btns"><button class="btn primary" data-act="packOpen" ${W.canAfford(P.def(PACK).cost) ? '' : 'disabled'}>افتح باكج ثاني · ${icon('gem')} ${P.def(PACK).cost.shards}</button>
         <button class="btn" data-act="packDone" data-to="cards">مجموعتي</button><button class="btn ghost" data-act="packDone">تم</button></div></div>`);
-    res.cards.forEach((c, i) => setTimeout(() => {
-      if (!$('overlay').classList.contains('on')) return;
-      ui.sfx(RAR[c.rarity].order >= 3 ? 'merge' : 'click');
-      const el = document.querySelectorAll('.rv')[i];
-      if (el && RAR[c.rarity].order >= 3 && ui.burst) [RAR[c.rarity].color, '#ffffff'].forEach((col) => ui.burst(el, col, 14, { r: 110, s: 7 }));
-    }, 450 * i + 350));
+    const wrap = document.querySelector('.rv-wrap');
+    order.forEach((c, i) => {
+      const L = RAR[c.rarity].order;
+      if (FX && L >= 3) setTimeout(() => { if ($('overlay').classList.contains('on')) FX.charge(wrap, c.rarity); }, Math.max(0, T[i] * 1000 - (L === 4 ? 1300 : 600)));
+      setTimeout(() => {
+        if (!$('overlay').classList.contains('on')) return;
+        const el = document.querySelectorAll('.rv')[i];
+        if (FX) FX.reveal(el, c.rarity, wrap, c); else ui.sfx(L >= 3 ? 'merge' : 'click');
+      }, T[i] * 1000 + 300);
+    });
   }
 
   function installActions() {
@@ -90,7 +97,7 @@
     });
   }
 
-  AMB.PacksUI = { render, refreshMenu, installActions };
+  AMB.PacksUI = { render, refreshMenu, installActions, reveal };
   if (UI()) installActions();
   refreshMenu();
 })();

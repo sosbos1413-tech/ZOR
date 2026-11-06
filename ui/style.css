@@ -1764,3 +1764,50 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 
 /* the shop must never be squeezed or cut off: it keeps its height and the field gives way */
 @media (max-width: 860px) { #shopbar { flex: none; } #scr-match.active { height: 100dvh; } }
+
+/* ===== rarity weight: pack reveal + landing on the field ===== */
+.fx-shake { animation: fxshake var(--ms, 400ms) cubic-bezier(.36, .07, .19, .97) both; }
+@keyframes fxshake {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  10% { transform: translate(calc(var(--amp) * -1), calc(var(--amp) * .5)) rotate(-.3deg); }
+  20% { transform: translate(var(--amp), calc(var(--amp) * -.6)) rotate(.3deg); }
+  32% { transform: translate(calc(var(--amp) * -.8), calc(var(--amp) * -.4)); }
+  44% { transform: translate(calc(var(--amp) * .7), calc(var(--amp) * .5)); }
+  58% { transform: translate(calc(var(--amp) * -.45), calc(var(--amp) * .3)); }
+  72% { transform: translate(calc(var(--amp) * .3), calc(var(--amp) * -.2)); }
+  86% { transform: translate(calc(var(--amp) * -.15), 0); }
+}
+.fx-flash { position: fixed; inset: 0; z-index: 90; pointer-events: none; background: radial-gradient(circle at 50% 50%, #fff 0, var(--c) 45%, transparent 100%); opacity: 0; animation: fxflash var(--ms, 500ms) ease-out forwards; }
+@keyframes fxflash { 0% { opacity: var(--a, .3); } 100% { opacity: 0; } }
+.fx-ring { position: fixed; z-index: 60; width: 20px; height: 20px; border-radius: 50%; border: 4px solid var(--c, #fff); box-shadow: 0 0 18px var(--c, #fff), inset 0 0 14px var(--c, #fff); pointer-events: none; transform: translate(-50%, -50%) scale(.2); opacity: 0; animation: fxring .9s ease-out var(--dl, 0ms) forwards; }
+@keyframes fxring { 0% { opacity: .95; transform: translate(-50%, -50%) scale(.2); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(calc(var(--sz, 200px) / 20px)); border-width: 1px; } }
+.fx-crack { position: fixed; z-index: 44; width: 300px; height: 150px; pointer-events: none; transform: translate(-50%, -50%) scaleY(.5); opacity: 0;
+  background: repeating-conic-gradient(from 8deg at 50% 50%, var(--c) 0 2.2deg, transparent 2.2deg 24deg); -webkit-mask: radial-gradient(ellipse at center, #000 0, #000 22%, transparent 70%); mask: radial-gradient(ellipse at center, #000 0, #000 22%, transparent 70%);
+  filter: drop-shadow(0 0 6px var(--c)); animation: fxcrack 1.4s ease-out forwards; }
+@keyframes fxcrack { 0% { opacity: 1; transform: translate(-50%, -50%) scaleY(.5) scale(.3); } 25% { opacity: 1; transform: translate(-50%, -50%) scaleY(.5) scale(1); } 100% { opacity: 0; transform: translate(-50%, -50%) scaleY(.5) scale(1.15); } }
+.fx-slam { animation: fxslam .45s cubic-bezier(.2, 1.6, .4, 1); z-index: 9; position: relative; }
+.fx-slam.big { animation: fxslambig .65s cubic-bezier(.2, 1.7, .35, 1); filter: drop-shadow(0 0 16px #ff9f1a) brightness(1.4); }
+@keyframes fxslam { 0% { transform: translateY(-34px) scale(1.25); } 100% { transform: none; } }
+@keyframes fxslambig { 0% { transform: translateY(-110px) scale(1.7); opacity: .4; } 55% { transform: translateY(0) scale(.92); opacity: 1; } 75% { transform: scale(1.08); } 100% { transform: none; } }
+
+/* pack reveal build-up */
+.rv { position: relative; }
+.rv-rays { position: absolute; left: 50%; top: 45%; width: 420px; height: 420px; margin: -210px 0 0 -210px; z-index: -1; pointer-events: none; opacity: 0; border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, var(--rc) 0 6deg, transparent 6deg 18deg); -webkit-mask: radial-gradient(circle, #000 0, transparent 68%); mask: radial-gradient(circle, #000 0, transparent 68%); }
+.rv.hit .rv-rays { opacity: .75; animation: rvspin 9s linear infinite, rvray .6s ease-out; }
+.rv[data-r=legendary].hit .rv-rays { width: 620px; height: 620px; margin: -310px 0 0 -310px; opacity: .95; }
+@keyframes rvspin { to { transform: rotate(360deg); } }
+@keyframes rvray { from { opacity: 0; transform: scale(.2); } }
+.rv[data-r=legendary].hit .rv-front .tcard { filter: drop-shadow(0 0 22px #ff9f1a) drop-shadow(0 0 40px #ff9f1a88); animation: rvglow 1.4s ease-in-out infinite alternate; }
+@keyframes rvglow { from { filter: drop-shadow(0 0 14px #ff9f1a) brightness(1); } to { filter: drop-shadow(0 0 34px #ffd24a) brightness(1.18); } }
+.rv[data-r=legendary].hit { animation: rvboom .7s ease-out; }
+@keyframes rvboom { 0% { scale: 1.4; } 100% { scale: 1; } }
+.rv-wrap.rv-charge-4::before, .rv-wrap.rv-charge-3::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(circle at 50% 50%, transparent 20%, #000d 85%); animation: rvdark 1.3s ease-in forwards; }
+.rv-wrap.rv-charge-3::before { background: radial-gradient(circle at 50% 50%, transparent 30%, #000a 90%); animation-duration: .6s; }
+@keyframes rvdark { from { opacity: 0; } to { opacity: 1; } }
+.rv-wrap.rv-charge-4 .rv:not(.hit) { animation: rvtremble .09s linear infinite; }
+.rv-wrap.rv-charge-4 .rv[data-r=legendary]:not(.hit) { filter: drop-shadow(0 0 16px #ff9f1a); }
+@keyframes rvtremble { 0% { transform: translate(1px, 0); } 50% { transform: translate(-1px, 1px); } 100% { transform: translate(0, -1px); } }
+.rv-wrap.rv-hit-legendary h2 { animation: pcpulse .35s 4 alternate; }
+@media (max-width: 520px) { .rv-rays { width: 300px; height: 300px; margin: -150px 0 0 -150px; } .rv[data-r=legendary].hit .rv-rays { width: 420px; height: 420px; margin: -210px 0 0 -210px; } .fx-crack { width: 200px; height: 100px; } }
+@media (prefers-reduced-motion: reduce) { .fx-shake, .fx-flash, .fx-ring, .fx-crack, .fx-slam, .rv-rays { animation: none !important; } }

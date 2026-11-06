@@ -463,6 +463,14 @@
     heal: (c) => { tone(c, { f: 660, d: 0.12, v: 0.08 }); tone(c, { f: 880, d: 0.16, v: 0.08, at: 0.09 }); tone(c, { f: 1320, d: 0.2, v: 0.06, at: 0.18 }); },
     death: (c) => { noise(c, 0.3, 0.14, 300); tone(c, { f: 220, to: 40, d: 0.35, v: 0.16, type: 'sawtooth' }); },
     merge: (c) => { [523, 659, 784, 1047].forEach((f, i) => tone(c, { f, d: 0.22, v: 0.12, type: 'triangle', at: i * 0.07 })); noise(c, 0.25, 0.06, 4000); },
+    land1: (c) => noise(c, 0.07, 0.05, 700),
+    land2: (c) => { tone(c, { f: 130, to: 70, d: 0.16, v: 0.14, type: 'sine' }); noise(c, 0.12, 0.07, 500); },
+    land3: (c) => { tone(c, { f: 100, to: 45, d: 0.3, v: 0.2, type: 'sawtooth' }); tone(c, { f: 60, to: 35, d: 0.35, v: 0.2, type: 'sine' }); noise(c, 0.26, 0.12, 300); },
+    land4: (c) => { tone(c, { f: 70, to: 28, d: 0.7, v: 0.32, type: 'sine' }); tone(c, { f: 150, to: 45, d: 0.45, v: 0.22, type: 'sawtooth' }); noise(c, 0.6, 0.2, 160); [784, 1047, 1319].forEach((f, i) => tone(c, { f, d: 0.35, v: 0.08, type: 'triangle', at: 0.18 + i * 0.09 })); },
+    charge: (c) => { tone(c, { f: 60, to: 420, d: 1.4, v: 0.16, type: 'sawtooth' }); tone(c, { f: 120, to: 840, d: 1.4, v: 0.06, type: 'triangle' }); noise(c, 1.4, 0.06, 900); },
+    epicCharge: (c) => { tone(c, { f: 100, to: 380, d: 0.6, v: 0.1, type: 'sawtooth' }); },
+    epicHit: (c) => { tone(c, { f: 90, to: 40, d: 0.4, v: 0.22, type: 'sine' }); noise(c, 0.3, 0.12, 400); [523, 659, 784, 988].forEach((f, i) => tone(c, { f, d: 0.3, v: 0.1, type: 'triangle', at: 0.05 + i * 0.07 })); },
+    legend: (c) => { tone(c, { f: 60, to: 26, d: 0.9, v: 0.34, type: 'sine' }); noise(c, 0.7, 0.18, 160); [392, 523, 659, 784, 1047, 1319].forEach((f, i) => tone(c, { f, d: 0.7, v: 0.1, type: 'triangle', at: 0.08 + i * 0.1 })); },
     banner: (c) => { tone(c, { f: 90, to: 50, d: 0.35, v: 0.2, type: 'sawtooth' }); noise(c, 0.25, 0.08, 500); },
     win: (c) => { [523, 659, 784, 1047, 1319].forEach((f, i) => tone(c, { f, d: 0.28, v: 0.13, type: 'triangle', at: i * 0.11 })); },
     lose: (c) => { [392, 330, 262, 196].forEach((f, i) => tone(c, { f, d: 0.34, v: 0.13, type: 'sawtooth', at: i * 0.16 })); },
@@ -597,6 +605,7 @@
     renderLeft();
     renderRight();
     renderCombatCtrl();
+    if (AMB.FX) AMB.FX.watch();
   }
 
   function renderTop() {

@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="028126f600">
+<meta name="zor-build" content="17c47b5785">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1784,6 +1784,53 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 
 /* the shop must never be squeezed or cut off: it keeps its height and the field gives way */
 @media (max-width: 860px) { #shopbar { flex: none; } #scr-match.active { height: 100dvh; } }
+
+/* ===== rarity weight: pack reveal + landing on the field ===== */
+.fx-shake { animation: fxshake var(--ms, 400ms) cubic-bezier(.36, .07, .19, .97) both; }
+@keyframes fxshake {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  10% { transform: translate(calc(var(--amp) * -1), calc(var(--amp) * .5)) rotate(-.3deg); }
+  20% { transform: translate(var(--amp), calc(var(--amp) * -.6)) rotate(.3deg); }
+  32% { transform: translate(calc(var(--amp) * -.8), calc(var(--amp) * -.4)); }
+  44% { transform: translate(calc(var(--amp) * .7), calc(var(--amp) * .5)); }
+  58% { transform: translate(calc(var(--amp) * -.45), calc(var(--amp) * .3)); }
+  72% { transform: translate(calc(var(--amp) * .3), calc(var(--amp) * -.2)); }
+  86% { transform: translate(calc(var(--amp) * -.15), 0); }
+}
+.fx-flash { position: fixed; inset: 0; z-index: 90; pointer-events: none; background: radial-gradient(circle at 50% 50%, #fff 0, var(--c) 45%, transparent 100%); opacity: 0; animation: fxflash var(--ms, 500ms) ease-out forwards; }
+@keyframes fxflash { 0% { opacity: var(--a, .3); } 100% { opacity: 0; } }
+.fx-ring { position: fixed; z-index: 60; width: 20px; height: 20px; border-radius: 50%; border: 4px solid var(--c, #fff); box-shadow: 0 0 18px var(--c, #fff), inset 0 0 14px var(--c, #fff); pointer-events: none; transform: translate(-50%, -50%) scale(.2); opacity: 0; animation: fxring .9s ease-out var(--dl, 0ms) forwards; }
+@keyframes fxring { 0% { opacity: .95; transform: translate(-50%, -50%) scale(.2); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(calc(var(--sz, 200px) / 20px)); border-width: 1px; } }
+.fx-crack { position: fixed; z-index: 44; width: 300px; height: 150px; pointer-events: none; transform: translate(-50%, -50%) scaleY(.5); opacity: 0;
+  background: repeating-conic-gradient(from 8deg at 50% 50%, var(--c) 0 2.2deg, transparent 2.2deg 24deg); -webkit-mask: radial-gradient(ellipse at center, #000 0, #000 22%, transparent 70%); mask: radial-gradient(ellipse at center, #000 0, #000 22%, transparent 70%);
+  filter: drop-shadow(0 0 6px var(--c)); animation: fxcrack 1.4s ease-out forwards; }
+@keyframes fxcrack { 0% { opacity: 1; transform: translate(-50%, -50%) scaleY(.5) scale(.3); } 25% { opacity: 1; transform: translate(-50%, -50%) scaleY(.5) scale(1); } 100% { opacity: 0; transform: translate(-50%, -50%) scaleY(.5) scale(1.15); } }
+.fx-slam { animation: fxslam .45s cubic-bezier(.2, 1.6, .4, 1); z-index: 9; position: relative; }
+.fx-slam.big { animation: fxslambig .65s cubic-bezier(.2, 1.7, .35, 1); filter: drop-shadow(0 0 16px #ff9f1a) brightness(1.4); }
+@keyframes fxslam { 0% { transform: translateY(-34px) scale(1.25); } 100% { transform: none; } }
+@keyframes fxslambig { 0% { transform: translateY(-110px) scale(1.7); opacity: .4; } 55% { transform: translateY(0) scale(.92); opacity: 1; } 75% { transform: scale(1.08); } 100% { transform: none; } }
+
+/* pack reveal build-up */
+.rv { position: relative; }
+.rv-rays { position: absolute; left: 50%; top: 45%; width: 420px; height: 420px; margin: -210px 0 0 -210px; z-index: -1; pointer-events: none; opacity: 0; border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, var(--rc) 0 6deg, transparent 6deg 18deg); -webkit-mask: radial-gradient(circle, #000 0, transparent 68%); mask: radial-gradient(circle, #000 0, transparent 68%); }
+.rv.hit .rv-rays { opacity: .75; animation: rvspin 9s linear infinite, rvray .6s ease-out; }
+.rv[data-r=legendary].hit .rv-rays { width: 620px; height: 620px; margin: -310px 0 0 -310px; opacity: .95; }
+@keyframes rvspin { to { transform: rotate(360deg); } }
+@keyframes rvray { from { opacity: 0; transform: scale(.2); } }
+.rv[data-r=legendary].hit .rv-front .tcard { filter: drop-shadow(0 0 22px #ff9f1a) drop-shadow(0 0 40px #ff9f1a88); animation: rvglow 1.4s ease-in-out infinite alternate; }
+@keyframes rvglow { from { filter: drop-shadow(0 0 14px #ff9f1a) brightness(1); } to { filter: drop-shadow(0 0 34px #ffd24a) brightness(1.18); } }
+.rv[data-r=legendary].hit { animation: rvboom .7s ease-out; }
+@keyframes rvboom { 0% { scale: 1.4; } 100% { scale: 1; } }
+.rv-wrap.rv-charge-4::before, .rv-wrap.rv-charge-3::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(circle at 50% 50%, transparent 20%, #000d 85%); animation: rvdark 1.3s ease-in forwards; }
+.rv-wrap.rv-charge-3::before { background: radial-gradient(circle at 50% 50%, transparent 30%, #000a 90%); animation-duration: .6s; }
+@keyframes rvdark { from { opacity: 0; } to { opacity: 1; } }
+.rv-wrap.rv-charge-4 .rv:not(.hit) { animation: rvtremble .09s linear infinite; }
+.rv-wrap.rv-charge-4 .rv[data-r=legendary]:not(.hit) { filter: drop-shadow(0 0 16px #ff9f1a); }
+@keyframes rvtremble { 0% { transform: translate(1px, 0); } 50% { transform: translate(-1px, 1px); } 100% { transform: translate(0, -1px); } }
+.rv-wrap.rv-hit-legendary h2 { animation: pcpulse .35s 4 alternate; }
+@media (max-width: 520px) { .rv-rays { width: 300px; height: 300px; margin: -150px 0 0 -150px; } .rv[data-r=legendary].hit .rv-rays { width: 420px; height: 420px; margin: -210px 0 0 -210px; } .fx-crack { width: 200px; height: 100px; } }
+@media (prefers-reduced-motion: reduce) { .fx-shake, .fx-flash, .fx-ring, .fx-crack, .fx-slam, .rv-rays { animation: none !important; } }
 
 </style>
 </head>
@@ -6480,6 +6527,14 @@ AMB.IMAGES = {
     heal: (c) => { tone(c, { f: 660, d: 0.12, v: 0.08 }); tone(c, { f: 880, d: 0.16, v: 0.08, at: 0.09 }); tone(c, { f: 1320, d: 0.2, v: 0.06, at: 0.18 }); },
     death: (c) => { noise(c, 0.3, 0.14, 300); tone(c, { f: 220, to: 40, d: 0.35, v: 0.16, type: 'sawtooth' }); },
     merge: (c) => { [523, 659, 784, 1047].forEach((f, i) => tone(c, { f, d: 0.22, v: 0.12, type: 'triangle', at: i * 0.07 })); noise(c, 0.25, 0.06, 4000); },
+    land1: (c) => noise(c, 0.07, 0.05, 700),
+    land2: (c) => { tone(c, { f: 130, to: 70, d: 0.16, v: 0.14, type: 'sine' }); noise(c, 0.12, 0.07, 500); },
+    land3: (c) => { tone(c, { f: 100, to: 45, d: 0.3, v: 0.2, type: 'sawtooth' }); tone(c, { f: 60, to: 35, d: 0.35, v: 0.2, type: 'sine' }); noise(c, 0.26, 0.12, 300); },
+    land4: (c) => { tone(c, { f: 70, to: 28, d: 0.7, v: 0.32, type: 'sine' }); tone(c, { f: 150, to: 45, d: 0.45, v: 0.22, type: 'sawtooth' }); noise(c, 0.6, 0.2, 160); [784, 1047, 1319].forEach((f, i) => tone(c, { f, d: 0.35, v: 0.08, type: 'triangle', at: 0.18 + i * 0.09 })); },
+    charge: (c) => { tone(c, { f: 60, to: 420, d: 1.4, v: 0.16, type: 'sawtooth' }); tone(c, { f: 120, to: 840, d: 1.4, v: 0.06, type: 'triangle' }); noise(c, 1.4, 0.06, 900); },
+    epicCharge: (c) => { tone(c, { f: 100, to: 380, d: 0.6, v: 0.1, type: 'sawtooth' }); },
+    epicHit: (c) => { tone(c, { f: 90, to: 40, d: 0.4, v: 0.22, type: 'sine' }); noise(c, 0.3, 0.12, 400); [523, 659, 784, 988].forEach((f, i) => tone(c, { f, d: 0.3, v: 0.1, type: 'triangle', at: 0.05 + i * 0.07 })); },
+    legend: (c) => { tone(c, { f: 60, to: 26, d: 0.9, v: 0.34, type: 'sine' }); noise(c, 0.7, 0.18, 160); [392, 523, 659, 784, 1047, 1319].forEach((f, i) => tone(c, { f, d: 0.7, v: 0.1, type: 'triangle', at: 0.08 + i * 0.1 })); },
     banner: (c) => { tone(c, { f: 90, to: 50, d: 0.35, v: 0.2, type: 'sawtooth' }); noise(c, 0.25, 0.08, 500); },
     win: (c) => { [523, 659, 784, 1047, 1319].forEach((f, i) => tone(c, { f, d: 0.28, v: 0.13, type: 'triangle', at: i * 0.11 })); },
     lose: (c) => { [392, 330, 262, 196].forEach((f, i) => tone(c, { f, d: 0.34, v: 0.13, type: 'sawtooth', at: i * 0.16 })); },
@@ -6614,6 +6669,7 @@ AMB.IMAGES = {
     renderLeft();
     renderRight();
     renderCombatCtrl();
+    if (AMB.FX) AMB.FX.watch();
   }
 
   function renderTop() {
@@ -7766,22 +7822,29 @@ AMB.IMAGES = {
   }
 
   function reveal(res) {
-    const ui = UI();
+    const ui = UI(), FX = AMB.FX;
     const best = res.cards.reduce((b, c) => (RAR[c.rarity].order > RAR[b.rarity].order ? c : b), res.cards[0]);
-    const cards = res.cards.map((c, i) => `<div class="rv" style="--d:${i * 0.45}s;--rc:${RAR[c.rarity].color}" data-r="${c.rarity}">
-        <div class="rv-in"><div class="rv-back"><span>ZOR</span></div><div class="rv-front">${ui.cardHTML(C.def(c.id), { k: 'rv' + i + c.id, lvl: c.level })}${tagFor(c)}</div></div></div>`).join('');
+    // the rarest cards turn last, after a build-up
+    const order = res.cards.map((c, i) => ({ c, i })).sort((a, b) => RAR[a.c.rarity].order - RAR[b.c.rarity].order || a.i - b.i).map((x) => x.c);
+    const T = FX ? FX.revealTimes(order) : order.map((_, i) => 0.35 + i * 0.45);
+    const cards = order.map((c, i) => `<div class="rv" style="--d:${T[i].toFixed(2)}s;--rc:${RAR[c.rarity].color}" data-r="${c.rarity}">
+        ${RAR[c.rarity].order >= 3 ? '<i class="rv-rays"></i>' : ''}<div class="rv-in"><div class="rv-back"><span>ZOR</span></div><div class="rv-front">${ui.cardHTML(C.def(c.id), { k: 'rv' + i + c.id, lvl: c.level })}${tagFor(c)}</div></div></div>`).join('');
     ui.overlay(`<div class="rv-wrap ${'best-' + best.rarity}"><h2>${res.forced ? 'الضمان اشتغل! ' : ''}${RAR[best.rarity].name === RAR.legendary.name ? '✨ ليجندري! ✨' : 'باكج الصدع'}</h2>
       <div class="rv-row">${cards}</div>
       ${res.refund ? `<p class="hint">نسخ بطاقات بالمستوى الأقصى تحوّلت إلى ${res.refund} شظية.</p>` : ''}
       <p class="rv-pity">${res.pityLeft === 0 ? 'الباكج الجاي فيه ليجندري مضمون!' : `باقي ${res.pityLeft} على ضمان الليجندري`}</p>
       <div class="rv-btns"><button class="btn primary" data-act="packOpen" ${W.canAfford(P.def(PACK).cost) ? '' : 'disabled'}>افتح باكج ثاني · ${icon('gem')} ${P.def(PACK).cost.shards}</button>
         <button class="btn" data-act="packDone" data-to="cards">مجموعتي</button><button class="btn ghost" data-act="packDone">تم</button></div></div>`);
-    res.cards.forEach((c, i) => setTimeout(() => {
-      if (!$('overlay').classList.contains('on')) return;
-      ui.sfx(RAR[c.rarity].order >= 3 ? 'merge' : 'click');
-      const el = document.querySelectorAll('.rv')[i];
-      if (el && RAR[c.rarity].order >= 3 && ui.burst) [RAR[c.rarity].color, '#ffffff'].forEach((col) => ui.burst(el, col, 14, { r: 110, s: 7 }));
-    }, 450 * i + 350));
+    const wrap = document.querySelector('.rv-wrap');
+    order.forEach((c, i) => {
+      const L = RAR[c.rarity].order;
+      if (FX && L >= 3) setTimeout(() => { if ($('overlay').classList.contains('on')) FX.charge(wrap, c.rarity); }, Math.max(0, T[i] * 1000 - (L === 4 ? 1300 : 600)));
+      setTimeout(() => {
+        if (!$('overlay').classList.contains('on')) return;
+        const el = document.querySelectorAll('.rv')[i];
+        if (FX) FX.reveal(el, c.rarity, wrap, c); else ui.sfx(L >= 3 ? 'merge' : 'click');
+      }, T[i] * 1000 + 300);
+    });
   }
 
   function installActions() {
@@ -7797,7 +7860,7 @@ AMB.IMAGES = {
     });
   }
 
-  AMB.PacksUI = { render, refreshMenu, installActions };
+  AMB.PacksUI = { render, refreshMenu, installActions, reveal };
   if (UI()) installActions();
   refreshMenu();
 })();
@@ -7973,6 +8036,113 @@ AMB.IMAGES = {
   AMB.CampaignUI = { render, refreshMenu, showResult, installActions, isNewbie };
   if (UI()) installActions();
   refreshMenu();
+})();
+
+</script>
+<script>
+/*
+ * Rarity-scaled "weight" effects (presentation only, nothing here touches the game rules):
+ *   - pack reveal: the rarer the card, the bigger the build-up, flash, rays, rings, screen shake and sound
+ *   - landing on the battlefield: the rarer the card, the harder the ground shakes
+ * Rarity order: 1 common (almost nothing) … 4 legendary (the whole screen shakes).
+ */
+(function () {
+  const AMB = globalThis.AMB;
+  const UI = () => globalThis.AMB_UI;
+  const RAR = () => AMB.ECONOMY.rarities;
+  const calm = () => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
+  const buzz = (p) => { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { /* ignore */ } };
+  const ord = (r) => (RAR()[r] ? RAR()[r].order : 1);
+  const col = (r) => (RAR()[r] ? RAR()[r].color : '#fff');
+
+  function shake(el, level) {   // level 1..4 → how far and how long the ground moves
+    if (!el || calm()) return;
+    const amp = [0, 0, 3, 6, 12][level] || 0, ms = [0, 0, 220, 380, 800][level] || 0; if (!amp) return;
+    el.style.setProperty('--amp', amp + 'px'); el.style.setProperty('--ms', ms + 'ms');
+    el.classList.remove('fx-shake'); void el.offsetWidth; el.classList.add('fx-shake');
+    setTimeout(() => el.classList.remove('fx-shake'), ms + 40);
+  }
+  function tint(color, level, ms) {   // a flash over the whole screen
+    if (calm()) return;
+    const d = document.createElement('div'); d.className = 'fx-flash'; d.style.setProperty('--c', color); d.style.setProperty('--a', [0, 0, 0.18, 0.32, 0.85][level] || 0.2); d.style.setProperty('--ms', (ms || 520) + 'ms');
+    document.body.appendChild(d); setTimeout(() => d.remove(), (ms || 520) + 60);
+  }
+  function rings(el, color, n, size) {   // shock-waves spreading from an element
+    if (!el || calm()) return;
+    const r = el.getBoundingClientRect();
+    for (let i = 0; i < n; i++) {
+      const q = document.createElement('i'); q.className = 'fx-ring'; q.style.setProperty('--c', color); q.style.setProperty('--sz', size + 'px'); q.style.setProperty('--dl', i * 130 + 'ms');
+      q.style.left = r.left + r.width / 2 + 'px'; q.style.top = r.top + r.height / 2 + 'px';
+      document.body.appendChild(q); setTimeout(() => q.remove(), 1100 + i * 130);
+    }
+  }
+  function cracks(el, color) {   // cracks in the ground around a legendary landing
+    if (!el || calm()) return;
+    const r = el.getBoundingClientRect(), q = document.createElement('i'); q.className = 'fx-crack'; q.style.setProperty('--c', color);
+    q.style.left = r.left + r.width / 2 + 'px'; q.style.top = r.top + r.height * 0.85 + 'px';
+    document.body.appendChild(q); setTimeout(() => q.remove(), 1500);
+  }
+
+  /** A card was just placed on the battlefield. */
+  function land(el, rarity) {
+    const ui = UI(), L = ord(rarity), c = col(rarity); if (!el || !ui) return;
+    ui.sfx('land' + L);
+    if (L >= 2 && ui.burst) ui.burst(el, c, [0, 6, 12, 20, 42][L], { r: [0, 30, 46, 70, 120][L], s: L >= 4 ? 9 : 6 });
+    if (L === 1 && ui.burst) ui.burst(el, '#d8cfb8', 5, { r: 22, s: 4 });
+    if (L >= 2) rings(el, c, L - 1, [0, 0, 120, 190, 320][L]);
+    if (L >= 3) tint(c, L, L === 4 ? 650 : 420);
+    if (L >= 4) { cracks(el, c); ui.burst && ui.burst(el, '#ffffff', 18, { r: 90, s: 7 }); }
+    shake(L >= 4 ? document.getElementById('scr-match') : document.getElementById('field'), L);
+    if (L >= 3 && !calm()) { const t = el.querySelector('.tcard') || el; t.classList.remove('fx-slam'); void t.offsetWidth; t.classList.add('fx-slam'); if (L >= 4) t.classList.add('big'); setTimeout(() => t.classList.remove('fx-slam', 'big'), 700); }
+    buzz([0, 0, 15, 35, [60, 40, 110]][L] || 0);
+  }
+
+  // called after every match render: any of my cards that just arrived on the field gets its landing
+  let seen = null;
+  function watch() {
+    const S = ui_S(); if (!S || !S.match) { seen = null; return; }
+    const p = S.match.players[S.v];
+    const now = new Set(Object.values(p.board || {}).filter(Boolean).map((u) => u.uid));
+    if (!seen || seen.m !== S.match || seen.v !== S.v) { seen = { m: S.match, v: S.v, ids: now }; return; }
+    const fresh = [...now].filter((id) => !seen.ids.has(id)); seen.ids = now;
+    if (S.phase === 'combat' || !fresh.length) return;
+    fresh.forEach((id, i) => {
+      const u = Object.values(p.board).find((x) => x && x.uid === id); if (!u) return;
+      const el = document.querySelector(`#slots [data-drag="unit:${id}"]`) || document.querySelector(`[data-drag="unit:${id}"]`);
+      if (el) setTimeout(() => land(el, AMB.collection ? AMB.collection.rarity(u.defId) : 'common'), 40 + i * 120);
+    });
+  }
+  const ui_S = () => (UI() && UI().S) || null;
+
+  /** Pack reveal: timing + effects for the card at position `i` of the (rarity-ascending) row. */
+  function revealTimes(cards) {
+    let t = 0.35; const out = [];
+    cards.forEach((c) => { const L = ord(c.rarity); t += L === 4 ? 1.5 : L === 3 ? 0.7 : 0.4; out.push(t); });
+    return out;
+  }
+  function reveal(el, rarity, wrap, card) {
+    const ui = UI(), L = ord(rarity), c = col(rarity); if (!el || !ui) return;
+    el.classList.add('hit');
+    if (L === 1) { ui.sfx('click'); return; }
+    if (L === 2) { ui.sfx('merge'); ui.burst && ui.burst(el, c, 14, { r: 100, s: 7 }); rings(el, c, 1, 220); return; }
+    const ov = document.getElementById('overlay');
+    ui.sfx(L === 3 ? 'epicHit' : 'legend');
+    ui.burst && [c, '#ffffff', '#ffd24a'].forEach((cc, k) => ui.burst(el, cc, L === 4 ? 30 : 16, { r: L === 4 ? 190 + k * 30 : 130, s: L === 4 ? 10 : 8 }));
+    rings(el, c, L === 4 ? 4 : 2, L === 4 ? 560 : 340);
+    tint(L === 4 ? '#fff6d0' : c, L, L === 4 ? 900 : 500);
+    shake(ov && ov.firstElementChild, L === 4 ? 4 : 3);
+    buzz(L === 4 ? [80, 50, 160, 50, 260] : [50, 30, 80]);
+    if (wrap) { wrap.classList.add('rv-hit-' + rarity); setTimeout(() => wrap.classList.remove('rv-hit-' + rarity), 1500); }
+  }
+  /** Build-up before a rare card turns: the screen darkens and a rumble grows. */
+  function charge(wrap, rarity) {
+    const ui = UI(), L = ord(rarity); if (!ui || L < 3) return;
+    wrap && wrap.classList.add('rv-charge-' + L);
+    ui.sfx(L === 4 ? 'charge' : 'epicCharge'); buzz(L === 4 ? [30, 30, 40, 30, 60, 30, 90] : [30, 30, 40]);
+    setTimeout(() => wrap && wrap.classList.remove('rv-charge-' + L), L === 4 ? 1500 : 700);
+  }
+
+  AMB.FX = { land, watch, reveal, charge, revealTimes, shake, tint, rings, ord };
 })();
 
 </script>
