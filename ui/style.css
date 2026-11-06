@@ -1924,3 +1924,5 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 .tcard.hc.cv3.item .hc-chips .sv .ic { width: calc(9 * var(--u)); height: calc(9 * var(--u)); color: #ffd24a; }
 .tcard.hc.cv3.item .hc-cost { left: calc(3 * var(--u)); bottom: calc(2.6 * var(--u)); }
 .tcard.hc.cv3.item .hc-name { left: calc(8 * var(--u)); }
+.upd-banner { transition: opacity .35s, transform .35s; }
+.upd-banner.gone { opacity: 0; transform: translate(-50%, 14px); pointer-events: none !important; }

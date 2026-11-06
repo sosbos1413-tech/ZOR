@@ -15,17 +15,25 @@
   const UI = () => globalThis.AMB_UI;
   const busy = () => { const u = UI(); return !u || u.S.screen === 'match' || u.S.screen === 'hero' || document.getElementById('overlay').classList.contains('on'); };
 
-  function showBanner(text, withBtn) {
+  // the notice comes, stays ~2 seconds and goes (it never sits on top of the cards); it is not repeated for the same message
+  let hideT = 0, lastMsg = '';
+  function showBanner(text, withBtn, ms) {
+    if (text === lastMsg && !withBtn) return;
+    lastMsg = text;
     if (!banner) { banner = document.createElement('div'); banner.className = 'upd-banner'; document.body.appendChild(banner); }
-    banner.innerHTML = `<span>${text}</span>${withBtn ? '<button class="btn small primary" id="upd-now">حدّث الآن</button>' : ''}`;
+    const inMatch = UI() && UI().S.screen === 'match';
+    banner.innerHTML = `<span>${text}</span>${withBtn && !inMatch ? '<button class="btn small primary" id="upd-now">حدّث الآن</button>' : ''}`;
+    banner.style.pointerEvents = withBtn && !inMatch ? '' : 'none';
+    banner.classList.remove('gone'); void banner.offsetWidth;
     const b = banner.querySelector('#upd-now'); if (b) b.onclick = () => apply(pending);
+    clearTimeout(hideT); hideT = setTimeout(() => { if (banner) banner.classList.add('gone'); }, ms || 2000);
   }
   function apply(v) { ss.set('zor_upd', v); location.replace(location.pathname + '?v=' + encodeURIComponent(v)); }   // the query string skips a stale cached copy
 
   function tick() {
     if (!pending) return;
     if (busy()) { showBanner('🔄 فيه تحديث جديد — يتطبّق بعد المباراة'); return; }
-    if (ss.get('zor_upd') === pending) { showBanner('🔄 فيه تحديث جديد', true); return; }   // already tried once for this version: let the player decide
+    if (ss.get('zor_upd') === pending) { showBanner('🔄 فيه تحديث جديد', true, 6000); return; }   // already tried once for this version: let the player decide
     const v = pending; pending = null;
     showBanner('🔄 جاري تحديث اللعبة… تقدّمك محفوظ');
     setTimeout(() => apply(v), 1200);
