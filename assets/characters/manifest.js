@@ -35,6 +35,7 @@ AMB.IMAGES = {
   "kurenai": "assets/characters/kurenai.jpg",
   "lunar_blade": "assets/characters/lunar_blade.jpg",
   "merin": "assets/characters/merin.jpg",
+  "mikazuki": "assets/characters/mikazuki.jpg",
   "mist_witch": "assets/characters/mist_witch.jpg",
   "mitsuki": "assets/characters/mitsuki.jpg",
   "miyuki": "assets/characters/miyuki.jpg",
