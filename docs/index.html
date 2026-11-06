@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="17c47b5785">
+<meta name="zor-build" content="e2fa84efb3">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -793,6 +793,7 @@ h1, h2, h3 { font-family: var(--display); font-weight: 400; letter-spacing: .3px
 
 /* ---- mini card = board minion: oval portrait + ring + two discs */
 .tcard.hc.mini { width: 100%; height: 100%; container-type: inline-size; }
+.tcard.hc.cv3.full { --u: calc(var(--hw, 100px) / 100); container-type: normal; }
 .tcard.hc.mini .hc-art { left: 8%; right: 8%; top: 4%; height: 76%; }
 .tcard.hc.mini .hc-ring { left: 4%; right: 4%; top: 1%; height: 82%; padding: max(3px, 4cqw); }
 .tcard.hc.mini.s3 .hc-ring { filter: drop-shadow(1px 0 0 #000) drop-shadow(-1px 0 0 #000) drop-shadow(0 1px 0 #000) drop-shadow(0 -1px 0 #000) drop-shadow(0 0 7px #ffd24acc); }
@@ -1831,6 +1832,108 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 .rv-wrap.rv-hit-legendary h2 { animation: pcpulse .35s 4 alternate; }
 @media (max-width: 520px) { .rv-rays { width: 300px; height: 300px; margin: -150px 0 0 -150px; } .rv[data-r=legendary].hit .rv-rays { width: 420px; height: 420px; margin: -210px 0 0 -210px; } .fx-crack { width: 200px; height: 100px; } }
 @media (prefers-reduced-motion: reduce) { .fx-shake, .fx-flash, .fx-ring, .fx-crack, .fx-slam, .rv-rays { animation: none !important; } }
+
+/* =====================================================================
+   CARD DESIGN v3 — "rift crack" frame + glass name/stat plates
+   frame colour = world · glow & gems = rarity · numbers sit on a glass bar
+   ===================================================================== */
+.tcard.hc.cv3 { --notch: polygon(0 0, 62% 0, 56% 7%, 66% 12%, 60% 19%, 100% 19%, 100% 100%, 38% 100%, 44% 93%, 34% 88%, 40% 81%, 0 81%);
+  --rc3: #9aa3ad; --wc2: color-mix(in srgb, var(--wc) 22%, #000); container-type: inline-size; }
+.tcard.hc.cv3.r-common { --rc3: #9aa3ad; } .tcard.hc.cv3.r-rare { --rc3: #3d8ff0; } .tcard.hc.cv3.r-epic { --rc3: #a855f7; } .tcard.hc.cv3.r-legendary { --rc3: #ffb02e; }
+.tcard.hc.cv3 .hc-ring, .tcard.hc.cv3 .hc-rar, .tcard.hc.cv3.full .hc-frame::before, .tcard.hc.cv3.full .hc-frame::after, .tcard.hc.cv3 .hc-halo { display: none !important; }
+.tcard.hc.cv3 .hc-frame { position: absolute; inset: 0; border: 0; border-radius: 0; overflow: hidden; clip-path: var(--notch); background: linear-gradient(160deg, var(--wc), var(--wc2)); box-shadow: none; }
+.tcard.hc.cv3 .hc-frame::before, .tcard.hc.cv3 .hc-frame::after { display: none; }
+.tcard.hc.cv3.full .hc-art { position: absolute; inset: calc(2 * var(--u)); left: calc(2 * var(--u)); right: calc(2 * var(--u)); top: calc(2 * var(--u)); height: auto; bottom: calc(2 * var(--u)); border-radius: 0; clip-path: var(--notch); background: #0d0909; }
+.tcard.hc.cv3.mini .hc-art { position: absolute; inset: 2cqw; left: 2cqw; right: 2cqw; top: 2cqw; height: auto; bottom: 2cqw; border-radius: 0; clip-path: var(--notch); background: #0d0909; }
+.tcard.hc.cv3 .hc-art::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 55%, #000a 100%); pointer-events: none; }
+.tcard.hc.cv3 .sheen { display: none; }
+.tcard.hc.cv3.full.r-legendary .sheen, .tcard.hc.cv3.mini.r-legendary .hc-art .sheen { display: block; border-radius: 0; }
+.tcard.hc.cv3.full { filter: drop-shadow(0 0 3px var(--rc3)) drop-shadow(2px 3px 0 #000); }
+.tcard.hc.cv3.full.r-epic { filter: drop-shadow(0 0 6px var(--rc3)) drop-shadow(2px 3px 0 #000); }
+.tcard.hc.cv3.full.r-legendary { filter: drop-shadow(0 0 9px var(--rc3)) drop-shadow(0 0 3px var(--rc3)) drop-shadow(2px 3px 0 #000); }
+.tcard.hc.cv3.full.cant { filter: grayscale(.7) drop-shadow(2px 3px 0 #000); }
+/* glass name pill */
+.tcard.hc.cv3.full .hc-name { left: calc(22 * var(--u)); right: calc(4 * var(--u)); top: calc(33 * var(--u)); height: calc(13.5 * var(--u)); border: calc(0.8 * var(--u)) solid #fff8; border-radius: calc(7 * var(--u)); background: #000a; backdrop-filter: blur(2px); z-index: 4; display: grid; place-items: center; box-shadow: none; clip-path: none; }
+.tcard.hc.cv3.full .hc-name::before, .tcard.hc.cv3.full .hc-name::after { display: none; }
+.tcard.hc.cv3.full .hc-name b { max-width: 100%; padding: 0 calc(2 * var(--u)); font-size: calc(8.6 * var(--u)); font-weight: 800; color: #fff; text-shadow: 1px 1px 0 #000; }
+/* emblems column: world · role · skill */
+.tcard.hc.cv3.full .hc-icons { left: calc(3.5 * var(--u)); right: auto; top: calc(17 * var(--u)); flex-direction: column; justify-content: flex-start; gap: calc(1.6 * var(--u)); z-index: 4; }
+.tcard.hc.cv3.full .hc-icons .bd { width: calc(12.5 * var(--u)); height: calc(12.5 * var(--u)); background: #000b; border: calc(0.8 * var(--u)) solid var(--rc3); box-shadow: none; }
+.tcard.hc.cv3.full .hc-icons .bd .ic { width: 62%; height: 62%; }
+.tcard.hc.cv3.full .hc-icons .rolepill { width: calc(12.5 * var(--u)); height: calc(12.5 * var(--u)); padding: 0; font-size: 0; border-radius: 50%; display: grid; place-items: center; background: #000b; border: calc(0.8 * var(--u)) solid var(--rc3); box-shadow: none; }
+.tcard.hc.cv3.full .hc-icons .rolepill .ic { width: 62%; height: 62%; }
+/* rarity gems */
+.tcard.hc.cv3.full .hc-gems { left: calc(6 * var(--u)); top: calc(5 * var(--u)); bottom: auto; transform: none; z-index: 4; gap: calc(1.6 * var(--u)); color: var(--rc3); }
+.tcard.hc.cv3.full .hc-gems .ic { width: calc(5.4 * var(--u)); height: calc(5.4 * var(--u)); color: var(--rc3); filter: drop-shadow(0 0 3px var(--rc3)) drop-shadow(1px 1px 0 #000); }
+.tcard.hc.cv3.full .hc-lvl { left: calc(34 * var(--u)); right: auto; top: calc(3.4 * var(--u)); z-index: 5; font-size: calc(7 * var(--u)); }
+.tcard.hc.cv3.full .hc-own { top: auto; bottom: calc(24 * var(--u)); right: calc(5 * var(--u)); left: auto; z-index: 6; }
+.tcard.hc.cv3.full .hc-info { top: calc(0.5 * var(--u)); right: calc(2 * var(--u)); z-index: 6; }
+/* glass stat bar (attack right, health left) + hex cost */
+.tcard.hc.cv3.full .hc-sbar { position: absolute; left: calc(17 * var(--u)); right: calc(4.6 * var(--u)); bottom: calc(5 * var(--u)); height: calc(17.7 * var(--u)); border-radius: calc(9 * var(--u)); background: #000b; border: calc(0.8 * var(--u)) solid #fff8; z-index: 4; pointer-events: none; }
+.tcard.hc.cv3.mini .hc-sbar { position: absolute; left: 17cqw; right: 4.6cqw; bottom: 5cqw; height: 17.7cqw; border-radius: 9cqw; background: #000b; border: .8cqw solid #fff8; z-index: 4; pointer-events: none; }
+.tcard.hc.cv3.full .hc-atk { bottom: calc(5 * var(--u)); height: calc(17.7 * var(--u)); width: calc(36 * var(--u)); left: auto; right: auto; border: 0; border-radius: 0; background: none; box-shadow: none; overflow: visible; display: flex; align-items: center; justify-content: center; gap: calc(1.2 * var(--u)); z-index: 6; }
+.tcard.hc.cv3.mini .hc-atk { bottom: 5cqw; height: 17.7cqw; width: 36cqw; left: auto; right: auto; border: 0; border-radius: 0; background: none; box-shadow: none; overflow: visible; display: flex; align-items: center; justify-content: center; gap: 1.2cqw; z-index: 6; }
+.tcard.hc.cv3.full .hc-hp { bottom: calc(5 * var(--u)); height: calc(17.7 * var(--u)); width: calc(36 * var(--u)); left: auto; right: auto; border: 0; border-radius: 0; background: none; box-shadow: none; overflow: visible; display: flex; align-items: center; justify-content: center; gap: calc(1.2 * var(--u)); z-index: 6; }
+.tcard.hc.cv3.mini .hc-hp { bottom: 5cqw; height: 17.7cqw; width: 36cqw; left: auto; right: auto; border: 0; border-radius: 0; background: none; box-shadow: none; overflow: visible; display: flex; align-items: center; justify-content: center; gap: 1.2cqw; z-index: 6; }
+.tcard.hc.cv3.full .hc-atk { right: calc(6 * var(--u)); flex-direction: row; }
+.tcard.hc.cv3.mini .hc-atk { right: 6cqw; flex-direction: row; }
+.tcard.hc.cv3.full .hc-hp { left: calc(17.5 * var(--u)); }
+.tcard.hc.cv3.mini .hc-hp { left: 17.5cqw; }
+.tcard.hc.cv3.full .hc-atk .ic { position: static; width: calc(7 * var(--u)); height: calc(7 * var(--u)); opacity: 1; flex: none; }
+.tcard.hc.cv3.mini .hc-atk .ic { position: static; width: 7cqw; height: 7cqw; opacity: 1; flex: none; }
+.tcard.hc.cv3.full .hc-hp .ic { position: static; width: calc(7 * var(--u)); height: calc(7 * var(--u)); opacity: 1; flex: none; }
+.tcard.hc.cv3.mini .hc-hp .ic { position: static; width: 7cqw; height: 7cqw; opacity: 1; flex: none; }
+.tcard.hc.cv3 .hc-atk .ic { color: #ffd24a; } .tcard.hc.cv3 .hc-hp .ic { color: #ff7a85; }
+.tcard.hc.cv3.full .hc-atk b { font-size: calc(9.6 * var(--u)); font-weight: 900; text-shadow: 1px 1px 0 #000; font-family: var(--display); }
+.tcard.hc.cv3.mini .hc-atk b { font-size: 9.6cqw; font-weight: 900; text-shadow: 1px 1px 0 #000; font-family: var(--display); }
+.tcard.hc.cv3.full .hc-hp b { font-size: calc(9.6 * var(--u)); font-weight: 900; text-shadow: 1px 1px 0 #000; font-family: var(--display); }
+.tcard.hc.cv3.mini .hc-hp b { font-size: 9.6cqw; font-weight: 900; text-shadow: 1px 1px 0 #000; font-family: var(--display); }
+.tcard.hc.cv3 .hc-atk b { color: #ffd24a; } .tcard.hc.cv3 .hc-hp b { color: #ff9aa4; }
+.tcard.hc.cv3.full .hc-atk b.sm { font-size: calc(7.4 * var(--u)); }
+.tcard.hc.cv3.mini .hc-atk b.sm { font-size: 7.4cqw; }
+.tcard.hc.cv3.full .hc-hp b.sm { font-size: calc(7.4 * var(--u)); }
+.tcard.hc.cv3.mini .hc-hp b.sm { font-size: 7.4cqw; }
+.tcard.hc.cv3.full .hc-cost { left: calc(3 * var(--u)); top: auto; bottom: calc(3.6 * var(--u)); width: calc(15.4 * var(--u)); height: calc(17.7 * var(--u)); z-index: 6; }
+.tcard.hc.cv3.full .hc-cost b { font-size: calc(8.4 * var(--u)); }
+/* board minions: same frame, smaller print */
+.tcard.hc.cv3.mini { filter: drop-shadow(0 0 2px var(--rc3)) drop-shadow(1px 2px 0 #000); }
+.tcard.hc.cv3.mini.r-epic { filter: drop-shadow(0 0 4px var(--rc3)) drop-shadow(1px 2px 0 #000); }
+.tcard.hc.cv3.mini.r-legendary { filter: drop-shadow(0 0 7px var(--rc3)) drop-shadow(1px 2px 0 #000); }
+.tcard.hc.cv3.mini .hc-art { inset: 2.2cqw; width: auto; height: auto; left: 2.2cqw; right: 2.2cqw; top: 2.2cqw; }
+.tcard.hc.cv3.mini .hc-sbar { left: 4%; right: 4%; bottom: 3cqw; height: 22cqw; }
+.tcard.hc.cv3.mini .hc-atk, .tcard.hc.cv3.mini .hc-hp { width: 44cqw; height: 22cqw; bottom: 3cqw; border: 0; }
+.tcard.hc.cv3.mini .hc-atk { right: 6%; left: auto; } .tcard.hc.cv3.mini .hc-hp { left: 6%; right: auto; }
+.tcard.hc.cv3.mini .hc-atk .ic, .tcard.hc.cv3.mini .hc-hp .ic { width: 12cqw; height: 12cqw; }
+.tcard.hc.cv3.mini .hc-atk b, .tcard.hc.cv3.mini .hc-hp b { font-size: max(9px, 15cqw); }
+.tcard.hc.cv3.mini .hc-atk b.sm, .tcard.hc.cv3.mini .hc-hp b.sm { font-size: max(8px, 11.5cqw); }
+.tcard.hc.cv3.mini .bd.role { top: 3%; left: 3%; background: #000b; border: max(1px, .8cqw) solid var(--rc3); box-shadow: none; }
+.tcard.hc.cv3.mini .stars { top: 2cqw; right: 2%; }
+.tcard.hc.cv3.mini .hc-its, .tcard.hc.cv3.mini .hc-bar { left: 8%; right: 8%; bottom: 27cqw; }
+.tcard.hc.cv3.mini.sel { filter: drop-shadow(0 0 0 var(--gold)) drop-shadow(0 0 6px var(--gold)) drop-shadow(0 0 2px var(--gold)); }
+.tcard.hc.cv3.mini.shielded .hc-frame { background: linear-gradient(160deg, #5fe3ff, #0a3a55); }
+.tcard.hc.cv3.mini.hit .hc-art { filter: invert(1); }
+.tcard.hc.cv3.mini.dead { filter: grayscale(1) brightness(.5); }
+.tcard.hc.cv3.mini.ghost { filter: grayscale(.55); opacity: .5; }
+/* v3: bigger print on the (small, zoomed) phone cards so the numbers stay readable */
+.tcard.hc.cv3.full .hc-name { height: calc(16.5 * var(--u)); top: calc(31.5 * var(--u)); }
+.tcard.hc.cv3.full .hc-name b { font-size: calc(10.8 * var(--u)); }
+.tcard.hc.cv3.full .hc-sbar { height: calc(22 * var(--u)); bottom: calc(4 * var(--u)); border-radius: calc(11 * var(--u)); left: calc(19 * var(--u)); }
+.tcard.hc.cv3.full .hc-atk, .tcard.hc.cv3.full .hc-hp { height: calc(22 * var(--u)); bottom: calc(4 * var(--u)); }
+.tcard.hc.cv3.full .hc-hp { left: calc(19.5 * var(--u)); }
+.tcard.hc.cv3.full .hc-atk b, .tcard.hc.cv3.full .hc-hp b { font-size: calc(13 * var(--u)); }
+.tcard.hc.cv3.full .hc-atk b.sm, .tcard.hc.cv3.full .hc-hp b.sm { font-size: calc(10 * var(--u)); }
+.tcard.hc.cv3.full .hc-atk .ic, .tcard.hc.cv3.full .hc-hp .ic { width: calc(9 * var(--u)); height: calc(9 * var(--u)); }
+.tcard.hc.cv3.full .hc-cost { width: calc(19 * var(--u)); height: calc(22 * var(--u)); bottom: calc(2.6 * var(--u)); }
+.tcard.hc.cv3.full .hc-cost b { font-size: calc(11 * var(--u)); }
+.tcard.hc.cv3.full .hc-icons .bd, .tcard.hc.cv3.full .hc-icons .rolepill { width: calc(15 * var(--u)); height: calc(15 * var(--u)); }
+.tcard.hc.cv3.full .hc-icons { top: calc(19 * var(--u)); }
+.tcard.hc.cv3.full .hc-gems .ic { width: calc(6.4 * var(--u)); height: calc(6.4 * var(--u)); }
+.tcard.hc.cv3.full .hc-own { bottom: calc(29 * var(--u)); }
+.tcard.hc.cv3 .hc-atk, .tcard.hc.cv3 .hc-hp, .tcard.hc.cv3 .hc-sbar { position: absolute; }
+.tcard.hc.cv3 .hc-name, .tcard.hc.cv3 .hc-icons, .tcard.hc.cv3 .hc-gems, .tcard.hc.cv3 .hc-cost, .tcard.hc.cv3 .hc-lvl, .tcard.hc.cv3 .hc-own, .tcard.hc.cv3 .hc-info { position: absolute; }
+.tcard.hc.cv3.full .hc-lvl { bottom: auto; right: auto; width: auto; height: auto; min-width: 0; padding: calc(1 * var(--u)) calc(4 * var(--u)); line-height: 1.3; border-radius: calc(5 * var(--u)); font-size: calc(7.4 * var(--u)); }
+.tcard.hc.cv3.full .hc-name { left: calc(19 * var(--u)); }
+.tcard.hc.cv3.full .hc-name b { font-size: calc(9.8 * var(--u)); }
 
 </style>
 </head>
@@ -6412,9 +6515,9 @@ AMB.IMAGES = {
     if (o.size === 'mini') {
       const items = (o.items || []).map((it) => `<i title="${esc(ITEMS[it].name)}">${icon(ITEMS[it].icon)}</i>`).join('');
       const mid = o.live ? `<div class="hc-bar"><div class="hpb"><b></b><i></i></div>${isHero ? '' : '<div class="mpb"><i></i></div>'}</div>` : (items ? `<div class="hc-its">${items}</div>` : '');
-      return `<div class="tcard hc mini ${tier}${sc}${sel} ${o.cls || ''}" style="--wc:${W.color}" title="${esc(def.name)}" ${attrs}>
-        <i class="hc-halo"></i><div class="hc-art">${portrait(def, { bare: true, k: o.k })}<i class="sheen"></i></div><div class="hc-ring"></div>
-        ${roleD}${isHero ? '' : stars(star)}${o.prog ? `<span class="hc-prog" title="نسخ متطابقة: واحدة إضافية وتترقى">${o.prog}</span>` : ''}${atkBd}${hpBd}${mid}</div>`;
+      return `<div class="tcard hc cv3 mini ${tier}${sc}${sel} r-${def.rarity || 'common'} ${o.cls || ''}" style="--wc:${W.color}" title="${esc(def.name)}" ${attrs}>
+        <i class="hc-halo"></i><div class="hc-frame"></div><div class="hc-art">${portrait(def, { bare: true, k: o.k })}<i class="sheen"></i></div><div class="hc-ring"></div>
+        ${roleD}${isHero ? '' : stars(star)}${o.prog ? `<span class="hc-prog" title="نسخ متطابقة: واحدة إضافية وتترقى">${o.prog}</span>` : ''}<i class="hc-sbar"></i>${atkBd}${hpBd}${mid}</div>`;
     }
     const own = o.own ? `<span class="hc-own ${o.own.pair ? 'up' : ''}" data-act="tip" data-k="own" data-id="${def.id}" data-x="${o.own.pair ? 'up' : o.own.n}">${o.own.pair ? '↑' : '×' + o.own.n}</span>` : '';
     const rolePill = isHero ? '' : `<span class="rolepill ${ROLES[def.role].kind}" data-act="tip" data-k="role" data-id="${def.id}">${icon(ART.ROLE_ICON[def.role])}${ROLES[def.role].name}</span>`;
@@ -6424,14 +6527,15 @@ AMB.IMAGES = {
     const RA = AMB.ECONOMY && AMB.ECONOMY.rarities[def.rarity];
     const rar = RA ? `<span class="hc-rar" data-act="tip" data-k="rar" data-id="${def.id}">${RA.name}</span>` : '';
     const lvl = o.lvl ? `<span class="hc-lvl" data-act="tip" data-k="lvl" data-id="${def.id}" data-x="${o.lvl}">Lv ${o.lvl}</span>` : '';
-    return `<div class="tcard hc full ${tier}${sc} r-${def.rarity || 'common'} ${o.cls || ''}" style="--wc:${W.color}" ${attrs}>
+    const gemN = RA ? RA.order : 1;
+    return `<div class="tcard hc cv3 full ${tier}${sc} r-${def.rarity || 'common'} ${o.cls || ''}" style="--wc:${W.color}" ${attrs}>
       <div class="hc-frame"><i class="sheen"></i></div>${rar}${lvl}
       <div class="hc-art">${portrait(def, { bare: true, k: o.k })}</div><div class="hc-ring"></div>
       <div class="hc-name" data-act="tip" data-k="all" data-id="${def.id}" data-x="${star}"><b>${def.name}</b></div>
       <div class="hc-icons" data-act="tip" data-k="all" data-id="${def.id}" data-x="${star}">${iconsRow}</div>
-      ${isHero ? '' : gems(def.tier).replace('class="gems', 'data-act="tip" data-k="cost" data-id="' + def.id + '" class="hc-gems gems')}
+      ${isHero ? '' : gems(gemN).replace('class="gems', 'data-act="tip" data-k="rar" data-id="' + def.id + '" class="hc-gems gems')}
       ${isHero ? '' : `<span class="hc-cost" data-act="tip" data-k="cost" data-id="${def.id}"><i></i><b>${def.cost}</b></span>`}
-      ${atkBd}${hpBd}${own}
+      <i class="hc-sbar"></i>${atkBd}${hpBd}${own}
       <span class="hc-info" data-act="${isHero ? 'heroInfo' : 'detail'}" data-id="${def.id}" title="تفاصيل">i</span></div>`;
   }
 
