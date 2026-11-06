@@ -12,7 +12,7 @@ const games = +(process.argv[2] || 40);
 const only = process.argv[3] || null;   // optional: tune just one level, e.g. l1
 // reference player per level: what a player plausibly has when reaching it
 const REF = { l1: { lvl: 1, owned: 'starter', t: [0.95, 0.8, 0.72, 0.65, 0.4] }, l2: { lvl: 2, owned: 'starter', t: [0.85, 0.8, 0.75, 0.7, 0.5] },
-  l3: { lvl: 3, owned: 'all', t: [0.8, 0.75, 0.7, 0.65, 0.45] }, l4: { lvl: 4, owned: 'all', t: [0.75, 0.7, 0.65, 0.6, 0.4] } };
+  l3: { lvl: 1, owned: 'all', t: [0.8, 0.75, 0.7, 0.65, 0.45] }, l4: { lvl: 2, owned: 'all', t: [0.75, 0.7, 0.65, 0.6, 0.4] } };
 const heroes = Object.keys(AMB.DATA.HEROES);
 function profile(lvl, owned) {
   const p = AMB.Profile.boot(AMB.Save.memoryStorage()), C = p.collection;

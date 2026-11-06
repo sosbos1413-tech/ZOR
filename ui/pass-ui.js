@@ -94,7 +94,7 @@
   function trackHTML() {
     const cols = [];
     for (let l = 1; l <= P.SEASON.levels; l++) {
-      cols.push(`<div class="pcol ${l === pass.level() ? 'now' : ''} ${l <= pass.level() ? 'reached' : ''}" data-col="${l}"><div class="plv">${l}</div>${cellHTML(l, 'free')}${cellHTML(l, 'premium')}</div>`);
+      cols.push(`<div class="pcol ${l === pass.level() ? 'now' : ''} ${l <= pass.level() ? 'reached' : ''}" data-col="${l}"><div class="plv">${l}</div>${cellHTML(l, 'free')}}</div>`);
     }
     const n = [];
     for (let l = 1; l <= pass.level(); l++) ['free', 'premium'].forEach((t) => { if (pass.canClaim(l, t)) n.push(1); });

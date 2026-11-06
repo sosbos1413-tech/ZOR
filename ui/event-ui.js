@@ -28,7 +28,10 @@
     const root = $('event'); if (!root) return;
     clearInterval(timer);
     if (C.needsStarter()) { root.innerHTML = '<div class="cam-note">اختر بطلك الأول من «الحملة» أول.</div>'; return; }
-    if (!WK.unlocked()) { root.innerHTML = `<div class="cam-note">🔒 الحدث الأسبوعي يفتح بعد ما تخلّص <b>المستوى الأول من الحملة</b>.</div>`; return; }
+    if (!WK.unlocked()) { const c0 = WK.current(), ev0 = c0.event, ex0 = AMB.DATA.UNITS[ev0.exclusive];
+      root.innerHTML = `<div class="cam-note">🔒 الحدث الأسبوعي يفتح بعد ما تخلّص <b>المستوى الأول من الحملة</b>.</div>
+        <div class="ev-peek"><h3>حدث هذا الأسبوع: ${esc(ev0.name)}</h3><p class="hint">زعيم بقدرتين، وبطاقة حصرية ما تطلع من الباكجات: <b>${esc(ex0.name)}</b></p>
+        <div class="ev-peek-card">${UI().cardHTML(ex0, { k: 'evp', cls: 'unowned', attrs: `data-act="detail" data-id="${ev0.exclusive}"` })}</div></div>`; return; }
     const c = WK.current(), ev = c.event, ex = AMB.DATA.UNITS[ev.exclusive], owned = C.owned(ev.exclusive), next = WK.nextEvent();
     const card = UI().cardHTML(ex, { k: 'evx', lvl: owned ? C.level(ev.exclusive) : 0, cls: owned ? '' : 'unowned', attrs: `data-act="detail" data-id="${ev.exclusive}"` });
     const rows = []; for (let s = WK.stageCount(); s >= 1; s--) rows.push(stageRow(c, s));

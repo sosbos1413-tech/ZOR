@@ -36,9 +36,9 @@
     guardian: { hp: 620, atk: 44, as: 0.6, range: 1, def: 0.25, crit: 0.05 },
     fighter: { hp: 540, atk: 60, as: 0.75, range: 1, def: 0.12, crit: 0.05 },
     assassin: { hp: 420, atk: 68, as: 0.85, range: 1, def: 0.05, crit: 0.25 },
-    mage: { hp: 420, atk: 38, as: 0.6, range: 3, def: 0, crit: 0.05 },
-    marksman: { hp: 370, atk: 60, as: 0.75, range: 4, def: 0, crit: 0.1 },
-    support: { hp: 450, atk: 32, as: 0.6, range: 3, def: 0.05, crit: 0.05 },
+    mage: { hp: 460, atk: 42, as: 0.6, range: 3, def: 0, crit: 0.05 },
+    marksman: { hp: 390, atk: 62, as: 0.75, range: 4, def: 0, crit: 0.1 },
+    support: { hp: 500, atk: 36, as: 0.6, range: 3, def: 0.05, crit: 0.05 },
   };
   const TIER_MULT = { 1: 1, 2: 1.22, 3: 1.5 };
 
@@ -75,6 +75,8 @@
     }, over || {}));
   }
 
+  // event-exclusive legendaries are a collector's prize, not a power spike: keep them near the rest of the roster
+  const EXCLUSIVE_NERF = 0.92;
   // ---- Emberreach (no support)
   unit('ash_ronin', 'رونين الرماد', 'Ash Ronin', 'ember', 'fighter', 1, 70,
     { type: 'cleave', name: 'قطع الرماد', dmg: [120, 200, 340], radius: 1.2,
@@ -85,7 +87,7 @@
   unit('spark_wraith', 'شبح الشرر', 'Spark Wraith', 'ember', 'assassin', 2, 60,
     { type: 'nuke', name: 'طعنة الشرر', dmg: [230, 390, 660],
       text: 'طعنة سريعة بضرر عالي على الهدف.' });
-  unit('pyre_archer', 'رامية المحرقة', 'Pyre Archer', 'ember', 'marksman', 2, 80,
+  unit('pyre_archer', 'رامية المحرقة', 'Pyre Archer', 'ember', 'marksman', 2, 70,
     { type: 'burn', name: 'سهم المحرقة', dps: [60, 100, 170], dur: 4,
       text: 'يحرق الهدف ويضره كل ثانية لمدة 4 ثواني.' });
   unit('caldera_seer', 'عرّافة البركان', 'Caldera Seer', 'ember', 'mage', 3, 90,
@@ -105,7 +107,7 @@
   unit('mist_witch', 'ساحرة الضباب', 'Mist Witch', 'tide', 'mage', 2, 80,
     { type: 'stunAoe', name: 'ضباب متجمّد', dmg: [120, 200, 350], stun: [1.5, 1.8, 2.2], radius: 1.2,
       text: 'تجمّد الهدف واللي حوله وتضرّهم.' });
-  unit('tide_priest', 'كاهن المدّ العالي', 'High Tide Priest', 'tide', 'support', 3, 80,
+  unit('tide_priest', 'كاهن المدّ العالي', 'High Tide Priest', 'tide', 'support', 3, 70,
     { type: 'healAll', name: 'مدّ عظيم', heal: [180, 300, 520],
       text: 'يعالج كل الفريق.' });
 
@@ -119,7 +121,7 @@
   unit('firewall_unit', 'وحدة الجدار الناري', 'Firewall Unit', 'neon', 'guardian', 2, 90,
     { type: 'taunt', name: 'جدار ناري', shield: [260, 430, 720], radius: 2.6, dur: 3,
       text: 'تخلّي الأعداء القريبين منها يهجمون عليها، وياخذ درع.' });
-  unit('spectral_coder', 'المبرمجة الطيفية', 'Spectral Coder', 'neon', 'support', 2, 90,
+  unit('spectral_coder', 'المبرمجة الطيفية', 'Spectral Coder', 'neon', 'support', 2, 80,
     { type: 'hasteAllies', name: 'رفع التردد', pct: [0.3, 0.45, 0.65], dur: 5,
       text: 'تسرّع هجوم كل الفريق لفترة قصيرة.' });
   unit('chrome_ronin', 'رونين الكروم', 'Chrome Ronin', 'neon', 'fighter', 3, 60,
@@ -235,7 +237,7 @@
   unit('akane', 'أكاني', 'Akane', 'ember', 'assassin', 2, 60,
     { type: 'nuke', name: 'نصلا اللهب', dmg: [180, 310, 540],
       text: 'طعنة سريعة بضرر عالي على الهدف.' });
-  unit('natsuki', 'ناتسوكي', 'Natsuki', 'ember', 'mage', 2, 90,
+  unit('natsuki', 'ناتسوكي', 'Natsuki', 'ember', 'mage', 2, 80,
     { type: 'aoe', name: 'موجة الحمم', dmg: [280, 460, 780], radius: 1.6,
       text: 'انفجار يضرب المنطقة حول الهدف.' });
   unit('shiro', 'شيرو', 'Shiro', 'ember', 'mage', 1, 90,
@@ -276,7 +278,7 @@
   unit('tomoe', 'تومويه', 'Tomoe', 'tide', 'guardian', 1, 80,
     { type: 'shieldSelf', name: 'درع اللؤلؤ', shield: [380, 620, 1000],
       text: 'ياخذ درع قوي.' });
-  unit('otohime', 'أوتوهيمي', 'Otohime', 'tide', 'support', 3, 80,
+  unit('otohime', 'أوتوهيمي', 'Otohime', 'tide', 'support', 3, 70,
     { type: 'healAll', name: 'حضن البحر', heal: [170, 290, 510],
       text: 'يعالج كل الفريق.' }, { rarity: 'legendary' });
   unit('haruka', 'هاروتو', 'Haruto', 'tide', 'mage', 2, 90,
@@ -301,7 +303,7 @@
     { type: 'healAll', name: 'همس الأرواح', heal: [170, 290, 510], text: 'يعالج كل الفريق.' }, { rarity: 'legendary', exclusive: true });
 
   const UNITS = {};
-  U.forEach((u) => (UNITS[u.id] = u));
+  U.forEach((u) => { if (u.exclusive) { u.hp = Math.round(u.hp * EXCLUSIVE_NERF); u.atk = Math.round(u.atk * EXCLUSIVE_NERF); } UNITS[u.id] = u; });
   // The starter roster: 8 basic units (every role covered). Everything else comes from the gift packs, packs, the pass or events.
   const STARTER_IDS = ['ash_ronin', 'forge_bulwark', 'wave_caller', 'grid_hound', 'pixel_sniper', 'moss_warden', 'thorn_fox', 'shiro'];
   STARTER_IDS.forEach((id) => (UNITS[id].starter = true));

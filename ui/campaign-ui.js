@@ -57,7 +57,7 @@
     AMB.TIPS.caminfo = () => ({ title: 'كيف تشتغل الحملة', html: `<p>كل قتال <b>تكسب جولتين من 3</b> ضد تشكيلة ثابتة. مستويات بطاقاتك وندرتها <b>تنحسب هنا</b>، والمتجر يعرض الوحدات اللي تملكها فقط.</p>
       <p>الفوز الأول: ${icon('gem')} ${R.fight.shards} + ${R.fight.passXp} خبرة ممر<br>الزعيم: ${icon('gem')} ${R.boss.shards} + ${R.boss.passXp} خبرة<br>إنهاء المستوى: باكج مجاني<br>الإعادة: ${icon('gem')} ${R.replay.shards}</p>
       <h4>النجوم</h4>${LV.CAMPAIGN.stars.rules.map((r) => `<div>${'★'.repeat(r.n)} ${r.text}</div>`).join('')}` });
-    root.innerHTML = `<div class="cam-note">⚔️ تكسب جولتين من 3 · ⭐ نجوم · ${icon('gem')} شظايا · 🎁 باكج لكل مستوى <button class="ibtn" data-act="info" data-k="caminfo" title="شرح">ⓘ</button></div>
+    root.innerHTML = `<div class="cam-note">⚔️ جولتين من 3 تكسب · ⭐ النجوم تفتح صناديق · 🎁 باكج لكل مستوى <button class="ibtn" data-act="info" data-k="caminfo" title="شرح">ⓘ</button></div>
       ${chestsHTML()}
       <div class="cam-levels">${LV.LEVELS.map((l, li) => {
         const pr = CAM.progress(l.id), unlocked = CAM.levelUnlocked(li);
@@ -93,7 +93,7 @@
       ${h === l.hero ? `<div class="hint">ستواجه <b>ظلّ ${AMB.DATA.HEROES[h].name}</b></div>` : ''}
       <h4>تشكيلة الخصم</h4><div class="cam-units">${unitsHTML}</div>
       <h4>الجائزة</h4><div class="cam-reward">${reward}</div>
-      <h4>بطلك</h4><div class="hchips">${heroes}</div>${AMB.DeckGate ? AMB.DeckGate.line() : ''}
+      <h4>بطلك</h4><div class="hchips">${heroes}</div>${AMB.DeckGate ? AMB.DeckGate.line() : ''}${x.li >= 2 && C.ownedCount() < 40 ? '<div class="db-warn">⚠ هالمستوى أصعب: افتح باكجات وطوّر بطاقاتك أول عشان ترتاح فيه</div>' : ''}
       <h4>النجوم ${starRow(CAM.stars(fightId))} <button class="ibtn" data-act="info" data-k="caminfo" title="شرح">ⓘ</button></h4>
       ${st.attempts ? `<div class="hint">محاولات: ${st.attempts} · فوز: ${st.wins}</div>` : ''}
       <div class="cam-go"><button class="btn primary big" data-act="camGo" data-id="${fightId}" ${h ? '' : 'disabled'}>قاتل!</button></div></div>`);

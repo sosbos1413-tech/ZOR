@@ -110,6 +110,10 @@
   }
 
   const maxR = () => (S.match && S.match.rules ? S.match.rules.maxRounds : CFG.match.maxRounds);
+  // a match on a phone is portrait-only: ask the browser to hold it (works in the installed app), and CSS shows a "rotate" notice otherwise
+  try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('portrait').catch(() => {}); } catch (e) { /* ignore */ }
+  // closing/reloading in the middle of a match loses it: ask first (the browser shows its own wording)
+  window.addEventListener('beforeunload', (e) => { if (S.match && S.screen === 'match' && S.mode !== 'tutorial' && !S.match.isOver) { e.preventDefault(); e.returnValue = ''; } });
   function startMatch() {
     S.panels = false; $('scr-match').classList.remove('show-panels');
     const heroIds = Object.keys(HEROES);
@@ -321,11 +325,16 @@
     else cls = rep.winner === 0 ? 'win' : 'lose';
     const over = m.isOver;
     const side = (i) => { const r = rep.players[i], pl = m.players[i]; return `<div class="rr-side ${rep.winner === i ? 'won' : ''}">${portrait(r.heroKilled ? HEROES[pl.heroId] : HEROES[pl.heroId], { k: 'rr' + i })}
-        <div class="rr-life">${icon(r.heroKilled ? 'skull' : 'heart')} <b>${lifeStr(r.lifeAfter)}</b></div>${(r.backlash + r.direct) > 0 ? `<div class="rr-dmg">−${Math.round(r.backlash + r.direct)}</div>` : '<div class="rr-dmg">&nbsp;</div>'}</div>`; };
+        <div class="rr-life">${icon(r.heroKilled ? 'skull' : 'heart')} <b>${lifeStr(r.lifeAfter)}</b></div>${(r.backlash + r.direct) > 0 ? `<div class="rr-dmg"><bdi dir="ltr">−${Math.round(r.backlash + r.direct)}</bdi></div>` : '<div class="rr-dmg">&nbsp;</div>'}</div>`; };
     const me0 = rep.players[0];
     const why = S.mode !== 'hotseat' && rep.winner === 1 ? (me0.exposed ? `<div class="rr-why">${icon('shield')}<i>✗</i> ➜ ${icon('warn')}</div>` : `<div class="rr-why">${icon('star')} ➜ ${icon('sword')}</div>`) : '';
-    overlay(`<div class="ov-card rr ${cls}"><div class="rr-big">${icon(rep.winner === null ? 'swap' : cls === 'lose' ? 'skull' : 'crown')}</div>
-      <div class="rr-row">${side(0)}<div class="rr-vs">${icon('sword')}</div>${side(1)}</div>${why}${rep.finale ? `<div class="rr-why">${icon('flame')} ×${CFG.match.finaleLossMult}</div>` : ''}
+    const title = rep.winner === null ? `الجولة ${m.round}: تعادل`
+      : S.mode === 'hotseat' ? `الجولة ${m.round}: فاز ${esc(m.players[rep.winner].name)}`
+      : over ? (rep.winner === 0 ? 'فزت بالمباراة! 🎉' : 'خسرت المباراة')
+      : `الجولة ${m.round}: ${rep.winner === 0 ? 'فزت' : 'خسرت'}`;
+    const whyTxt = S.mode !== 'hotseat' && rep.winner === 1 ? (me0.exposed ? 'سقط خط الدفاع وانكشف بطلك' : 'العدو كان أقوى هالجولة') : '';
+    overlay(`<div class="ov-card rr ${cls}"><div class="rr-title">${title}</div><div class="rr-big">${icon(rep.winner === null ? 'swap' : cls === 'lose' ? 'skull' : 'crown')}</div>
+      <div class="rr-row">${side(0)}<div class="rr-vs">${icon('sword')}</div>${side(1)}</div>${why}${whyTxt ? `<div class="rr-note">${whyTxt}</div>` : ''}${rep.finale ? `<div class="rr-why">${icon('flame')} ×${CFG.match.finaleLossMult}</div>` : ''}
       <button class="btn primary big rr-go" data-act="${over ? 'toResults' : m.rewardPending ? 'rewards' : 'nextRound'}">${over ? icon('check') : m.rewardPending ? '🎁' : icon('sword')}</button></div>`);
   }
 
@@ -377,7 +386,7 @@
     return `<div class="tcard hc cv3 full ${tier}${sc} r-${def.rarity || 'common'} ${o.cls || ''}" style="--wc:${W.color}" ${attrs}>
       <div class="hc-frame"><i class="sheen"></i></div>${rar}${lvl}
       <div class="hc-art">${portrait(def, { bare: true, k: o.k })}</div><div class="hc-ring"></div>
-      <div class="hc-name" data-act="tip" data-k="all" data-id="${def.id}" data-x="${star}"><b>${def.name}</b></div>
+      <div class="hc-name ${def.name.length > 14 ? 'ln2' : def.name.length > 10 ? 'ln1' : ''}" data-act="tip" data-k="all" data-id="${def.id}" data-x="${star}"><b>${def.name}</b></div>
       <div class="hc-icons" data-act="tip" data-k="all" data-id="${def.id}" data-x="${star}">${iconsRow}</div>
       ${isHero ? '' : gems(gemN).replace('class="gems', 'data-act="tip" data-k="rar" data-id="' + def.id + '" class="hc-gems gems')}
       ${isHero ? '' : `<span class="hc-cost" data-act="tip" data-k="cost" data-id="${def.id}"><i></i><b>${def.cost}</b></span>`}
@@ -1216,7 +1225,22 @@
     sound: () => { SND.on = !SND.on; try { localStorage.setItem('amb_sound', SND.on ? '1' : '0'); } catch (e) { /* ignore */ } if (SND.on) sfx('click'); document.querySelectorAll('[data-act="sound"]').forEach((b) => { if (b.id === 'menu-sound') b.querySelector('.mt-ic').textContent = SND.on ? '🔊' : '🔇'; else b.textContent = SND.on ? '🔊' : '🔇'; }); },
     xp: () => { if (prepActive()) { const lv = me().level; if (res(S.match.buyXp(S.v))) { if (me().level > lv) toast(`المستوى ${me().level}! تقدر تحط ${me().level} وحدات`, 'good'); renderMatch(); } } },
     lock: () => { if (prepActive()) { S.match.toggleLock(S.v); renderMatch(); } },
-    ready: () => prepActive() && endPrep(),
+    ready: () => {
+      if (!prepActive()) return;
+      // a new player's most common mistake: pressing "ready" with gold still in the pocket
+      const m = S.match, p = me();
+      if (S.mode !== 'tutorial' && S.mode !== 'hotseat' && S.warnedRound !== m.round + ':' + S.v) {
+        const can = (p.shop || []).filter((c) => c && UNITS[c] && p.gold >= UNITS[c].cost).length;
+        if (p.gold >= 3 && can && p.bench.some((x) => !x) ) {
+          S.warnedRound = m.round + ':' + S.v;
+          modal(`<h2>عندك ذهب ما صرفته</h2><p class="hint">معك <b>${p.gold}</b> ذهب وفيه بطاقات في المتجر تقدر تشتريها. الذهب ما يضيع، بس الوحدات الزيادة تقوّيك في القتال.</p>
+            <div style="display:flex;gap:8px;justify-content:center;margin-top:12px"><button class="btn primary big" data-act="closeModal">أرجع أشتري</button><button class="btn" data-act="readyForce">ابدأ القتال</button></div>`);
+          return;
+        }
+      }
+      endPrep();
+    },
+    readyForce: () => { closeModal(); if (prepActive()) endPrep(); },
     deselect: () => { S.sel = null; renderMatch(); },
     autoArrange: () => { if (!prepActive()) return; S.match.autoArrange(S.v); S.sel = null; toast('رتبت لك أقوى وحداتك: الحراس قدّام والباقي ورا', 'good'); renderMatch(); },
     toBench: () => {

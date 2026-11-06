@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="0beb4645d5">
+<meta name="zor-build" content="e773fd9b4a">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1946,6 +1946,36 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 .tcard.hc.cv3.item .hc-name { left: calc(8 * var(--u)); }
 .upd-banner { transition: opacity .35s, transform .35s; }
 .upd-banner.gone { opacity: 0; transform: translate(-50%, 14px); pointer-events: none !important; }
+.rr-title { font: 400 26px var(--display); text-align: center; margin: 0 0 4px; color: var(--ink); }
+.ov-card.rr.lose .rr-title { color: var(--red); } .ov-card.rr.win .rr-title { color: #a06800; }
+.rr-note { text-align: center; font-size: 13px; color: var(--muted); margin: 2px 0 6px; }
+/* phones held sideways during a match: the layout is portrait-only, so say so instead of showing a broken screen */
+@media (orientation: landscape) and (max-height: 520px) and (pointer: coarse) {
+  body.in-match::after { content: '↻  دوّر جوالك للوضع الطولي'; position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; background: #121010f2; color: var(--gold); font: 400 26px var(--display); text-align: center; padding: 20px; }
+}
+
+/* ===== playtest fixes: bigger touch areas, long names, hero picker, pack row on phones ===== */
+.ibtn { position: relative; } .ibtn::after { content: ''; position: absolute; inset: -9px; }
+@media (pointer: coarse) {
+  .btn.small:not(.ibtn2):not(.x) { min-height: 38px; }
+  .topbar .btn.small, .shopbar .btn.small { min-height: 0; }
+}
+.diff button, [data-act="diff"] { min-height: 40px; }
+.filters .btn.small { min-height: 38px; }
+.tcard.hc.cv3.full .hc-name.ln1 b { font-size: calc(8.4 * var(--u)); }
+.tcard.hc.cv3.full .hc-name.ln2 b { font-size: calc(7 * var(--u)); letter-spacing: -.2px; }
+.cam-starter .tcard.hc.full { zoom: 1.2; }
+.cam-starter .hint, .cam-starter p { color: var(--paper2); opacity: .9; }
+.cam-starter-row { gap: 28px 18px; }
+@media (max-width: 520px) {
+  .rv-wrap .rv-row { flex-wrap: nowrap; gap: 3px; justify-content: center; }
+  .rv-wrap .rv { width: 68px; flex: none; }
+  .rv-wrap .rv-tag { font-size: 9.5px; padding: 1px 3px; }
+}
+.ev-peek { text-align: center; margin-top: 14px; } .ev-peek h3 { font: 400 22px var(--display); color: var(--gold); margin: 0 0 4px; }
+.ev-peek-card { display: flex; justify-content: center; margin-top: 12px; } .ev-peek-card .tcard.hc.full { zoom: 1.15; }
+.cam-level header { flex-wrap: wrap; row-gap: 4px; } .cam-level header .cl-lock { flex-basis: 100%; order: 3; font-size: 13px; }
+.cam-level header h3 { overflow-wrap: anywhere; }
 
 </style>
 </head>
@@ -2272,9 +2302,9 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
     guardian: { hp: 620, atk: 44, as: 0.6, range: 1, def: 0.25, crit: 0.05 },
     fighter: { hp: 540, atk: 60, as: 0.75, range: 1, def: 0.12, crit: 0.05 },
     assassin: { hp: 420, atk: 68, as: 0.85, range: 1, def: 0.05, crit: 0.25 },
-    mage: { hp: 420, atk: 38, as: 0.6, range: 3, def: 0, crit: 0.05 },
-    marksman: { hp: 370, atk: 60, as: 0.75, range: 4, def: 0, crit: 0.1 },
-    support: { hp: 450, atk: 32, as: 0.6, range: 3, def: 0.05, crit: 0.05 },
+    mage: { hp: 460, atk: 42, as: 0.6, range: 3, def: 0, crit: 0.05 },
+    marksman: { hp: 390, atk: 62, as: 0.75, range: 4, def: 0, crit: 0.1 },
+    support: { hp: 500, atk: 36, as: 0.6, range: 3, def: 0.05, crit: 0.05 },
   };
   const TIER_MULT = { 1: 1, 2: 1.22, 3: 1.5 };
 
@@ -2311,6 +2341,8 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
     }, over || {}));
   }
 
+  // event-exclusive legendaries are a collector's prize, not a power spike: keep them near the rest of the roster
+  const EXCLUSIVE_NERF = 0.92;
   // ---- Emberreach (no support)
   unit('ash_ronin', 'رونين الرماد', 'Ash Ronin', 'ember', 'fighter', 1, 70,
     { type: 'cleave', name: 'قطع الرماد', dmg: [120, 200, 340], radius: 1.2,
@@ -2321,7 +2353,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
   unit('spark_wraith', 'شبح الشرر', 'Spark Wraith', 'ember', 'assassin', 2, 60,
     { type: 'nuke', name: 'طعنة الشرر', dmg: [230, 390, 660],
       text: 'طعنة سريعة بضرر عالي على الهدف.' });
-  unit('pyre_archer', 'رامية المحرقة', 'Pyre Archer', 'ember', 'marksman', 2, 80,
+  unit('pyre_archer', 'رامية المحرقة', 'Pyre Archer', 'ember', 'marksman', 2, 70,
     { type: 'burn', name: 'سهم المحرقة', dps: [60, 100, 170], dur: 4,
       text: 'يحرق الهدف ويضره كل ثانية لمدة 4 ثواني.' });
   unit('caldera_seer', 'عرّافة البركان', 'Caldera Seer', 'ember', 'mage', 3, 90,
@@ -2341,7 +2373,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
   unit('mist_witch', 'ساحرة الضباب', 'Mist Witch', 'tide', 'mage', 2, 80,
     { type: 'stunAoe', name: 'ضباب متجمّد', dmg: [120, 200, 350], stun: [1.5, 1.8, 2.2], radius: 1.2,
       text: 'تجمّد الهدف واللي حوله وتضرّهم.' });
-  unit('tide_priest', 'كاهن المدّ العالي', 'High Tide Priest', 'tide', 'support', 3, 80,
+  unit('tide_priest', 'كاهن المدّ العالي', 'High Tide Priest', 'tide', 'support', 3, 70,
     { type: 'healAll', name: 'مدّ عظيم', heal: [180, 300, 520],
       text: 'يعالج كل الفريق.' });
 
@@ -2355,7 +2387,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
   unit('firewall_unit', 'وحدة الجدار الناري', 'Firewall Unit', 'neon', 'guardian', 2, 90,
     { type: 'taunt', name: 'جدار ناري', shield: [260, 430, 720], radius: 2.6, dur: 3,
       text: 'تخلّي الأعداء القريبين منها يهجمون عليها، وياخذ درع.' });
-  unit('spectral_coder', 'المبرمجة الطيفية', 'Spectral Coder', 'neon', 'support', 2, 90,
+  unit('spectral_coder', 'المبرمجة الطيفية', 'Spectral Coder', 'neon', 'support', 2, 80,
     { type: 'hasteAllies', name: 'رفع التردد', pct: [0.3, 0.45, 0.65], dur: 5,
       text: 'تسرّع هجوم كل الفريق لفترة قصيرة.' });
   unit('chrome_ronin', 'رونين الكروم', 'Chrome Ronin', 'neon', 'fighter', 3, 60,
@@ -2471,7 +2503,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
   unit('akane', 'أكاني', 'Akane', 'ember', 'assassin', 2, 60,
     { type: 'nuke', name: 'نصلا اللهب', dmg: [180, 310, 540],
       text: 'طعنة سريعة بضرر عالي على الهدف.' });
-  unit('natsuki', 'ناتسوكي', 'Natsuki', 'ember', 'mage', 2, 90,
+  unit('natsuki', 'ناتسوكي', 'Natsuki', 'ember', 'mage', 2, 80,
     { type: 'aoe', name: 'موجة الحمم', dmg: [280, 460, 780], radius: 1.6,
       text: 'انفجار يضرب المنطقة حول الهدف.' });
   unit('shiro', 'شيرو', 'Shiro', 'ember', 'mage', 1, 90,
@@ -2512,7 +2544,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
   unit('tomoe', 'تومويه', 'Tomoe', 'tide', 'guardian', 1, 80,
     { type: 'shieldSelf', name: 'درع اللؤلؤ', shield: [380, 620, 1000],
       text: 'ياخذ درع قوي.' });
-  unit('otohime', 'أوتوهيمي', 'Otohime', 'tide', 'support', 3, 80,
+  unit('otohime', 'أوتوهيمي', 'Otohime', 'tide', 'support', 3, 70,
     { type: 'healAll', name: 'حضن البحر', heal: [170, 290, 510],
       text: 'يعالج كل الفريق.' }, { rarity: 'legendary' });
   unit('haruka', 'هاروتو', 'Haruto', 'tide', 'mage', 2, 90,
@@ -2537,7 +2569,7 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
     { type: 'healAll', name: 'همس الأرواح', heal: [170, 290, 510], text: 'يعالج كل الفريق.' }, { rarity: 'legendary', exclusive: true });
 
   const UNITS = {};
-  U.forEach((u) => (UNITS[u.id] = u));
+  U.forEach((u) => { if (u.exclusive) { u.hp = Math.round(u.hp * EXCLUSIVE_NERF); u.atk = Math.round(u.atk * EXCLUSIVE_NERF); } UNITS[u.id] = u; });
   // The starter roster: 8 basic units (every role covered). Everything else comes from the gift packs, packs, the pass or events.
   const STARTER_IDS = ['ash_ronin', 'forge_bulwark', 'wave_caller', 'grid_hound', 'pixel_sniper', 'moss_warden', 'thorn_fox', 'shiro'];
   STARTER_IDS.forEach((id) => (UNITS[id].starter = true));
@@ -4808,18 +4840,18 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
       F('l2boss', 'الزعيم: ميران', 0.81, [['coral_sentinel', 2, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['wave_caller', 1, 'b0', 1], ['mist_witch', 1, 'b2', 1], ['tide_priest', 1, 'b3', 2]], { boss: true }),
     ]),
     L('l3', 'neon', 'zerokai', 'شوارع نيون-٩', { gold: 10, level: 5 }, [
-      F('l3f1', 'كلاب الشبكة', 1.24, [['firewall_unit', 1, 'f1', 1], ['grid_hound', 2, 'f2', 1], ['grid_hound', 1, 'f3', 1], ['pixel_sniper', 1, 'b1', 1], ['spectral_coder', 1, 'b2', 2]]),
-      F('l3f2', 'قنّاصو البكسل', 1.23, [['firewall_unit', 1, 'f1', 1], ['chrome_ronin', 1, 'f2', 2], ['pixel_sniper', 2, 'b1', 1], ['pixel_sniper', 1, 'b2', 1], ['spectral_coder', 1, 'b3', 1]]),
-      F('l3f3', 'جدار النار', 0.88, [['firewall_unit', 2, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 1, 'b1', 1], ['spectral_coder', 1, 'b2', 2], ['spark_wraith', 1, 'b3', 3]]),
-      F('l3f4', 'المبرمجة الطيفية', 0.81, [['firewall_unit', 2, 'f1', 1], ['chrome_ronin', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 2, 'b1', 1], ['spectral_coder', 1, 'b2', 1], ['mist_witch', 1, 'b3', 2]]),
-      F('l3boss', 'الزعيم: زيرو-كاي', 0.74, [['firewall_unit', 2, 'f1', 1], ['chrome_ronin', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 2, 'b0', 1], ['spectral_coder', 1, 'b2', 2]], { boss: true }),
+      F('l3f1', 'كلاب الشبكة', 1.08, [['firewall_unit', 1, 'f1', 1], ['grid_hound', 2, 'f2', 1], ['grid_hound', 1, 'f3', 1], ['pixel_sniper', 1, 'b1', 1], ['spectral_coder', 1, 'b2', 2]]),
+      F('l3f2', 'قنّاصو البكسل', 1.12, [['firewall_unit', 1, 'f1', 1], ['chrome_ronin', 1, 'f2', 2], ['pixel_sniper', 2, 'b1', 1], ['pixel_sniper', 1, 'b2', 1], ['spectral_coder', 1, 'b3', 1]]),
+      F('l3f3', 'جدار النار', 0.76, [['firewall_unit', 2, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 1, 'b1', 1], ['spectral_coder', 1, 'b2', 2], ['spark_wraith', 1, 'b3', 3]]),
+      F('l3f4', 'المبرمجة الطيفية', 0.76, [['firewall_unit', 2, 'f1', 1], ['chrome_ronin', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 2, 'b1', 1], ['spectral_coder', 1, 'b2', 1], ['mist_witch', 1, 'b3', 2]]),
+      F('l3boss', 'الزعيم: زيرو-كاي', 0.65, [['firewall_unit', 2, 'f1', 1], ['chrome_ronin', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 2, 'b0', 1], ['spectral_coder', 1, 'b2', 2]], { boss: true }),
     ]),
     L('l4', 'sylvan', 'orath', 'قلب الغابة الأزلية', { gold: 12, level: 6 }, [
-      F('l4f1', 'ثعالب الأشواك', 1.35, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['thorn_fox', 1, 'f3', 1], ['willow_eye', 1, 'b1', 1], ['wave_caller', 1, 'b2', 1], ['root_shaman', 1, 'b3', 3]]),
-      F('l4f2', 'عيون الصفصاف', 0.88, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['coral_sentinel', 2, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['willow_eye', 1, 'b2', 1], ['spectral_coder', 1, 'b3', 2]]),
-      F('l4f3', 'المتربّص', 0.97, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['wave_caller', 2, 'b3', 2]]),
-      F('l4f4', 'شامان الجذور', 0.79, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['firewall_unit', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['tide_priest', 1, 'b3', 3]]),
-      F('l4boss', 'الزعيم: أوراث', 0.83, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b0', 1], ['root_shaman', 2, 'b2', 1], ['tide_priest', 1, 'b3', 2]], { boss: true }),
+      F('l4f1', 'ثعالب الأشواك', 1.19, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['thorn_fox', 1, 'f3', 1], ['willow_eye', 1, 'b1', 1], ['wave_caller', 1, 'b2', 1], ['root_shaman', 1, 'b3', 3]]),
+      F('l4f2', 'عيون الصفصاف', 0.78, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['coral_sentinel', 2, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['willow_eye', 1, 'b2', 1], ['spectral_coder', 1, 'b3', 2]]),
+      F('l4f3', 'المتربّص', 0.87, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['wave_caller', 2, 'b3', 2]]),
+      F('l4f4', 'شامان الجذور', 0.72, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['firewall_unit', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['tide_priest', 1, 'b3', 3]]),
+      F('l4boss', 'الزعيم: أوراث', 0.74, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b0', 1], ['root_shaman', 2, 'b2', 1], ['tide_priest', 1, 'b3', 2]], { boss: true }),
     ]),
   ];
 
@@ -6289,6 +6321,10 @@ AMB.IMAGES = {
   }
 
   const maxR = () => (S.match && S.match.rules ? S.match.rules.maxRounds : CFG.match.maxRounds);
+  // a match on a phone is portrait-only: ask the browser to hold it (works in the installed app), and CSS shows a "rotate" notice otherwise
+  try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('portrait').catch(() => {}); } catch (e) { /* ignore */ }
+  // closing/reloading in the middle of a match loses it: ask first (the browser shows its own wording)
+  window.addEventListener('beforeunload', (e) => { if (S.match && S.screen === 'match' && S.mode !== 'tutorial' && !S.match.isOver) { e.preventDefault(); e.returnValue = ''; } });
   function startMatch() {
     S.panels = false; $('scr-match').classList.remove('show-panels');
     const heroIds = Object.keys(HEROES);
@@ -6500,11 +6536,16 @@ AMB.IMAGES = {
     else cls = rep.winner === 0 ? 'win' : 'lose';
     const over = m.isOver;
     const side = (i) => { const r = rep.players[i], pl = m.players[i]; return `<div class="rr-side ${rep.winner === i ? 'won' : ''}">${portrait(r.heroKilled ? HEROES[pl.heroId] : HEROES[pl.heroId], { k: 'rr' + i })}
-        <div class="rr-life">${icon(r.heroKilled ? 'skull' : 'heart')} <b>${lifeStr(r.lifeAfter)}</b></div>${(r.backlash + r.direct) > 0 ? `<div class="rr-dmg">−${Math.round(r.backlash + r.direct)}</div>` : '<div class="rr-dmg">&nbsp;</div>'}</div>`; };
+        <div class="rr-life">${icon(r.heroKilled ? 'skull' : 'heart')} <b>${lifeStr(r.lifeAfter)}</b></div>${(r.backlash + r.direct) > 0 ? `<div class="rr-dmg"><bdi dir="ltr">−${Math.round(r.backlash + r.direct)}</bdi></div>` : '<div class="rr-dmg">&nbsp;</div>'}</div>`; };
     const me0 = rep.players[0];
     const why = S.mode !== 'hotseat' && rep.winner === 1 ? (me0.exposed ? `<div class="rr-why">${icon('shield')}<i>✗</i> ➜ ${icon('warn')}</div>` : `<div class="rr-why">${icon('star')} ➜ ${icon('sword')}</div>`) : '';
-    overlay(`<div class="ov-card rr ${cls}"><div class="rr-big">${icon(rep.winner === null ? 'swap' : cls === 'lose' ? 'skull' : 'crown')}</div>
-      <div class="rr-row">${side(0)}<div class="rr-vs">${icon('sword')}</div>${side(1)}</div>${why}${rep.finale ? `<div class="rr-why">${icon('flame')} ×${CFG.match.finaleLossMult}</div>` : ''}
+    const title = rep.winner === null ? `الجولة ${m.round}: تعادل`
+      : S.mode === 'hotseat' ? `الجولة ${m.round}: فاز ${esc(m.players[rep.winner].name)}`
+      : over ? (rep.winner === 0 ? 'فزت بالمباراة! 🎉' : 'خسرت المباراة')
+      : `الجولة ${m.round}: ${rep.winner === 0 ? 'فزت' : 'خسرت'}`;
+    const whyTxt = S.mode !== 'hotseat' && rep.winner === 1 ? (me0.exposed ? 'سقط خط الدفاع وانكشف بطلك' : 'العدو كان أقوى هالجولة') : '';
+    overlay(`<div class="ov-card rr ${cls}"><div class="rr-title">${title}</div><div class="rr-big">${icon(rep.winner === null ? 'swap' : cls === 'lose' ? 'skull' : 'crown')}</div>
+      <div class="rr-row">${side(0)}<div class="rr-vs">${icon('sword')}</div>${side(1)}</div>${why}${whyTxt ? `<div class="rr-note">${whyTxt}</div>` : ''}${rep.finale ? `<div class="rr-why">${icon('flame')} ×${CFG.match.finaleLossMult}</div>` : ''}
       <button class="btn primary big rr-go" data-act="${over ? 'toResults' : m.rewardPending ? 'rewards' : 'nextRound'}">${over ? icon('check') : m.rewardPending ? '🎁' : icon('sword')}</button></div>`);
   }
 
@@ -6556,7 +6597,7 @@ AMB.IMAGES = {
     return `<div class="tcard hc cv3 full ${tier}${sc} r-${def.rarity || 'common'} ${o.cls || ''}" style="--wc:${W.color}" ${attrs}>
       <div class="hc-frame"><i class="sheen"></i></div>${rar}${lvl}
       <div class="hc-art">${portrait(def, { bare: true, k: o.k })}</div><div class="hc-ring"></div>
-      <div class="hc-name" data-act="tip" data-k="all" data-id="${def.id}" data-x="${star}"><b>${def.name}</b></div>
+      <div class="hc-name ${def.name.length > 14 ? 'ln2' : def.name.length > 10 ? 'ln1' : ''}" data-act="tip" data-k="all" data-id="${def.id}" data-x="${star}"><b>${def.name}</b></div>
       <div class="hc-icons" data-act="tip" data-k="all" data-id="${def.id}" data-x="${star}">${iconsRow}</div>
       ${isHero ? '' : gems(gemN).replace('class="gems', 'data-act="tip" data-k="rar" data-id="' + def.id + '" class="hc-gems gems')}
       ${isHero ? '' : `<span class="hc-cost" data-act="tip" data-k="cost" data-id="${def.id}"><i></i><b>${def.cost}</b></span>`}
@@ -7395,7 +7436,22 @@ AMB.IMAGES = {
     sound: () => { SND.on = !SND.on; try { localStorage.setItem('amb_sound', SND.on ? '1' : '0'); } catch (e) { /* ignore */ } if (SND.on) sfx('click'); document.querySelectorAll('[data-act="sound"]').forEach((b) => { if (b.id === 'menu-sound') b.querySelector('.mt-ic').textContent = SND.on ? '🔊' : '🔇'; else b.textContent = SND.on ? '🔊' : '🔇'; }); },
     xp: () => { if (prepActive()) { const lv = me().level; if (res(S.match.buyXp(S.v))) { if (me().level > lv) toast(`المستوى ${me().level}! تقدر تحط ${me().level} وحدات`, 'good'); renderMatch(); } } },
     lock: () => { if (prepActive()) { S.match.toggleLock(S.v); renderMatch(); } },
-    ready: () => prepActive() && endPrep(),
+    ready: () => {
+      if (!prepActive()) return;
+      // a new player's most common mistake: pressing "ready" with gold still in the pocket
+      const m = S.match, p = me();
+      if (S.mode !== 'tutorial' && S.mode !== 'hotseat' && S.warnedRound !== m.round + ':' + S.v) {
+        const can = (p.shop || []).filter((c) => c && UNITS[c] && p.gold >= UNITS[c].cost).length;
+        if (p.gold >= 3 && can && p.bench.some((x) => !x) ) {
+          S.warnedRound = m.round + ':' + S.v;
+          modal(`<h2>عندك ذهب ما صرفته</h2><p class="hint">معك <b>${p.gold}</b> ذهب وفيه بطاقات في المتجر تقدر تشتريها. الذهب ما يضيع، بس الوحدات الزيادة تقوّيك في القتال.</p>
+            <div style="display:flex;gap:8px;justify-content:center;margin-top:12px"><button class="btn primary big" data-act="closeModal">أرجع أشتري</button><button class="btn" data-act="readyForce">ابدأ القتال</button></div>`);
+          return;
+        }
+      }
+      endPrep();
+    },
+    readyForce: () => { closeModal(); if (prepActive()) endPrep(); },
     deselect: () => { S.sel = null; renderMatch(); },
     autoArrange: () => { if (!prepActive()) return; S.match.autoArrange(S.v); S.sel = null; toast('رتبت لك أقوى وحداتك: الحراس قدّام والباقي ورا', 'good'); renderMatch(); },
     toBench: () => {
@@ -7706,7 +7762,7 @@ AMB.IMAGES = {
   function trackHTML() {
     const cols = [];
     for (let l = 1; l <= P.SEASON.levels; l++) {
-      cols.push(`<div class="pcol ${l === pass.level() ? 'now' : ''} ${l <= pass.level() ? 'reached' : ''}" data-col="${l}"><div class="plv">${l}</div>${cellHTML(l, 'free')}${cellHTML(l, 'premium')}</div>`);
+      cols.push(`<div class="pcol ${l === pass.level() ? 'now' : ''} ${l <= pass.level() ? 'reached' : ''}" data-col="${l}"><div class="plv">${l}</div>${cellHTML(l, 'free')}}</div>`);
     }
     const n = [];
     for (let l = 1; l <= pass.level(); l++) ['free', 'premium'].forEach((t) => { if (pass.canClaim(l, t)) n.push(1); });
@@ -8075,7 +8131,7 @@ AMB.IMAGES = {
     AMB.TIPS.caminfo = () => ({ title: 'كيف تشتغل الحملة', html: `<p>كل قتال <b>تكسب جولتين من 3</b> ضد تشكيلة ثابتة. مستويات بطاقاتك وندرتها <b>تنحسب هنا</b>، والمتجر يعرض الوحدات اللي تملكها فقط.</p>
       <p>الفوز الأول: ${icon('gem')} ${R.fight.shards} + ${R.fight.passXp} خبرة ممر<br>الزعيم: ${icon('gem')} ${R.boss.shards} + ${R.boss.passXp} خبرة<br>إنهاء المستوى: باكج مجاني<br>الإعادة: ${icon('gem')} ${R.replay.shards}</p>
       <h4>النجوم</h4>${LV.CAMPAIGN.stars.rules.map((r) => `<div>${'★'.repeat(r.n)} ${r.text}</div>`).join('')}` });
-    root.innerHTML = `<div class="cam-note">⚔️ تكسب جولتين من 3 · ⭐ نجوم · ${icon('gem')} شظايا · 🎁 باكج لكل مستوى <button class="ibtn" data-act="info" data-k="caminfo" title="شرح">ⓘ</button></div>
+    root.innerHTML = `<div class="cam-note">⚔️ جولتين من 3 تكسب · ⭐ النجوم تفتح صناديق · 🎁 باكج لكل مستوى <button class="ibtn" data-act="info" data-k="caminfo" title="شرح">ⓘ</button></div>
       ${chestsHTML()}
       <div class="cam-levels">${LV.LEVELS.map((l, li) => {
         const pr = CAM.progress(l.id), unlocked = CAM.levelUnlocked(li);
@@ -8111,7 +8167,7 @@ AMB.IMAGES = {
       ${h === l.hero ? `<div class="hint">ستواجه <b>ظلّ ${AMB.DATA.HEROES[h].name}</b></div>` : ''}
       <h4>تشكيلة الخصم</h4><div class="cam-units">${unitsHTML}</div>
       <h4>الجائزة</h4><div class="cam-reward">${reward}</div>
-      <h4>بطلك</h4><div class="hchips">${heroes}</div>${AMB.DeckGate ? AMB.DeckGate.line() : ''}
+      <h4>بطلك</h4><div class="hchips">${heroes}</div>${AMB.DeckGate ? AMB.DeckGate.line() : ''}${x.li >= 2 && C.ownedCount() < 40 ? '<div class="db-warn">⚠ هالمستوى أصعب: افتح باكجات وطوّر بطاقاتك أول عشان ترتاح فيه</div>' : ''}
       <h4>النجوم ${starRow(CAM.stars(fightId))} <button class="ibtn" data-act="info" data-k="caminfo" title="شرح">ⓘ</button></h4>
       ${st.attempts ? `<div class="hint">محاولات: ${st.attempts} · فوز: ${st.wins}</div>` : ''}
       <div class="cam-go"><button class="btn primary big" data-act="camGo" data-id="${fightId}" ${h ? '' : 'disabled'}>قاتل!</button></div></div>`);
@@ -8521,7 +8577,7 @@ AMB.IMAGES = {
     const row = t.closest('.shop-row'); if (row && t.closest('.shop-cards')) { const r = t.getBoundingClientRect(), rr = row.getBoundingClientRect(); if (r.left < rr.left || r.right > rr.right) t.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); }
     const r = t.getBoundingClientRect(), pad = 6;
     Object.assign(ring.style, { display: 'block', left: r.left - pad + 'px', top: r.top - pad + 'px', width: r.width + pad * 2 + 'px', height: r.height + pad * 2 + 'px' });
-    const hx = r.left + r.width / 2, hy = r.top + r.height * 0.62;
+    const hx = r.right - Math.min(22, r.width * 0.3), hy = r.top + r.height * 0.5;   // at the edge: never over the card's name, price or numbers
     Object.assign(hand.style, { display: 'block', left: Math.min(innerWidth - 40, Math.max(4, hx - 4)) + 'px', top: Math.min(innerHeight - 50, hy) + 'px' });
   }
 
@@ -8886,7 +8942,10 @@ AMB.IMAGES = {
     const root = $('event'); if (!root) return;
     clearInterval(timer);
     if (C.needsStarter()) { root.innerHTML = '<div class="cam-note">اختر بطلك الأول من «الحملة» أول.</div>'; return; }
-    if (!WK.unlocked()) { root.innerHTML = `<div class="cam-note">🔒 الحدث الأسبوعي يفتح بعد ما تخلّص <b>المستوى الأول من الحملة</b>.</div>`; return; }
+    if (!WK.unlocked()) { const c0 = WK.current(), ev0 = c0.event, ex0 = AMB.DATA.UNITS[ev0.exclusive];
+      root.innerHTML = `<div class="cam-note">🔒 الحدث الأسبوعي يفتح بعد ما تخلّص <b>المستوى الأول من الحملة</b>.</div>
+        <div class="ev-peek"><h3>حدث هذا الأسبوع: ${esc(ev0.name)}</h3><p class="hint">زعيم بقدرتين، وبطاقة حصرية ما تطلع من الباكجات: <b>${esc(ex0.name)}</b></p>
+        <div class="ev-peek-card">${UI().cardHTML(ex0, { k: 'evp', cls: 'unowned', attrs: `data-act="detail" data-id="${ev0.exclusive}"` })}</div></div>`; return; }
     const c = WK.current(), ev = c.event, ex = AMB.DATA.UNITS[ev.exclusive], owned = C.owned(ev.exclusive), next = WK.nextEvent();
     const card = UI().cardHTML(ex, { k: 'evx', lvl: owned ? C.level(ev.exclusive) : 0, cls: owned ? '' : 'unowned', attrs: `data-act="detail" data-id="${ev.exclusive}"` });
     const rows = []; for (let s = WK.stageCount(); s >= 1; s--) rows.push(stageRow(c, s));

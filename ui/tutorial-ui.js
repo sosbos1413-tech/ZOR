@@ -64,7 +64,7 @@
     const row = t.closest('.shop-row'); if (row && t.closest('.shop-cards')) { const r = t.getBoundingClientRect(), rr = row.getBoundingClientRect(); if (r.left < rr.left || r.right > rr.right) t.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); }
     const r = t.getBoundingClientRect(), pad = 6;
     Object.assign(ring.style, { display: 'block', left: r.left - pad + 'px', top: r.top - pad + 'px', width: r.width + pad * 2 + 'px', height: r.height + pad * 2 + 'px' });
-    const hx = r.left + r.width / 2, hy = r.top + r.height * 0.62;
+    const hx = r.right - Math.min(22, r.width * 0.3), hy = r.top + r.height * 0.5;   // at the edge: never over the card's name, price or numbers
     Object.assign(hand.style, { display: 'block', left: Math.min(innerWidth - 40, Math.max(4, hx - 4)) + 'px', top: Math.min(innerHeight - 50, hy) + 'px' });
   }
 

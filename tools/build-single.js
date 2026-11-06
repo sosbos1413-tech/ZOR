@@ -42,7 +42,7 @@ fs.writeFileSync(path.join(docs, 'version.json'), versionJson);
 
 // installable app (PWA): manifest + icons + a service worker (network first, so updates always win; the cache only serves offline play)
 const webManifest = { name: 'ZOR — مناطق الصدع', short_name: 'ZOR', description: 'لعبة بطاقات استراتيجية بقتال تلقائي', lang: 'ar', dir: 'rtl',
-  start_url: './', scope: './', id: './', display: 'standalone', orientation: 'any', background_color: '#121010', theme_color: '#121010',
+  start_url: './', scope: './', id: './', display: 'standalone', orientation: 'portrait', background_color: '#121010', theme_color: '#121010',
   icons: [{ src: 'icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
     { src: 'icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }] };
 fs.writeFileSync(path.join(docs, 'manifest.webmanifest'), JSON.stringify(webManifest, null, 2));

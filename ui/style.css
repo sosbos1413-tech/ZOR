@@ -1926,3 +1926,33 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 .tcard.hc.cv3.item .hc-name { left: calc(8 * var(--u)); }
 .upd-banner { transition: opacity .35s, transform .35s; }
 .upd-banner.gone { opacity: 0; transform: translate(-50%, 14px); pointer-events: none !important; }
+.rr-title { font: 400 26px var(--display); text-align: center; margin: 0 0 4px; color: var(--ink); }
+.ov-card.rr.lose .rr-title { color: var(--red); } .ov-card.rr.win .rr-title { color: #a06800; }
+.rr-note { text-align: center; font-size: 13px; color: var(--muted); margin: 2px 0 6px; }
+/* phones held sideways during a match: the layout is portrait-only, so say so instead of showing a broken screen */
+@media (orientation: landscape) and (max-height: 520px) and (pointer: coarse) {
+  body.in-match::after { content: '↻  دوّر جوالك للوضع الطولي'; position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; background: #121010f2; color: var(--gold); font: 400 26px var(--display); text-align: center; padding: 20px; }
+}
+
+/* ===== playtest fixes: bigger touch areas, long names, hero picker, pack row on phones ===== */
+.ibtn { position: relative; } .ibtn::after { content: ''; position: absolute; inset: -9px; }
+@media (pointer: coarse) {
+  .btn.small:not(.ibtn2):not(.x) { min-height: 38px; }
+  .topbar .btn.small, .shopbar .btn.small { min-height: 0; }
+}
+.diff button, [data-act="diff"] { min-height: 40px; }
+.filters .btn.small { min-height: 38px; }
+.tcard.hc.cv3.full .hc-name.ln1 b { font-size: calc(8.4 * var(--u)); }
+.tcard.hc.cv3.full .hc-name.ln2 b { font-size: calc(7 * var(--u)); letter-spacing: -.2px; }
+.cam-starter .tcard.hc.full { zoom: 1.2; }
+.cam-starter .hint, .cam-starter p { color: var(--paper2); opacity: .9; }
+.cam-starter-row { gap: 28px 18px; }
+@media (max-width: 520px) {
+  .rv-wrap .rv-row { flex-wrap: nowrap; gap: 3px; justify-content: center; }
+  .rv-wrap .rv { width: 68px; flex: none; }
+  .rv-wrap .rv-tag { font-size: 9.5px; padding: 1px 3px; }
+}
+.ev-peek { text-align: center; margin-top: 14px; } .ev-peek h3 { font: 400 22px var(--display); color: var(--gold); margin: 0 0 4px; }
+.ev-peek-card { display: flex; justify-content: center; margin-top: 12px; } .ev-peek-card .tcard.hc.full { zoom: 1.15; }
+.cam-level header { flex-wrap: wrap; row-gap: 4px; } .cam-level header .cl-lock { flex-basis: 100%; order: 3; font-size: 13px; }
+.cam-level header h3 { overflow-wrap: anywhere; }
