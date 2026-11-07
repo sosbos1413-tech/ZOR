@@ -2097,3 +2097,10 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 .field.ar-gambler .rift-line { background: repeating-linear-gradient(90deg, #d9b24a 0 14px, transparent 14px 20px); opacity: .85; }
 .field.ar-gambler .cell { border-color: #d9b24a55; background: #00000022; }
 .field.ar-gambler .cell.enemy { border-color: #c4141f66; }
+
+/* dwarven forge arena: the round carved rim is mostly cropped; the flagstone floor lies under the grid and the glowing cracks show at the corners */
+.field.ar-forge, .pv.arena.ar-forge { background-color: #1a1a1e; background-image: url(../assets/frames/arena-forge.webp); background-size: 148% 156%; background-position: center 47%; background-repeat: no-repeat; --rc: #ff7a2a; }
+.pv.arena.ar-forge { background-size: 100% 100%; background-position: center; }
+.field.ar-forge .rift-line { background: repeating-linear-gradient(90deg, #ff5a1a 0 16px, #ffd24a 16px 20px, transparent 20px 26px); opacity: .9; filter: drop-shadow(0 0 5px #ff7a2a); }
+.field.ar-forge .cell { border-color: #ff7a2a44; background: #00000030; }
+.field.ar-forge .cell.enemy { border-color: #c4141f77; }
