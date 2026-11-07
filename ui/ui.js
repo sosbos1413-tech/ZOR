@@ -491,28 +491,42 @@
     f.type = 'highpass'; f.frequency.value = hp || 800; g.gain.value = v;
     src.buffer = buf; src.connect(f); f.connect(g); g.connect(c.destination); src.start();
   }
+
+  // --- sound building blocks: a swooshing "air" sound (band-passed noise gliding between two pitches) and metal (ringing partials)
+  function swoosh(c, o) {
+    const n = Math.floor(c.sampleRate * o.d), buf = c.createBuffer(1, n, c.sampleRate), ch = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) { const x = i / n; ch[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * Math.min(1, x * (o.sharp || 1))) * (1 - x * 0.3); }
+    const t0 = c.currentTime + (o.at || 0), src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    f.type = 'bandpass'; f.Q.value = o.q || 2.2; f.frequency.setValueAtTime(o.f1, t0); f.frequency.exponentialRampToValueAtTime(o.f2, t0 + o.d);
+    g.gain.value = o.v || 0.1; src.buffer = buf; src.connect(f); f.connect(g); g.connect(c.destination); src.start(t0);
+  }
+  function clang(c, o) {   // struck metal: inharmonic partials that die away at different speeds
+    [[1, 1], [2.76, 0.7], [5.4, 0.5], [8.93, 0.3]].forEach(([r, a], i) => tone(c, { f: o.f * r, d: (o.d || 0.28) / (1 + i * 0.7), v: (o.v || 0.07) * a, type: i % 2 ? 'triangle' : 'sine', at: o.at || 0 }));
+    noise(c, 0.04, (o.v || 0.07) * 0.8, 3000);
+  }
+  function thud(c, o) { tone(c, { f: o.f || 120, to: (o.f || 120) * 0.45, d: o.d || 0.14, v: o.v || 0.16, type: 'sine', at: o.at || 0 }); noise(c, 0.05, (o.v || 0.16) * 0.5, 250); }
   const SFX = {
     click: (c) => tone(c, { f: 520, to: 780, d: 0.06, v: 0.08, type: 'triangle' }),
     buy: (c) => { tone(c, { f: 660, d: 0.07, v: 0.1, type: 'square' }); tone(c, { f: 990, d: 0.12, v: 0.1, type: 'square', at: 0.06 }); },
     reroll: (c) => noise(c, 0.18, 0.06, 2500),
-    hit: (c) => { noise(c, 0.07, 0.12, 1200); tone(c, { f: 170, to: 80, d: 0.07, v: 0.1, type: 'square' }); },
+    hit: (c) => { thud(c, { f: 170, d: 0.07, v: 0.1 }); noise(c, 0.05, 0.07, 1500); },
     crit: (c) => { noise(c, 0.14, 0.2, 700); tone(c, { f: 300, to: 60, d: 0.18, v: 0.18, type: 'sawtooth' }); tone(c, { f: 1200, d: 0.08, v: 0.08, type: 'triangle' }); },
     cast: (c) => { tone(c, { f: 300, to: 900, d: 0.3, v: 0.1, type: 'sawtooth' }); tone(c, { f: 600, to: 1800, d: 0.3, v: 0.05, type: 'triangle', at: 0.04 }); },
     heal: (c) => { tone(c, { f: 660, d: 0.12, v: 0.08 }); tone(c, { f: 880, d: 0.16, v: 0.08, at: 0.09 }); tone(c, { f: 1320, d: 0.2, v: 0.06, at: 0.18 }); },
     death: (c) => { noise(c, 0.3, 0.14, 300); tone(c, { f: 220, to: 40, d: 0.35, v: 0.16, type: 'sawtooth' }); },
     merge: (c) => { [523, 659, 784, 1047].forEach((f, i) => tone(c, { f, d: 0.22, v: 0.12, type: 'triangle', at: i * 0.07 })); noise(c, 0.25, 0.06, 4000); },
-    v_fighter: (c) => { noise(c, 0.09, 0.07, 1800); tone(c, { f: 220, to: 90, d: 0.12, v: 0.07, type: 'triangle' }); },
-    v_assassin: (c) => { noise(c, 0.07, 0.05, 3500); tone(c, { f: 1400, to: 500, d: 0.08, v: 0.04, type: 'sine' }); },
-    v_mage: (c) => { tone(c, { f: 500, to: 1100, d: 0.2, v: 0.05, type: 'sine' }); tone(c, { f: 760, to: 1500, d: 0.2, v: 0.025, type: 'triangle', at: 0.05 }); },
-    v_marksman: (c) => { tone(c, { f: 2000, to: 900, d: 0.06, v: 0.05, type: 'square' }); noise(c, 0.04, 0.04, 4000); },
-    v_guardian: (c) => { tone(c, { f: 140, to: 60, d: 0.16, v: 0.1, type: 'sine' }); noise(c, 0.1, 0.05, 900); tone(c, { f: 1500, d: 0.05, v: 0.03, type: 'square', at: 0.02 }); },
-    v_support: (c) => { tone(c, { f: 880, d: 0.14, v: 0.04, type: 'sine' }); tone(c, { f: 1320, d: 0.18, v: 0.03, type: 'sine', at: 0.06 }); },
-    c_fighter: (c) => { tone(c, { f: 110, to: 45, d: 0.32, v: 0.13, type: 'sawtooth' }); noise(c, 0.25, 0.08, 500); },
-    c_assassin: (c) => { noise(c, 0.3, 0.07, 2500); tone(c, { f: 900, to: 200, d: 0.28, v: 0.06, type: 'sine' }); },
-    c_mage: (c) => { tone(c, { f: 300, to: 1200, d: 0.4, v: 0.07, type: 'sine' }); tone(c, { f: 600, to: 1800, d: 0.4, v: 0.03, type: 'triangle', at: 0.05 }); },
-    c_marksman: (c) => { [0, 0.06, 0.12].forEach((t) => tone(c, { f: 1800, to: 800, d: 0.07, v: 0.05, type: 'square', at: t })); },
-    c_guardian: (c) => { tone(c, { f: 160, to: 70, d: 0.4, v: 0.12, type: 'sine' }); noise(c, 0.25, 0.06, 700); },
-    c_support: (c) => { [660, 880, 1320].forEach((f, i) => tone(c, { f, d: 0.3, v: 0.05, type: 'sine', at: i * 0.07 })); },
+    v_fighter: (c) => { swoosh(c, { d: 0.14, f1: 900, f2: 3200, q: 1.6, v: 0.13 }); clang(c, { f: 640, d: 0.3, v: 0.07, at: 0.1 }); thud(c, { f: 150, v: 0.1, at: 0.1 }); },
+    v_assassin: (c) => { swoosh(c, { d: 0.09, f1: 2600, f2: 7000, q: 2.8, v: 0.1, sharp: 3 }); swoosh(c, { d: 0.08, f1: 2200, f2: 6200, q: 2.8, v: 0.08, at: 0.07, sharp: 3 }); tone(c, { f: 3300, to: 2400, d: 0.1, v: 0.025, type: 'sine', at: 0.05 }); },
+    v_mage: (c) => { tone(c, { f: 420, to: 1400, d: 0.2, v: 0.05, type: 'sine' }); tone(c, { f: 630, to: 2100, d: 0.2, v: 0.025, type: 'triangle', at: 0.03 }); swoosh(c, { d: 0.22, f1: 600, f2: 4200, q: 3, v: 0.05 }); [1568, 2093].forEach((f, i) => tone(c, { f, d: 0.16, v: 0.03, type: 'sine', at: 0.19 + i * 0.05 })); },
+    v_marksman: (c) => { tone(c, { f: 190, to: 140, d: 0.1, v: 0.12, type: 'triangle' }); tone(c, { f: 520, to: 300, d: 0.07, v: 0.05, type: 'square' }); swoosh(c, { d: 0.18, f1: 5200, f2: 1600, q: 2.4, v: 0.1, at: 0.04 }); thud(c, { f: 220, d: 0.08, v: 0.06, at: 0.2 }); },
+    v_guardian: (c) => { thud(c, { f: 100, d: 0.2, v: 0.2 }); clang(c, { f: 420, d: 0.34, v: 0.09, at: 0.01 }); swoosh(c, { d: 0.09, f1: 500, f2: 1400, q: 1.2, v: 0.07 }); },
+    v_support: (c) => { [784, 988, 1319].forEach((f, i) => tone(c, { f, d: 0.28, v: 0.04, type: 'sine', at: i * 0.07 })); swoosh(c, { d: 0.25, f1: 1800, f2: 5200, q: 4, v: 0.025 }); },
+    c_fighter: (c) => { swoosh(c, { d: 0.22, f1: 500, f2: 2600, q: 1.4, v: 0.16 }); thud(c, { f: 90, d: 0.34, v: 0.22, at: 0.16 }); clang(c, { f: 520, d: 0.5, v: 0.1, at: 0.16 }); noise(c, 0.3, 0.07, 400); },
+    c_assassin: (c) => { swoosh(c, { d: 0.12, f1: 2800, f2: 8000, q: 2.8, v: 0.1, sharp: 3 }); swoosh(c, { d: 0.12, f1: 8000, f2: 2400, q: 2.8, v: 0.09, at: 0.1, sharp: 3 }); noise(c, 0.26, 0.05, 3500); tone(c, { f: 900, to: 180, d: 0.3, v: 0.05, type: 'sine', at: 0.06 }); },
+    c_mage: (c) => { tone(c, { f: 260, to: 1300, d: 0.45, v: 0.07, type: 'sine' }); tone(c, { f: 390, to: 1950, d: 0.45, v: 0.03, type: 'triangle', at: 0.04 }); swoosh(c, { d: 0.4, f1: 400, f2: 5200, q: 3, v: 0.07 }); [1319, 1760, 2349].forEach((f, i) => tone(c, { f, d: 0.3, v: 0.035, type: 'sine', at: 0.34 + i * 0.06 })); thud(c, { f: 80, v: 0.12, d: 0.3, at: 0.36 }); },
+    c_marksman: (c) => { [0, 0.13, 0.26].forEach((t) => { tone(c, { f: 180, to: 130, d: 0.09, v: 0.1, type: 'triangle', at: t }); swoosh(c, { d: 0.14, f1: 5200, f2: 1800, q: 2.4, v: 0.08, at: t + 0.03 }); thud(c, { f: 210, d: 0.07, v: 0.05, at: t + 0.15 }); }); },
+    c_guardian: (c) => { thud(c, { f: 80, d: 0.45, v: 0.24 }); clang(c, { f: 330, d: 0.6, v: 0.11, at: 0.02 }); clang(c, { f: 495, d: 0.5, v: 0.07, at: 0.12 }); noise(c, 0.3, 0.06, 600); },
+    c_support: (c) => { [523, 659, 784, 1047, 1319].forEach((f, i) => tone(c, { f, d: 0.4, v: 0.045, type: 'sine', at: i * 0.07 })); swoosh(c, { d: 0.5, f1: 1200, f2: 5800, q: 4, v: 0.03 }); },
     land1: (c) => noise(c, 0.07, 0.05, 700),
     land2: (c) => { tone(c, { f: 130, to: 70, d: 0.16, v: 0.14, type: 'sine' }); noise(c, 0.12, 0.07, 500); },
     land3: (c) => { tone(c, { f: 100, to: 45, d: 0.3, v: 0.2, type: 'sawtooth' }); tone(c, { f: 60, to: 35, d: 0.35, v: 0.2, type: 'sine' }); noise(c, 0.26, 0.12, 300); },

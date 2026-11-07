@@ -2127,3 +2127,8 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 .field.ar-temple .cell { border-color: #2a3a2a88; background: #0000001c; }
 .field.ar-temple .cell.enemy { border-color: #8a1a1a88; }
 .field.ar-temple .cell:not(:has(.tcard)) svg, .field.ar-temple .cell:not(:has(.tcard)) .ic { color: #2a3a2a; opacity: .55; }
+
+/* dead cards: the whole card turns grey and dark with a big cross, so you see at a glance who fell */
+#scr-match .tcard.hc.cv3.mini.dead, #scr-match .tcard.hc.cv3[class*="fr-"].mini.dead { filter: grayscale(1) brightness(.55) contrast(.95) !important; opacity: .9; transform: scale(.94); transition: filter .5s, opacity .5s, transform .4s; }
+#scr-match .tcard.hc.cv3.mini.dead .hc-sbar, #scr-match .tcard.hc.cv3.mini.dead .hc-bar { opacity: .35; }
+#scr-match .tcard.hc.cv3.mini.dead::after { content: '✕'; position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--display); font-size: clamp(22px, 9vw, 44px); color: #e0262f; text-shadow: 2px 2px 0 #000, 0 0 8px #000; z-index: 9; filter: none; pointer-events: none; }
