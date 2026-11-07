@@ -1563,6 +1563,25 @@
   }
   fillMenu();
 
+  // phone back button: step back inside the game instead of leaving it
+  (function backNav() {
+    let armedAt = 0;
+    try { history.replaceState({ zor: 0 }, ''); history.pushState({ zor: 1 }, ''); } catch (e) { return; }
+    window.addEventListener('popstate', () => {
+      let exiting = false;
+      try {
+        if ($('modal-back').classList.contains('on')) { ACT.closeModal(); }
+        else if ($('overlay').classList.contains('on')) { closeOverlay(); }
+        else if (document.body.classList.contains('more-open')) { document.body.classList.remove('more-open'); }
+        else if (S.screen === 'match') { if (S.phase === 'over') show('menu'); else matchMenu(); }
+        else if (S.screen !== 'menu') { show('menu'); }
+        else if (Date.now() - armedAt < 2500) { exiting = true; }
+        else { armedAt = Date.now(); toast('اضغط رجوع مرة ثانية للخروج'); }
+      } catch (err) { reportErr(err); }
+      if (exiting) { try { history.back(); } catch (e) { /* ignore */ } } else { try { history.pushState({ zor: 1 }, ''); } catch (e) { /* ignore */ } }
+    });
+  })();
+
   // debug / testing hook
   globalThis.AMB_UI = { renderHeroSelect, startCombat, afterReward, showResults, S, ACT, itemsHTML: () => Object.values(ITEMS).map((it) => itemCardHTML(it)).join(''), renderMatch, cardHTML, itemCardHTML, show, toast, sfx, burst, modal, closeModal, overlay, closeOverlay, startMatch, portrait, stars };
   if (AMB.PassUI) { AMB.PassUI.installActions(); AMB.PassUI.applyCosmetics(); AMB.PassUI.refreshMenu(); }

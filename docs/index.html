@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="dc9ea507ee">
+<meta name="zor-build" content="fc59208ba1">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -2301,6 +2301,10 @@ body:not([data-nav="1"]) #more-sheet { display: none !important; }
 #scr-menu #menu-campaign.mv2-play { position: absolute; }
 #bnav .dot, .mv2-play .dot { inset-inline-end: auto; left: auto; width: auto; }
 #bnav .dot { right: calc(50% - 26px); } .mv2-play .dot { right: 4px; top: -6px; }
+
+/* taps on plain text must not start a text selection; inputs and the room code stay selectable */
+html, body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: text; user-select: text; }
 
 </style>
 </head>
@@ -8487,6 +8491,25 @@ AMB.IMAGES = {
     const ms = $('menu-sound'); if (ms) ms.querySelector('.mt-ic').textContent = SND.on ? '🔊' : '🔇';
   }
   fillMenu();
+
+  // phone back button: step back inside the game instead of leaving it
+  (function backNav() {
+    let armedAt = 0;
+    try { history.replaceState({ zor: 0 }, ''); history.pushState({ zor: 1 }, ''); } catch (e) { return; }
+    window.addEventListener('popstate', () => {
+      let exiting = false;
+      try {
+        if ($('modal-back').classList.contains('on')) { ACT.closeModal(); }
+        else if ($('overlay').classList.contains('on')) { closeOverlay(); }
+        else if (document.body.classList.contains('more-open')) { document.body.classList.remove('more-open'); }
+        else if (S.screen === 'match') { if (S.phase === 'over') show('menu'); else matchMenu(); }
+        else if (S.screen !== 'menu') { show('menu'); }
+        else if (Date.now() - armedAt < 2500) { exiting = true; }
+        else { armedAt = Date.now(); toast('اضغط رجوع مرة ثانية للخروج'); }
+      } catch (err) { reportErr(err); }
+      if (exiting) { try { history.back(); } catch (e) { /* ignore */ } } else { try { history.pushState({ zor: 1 }, ''); } catch (e) { /* ignore */ } }
+    });
+  })();
 
   // debug / testing hook
   globalThis.AMB_UI = { renderHeroSelect, startCombat, afterReward, showResults, S, ACT, itemsHTML: () => Object.values(ITEMS).map((it) => itemCardHTML(it)).join(''), renderMatch, cardHTML, itemCardHTML, show, toast, sfx, burst, modal, closeModal, overlay, closeOverlay, startMatch, portrait, stars };

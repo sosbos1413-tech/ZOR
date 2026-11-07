@@ -2281,3 +2281,7 @@ body:not([data-nav="1"]) #more-sheet { display: none !important; }
 #scr-menu #menu-campaign.mv2-play { position: absolute; }
 #bnav .dot, .mv2-play .dot { inset-inline-end: auto; left: auto; width: auto; }
 #bnav .dot { right: calc(50% - 26px); } .mv2-play .dot { right: 4px; top: -6px; }
+
+/* taps on plain text must not start a text selection; inputs and the room code stay selectable */
+html, body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: text; user-select: text; }
