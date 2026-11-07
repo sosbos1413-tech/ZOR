@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="b6263763cf">
+<meta name="zor-build" content="714fad8571">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -8884,9 +8884,10 @@ AMB.IMAGES = {
       }
       throw new Error('no id');
     },
-    async join(code) {
-      await loadPeerJS();
-      const peer = await openPeer();
+    async join(code, step) {
+      step = step || (() => {});
+      await loadPeerJS(); step('٢/٣ الاتصال بخدمة الغرف…');
+      const peer = await openPeer(); step('٣/٣ أبحث عن الغرفة وأربط الجوالين… (قد تاخذ نص دقيقة)');
       return new Promise((res, rej) => {
         const conn = peer.connect('zor-' + code, { reliable: true });
         const to = setTimeout(() => rej(Object.assign(new Error('connect'), { type: 'connect' })), 25000);   // found the room but cannot link the two phones
@@ -8939,6 +8940,7 @@ AMB.IMAGES = {
     ui().modal(`<h2>غرفتك جاهزة</h2><p class="hint">أعطِ صاحبك هالرمز، وخلّه يضغط «ادخل غرفة»:</p>
       <div class="net-code" dir="ltr">${code}</div>
       <div class="net-btns"><button class="btn" data-act="netCopy">نسخ الرمز</button><button class="btn" data-act="netShare">إرسال</button><button class="btn ghost" data-act="netCancel">إلغاء</button></div>
+      <div class="net-btns"><button class="btn small" data-act="netDiag">فحص الاتصال</button></div><div class="hint" id="net-diag" dir="rtl" style="text-align:right"></div>
       <p class="hint" id="net-status">ينتظر صاحبك… <b>لا تطفّي الشاشة ولا تطلع من اللعبة</b> لين يدخل</p>`);
     const myRoom = room;
     myRoom.linked.then((link) => { if (room !== myRoom) { link.close(); return; } room = null; connected(0, link); });
@@ -8946,16 +8948,35 @@ AMB.IMAGES = {
   function joinForm() {
     ui().modal(`<h2>ادخل غرفة</h2><p class="hint">اكتب الرمز اللي عطاك إياه صاحبك:</p>
       <input id="net-in" class="net-input" dir="ltr" maxlength="5" autocapitalize="characters" autocomplete="off" placeholder="XXXXX">
-      <div class="net-btns"><button class="btn primary big" data-act="netJoinGo">دخول</button><button class="btn ghost" data-act="closeModal">إلغاء</button></div><p class="hint" id="net-status"></p>`);
+      <div class="net-btns"><button class="btn primary big" data-act="netJoinGo">دخول</button><button class="btn ghost" data-act="closeModal">إلغاء</button></div><p class="hint" id="net-status"></p>
+      <div class="net-btns"><button class="btn small" data-act="netDiag">فحص الاتصال</button></div><div class="hint" id="net-diag" dir="rtl" style="text-align:right"></div>`);
     setTimeout(() => { const i = document.getElementById('net-in'); if (i) i.focus(); }, 100);
   }
   async function join() {
     const input = document.getElementById('net-in'), code = (input && input.value || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
     const st = document.getElementById('net-status');
     if (code.length < 4) { if (st) st.textContent = 'اكتب الرمز كامل'; return; }
-    if (st) st.textContent = 'جاري الدخول…';
-    try { const link = await transport().join(code); connected(1, link); }
+    const step = (t) => { const e = document.getElementById('net-status'); if (e) e.textContent = t; };
+    step('١/٣ تحميل خدمة الاتصال…');
+    try { const link = await transport().join(code, step); connected(1, link); }
     catch (e) { if (st) st.textContent = explain(e); }
+  }
+
+  // connection check: tells you which of the three needed things works on THIS phone / network
+  async function diagnose(out) {
+    const line = (ok, t) => { out.innerHTML += `<div>${ok === null ? '⏳' : ok ? '✅' : '❌'} ${t}</div>`; };
+    const time = async (fn) => { const t0 = Date.now(); try { const r = await fn(); return [true, Date.now() - t0, r]; } catch (e) { return [false, Date.now() - t0, e]; } };
+    out.innerHTML = '';
+    let r = await time(() => loadPeerJS()); line(r[0], `خدمة الاتصال (تحميل المكتبة): ${r[0] ? r[1] + ' ms' : 'فشل'}`);
+    r = await time(() => new Promise((res, rej) => { const w = new WebSocket('wss://0.peerjs.com/peerjs?key=peerjs&id=zorchk' + Math.random().toString(36).slice(2, 8) + '&token=x'); const to = setTimeout(() => { try { w.close(); } catch (e) { /* ignore */ } rej(new Error('timeout')); }, 9000); w.onopen = () => { clearTimeout(to); w.close(); res(); }; w.onerror = () => { clearTimeout(to); rej(new Error('error')); }; }));
+    line(r[0], `خدمة الغرف (الوسيط): ${r[0] ? r[1] + ' ms' : 'ما وصلت'}`);
+    r = await time(() => new Promise((res) => {
+      const types = new Set(); const pc = new RTCPeerConnection(ICE); pc.createDataChannel('x');
+      pc.onicecandidate = (e) => { if (e.candidate) { const m = / typ (\w+)/.exec(e.candidate.candidate); if (m) types.add(m[1]); } else { pc.close(); res(types); } };
+      pc.createOffer().then((o) => pc.setLocalDescription(o)); setTimeout(() => { try { pc.close(); } catch (e) { /* ignore */ } res(types); }, 9000);
+    }));
+    const T = [...r[2]]; line(T.includes('srflx') || T.includes('relay'), `ربط الجوالين: ${T.length ? T.join(' + ') : 'ما وصلت أي إشارة'}${T.includes('relay') ? ' (فيه ترحيل)' : T.includes('srflx') ? '' : ' ← الشبكة تمنع الربط المباشر'}`);
+    out.innerHTML += '<div class="hint" style="margin-top:6px">صوّر هالنتيجة وارسلها لي</div>';
   }
 
   // say WHAT failed, so a bad code is not confused with a blocked network
@@ -9107,6 +9128,7 @@ AMB.IMAGES = {
       netJoin: () => joinForm(),
       netJoinGo: () => join(),
       netCancel: () => cancelRoom(),
+      netDiag: () => { const o = document.getElementById('net-diag'); if (o) { o.textContent = 'جاري الفحص…'; diagnose(o); } },
       netCopy: () => { const c = room && room.code; if (!c) return; try { navigator.clipboard.writeText(c); u.toast('نسخت الرمز', 'good'); } catch (e) { u.toast('الرمز: ' + c, ''); } },
       netShare: () => { const c = room && room.code; if (!c) return; const text = `تعال العب ضدي في ZOR! ادخل «ادخل غرفة» واكتب الرمز: ${c}\n${location.href.split('?')[0]}`; if (navigator.share) navigator.share({ text }).catch(() => {}); else { try { navigator.clipboard.writeText(text); u.toast('نسخت الدعوة', 'good'); } catch (e) { u.toast('الرمز: ' + c, ''); } } },
       netLeave: () => { leave(); u.ACT.abandon(); },
