@@ -2112,3 +2112,10 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 .field.ar-warmap .cell { border-color: #5a3a1a77; background: #5a3a1a14; }
 .field.ar-warmap .cell.enemy { border-color: #8a1a1a88; }
 .field.ar-warmap .cell:not(:has(.tcard)) svg, .field.ar-warmap .cell:not(:has(.tcard)) .ic { color: #5a3a1a; opacity: .5; }
+
+/* torch-lit dungeon floor: the iron-banded checkerboard fills the field, the four corner torches light it */
+.field.ar-dungeon, .pv.arena.ar-dungeon { background-color: #14100e; background-image: url(../assets/frames/arena-dungeon.webp); background-size: 108% 106%; background-position: center 48%; background-repeat: no-repeat; --rc: #ff9a3a; }
+.pv.arena.ar-dungeon { background-size: 100% 100%; background-position: center; }
+.field.ar-dungeon .rift-line { background: repeating-linear-gradient(90deg, #7a1a1a 0 14px, #e0262f 14px 18px, transparent 18px 24px); opacity: .9; filter: drop-shadow(0 0 4px #e0262f); }
+.field.ar-dungeon .cell { border-color: #ffb34744; background: #0000002a; }
+.field.ar-dungeon .cell.enemy { border-color: #c4141f77; }

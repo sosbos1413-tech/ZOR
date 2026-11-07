@@ -1,5 +1,5 @@
-// ZOR service worker (build 8c9c8fbac2). Network first: a new version is always fetched when online; the cache is only the offline fallback.
-const CACHE = 'zor-8c9c8fbac2';
+// ZOR service worker (build da3fc02856). Network first: a new version is always fetched when online; the cache is only the offline fallback.
+const CACHE = 'zor-da3fc02856';
 self.addEventListener('install', (e) => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['./', 'manifest.webmanifest', 'icon-192.png']).catch(() => {}))); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', (e) => {
