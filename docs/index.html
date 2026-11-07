@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="b87e6d5b67">
+<meta name="zor-build" content="8b10e22460">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -2101,6 +2101,15 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 .field.ar-tavern .cell { border-color: #2a1a0c88; background: #00000024; }
 .field.ar-tavern .cell.enemy { border-color: #6a1a1a88; }
 .pv.arena.ar-tavern { background-size: 100% 100%; background-position: center; }
+
+/* bench cards show their numbers too (health and attack), so you don't have to remember what you bought */
+#scr-match .side .bslot .tcard.hc.cv3.mini .hc-sbar { display: block; left: 3%; right: 3%; bottom: 2px; height: 15px; border-width: 1px; border-radius: 8px; }
+#scr-match .side .bslot .tcard.hc.cv3.mini .hc-atk, #scr-match .side .bslot .tcard.hc.cv3.mini .hc-hp { width: 48%; height: 15px; bottom: 2px; border: 0; background: none; box-shadow: none; display: flex; align-items: center; justify-content: center; }
+#scr-match .side .bslot .tcard.hc.cv3.mini .hc-hp { left: 3%; right: auto; } #scr-match .side .bslot .tcard.hc.cv3.mini .hc-atk { right: 3%; left: auto; }
+#scr-match .side .bslot .tcard.hc.cv3.mini .hc-atk .ic, #scr-match .side .bslot .tcard.hc.cv3.mini .hc-hp .ic { display: none; }
+#scr-match .side .bslot .tcard.hc.cv3.mini .hc-atk b, #scr-match .side .bslot .tcard.hc.cv3.mini .hc-hp b { font-size: 9.5px; line-height: 1; font-family: var(--display); text-shadow: 1px 1px 0 #000; }
+#scr-match .side .bslot .tcard.hc.cv3.mini .hc-atk b.sm, #scr-match .side .bslot .tcard.hc.cv3.mini .hc-hp b.sm { font-size: 8px; }
+@media (max-width: 860px) and (orientation: portrait) { #scr-match .side .bslot { height: 60px; } }
 
 </style>
 </head>
