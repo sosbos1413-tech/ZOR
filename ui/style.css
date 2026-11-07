@@ -2154,3 +2154,14 @@ body.newbie .menu-main { display: none; }
 #scr-menu .menu-newbie { margin: 6px auto 12px; font-size: 14px; opacity: .9; }
 #scr-menu .menu-main .mtile .mt-l { white-space: nowrap; font-size: 13.5px; }
 @media (max-height: 700px) { #scr-menu .logo h1 { font-size: clamp(48px, 16vw, 70px) !important; } #scr-menu .menu-main .mtile { padding: 9px 4px 8px; } #scr-menu .menu-main .mtile .mt-ic { font-size: 22px; } #scr-menu .fineprint { display: none; } }
+
+/* synergy chips live in the prep bar too (phones have no side panel) */
+#scr-match .pb-syn { display: inline-flex; min-width: 0; }
+#scr-match .pb-syn .synchips { gap: 4px; flex-wrap: nowrap; }
+#scr-match .pb-syn .schip { padding: 1px 5px; border-width: 2px; opacity: .6; }
+#scr-match .pb-syn .schip svg { width: 15px; height: 15px; } #scr-match .pb-syn .schip b { font-size: 13px; } #scr-match .pb-syn .schip small { font-size: 9.5px; }
+#scr-match .schip.dup { --sc: #8a8a8a; opacity: .75; border-style: dashed; } #scr-match .schip.dup small { font-size: 9px; }
+@media (min-width: 861px) { #scr-match .pb-syn { display: none; } }
+#scr-match .pb { flex-wrap: nowrap; gap: 6px; } #scr-match .pb-syn { flex: 1 1 auto; min-width: 0; overflow: hidden; justify-content: center; }
+#scr-match .schip.dup small { display: none; } #scr-match .pb-syn .schip { padding: 1px 4px; gap: 2px; }
+#scr-match .pb-btns { flex: none; } #scr-match .pb-count { flex: none; }

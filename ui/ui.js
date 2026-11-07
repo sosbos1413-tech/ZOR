@@ -672,7 +672,16 @@
     renderRight();
     renderCombatCtrl();
     if (AMB.FX) AMB.FX.watch();
+    dupHint();
     fitMatch();
+  }
+  // the first time a copy of a card that is already on the board gets placed: explain why the synergy number did not move
+  function dupHint() {
+    if (!S.match || S.phase !== 'prep' || S.mode === 'tutorial') return;
+    const p = me(), n = dupCount(p), key = S.match.round + ':' + S.v;
+    if (S.dupSeen == null || S.dupKey !== key) { S.dupKey = key; S.dupSeen = n; return; }
+    if (n > S.dupSeen && !S.dupToldMatch) { S.dupToldMatch = S.match; toast('نفس الشخصية مرتين: التآزر يحسبها مرة وحدة. حط شخصيات مختلفة عشان يزيد', ''); }
+    S.dupSeen = n;
   }
   // Phones: the browser's real usable height can be smaller than what the CSS assumes (address bar, gesture bar, PWA window).
   // If the shop would end below the screen, shrink the field a little until everything fits.
@@ -875,14 +884,16 @@
   }
 
   const SYN_ICON = (s) => (s.kind === 'world' ? ART.WORLD_ICON[s.id] : s.kind === 'special' ? 'star' : ART.ROLE_ICON[s.id]);
-  function synergyHTML(list) {
-    if (!list.length) return `<div class="syn-empty">${icon('star')}</div>`;
-    AMB.TIPS.syn = () => ({ title: 'كل التآزرات', html: list.map((s) => `<div class="syn-full"><b>${s.name}</b> <small>(${s.count}${s.nextN ? '/' + s.nextN : ''})</small>${s.tiers.map((t) => `<div class="hint">• ${t.n}: ${t.text}</div>`).join('')}</div>`).join('') });
+  // synergy counts DIFFERENT characters: a second copy of the same card does not add. Say it, so nobody is surprised.
+  const dupCount = (p) => { const b = Object.values(p.board), u = new Set(b.map((x) => x.defId)); return b.length - u.size; };
+  function synergyHTML(list, dups) {
+    if (!list.length && !dups) return `<div class="syn-empty">${icon('star')}</div>`;
+    AMB.TIPS.syn = () => ({ title: 'كل التآزرات', html: '<p class="hint"><b>التآزر يحسب الشخصيات المختلفة.</b> نسختين من نفس البطاقة في الساحة تحسب مرة وحدة. النسخ المكررة فايدتها إنها تتدمج لنجمة أقوى (٣ نسخ = ★).</p>' + list.map((s) => `<div class="syn-full"><b>${s.name}</b> <small>(${s.count}${s.nextN ? '/' + s.nextN : ''})</small>${s.tiers.map((t) => `<div class="hint">• ${t.n}: ${t.text}</div>`).join('')}</div>`).join('') });
     // one chip per synergy: its icon + how many units you have / the next step; lit when active. Tap = the full list.
     return `<div class="synchips">${list.map((s) => {
       const color = s.kind === 'world' ? WORLDS[s.id].color : s.kind === 'special' ? '#ffcf4a' : '#3ee6ff', on = s.activeTier >= 0;
       return `<button class="schip ${on ? 'on' : ''}" style="--sc:${color}" data-act="info" data-k="syn">${icon(SYN_ICON(s))}<b>${s.count}</b>${s.nextN ? `<small>/${s.nextN}</small>` : ''}</button>`;
-    }).join('')}</div>`;
+    }).join('')}${dups ? `<button class="schip dup" data-act="info" data-k="syn" title="نسخ مكررة ما تزيد التآزر">${icon('swap')}<b>${dups}</b><small>مكرر</small></button>` : ''}</div>`;
   }
 
   function renderLeft() {
@@ -982,7 +993,9 @@
     }
     if (sel && sel.kind === 'hero') return `<div class="pb sel"><span class="pb-name">${icon('crown')}</span><span class="pb-btns"><button class="btn small ghost ib" data-act="deselect">✕</button></span></div>`;
     const bag = p.items.map((id, i) => `<button class="bagchip" data-act="bagSel" data-idx="${i}">${icon(ITEMS[id].icon)}</button>`).join('');
-    return `<div class="pb"><span class="pb-count">${icon('shield')} ${cnt}${p.summoned ? ' +' + icon('crown') : ''}</span>${bag ? `<span class="pb-bag">${bag}</span>` : ''}
+    const sev = AMB.synergy.evaluate(Object.values(p.board), p.heroId), dups = dupCount(p);
+    const synStrip = sev.list.length || dups ? `<span class="pb-syn">${synergyHTML(sev.list.slice(0, 4), dups)}</span>` : '';
+    return `<div class="pb"><span class="pb-count">${icon('shield')} ${cnt}${p.summoned ? ' +' + icon('crown') : ''}</span>${synStrip}${bag ? `<span class="pb-bag">${bag}</span>` : ''}
       <span class="pb-btns"><button class="btn small ib" data-act="autoArrange">تلقائي</button></span></div>`;
   }
 
