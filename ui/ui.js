@@ -102,6 +102,7 @@
         <div class="style">${h.style}</div>
         <div class="ab"><b>سلبية: ${h.passive.name}</b> — ${h.passive.text}</div>
         ${h.abilities.map((a) => `<div class="ab"><b>${a.name}</b> <span style="color:var(--ess)">(${a.cost} جوهر)</span>: ${a.text}</div>`).join('')}
+        ${h.vanguard ? `<div class="ab vg"><b>👑 ${h.vanguard.name}</b>: ${h.vanguard.text}</div>` : ''}
         <div class="ab" style="color:var(--muted)">وحدات عالمه (رنين +${CFG.hero.resonancePerAlly * 100}%): ${units}</div>
         <div style="text-align:center;margin-top:8px"><button class="btn small" data-act="heroInfo" data-id="${h.id}">تفاصيل</button></div>
       </div>`;
@@ -943,6 +944,7 @@
     }
     const armed = p.armedSpells.map((id, i) => `<span class="chip" data-act="disarm" data-idx="${i}">${icon(ITEMS[id].icon)} ✕</span>`).join('');
     AMB.TIPS.summon = () => ({ title: 'استدعاء البطل', html: `<p>${p.summoned ? 'بطلك الحين يقاتل في الساحة (اسحبه عشان تغيّر مكانه).' : 'بطلك الحين واقف خلف صفوفك.'}</p>
+      ${h.vanguard ? `<p><b>👑 ${h.vanguard.name}:</b> ${h.vanguard.text}</p>` : ''}
       <p><b>الفايدة:</b> يهجم بقوة ${h.board.atk + CFG.hero.boardAtkPerRound * m.round}، والحلفاء +${CFG.hero.summonAuraAtk * 100}% هجوم، وقدراته أرخص بـ${CFG.hero.summonAbilityDiscount}.</p>
       <p><b>المخاطرة:</b> ياخذ الضرر كامل (حتى ضرر المنطقة)، وينسحب بعد ما تخسر ${CFG.combat.summonKnockout} حياة، وإذا وصلت حياته صفر تخسر المباراة على طول.</p>` });
     $('panel-right').innerHTML = `
@@ -1050,6 +1052,7 @@
       <span class="pill" style="--pc:${W.color}">${W.name}</span><div class="hint">${h.style}</div></div></div>
       <div class="skillbox"><b>سلبية: ${h.passive.name}</b> — ${h.passive.text}</div>
       ${h.abilities.map((a) => `<div class="skillbox"><b>${a.name}</b> — <span style="color:var(--ess)">${a.cost} جوهر</span><br>${a.text}</div>`).join('')}
+      ${h.vanguard ? `<div class="skillbox vg"><b>👑 ${h.vanguard.name}</b> (لما ينزل الساحة)<br>${h.vanguard.text}</div>` : ''}
       <table><tr><th>عند الاستدعاء</th><th></th></tr>
       <tr><td>الصحة</td><td>الحياة × ${CFG.combat.heroHpScale}</td></tr><tr><td>الهجوم</td><td>${h.board.atk} + ${CFG.hero.boardAtkPerRound} لكل جولة</td></tr>
       <tr><td>سرعة الهجوم</td><td>${h.board.as}</td></tr><tr><td>المدى</td><td>${h.board.range}</td></tr><tr><td>الدفاع</td><td>${Math.round(h.board.def * 100)}%</td></tr></table>

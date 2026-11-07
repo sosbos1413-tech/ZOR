@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="ad23ca5331">
+<meta name="zor-build" content="d0048fb901">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -2186,6 +2186,8 @@ body.newbie .menu-main { display: none; }
 #scr-match .schip.dup small { display: none; } #scr-match .pb-syn .schip { padding: 1px 4px; gap: 2px; }
 #scr-match .pb-btns { flex: none; } #scr-match .pb-count { flex: none; }
 
+.ab.vg, .skillbox.vg { border-inline-start: 4px solid var(--gold); background: #f2b30018; padding: 4px 8px; margin-top: 4px; }
+
 </style>
 </head>
 <body>
@@ -2467,6 +2469,8 @@ body.newbie .menu-main { display: none; }
       summonAuraAtk: 0.05,      // summoned hero inspires allies
       summonAbilityDiscount: 1, // abilities cost less while the hero fights
       boardAtkPerRound: 5,      // summoned hero attack scales with the round
+      boardPower: 0.3,            // overall strength of the summoned hero's own fighting (tuned so summoning is a real choice, not always best)
+      vanguardScale: 1,         // strength of each hero's summoned-form bonuses
     },
 
     ai: {
@@ -2826,6 +2830,7 @@ body.newbie .menu-main { display: none; }
     kagira: {
       id: 'kagira', name: 'كيرو', title: 'الجمر الهادئ', world: 'ember', style: 'هجومي: هادي وحسّابه، وإذا هجم ينفجر. ضغط من البداية وضرر قوي.',
       board: { atk: 85, as: 0.8, range: 1, def: 0.2, crit: 0.1 },
+      vanguard: { name: 'الهجوم الكاسح', text: 'لما ينزل الساحة: الفريق +12% هجوم، وهو يضرب أقوى (+10% هجوم، +6% فرصة حرجة).', allyAtk: 0.07, heroAtk: 0.1, heroCrit: 0.06 },
       passive: { id: 'blazing_will', name: 'إرادة متقدة', text: 'لما يصير البطل مكشوف، الفريق ياخذ +25% هجوم.' },
       abilities: [
         { id: 'inferno_banner', name: 'أمر الهجوم', cost: 3, type: 'buffAllies', atkPct: 0.3, dur: 6,
@@ -2837,6 +2842,7 @@ body.newbie .menu-main { display: none; }
     merin: {
       id: 'merin', name: 'ميران', title: 'حارس المدّ الصامت', world: 'tide', style: 'صمود: هادي ويحمي الفريق. دروع وعلاج ومعارك طويلة.',
       board: { atk: 86, as: 0.8, range: 3, def: 0.1, crit: 0.05 },
+      vanguard: { name: 'درع المدّ', text: 'لما ينزل الساحة: الفريق يتجدد 0.4% من صحته كل ثانية، وهو ياخذ درع 2 حياة ويصمد أطول بـ2 حياة قبل ما ينسحب.', allyRegen: 0.004, heroShield: 2, knockoutBonus: 2 },
       passive: { id: 'deep_reserve', name: 'مخزون عميق', text: '+1 جوهرة زيادة كل جولة.' },
       abilities: [
         { id: 'tidal_ward', name: 'حاجز المدّ', cost: 3, type: 'shieldAllies', amount: 200, scale: 25,
@@ -2848,6 +2854,7 @@ body.newbie .menu-main { display: none; }
     zerokai: {
       id: 'zerokai', name: 'زيرو-كاي', title: 'الظلّ المشفّر', world: 'neon', style: 'سرعة: غامض وسابق خصمه بخطوة. اقتصاد مرن وحركة سريعة.',
       board: { atk: 74, as: 0.85, range: 4, def: 0.05, crit: 0.15 },
+      vanguard: { name: 'نبض السرعة', text: 'لما ينزل الساحة: الفريق +17% سرعة هجوم، وهو أسرع بـ20%، وكل قدراته تتكلف نقطة أقل.', allyAs: 0.17, heroAs: 0.2, extraDiscount: 1 },
       passive: { id: 'free_reroll', name: 'وصول خلفي', text: 'أول تحديث للمتجر في كل جولة مجاني.' },
       abilities: [
         { id: 'overclock', name: 'كسر السرعة', cost: 3, type: 'buffAllies', asPct: 0.25, dur: 5,
@@ -2859,6 +2866,7 @@ body.newbie .menu-main { display: none; }
     orath: {
       id: 'orath', name: 'أوراث', title: 'الحارس المحلّل', world: 'sylvan', style: 'دفاعي: هادي ويحلل، ويقرأ المعركة قبل لا تبدأ. خط أمامي قوي وسيطرة.',
       board: { atk: 75, as: 0.65, range: 1, def: 0.3, crit: 0.05 },
+      vanguard: { name: 'الجدار الحي', text: 'لما ينزل الساحة: الصف الأمامي +22% صحة، وكل الفريق ياخذ ضرر أقل 7%، وهو أصلب (+15% دفاع).', frontHp: 0.22, allyDr: 0.07, heroDef: 0.15 },
       passive: { id: 'ancient_bark', name: 'لحاء صلب', text: 'وحدات الصف الأمامي تاخذ +15% صحة.' },
       abilities: [
         { id: 'thorn_wall', name: 'جدار الأشواك', cost: 3, type: 'frontDR', dr: 0.35, dur: 6,
@@ -3133,6 +3141,8 @@ body.newbie .menu-main { display: none; }
       const HC = AMB.CONFIG.hero;
       const side = this.sides[s];
       const hero = HEROES[spec.heroId];
+      const VS = HC.vanguardScale == null ? 1 : HC.vanguardScale;
+      const vg = (k) => (((hero.vanguard || {})[k]) || 0) * VS;
       const syn = AMB.synergy.evaluate(spec.units, spec.heroId);
       side.synergy = syn;
       const spells = (spec.spells || []).map((id) => ITEMS[id].spell);
@@ -3148,7 +3158,10 @@ body.newbie .menu-main { display: none; }
         (u.items || []).forEach((it) => ITEMS[it].effects.forEach((eff) => (mods[eff.stat] += eff.value)));
         if (def.world === hero.world) { mods.atkPct += HC.resonancePerAlly; mods.hpPct += HC.resonancePerAlly; }
         if (hero.passive.id === 'ancient_bark' && pos.row === 'front') mods.hpPct += 0.15;
-        if (spec.summoned) mods.atkPct += HC.summonAuraAtk;
+        if (spec.summoned) {   // each hero leads differently once it stands on the board
+          mods.atkPct += HC.summonAuraAtk + vg('allyAtk'); mods.asPct += vg('allyAs'); mods.dr += vg('allyDr'); mods.regenPct += vg('allyRegen');
+          if (pos.row === 'front') mods.hpPct += vg('frontHp');
+        }
         spells.forEach((sp) => { if (sp.type === 'buffAll') mods.atkPct += sp.atkPct; });
         const bl = spec.blessings || {};
         mods.atkPct += bl.atkPct || 0; mods.hpPct += bl.hpPct || 0; mods.asPct += bl.asPct || 0;   // stage-reward blessings
@@ -3180,9 +3193,9 @@ body.newbie .menu-main { display: none; }
         const pos = slotPos(s, spec.heroSlot);
         hf = this._fighter(s, Object.assign(base, {
           onBoard: true, slot: spec.heroSlot, row: pos.row, x: pos.x, y: pos.y,
-          atk: (hero.board.atk + HC.boardAtkPerRound * this.round) * (1 + hMods.atkPct) * (spec.heroPower || 1),
-          as: hero.board.as * (1 + hMods.asPct), range: hero.board.range, def: hero.board.def + hMods.dr,
-          crit: hero.board.crit, critDmg: this.C.critMult, lifesteal: 0, skillPower: 1, regenPct: hMods.regenPct,
+          atk: (hero.board.atk + HC.boardAtkPerRound * this.round) * (1 + hMods.atkPct + vg('heroAtk')) * (HC.boardPower == null ? 1 : HC.boardPower) * (spec.heroPower || 1),
+          as: hero.board.as * (1 + hMods.asPct + vg('heroAs')), range: hero.board.range, def: hero.board.def + hMods.dr + vg('heroDef'),
+          crit: hero.board.crit + vg('heroCrit'), critDmg: this.C.critMult, lifesteal: 0, skillPower: 1, regenPct: hMods.regenPct,
         }));
       } else {
         const pos = postPos(s);
@@ -3194,7 +3207,8 @@ body.newbie .menu-main { display: none; }
       side.hero = hf;
       hf.startHp = hp;   // healing/regen can undo damage taken in THIS combat, but never raise a hero above the life it started with
       if (spec.summoned) {
-        hf.floorHp = Math.max(0, hp - this.C.summonKnockout * scale);
+        hf.floorHp = Math.max(0, hp - (this.C.summonKnockout + vg('knockoutBonus')) * scale);
+        if (vg('heroShield')) hf.shield += vg('heroShield') * scale;
       } else {
         const cap = this.C.postDamageCapBase + this.C.postDamageCapPerRound * this.round;
         hf.floorHp = Math.max(0, hp - cap * scale);
@@ -3949,7 +3963,7 @@ body.newbie .menu-main { display: none; }
 
     // ---------------------------------------------------------------- hero
     abilityCost(p, ab) {
-      const d = p.summoned ? AMB.CONFIG.hero.summonAbilityDiscount : 0;
+      const d = p.summoned ? AMB.CONFIG.hero.summonAbilityDiscount + (((AMB.DATA.HEROES[p.heroId] || {}).vanguard || {}).extraDiscount || 0) : 0;
       return Math.max(1, ab.cost - d);
     }
     reservedEssence(p) {
@@ -6671,6 +6685,7 @@ AMB.IMAGES = {
         <div class="style">${h.style}</div>
         <div class="ab"><b>سلبية: ${h.passive.name}</b> — ${h.passive.text}</div>
         ${h.abilities.map((a) => `<div class="ab"><b>${a.name}</b> <span style="color:var(--ess)">(${a.cost} جوهر)</span>: ${a.text}</div>`).join('')}
+        ${h.vanguard ? `<div class="ab vg"><b>👑 ${h.vanguard.name}</b>: ${h.vanguard.text}</div>` : ''}
         <div class="ab" style="color:var(--muted)">وحدات عالمه (رنين +${CFG.hero.resonancePerAlly * 100}%): ${units}</div>
         <div style="text-align:center;margin-top:8px"><button class="btn small" data-act="heroInfo" data-id="${h.id}">تفاصيل</button></div>
       </div>`;
@@ -7512,6 +7527,7 @@ AMB.IMAGES = {
     }
     const armed = p.armedSpells.map((id, i) => `<span class="chip" data-act="disarm" data-idx="${i}">${icon(ITEMS[id].icon)} ✕</span>`).join('');
     AMB.TIPS.summon = () => ({ title: 'استدعاء البطل', html: `<p>${p.summoned ? 'بطلك الحين يقاتل في الساحة (اسحبه عشان تغيّر مكانه).' : 'بطلك الحين واقف خلف صفوفك.'}</p>
+      ${h.vanguard ? `<p><b>👑 ${h.vanguard.name}:</b> ${h.vanguard.text}</p>` : ''}
       <p><b>الفايدة:</b> يهجم بقوة ${h.board.atk + CFG.hero.boardAtkPerRound * m.round}، والحلفاء +${CFG.hero.summonAuraAtk * 100}% هجوم، وقدراته أرخص بـ${CFG.hero.summonAbilityDiscount}.</p>
       <p><b>المخاطرة:</b> ياخذ الضرر كامل (حتى ضرر المنطقة)، وينسحب بعد ما تخسر ${CFG.combat.summonKnockout} حياة، وإذا وصلت حياته صفر تخسر المباراة على طول.</p>` });
     $('panel-right').innerHTML = `
@@ -7619,6 +7635,7 @@ AMB.IMAGES = {
       <span class="pill" style="--pc:${W.color}">${W.name}</span><div class="hint">${h.style}</div></div></div>
       <div class="skillbox"><b>سلبية: ${h.passive.name}</b> — ${h.passive.text}</div>
       ${h.abilities.map((a) => `<div class="skillbox"><b>${a.name}</b> — <span style="color:var(--ess)">${a.cost} جوهر</span><br>${a.text}</div>`).join('')}
+      ${h.vanguard ? `<div class="skillbox vg"><b>👑 ${h.vanguard.name}</b> (لما ينزل الساحة)<br>${h.vanguard.text}</div>` : ''}
       <table><tr><th>عند الاستدعاء</th><th></th></tr>
       <tr><td>الصحة</td><td>الحياة × ${CFG.combat.heroHpScale}</td></tr><tr><td>الهجوم</td><td>${h.board.atk} + ${CFG.hero.boardAtkPerRound} لكل جولة</td></tr>
       <tr><td>سرعة الهجوم</td><td>${h.board.as}</td></tr><tr><td>المدى</td><td>${h.board.range}</td></tr><tr><td>الدفاع</td><td>${Math.round(h.board.def * 100)}%</td></tr></table>

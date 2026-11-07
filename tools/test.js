@@ -1112,5 +1112,20 @@ t('online: two phones replay each other\'s moves and stay identical for a whole 
   }
 });
 
+t('heroes: every hero has its own summoned form and a summoned combat runs', () => {
+  const H = AMB.DATA.HEROES, ids = Object.keys(H);
+  ids.forEach((id) => { ok(H[id].vanguard && H[id].vanguard.name && /[ء-ي]/.test(H[id].vanguard.text), 'vanguard of ' + id); });
+  const sig = new Set(ids.map((id) => JSON.stringify(Object.keys(H[id].vanguard).filter((k) => !['name', 'text'].includes(k)).sort())));
+  eq(sig.size, ids.length, 'summoned forms must differ from each other');
+  ids.forEach((id, i) => {
+    const m = new AMB.Match({ mode: 'ai', seed: 77 + i, players: [{ heroId: id, name: 'a', isAI: true }, { heroId: ids[(i + 1) % 4], name: 'b', isAI: true }] });
+    for (let r = 0; r < 4; r++) { m.startRound(); AMB.AI.prep(m, 0); AMB.AI.prep(m, 1); if (r < 3) m.resolveCombat(m.createCombat(false).runToEnd()); }
+    const p = m.players[0]; p.summoned = false; if (m.boardCount(p) >= p.level) { const [slot, u] = Object.entries(p.board)[0]; delete p.board[slot]; p.bench[p.bench.indexOf(null)] = u; }
+    ok(m.toggleSummon(0).ok !== false, 'summon ' + id); m.players.forEach((_, k) => m.autoFill(k));
+    const c = m.createCombat(false), hf = c.fighters.find((f) => f.isHero && f.side === 0); ok(hf && hf.onBoard, 'hero is on the board ' + id);
+    const res = c.runToEnd(); ok(res && c.over, 'combat finished ' + id);
+  });
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

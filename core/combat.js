@@ -61,6 +61,8 @@
       const HC = AMB.CONFIG.hero;
       const side = this.sides[s];
       const hero = HEROES[spec.heroId];
+      const VS = HC.vanguardScale == null ? 1 : HC.vanguardScale;
+      const vg = (k) => (((hero.vanguard || {})[k]) || 0) * VS;
       const syn = AMB.synergy.evaluate(spec.units, spec.heroId);
       side.synergy = syn;
       const spells = (spec.spells || []).map((id) => ITEMS[id].spell);
@@ -76,7 +78,10 @@
         (u.items || []).forEach((it) => ITEMS[it].effects.forEach((eff) => (mods[eff.stat] += eff.value)));
         if (def.world === hero.world) { mods.atkPct += HC.resonancePerAlly; mods.hpPct += HC.resonancePerAlly; }
         if (hero.passive.id === 'ancient_bark' && pos.row === 'front') mods.hpPct += 0.15;
-        if (spec.summoned) mods.atkPct += HC.summonAuraAtk;
+        if (spec.summoned) {   // each hero leads differently once it stands on the board
+          mods.atkPct += HC.summonAuraAtk + vg('allyAtk'); mods.asPct += vg('allyAs'); mods.dr += vg('allyDr'); mods.regenPct += vg('allyRegen');
+          if (pos.row === 'front') mods.hpPct += vg('frontHp');
+        }
         spells.forEach((sp) => { if (sp.type === 'buffAll') mods.atkPct += sp.atkPct; });
         const bl = spec.blessings || {};
         mods.atkPct += bl.atkPct || 0; mods.hpPct += bl.hpPct || 0; mods.asPct += bl.asPct || 0;   // stage-reward blessings
@@ -108,9 +113,9 @@
         const pos = slotPos(s, spec.heroSlot);
         hf = this._fighter(s, Object.assign(base, {
           onBoard: true, slot: spec.heroSlot, row: pos.row, x: pos.x, y: pos.y,
-          atk: (hero.board.atk + HC.boardAtkPerRound * this.round) * (1 + hMods.atkPct) * (spec.heroPower || 1),
-          as: hero.board.as * (1 + hMods.asPct), range: hero.board.range, def: hero.board.def + hMods.dr,
-          crit: hero.board.crit, critDmg: this.C.critMult, lifesteal: 0, skillPower: 1, regenPct: hMods.regenPct,
+          atk: (hero.board.atk + HC.boardAtkPerRound * this.round) * (1 + hMods.atkPct + vg('heroAtk')) * (HC.boardPower == null ? 1 : HC.boardPower) * (spec.heroPower || 1),
+          as: hero.board.as * (1 + hMods.asPct + vg('heroAs')), range: hero.board.range, def: hero.board.def + hMods.dr + vg('heroDef'),
+          crit: hero.board.crit + vg('heroCrit'), critDmg: this.C.critMult, lifesteal: 0, skillPower: 1, regenPct: hMods.regenPct,
         }));
       } else {
         const pos = postPos(s);
@@ -122,7 +127,8 @@
       side.hero = hf;
       hf.startHp = hp;   // healing/regen can undo damage taken in THIS combat, but never raise a hero above the life it started with
       if (spec.summoned) {
-        hf.floorHp = Math.max(0, hp - this.C.summonKnockout * scale);
+        hf.floorHp = Math.max(0, hp - (this.C.summonKnockout + vg('knockoutBonus')) * scale);
+        if (vg('heroShield')) hf.shield += vg('heroShield') * scale;
       } else {
         const cap = this.C.postDamageCapBase + this.C.postDamageCapPerRound * this.round;
         hf.floorHp = Math.max(0, hp - cap * scale);

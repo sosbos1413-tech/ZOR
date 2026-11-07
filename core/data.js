@@ -344,6 +344,7 @@
     kagira: {
       id: 'kagira', name: 'كيرو', title: 'الجمر الهادئ', world: 'ember', style: 'هجومي: هادي وحسّابه، وإذا هجم ينفجر. ضغط من البداية وضرر قوي.',
       board: { atk: 85, as: 0.8, range: 1, def: 0.2, crit: 0.1 },
+      vanguard: { name: 'الهجوم الكاسح', text: 'لما ينزل الساحة: الفريق +12% هجوم، وهو يضرب أقوى (+10% هجوم، +6% فرصة حرجة).', allyAtk: 0.07, heroAtk: 0.1, heroCrit: 0.06 },
       passive: { id: 'blazing_will', name: 'إرادة متقدة', text: 'لما يصير البطل مكشوف، الفريق ياخذ +25% هجوم.' },
       abilities: [
         { id: 'inferno_banner', name: 'أمر الهجوم', cost: 3, type: 'buffAllies', atkPct: 0.3, dur: 6,
@@ -355,6 +356,7 @@
     merin: {
       id: 'merin', name: 'ميران', title: 'حارس المدّ الصامت', world: 'tide', style: 'صمود: هادي ويحمي الفريق. دروع وعلاج ومعارك طويلة.',
       board: { atk: 86, as: 0.8, range: 3, def: 0.1, crit: 0.05 },
+      vanguard: { name: 'درع المدّ', text: 'لما ينزل الساحة: الفريق يتجدد 0.4% من صحته كل ثانية، وهو ياخذ درع 2 حياة ويصمد أطول بـ2 حياة قبل ما ينسحب.', allyRegen: 0.004, heroShield: 2, knockoutBonus: 2 },
       passive: { id: 'deep_reserve', name: 'مخزون عميق', text: '+1 جوهرة زيادة كل جولة.' },
       abilities: [
         { id: 'tidal_ward', name: 'حاجز المدّ', cost: 3, type: 'shieldAllies', amount: 200, scale: 25,
@@ -366,6 +368,7 @@
     zerokai: {
       id: 'zerokai', name: 'زيرو-كاي', title: 'الظلّ المشفّر', world: 'neon', style: 'سرعة: غامض وسابق خصمه بخطوة. اقتصاد مرن وحركة سريعة.',
       board: { atk: 74, as: 0.85, range: 4, def: 0.05, crit: 0.15 },
+      vanguard: { name: 'نبض السرعة', text: 'لما ينزل الساحة: الفريق +17% سرعة هجوم، وهو أسرع بـ20%، وكل قدراته تتكلف نقطة أقل.', allyAs: 0.17, heroAs: 0.2, extraDiscount: 1 },
       passive: { id: 'free_reroll', name: 'وصول خلفي', text: 'أول تحديث للمتجر في كل جولة مجاني.' },
       abilities: [
         { id: 'overclock', name: 'كسر السرعة', cost: 3, type: 'buffAllies', asPct: 0.25, dur: 5,
@@ -377,6 +380,7 @@
     orath: {
       id: 'orath', name: 'أوراث', title: 'الحارس المحلّل', world: 'sylvan', style: 'دفاعي: هادي ويحلل، ويقرأ المعركة قبل لا تبدأ. خط أمامي قوي وسيطرة.',
       board: { atk: 75, as: 0.65, range: 1, def: 0.3, crit: 0.05 },
+      vanguard: { name: 'الجدار الحي', text: 'لما ينزل الساحة: الصف الأمامي +22% صحة، وكل الفريق ياخذ ضرر أقل 7%، وهو أصلب (+15% دفاع).', frontHp: 0.22, allyDr: 0.07, heroDef: 0.15 },
       passive: { id: 'ancient_bark', name: 'لحاء صلب', text: 'وحدات الصف الأمامي تاخذ +15% صحة.' },
       abilities: [
         { id: 'thorn_wall', name: 'جدار الأشواك', cost: 3, type: 'frontDR', dr: 0.35, dur: 6,

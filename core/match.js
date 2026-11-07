@@ -338,7 +338,7 @@
 
     // ---------------------------------------------------------------- hero
     abilityCost(p, ab) {
-      const d = p.summoned ? AMB.CONFIG.hero.summonAbilityDiscount : 0;
+      const d = p.summoned ? AMB.CONFIG.hero.summonAbilityDiscount + (((AMB.DATA.HEROES[p.heroId] || {}).vanguard || {}).extraDiscount || 0) : 0;
       return Math.max(1, ab.cost - d);
     }
     reservedEssence(p) {
