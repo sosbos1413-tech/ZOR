@@ -272,9 +272,9 @@
   unit('miyuki', 'ميوكي', 'Miyuki', 'tide', 'support', 2, 80,
     { type: 'healAll', name: 'ترنيمة القمر', heal: [140, 240, 420],
       text: 'يعالج كل الفريق.' });
-  unit('shiori', 'شيوري', 'Shiori', 'tide', 'mage', 1, 85,
-    { type: 'stunAoe', name: 'فقاعة مجمّدة', dmg: [100, 160, 290], stun: [1.4, 1.7, 2.1], radius: 1.3,
-      text: 'يجمّد الهدف واللي حوله ويضرّهم.' });
+  unit('shiori', 'شيوري', 'Shiori', 'tide', 'mage', 3, 85,
+    { type: 'stunAoe', name: 'فقاعة مجمّدة', dmg: [150, 250, 440], stun: [1.5, 1.8, 2.2], radius: 1.5,
+      text: 'يجمّد الهدف واللي حوله ويضرّهم.' }, { rarity: 'legendary' });
   unit('tomoe', 'تومويه', 'Tomoe', 'tide', 'guardian', 1, 80,
     { type: 'shieldSelf', name: 'درع اللؤلؤ', shield: [380, 620, 1000],
       text: 'ياخذ درع قوي.' });
