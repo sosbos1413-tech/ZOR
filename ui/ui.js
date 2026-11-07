@@ -760,7 +760,7 @@
         const f = S.combat.fighters.find((x) => x.side === side && x.slot === slot);
         if (f) {
           const def = f.isHero ? HEROES[f.defId] : UNITS[f.defId];
-          inner = cardHTML(def, { size: 'mini', star: f.star, live: true, k: 'c' + f.id, attrs: `data-fid="${f.id}"`, cls: mine ? '' : 'foe' });
+          inner = cardHTML(def, { size: 'mini', star: f.star, live: true, k: 'c' + f.id, attrs: `data-fid="${f.id}"`, cls: mine ? 'ally' : 'foe' });
         }
       } else if (mine) {
         const u = p.board[slot];

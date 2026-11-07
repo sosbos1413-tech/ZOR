@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="e49708ca1a">
+<meta name="zor-build" content="b2a695de35">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -2195,6 +2195,22 @@ body.newbie .menu-main { display: none; }
 .hlv small { font-size: 11px; opacity: .8; direction: ltr; } .hlv-pw { flex-basis: 100%; font-size: 11.5px; opacity: .85; }
 #scr-match .pb-btns .btn.on { background: var(--gold); color: #000; }
 #scr-match .pb-syn .schip:nth-child(n+4) { display: none; }
+
+/* ===== less colour confusion ===== */
+/* 1) on the board, a card's glow no longer shows RARITY (it blended with the world frame colours: gold on green, blue on teal, purple on neon).
+      Rarity stays in the gems, the copies badge and the collection. During a fight the ring shows the TEAM instead: cyan = yours, red = the enemy's. */
+#scr-match .tcard.hc.cv3[class*="fr-"].mini:not(.dead):not(.sel):not(.ghost):not(.shielded) { filter: drop-shadow(1px 2px 0 #000a) !important; }
+#scr-match .tcard.hc.cv3[class*="fr-"].mini.ally:not(.dead):not(.sel) { filter: drop-shadow(0 0 1.5px #5ff0ff) drop-shadow(0 0 4px #3ee6ffaa) drop-shadow(1px 2px 0 #000a) !important; }
+#scr-match .tcard.hc.cv3[class*="fr-"].mini.foe:not(.dead):not(.sel) { filter: drop-shadow(0 0 1.5px #ff5a5a) drop-shadow(0 0 4px #ff2a2aaa) drop-shadow(1px 2px 0 #000a) saturate(.92) !important; }
+/* a small team mark under the numbers (shape + colour, so it also reads for colour-blind players) */
+#scr-match .tcard.hc.mini.ally::after, #scr-match .tcard.hc.mini.foe::after { content: ''; position: absolute; top: 3%; left: 50%; width: 22%; height: 4%; transform: translateX(-50%); border-radius: 3px; z-index: 6; pointer-events: none; }
+#scr-match .tcard.hc.mini.ally::after { background: #5ff0ff; box-shadow: 0 0 5px #5ff0ff; }
+#scr-match .tcard.hc.mini.foe::after { background: #ff4a4a; box-shadow: 0 0 5px #ff4a4a; clip-path: polygon(0 0, 100% 0, 50% 100%); height: 6%; }
+#scr-match .tcard.hc.mini.dead::after { display: grid; }
+/* 2) the shop and collection keep the rarity glow but much softer, so the world colour of the frame stays the main colour */
+.tcard.hc.cv3[class*="fr-"].full { filter: drop-shadow(0 0 2px var(--rc3)) drop-shadow(1px 3px 0 #000a); }
+.tcard.hc.cv3[class*="fr-"].full.r-epic { filter: drop-shadow(0 0 3px var(--rc3)) drop-shadow(1px 3px 0 #000a); }
+.tcard.hc.cv3[class*="fr-"].full.r-legendary { filter: drop-shadow(0 0 4px var(--rc3)) drop-shadow(1px 3px 0 #000a); }
 
 </style>
 </head>
@@ -7410,7 +7426,7 @@ AMB.IMAGES = {
         const f = S.combat.fighters.find((x) => x.side === side && x.slot === slot);
         if (f) {
           const def = f.isHero ? HEROES[f.defId] : UNITS[f.defId];
-          inner = cardHTML(def, { size: 'mini', star: f.star, live: true, k: 'c' + f.id, attrs: `data-fid="${f.id}"`, cls: mine ? '' : 'foe' });
+          inner = cardHTML(def, { size: 'mini', star: f.star, live: true, k: 'c' + f.id, attrs: `data-fid="${f.id}"`, cls: mine ? 'ally' : 'foe' });
         }
       } else if (mine) {
         const u = p.board[slot];
