@@ -2196,3 +2196,9 @@ body.newbie .menu-main { display: none; }
 .bp { display: flex; align-items: center; gap: 8px; padding: 4px 8px; margin: 3px 0; border: 2px solid #0004; background: #0000000f; font-size: 13px; text-align: start; }
 .bp-s { color: var(--gold2); font-size: 14px; letter-spacing: 1px; min-width: 46px; } .bp i { margin-inline-start: auto; font-style: normal; font-size: 11px; color: #2a8a3a; }
 .bp.next { border-color: var(--gold); background: #f2b3001f; } .bp.paid { opacity: .75; } .bp.locked { opacity: .55; }
+
+/* campaign difficulty tabs */
+.cam-diff { display: flex; gap: 8px; margin: 0 0 6px; } .cam-diff .cd { flex: 1; padding: 8px 4px 6px; background: var(--ink2); color: var(--paper); border: 3px solid #3a3029; cursor: pointer; font: inherit; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.cam-diff .cd b { font-size: 17px; } .cam-diff .cd small { font-size: 11px; opacity: .8; direction: ltr; }
+.cam-diff .cd.on { background: var(--dc); color: #000; border-color: #000; box-shadow: var(--hard-sm); }
+.cam-dnote { text-align: center; margin: 0 0 8px; font-size: 12px; }

@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="eff72c2469">
+<meta name="zor-build" content="1ea04d5868">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -2216,6 +2216,12 @@ body.newbie .menu-main { display: none; }
 .bp { display: flex; align-items: center; gap: 8px; padding: 4px 8px; margin: 3px 0; border: 2px solid #0004; background: #0000000f; font-size: 13px; text-align: start; }
 .bp-s { color: var(--gold2); font-size: 14px; letter-spacing: 1px; min-width: 46px; } .bp i { margin-inline-start: auto; font-style: normal; font-size: 11px; color: #2a8a3a; }
 .bp.next { border-color: var(--gold); background: #f2b3001f; } .bp.paid { opacity: .75; } .bp.locked { opacity: .55; }
+
+/* campaign difficulty tabs */
+.cam-diff { display: flex; gap: 8px; margin: 0 0 6px; } .cam-diff .cd { flex: 1; padding: 8px 4px 6px; background: var(--ink2); color: var(--paper); border: 3px solid #3a3029; cursor: pointer; font: inherit; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.cam-diff .cd b { font-size: 17px; } .cam-diff .cd small { font-size: 11px; opacity: .8; direction: ltr; }
+.cam-diff .cd.on { background: var(--dc); color: #000; border-color: #000; box-shadow: var(--hard-sm); }
+.cam-dnote { text-align: center; margin: 0 0 8px; font-size: 12px; }
 
 </style>
 </head>
@@ -5203,8 +5209,19 @@ body.newbie .menu-main { display: none; }
         { id: 'ch25', need: 25, name: 'صندوق فضي', reward: { packs: 1 } },
         { id: 'ch40', need: 40, name: 'صندوق ذهبي', reward: { packs: 2 } },
         { id: 'ch60', need: 60, name: 'صندوق الصدع', reward: { card: 'epic' } },   // one guaranteed card of this rarity or rarer
+        { id: 'ch80', need: 80, name: 'صندوق الأتون الملكي', reward: { shards: 200, packs: 1 } },
+        { id: 'ch100', need: 100, name: 'صندوق الزعماء', reward: { packs: 2, card: 'epic' } },
+        { id: 'ch120', need: 120, name: 'صندوق الأسطورة', reward: { shards: 400, card: 'legendary' } },
       ],
     },
+  };
+
+  // three difficulties, each with its own progress, stars, chests and boss prizes. power = enemy strength, shards/xp/packs = reward multipliers,
+  // cardTier = shift of guaranteed-card rarity (-1 one tier lower, +1 one tier higher), levelPacks = free packs for finishing a level, levelShards = bonus shards for it
+  const DIFFICULTY = {
+    easy:   { id: 'easy',   name: 'سهل',   color: '#5ee08a', power: 0.78, growth: 0.05, shards: 0.5, xp: 0.5, packs: 0, cardTier: -1, levelPacks: 0, levelShards: 80 },
+    normal: { id: 'normal', name: 'متوسط', color: '#ffd24a', power: 1,    growth: 0.07, shards: 1,   xp: 1,   packs: 1, cardTier: 0,  levelPacks: 1, levelShards: 0 },
+    hard:   { id: 'hard',   name: 'صعب',   color: '#ff5a5a', power: 1.3,  growth: 0.09, shards: 2,   xp: 1.5, packs: 2, cardTier: 1,  levelPacks: 2, levelShards: 0 },
   };
 
   // boss specials: stat blessings + hero abilities fired at the start of every round
@@ -5212,6 +5229,10 @@ body.newbie .menu-main { display: none; }
     ember: { name: 'غضب الجمر', text: 'وحدات الزعيم +20% هجوم، ويستخدم «أمر الهجوم» في بداية كل جولة.', blessings: { atkPct: 0.2 }, abilities: ['inferno_banner'] },
     tide: { name: 'مدّ الحماية', text: 'وحدات الزعيم +25% صحة، ويستخدم «حاجز المدّ» في بداية كل جولة.', blessings: { hpPct: 0.25 }, abilities: ['tidal_ward'] },
     neon: { name: 'كسر السرعة', text: 'وحدات الزعيم +20% سرعة هجوم، ويستخدم «كسر السرعة» في بداية كل جولة.', blessings: { asPct: 0.2 }, abilities: ['overclock'] },
+    rika: { name: 'غضب الأتون', text: 'وحدات الزعيمة +25% هجوم و+10% صحة، وتستخدم «مطرقة الحمم» و«حماية السندان» كل جولة.', blessings: { atkPct: 0.25, hpPct: 0.1 }, abilities: ['molten_hammer', 'anvil_ward'] },
+    kairyu: { name: 'عاصفة القبطان', text: 'وحدات الزعيم +25% صحة و+10% سرعة هجوم، ويستخدم «أمر القبطان» و«موجة غادرة» كل جولة.', blessings: { hpPct: 0.25, asPct: 0.1 }, abilities: ['captains_order', 'rogue_wave'] },
+    nayako: { name: 'عرض الشبكة', text: 'وحدات الزعيمة +25% سرعة هجوم و+10% هجوم، وتستخدم «جدار الهولوغرام» و«نبضة تشويش» كل جولة.', blessings: { asPct: 0.25, atkPct: 0.1 }, abilities: ['hologram_wall', 'glitch_pulse'] },
+    thora: { name: 'زئير الدب', text: 'وحدات الزعيمة +30% صحة و+10% هجوم، وتستخدم «ازدهار الربيع» و«ضربة الفأس» كل جولة.', blessings: { hpPct: 0.3, atkPct: 0.1 }, abilities: ['spring_bloom', 'axe_cleave'] },
     sylvan: { name: 'جذور أزلية', text: 'وحدات الزعيم +20% صحة، ويستخدم «جدار الأشواك» في بداية كل جولة.', blessings: { hpPct: 0.2 }, abilities: ['thorn_wall'] },
   };
 
@@ -5247,21 +5268,54 @@ body.newbie .menu-main { display: none; }
       F('l4f4', 'شامان الجذور', 0.72, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['firewall_unit', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['tide_priest', 1, 'b3', 3]]),
       F('l4boss', 'الزعيم: أوراث', 0.65, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b0', 1], ['root_shaman', 2, 'b2', 1], ['tide_priest', 1, 'b3', 2], ['wild_stalker', 2, 'f2', 5]], { boss: true }),
     ]),
+    L('l5', 'ember', 'rika', 'أتون الملكة', { gold: 12, level: 6 }, [
+      F('l5f1', 'عمّال المطارق', 1.32, [['goka', 1, 'f1', 1], ['forge_bulwark', 2, 'f2', 1], ['ash_ronin', 2, 'f0', 1], ['pyre_archer', 1, 'b2', 1], ['natsuki', 1, 'b0', 2]]),
+      F('l5f2', 'حرس السندان', 0.97, [['kurenai', 1, 'f1', 1], ['godo', 2, 'f2', 1], ['akane', 1, 'b3', 2], ['pyre_archer', 2, 'b1', 1], ['momo', 1, 'b2', 1]]),
+      F('l5f3', 'قنّاصة الجمر', 0.99, [['forge_bulwark', 2, 'f1', 1], ['goka', 1, 'f2', 1], ['yuta', 2, 'b0', 1], ['pyre_archer', 2, 'b1', 1], ['caldera_seer', 1, 'b2', 2], ['tsubaki', 2, 'b3', 1]]),
+      F('l5f4', 'مصهر الأتون', 0.7, [['kurenai', 2, 'f1', 1], ['goka', 2, 'f2', 1], ['godo', 2, 'f3', 1], ['natsuki', 2, 'b1', 1], ['caldera_seer', 1, 'b2', 1], ['spark_wraith', 2, 'b3', 2]]),
+      F('l5boss', 'الزعيمة: ريكا', 0.52, [['kurenai', 2, 'f1', 1], ['goka', 2, 'f2', 1], ['godo', 2, 'f0', 1], ['caldera_seer', 2, 'b0', 1], ['momo', 2, 'b2', 2], ['akane', 2, 'b3', 4], ['natsuki', 2, 'f3', 6]], { boss: true }),
+    ]),
+    L('l6', 'tide', 'kairyu', 'عاصفة القبطان', { gold: 12, level: 6 }, [
+      F('l6f1', 'بحّارة العاصفة', 0.9, [['coral_sentinel', 2, 'f1', 1], ['ryujin', 1, 'f2', 1], ['tomoe', 2, 'f0', 1], ['kota', 2, 'b1', 1], ['wave_caller', 2, 'b2', 1]]),
+      F('l6f2', 'سيوف الموج', 0.79, [['seiji', 2, 'f1', 1], ['lunar_blade', 2, 'f2', 1], ['daikai', 1, 'f3', 1], ['haruka', 2, 'b0', 1], ['miyuki', 1, 'b2', 1], ['mizuki', 2, 'b3', 2]]),
+      F('l6f3', 'ضباب الأرخبيل', 0.65, [['daikai', 2, 'f1', 1], ['ryujin', 1, 'f2', 1], ['coral_sentinel', 2, 'f3', 1], ['mist_witch', 2, 'b1', 1], ['haruka', 2, 'b2', 1], ['tide_priest', 1, 'b3', 2]]),
+      F('l6f4', 'سفينة القمر', 0.72, [['daikai', 2, 'f1', 1], ['ryujin', 2, 'f2', 1], ['seiji', 2, 'f0', 1], ['mist_witch', 2, 'b1', 1], ['otohime', 1, 'b2', 1], ['kota', 2, 'b3', 2]]),
+      F('l6boss', 'الزعيم: كايريو', 0.6, [['daikai', 2, 'f1', 1], ['ryujin', 2, 'f2', 1], ['seiji', 2, 'f0', 1], ['haruka', 2, 'b0', 1], ['otohime', 1, 'b2', 2], ['mizuki', 2, 'b3', 4], ['lunar_blade', 2, 'f3', 6]], { boss: true }),
+    ]),
+    L('l7', 'neon', 'nayako', 'مسرح الشبكة', { gold: 14, level: 6 }, [
+      F('l7f1', 'جمهور الهولوغرام', 0.88, [['firewall_unit', 2, 'f1', 1], ['juzo', 2, 'f2', 1], ['gantetsu', 2, 'f0', 1], ['pixel_sniper', 2, 'b1', 1], ['mitsuki', 2, 'b2', 1]]),
+      F('l7f2', 'كلاب الخوادم', 1.01, [['kogetsu', 1, 'f1', 1], ['tetsuya', 2, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['reiji', 2, 'b0', 1], ['spectral_coder', 2, 'b2', 1], ['nagi', 2, 'b3', 2]]),
+      F('l7f3', 'عازفو البكسل', 0.87, [['chrome_ronin', 1, 'f1', 1], ['gantetsu', 2, 'f2', 1], ['firewall_unit', 2, 'f3', 1], ['mugen', 1, 'b1', 1], ['pixel_sniper', 2, 'b2', 1], ['yozora', 1, 'b3', 2]]),
+      F('l7f4', 'قلب الشبكة', 0.78, [['kogetsu', 2, 'f1', 1], ['chrome_ronin', 2, 'f2', 1], ['firewall_unit', 2, 'f0', 1], ['mugen', 2, 'b1', 1], ['spectral_coder', 2, 'b2', 1], ['reiji', 2, 'b3', 2]]),
+      F('l7boss', 'الزعيمة: ناياكو', 0.49, [['kogetsu', 2, 'f1', 1], ['chrome_ronin', 2, 'f2', 1], ['gantetsu', 2, 'f0', 1], ['mugen', 2, 'b0', 1], ['yozora', 2, 'b2', 2], ['nagi', 2, 'b3', 4], ['juzo', 2, 'f3', 6]], { boss: true }),
+    ]),
+    L('l8', 'sylvan', 'thora', 'عرين الدب الأزلي', { gold: 14, level: 7 }, [
+      F('l8f1', 'صيّادو اللحاء', 1.01, [['taiju', 1, 'f1', 1], ['kashiwagi', 1, 'f2', 1], ['genzo', 2, 'f0', 1], ['kazehaya', 2, 'b1', 1], ['yoshino', 2, 'b2', 1]]),
+      F('l8f2', 'حرّاس الغصن', 0.83, [['genzo', 2, 'f1', 1], ['kaito', 2, 'f2', 1], ['daigo', 2, 'f3', 1], ['gensai', 2, 'b0', 1], ['takashi', 2, 'b2', 1], ['hayate', 2, 'b3', 2]]),
+      F('l8f3', 'همس الغابة', 0.87, [['taiju', 2, 'f1', 1], ['kashiwagi', 1, 'f2', 1], ['genzo', 2, 'f3', 1], ['shirayuki', 1, 'b1', 1], ['ibara', 2, 'b2', 1], ['hisui', 1, 'b3', 2]]),
+      F('l8f4', 'قبضة الجذور', 0.61, [['taiju', 2, 'f1', 1], ['kashiwagi', 2, 'f2', 1], ['genzo', 2, 'f0', 1], ['shirayuki', 2, 'b1', 1], ['root_shaman', 2, 'b2', 1], ['wild_stalker', 2, 'b3', 2]]),
+      F('l8boss', 'الزعيمة: ثورا', 0.63, [['taiju', 2, 'f1', 1], ['kashiwagi', 2, 'f2', 1], ['genzo', 2, 'f0', 1], ['shirayuki', 2, 'b0', 1], ['hisui', 2, 'b2', 2], ['wild_stalker', 2, 'b3', 4], ['kaito', 2, 'f3', 6]], { boss: true }),
+    ]),
   ];
 
-  AMB.LEVELS = { CAMPAIGN, BOSS, LEVELS };
+  AMB.LEVELS = { CAMPAIGN, BOSS, LEVELS, DIFFICULTY };
 })();
 
 </script>
 <script>
 /*
- * Campaign progress: which fights are unlocked / cleared, building a fight's match,
- * and paying rewards (first win: shards + battle-pass XP; boss: more; whole level: a free pack;
- * replays: a little). Level data lives in core/levels.js.
+ * Campaign progress: which fights are unlocked / cleared, building a fight's match and paying rewards.
+ * Three difficulties (easy / medium / hard) each keep their OWN progress, stars, chests and boss prizes; the difficulty
+ * you picked last is the current one and every call below defaults to it. Level data: core/levels.js.
+ *
+ *   easy   weaker enemies, smaller prizes          medium  the original campaign          hard  stronger enemies, bigger prizes
+ *   Hard unlocks for a level once you have finished that level on medium.
  */
 (function () {
   const AMB = globalThis.AMB;
   const LV = () => AMB.LEVELS;
+  const DIFFS = ['easy', 'normal', 'hard'];
+  const RARITY_ORDER = ['common', 'rare', 'epic', 'legendary'];
 
   /** stars for one result: 0 = loss, 1 = win, 2 = no round lost, 3 = no round lost and full hero life */
   function rate(res) {
@@ -5269,16 +5323,30 @@ body.newbie .menu-main { display: none; }
     const clean = (res.roundsLost || 0) === 0;
     return 1 + (clean ? 1 : 0) + (clean && (res.lifeLeft || 0) >= (res.maxLife || AMB.CONFIG.match.heroLife) ? 1 : 0);
   }
+  const blank = () => ({ cleared: {}, levelsDone: {}, stats: {}, stars: {}, chests: [], bossPaid: {} });
+  // a guaranteed card one tier lower (easy) or higher (hard)
+  const shiftCard = (r, by) => RARITY_ORDER[Math.max(0, Math.min(RARITY_ORDER.length - 1, RARITY_ORDER.indexOf(r) + by))];
+  /** a prize scaled for a difficulty: shards/xp by their multipliers, packs rounded down, guaranteed card one tier up or down */
+  function scaled(rw, d) {
+    const x = LV().DIFFICULTY[d], o = {};
+    if (rw.shards) o.shards = Math.round(rw.shards * x.shards);
+    if (rw.passXp) o.passXp = Math.round(rw.passXp * x.xp);
+    if (rw.packs) o.packs = Math.floor(rw.packs * x.packs + 1e-9);
+    if (rw.card) o.card = shiftCard(rw.card, x.cardTier);
+    return o;
+  }
 
   AMB.Save.register('campaign', {
-    version: 2,
-    // cleared[fightId] = true; levelsDone[levelId] = true; stars[fightId] = best 1..3; chests = claimed chest ids;
-    // stats per fight: { attempts, wins, best:{ lifeLeft, roundsLost } }
-    defaults: () => ({ cleared: {}, levelsDone: {}, stats: {}, stars: {}, chests: [], bossPaid: {} }),   // bossPaid[fightId] = highest star whose prize was already paid
-    // v1 had no stars: rate the best recorded result of every cleared fight (at least 1 star)
-    migrate: (s) => {
-      s.stars = s.stars || {};
-      Object.keys(s.cleared || {}).forEach((id) => { const b = (s.stats[id] || {}).best; s.stars[id] = Math.max(1, b ? rate(Object.assign({ won: true }, b)) : 1); });
+    version: 3,
+    // d[difficulty] = { cleared[fightId], levelsDone[levelId], stats[fightId] = { attempts, wins, best }, stars[fightId] = best 1..3, chests = claimed ids, bossPaid[fightId] = highest boss star paid }
+    defaults: () => ({ diff: 'normal', d: { easy: blank(), normal: blank(), hard: blank() } }),
+    migrate: (s, from) => {
+      if (s.cleared) {   // saves from before difficulties: everything played so far was the medium campaign
+        if (from < 2) { s.stars = s.stars || {}; Object.keys(s.cleared).forEach((id) => { const b = (s.stats[id] || {}).best; s.stars[id] = Math.max(1, b ? rate(Object.assign({ won: true }, b)) : 1); }); }
+        s.d = { easy: blank(), hard: blank(), normal: { cleared: s.cleared, levelsDone: s.levelsDone || {}, stats: s.stats || {}, stars: s.stars || {}, chests: s.chests || [], bossPaid: s.bossPaid || {} } };
+        ['cleared', 'levelsDone', 'stats', 'stars', 'chests', 'bossPaid'].forEach((k) => delete s[k]);
+        s.diff = 'normal';
+      }
       return s;
     },
   });
@@ -5287,6 +5355,9 @@ body.newbie .menu-main { display: none; }
     deps = deps || {};
     const st = () => save.get('campaign');
     const levels = () => LV().LEVELS;
+    const diff = () => (DIFFS.includes(st().diff) ? st().diff : 'normal');
+    const dd = (d) => (DIFFS.includes(d) ? d : diff());
+    const P = (d) => st().d[dd(d)];
 
     function find(fightId) {
       for (let li = 0; li < levels().length; li++) {
@@ -5295,116 +5366,133 @@ body.newbie .menu-main { display: none; }
       }
       return null;
     }
-
-    // one card of `minRarity` or rarer — prefer ones you don't own yet, then ones not at max level
     const grantCard = (minRarity) => deps.collection.grantRandom(minRarity, deps.rng);
+    const anyDiff = (fn) => DIFFS.some((d) => fn(d));
 
     const api = {
-      levels,
-      find,
-      isCleared: (fightId) => !!st().cleared[fightId],
-      levelDone: (levelId) => !!st().levelsDone[levelId],
-      progress(levelId) { const l = levels().find((x) => x.id === levelId); return { cleared: l.fights.filter((f) => api.isCleared(f.id)).length, total: l.fights.length }; },
-      levelUnlocked(li) { return li === 0 || api.levelDone(levels()[li - 1].id); },
-      isUnlocked(fightId) {
-        const f = find(fightId); if (!f) return false;
-        if (!api.levelUnlocked(f.li)) return false;
-        return f.fi === 0 || api.isCleared(f.level.fights[f.fi - 1].id);
+      levels, find, rate, DIFFS,
+      diff, setDiff(d) { if (DIFFS.includes(d)) { save.update('campaign', (s) => { s.diff = d; }); } return diff(); },
+      difficulty: (d) => LV().DIFFICULTY[dd(d)],
+      /** hard needs the level finished on medium (and the previous hard level); easy and medium follow their own chain */
+      isCleared: (fightId, d) => (d ? !!P(d).cleared[fightId] : anyDiff((x) => !!P(x).cleared[fightId])),   // no difficulty = on ANY difficulty (used by the other systems' unlocks)
+      levelDone: (levelId, d) => (d ? !!P(d).levelsDone[levelId] : anyDiff((x) => !!P(x).levelsDone[levelId])),
+      progress(levelId, d) { const l = levels().find((x) => x.id === levelId); return { cleared: l.fights.filter((f) => P(d).cleared[f.id]).length, total: l.fights.length }; },
+      levelUnlocked(li, d) {
+        d = dd(d);
+        const prev = li === 0 || !!P(d).levelsDone[levels()[li - 1].id];
+        return d === 'hard' ? prev && !!P('normal').levelsDone[levels()[li].id] : prev;
       },
-      /** first unlocked fight not yet cleared (or null when everything is done) */
-      next() { for (const l of levels()) for (const f of l.fights) if (api.isUnlocked(f.id) && !api.isCleared(f.id)) return f.id; return null; },
-      stats: (fightId) => st().stats[fightId] || { attempts: 0, wins: 0, best: null },
-      rate,
-      stars: (fightId) => st().stars[fightId] || 0,
-      levelStars(levelId) { const l = levels().find((x) => x.id === levelId); return l.fights.reduce((a, f) => a + api.stars(f.id), 0); },
-      totalStars() { return levels().reduce((a, l) => a + api.levelStars(l.id), 0); },
+      isUnlocked(fightId, d) {
+        const f = find(fightId); if (!f) return false;
+        if (!api.levelUnlocked(f.li, d)) return false;
+        return f.fi === 0 || !!P(d).cleared[f.level.fights[f.fi - 1].id];
+      },
+      /** first unlocked fight not yet cleared on this difficulty (or null when everything is done) */
+      next(d) { for (const l of levels()) for (const f of l.fights) if (api.isUnlocked(f.id, d) && !P(d).cleared[f.id]) return f.id; return null; },
+      stats: (fightId, d) => P(d).stats[fightId] || { attempts: 0, wins: 0, best: null },
+      stars: (fightId, d) => P(d).stars[fightId] || 0,
+      levelStars(levelId, d) { const l = levels().find((x) => x.id === levelId); return l.fights.reduce((a, f) => a + api.stars(f.id, d), 0); },
+      totalStars(d) { return levels().reduce((a, l) => a + api.levelStars(l.id, d), 0); },
       maxStars() { return levels().reduce((a, l) => a + l.fights.length * 3, 0); },
-      /** chests with state: 'claimed' | 'ready' | 'locked' */
-      chests() { const tot = api.totalStars(); return LV().CAMPAIGN.stars.chests.map((c) => Object.assign({}, c, { state: st().chests.includes(c.id) ? 'claimed' : tot >= c.need ? 'ready' : 'locked' })); },
-      readyChests() { return api.chests().filter((c) => c.state === 'ready').length; },
-      /** open a chest whose star total is reached; returns what it gave or null */
-      claimChest(id) {
-        const c = api.chests().find((x) => x.id === id);
+      /** chests with state 'claimed' | 'ready' | 'locked'; rewards already scaled for the difficulty */
+      chests(d) { d = dd(d); const tot = api.totalStars(d); return LV().CAMPAIGN.stars.chests.map((c) => Object.assign({}, c, { reward: scaled(c.reward, d), state: P(d).chests.includes(c.id) ? 'claimed' : tot >= c.need ? 'ready' : 'locked' })); },
+      readyChests: (d) => api.chests(d).filter((c) => c.state === 'ready').length,
+      claimChest(id, d) {
+        d = dd(d);
+        const c = api.chests(d).find((x) => x.id === id);
         if (!c || c.state !== 'ready') return null;
-        save.update('campaign', (s) => { s.chests.push(id); });
-        const out = { id, shards: 0, packs: [], card: null }, rw = c.reward;
+        save.update('campaign', (s) => { s.d[d].chests.push(id); });
+        const out = { id, difficulty: d, shards: 0, packs: [], card: null }, rw = c.reward;
         if (rw.shards && deps.wallet) { deps.wallet.add('shards', rw.shards, 'chest'); out.shards = rw.shards; }
         for (let i = 0; i < (rw.packs || 0); i++) if (deps.packs) out.packs.push(deps.packs.open('basic', { free: true }));
         if (rw.card && deps.collection) out.card = grantCard(rw.card);
         if (deps.events) deps.events.emit('chestOpened', out);
         return out;
       },
-      bossPaid: (fightId) => st().bossPaid[fightId] || 0,
-      /** boss prizes per star with their state: 'paid' | 'next' (the star you are after) | 'locked' */
-      bossPrizes(fightId) { const paid = api.bossPaid(fightId), got = api.stars(fightId); return LV().CAMPAIGN.rewards.bossStars.map((p, i) => Object.assign({ star: i + 1 }, p, { state: i < paid ? 'paid' : i === paid ? 'next' : 'locked', reached: i < got })); },
-      rewardsFor(fightId) {
-        const f = find(fightId), R = LV().CAMPAIGN.rewards;
+      bossPaid: (fightId, d) => P(d).bossPaid[fightId] || 0,
+      /** boss prizes per star (scaled for the difficulty) with their state: 'paid' | 'next' | 'locked' */
+      bossPrizes(fightId, d) {
+        d = dd(d); const paid = api.bossPaid(fightId, d), got = api.stars(fightId, d);
+        return LV().CAMPAIGN.rewards.bossStars.map((p, i) => Object.assign({ star: i + 1 }, scaled(p, d), { state: i < paid ? 'paid' : i === paid ? 'next' : 'locked', reached: i < got }));
+      },
+      rewardsFor(fightId, d) {
+        d = dd(d);
+        const f = find(fightId), R = LV().CAMPAIGN.rewards, X = LV().DIFFICULTY[d];
+        const lastOfLevel = f.level.fights.filter((x) => !P(d).cleared[x.id]).length === 1;
+        const levelBonus = lastOfLevel ? { packs: X.levelPacks, shards: X.levelShards } : null;
         if (f.fight.boss) {   // a boss pays by star, not by "first win"
-          const prizes = api.bossPrizes(fightId), left = prizes.filter((p) => p.state !== 'paid');
-          const lastOfLevel = f.level.fights.filter((x) => !api.isCleared(x.id)).length === 1;
-          return { boss: true, replay: !left.length, shards: left.length ? R.boss.shards : R.replay.shards, passXp: 0, prizes, pack: lastOfLevel ? R.level.pack : null };
+          const prizes = api.bossPrizes(fightId, d), left = prizes.filter((p) => p.state !== 'paid');
+          return { boss: true, difficulty: d, replay: !left.length, shards: Math.max(1, Math.round(R.replay.shards * X.shards)), passXp: 0, prizes, levelBonus };
         }
-        if (api.isCleared(fightId)) return { replay: true, shards: R.replay.shards, passXp: 0 };
-        const base = f.fight.boss ? R.boss : R.fight;
-        const lastOfLevel = f.level.fights.filter((x) => !api.isCleared(x.id)).length === 1;
-        return { replay: false, shards: base.shards, passXp: base.passXp, pack: lastOfLevel ? R.level.pack : null };
+        if (P(d).cleared[fightId]) return { replay: true, difficulty: d, shards: Math.max(1, Math.round(R.replay.shards * X.shards)), passXp: 0 };
+        const base = scaled(R.fight, d);
+        return { replay: false, difficulty: d, shards: base.shards, passXp: base.passXp, levelBonus };
       },
 
       /** Options for new AMB.Match(...) for this fight. */
-      matchOptions(fightId, heroId, seed) {
-        const f = find(fightId); if (!f) throw new Error('قتال غير معروف: ' + fightId);
-        const C = deps.collection, fight = f.fight, boss = fight.boss ? LV().BOSS[f.level.world] : null;
-        const enemyPower = {};
-        fight.units.forEach(([id]) => (enemyPower[id] = fight.power));
-        enemyPower[f.level.hero] = fight.power;
+      matchOptions(fightId, heroId, seed, d) {
+        d = dd(d);
+        const f = find(fightId); if (!f) throw new Error('ما أعرف هالقتال: ' + fightId);
+        const C = deps.collection, fight = f.fight, X = LV().DIFFICULTY[d];
+        const boss = fight.boss ? (LV().BOSS[f.level.hero] || LV().BOSS[f.level.world]) : null;
+        const power = fight.power * X.power, enemyPower = {};
+        fight.units.forEach(([id]) => (enemyPower[id] = power));
+        enemyPower[f.level.hero] = power;
         return {
-          mode: 'campaign', seed, progression: true,
-          rules: Object.assign({}, boss ? LV().CAMPAIGN.bossRules : LV().CAMPAIGN.rules, { start: f.level.start }),
+          mode: 'campaign', seed, progression: true, difficulty: d,
+          rules: Object.assign({}, fight.boss ? LV().CAMPAIGN.bossRules : LV().CAMPAIGN.rules, { start: f.level.start }),
           players: [
             { heroId, name: 'أنت', cardPower: C ? C.powerMap() : null, allowedUnits: C ? C.playableUnits() : null, heroLevel: (globalThis.AMB.heroes ? AMB.heroes.level(heroId) : 1) },
             { heroId: f.level.hero, name: fight.name, isAI: true, cardPower: enemyPower,
-              lineup: { units: fight.units, growth: boss ? LV().CAMPAIGN.bossRules.growth : 0, summon: boss ? 'b1' : null, blessings: boss ? boss.blessings : null, abilities: boss ? boss.abilities : [] } },
+              lineup: { units: fight.units, growth: boss ? X.growth : 0, summon: boss ? 'b1' : null, blessings: boss ? boss.blessings : null, abilities: boss ? boss.abilities : [] } },
           ],
         };
       },
 
       /** Record a finished fight (match.summary(0) + life left). Returns what was paid. */
-      recordResult(fightId, res) {
+      recordResult(fightId, res, d) {
+        d = dd(d);
         const f = find(fightId); if (!f) return null;
-        const won = !!res.won;
-        const pay = won ? api.rewardsFor(fightId) : null;
-        const stars = rate(res), prevStars = api.stars(fightId);
-        const isBoss = !!f.fight.boss, paidBefore = api.bossPaid(fightId);
-        const newPrizes = isBoss && won ? LV().CAMPAIGN.rewards.bossStars.map((p, i) => Object.assign({ star: i + 1 }, p)).filter((p) => p.star > paidBefore && p.star <= stars) : [];
-        const out = { fightId, won, boss: isBoss, first: isBoss ? newPrizes.length > 0 : !!(pay && !pay.replay), shards: 0, passXp: 0, pack: null, packs: [], card: null, prizes: newPrizes, levelComplete: false,
-          stars, prevStars, newBest: stars > prevStars, chestsBefore: api.readyChests() };
+        const won = !!res.won, R = LV().CAMPAIGN.rewards;
+        const pay = won ? api.rewardsFor(fightId, d) : null;
+        const stars = rate(res), prevStars = api.stars(fightId, d);
+        const isBoss = !!f.fight.boss, paidBefore = api.bossPaid(fightId, d);
+        const newPrizes = isBoss && won ? R.bossStars.map((p, i) => Object.assign({ star: i + 1 }, scaled(p, d))).filter((p) => p.star > paidBefore && p.star <= stars) : [];
+        const out = { fightId, difficulty: d, won, boss: isBoss, first: isBoss ? newPrizes.length > 0 : !!(pay && !pay.replay), shards: 0, passXp: 0, pack: null, packs: [], levelPacks: [], card: null, prizes: newPrizes, levelShards: 0,
+          levelComplete: false, stars, prevStars, newBest: stars > prevStars, chestsBefore: api.readyChests(d) };
         save.update('campaign', (s) => {
-          const x = (s.stats[fightId] = s.stats[fightId] || { attempts: 0, wins: 0, best: null });
+          const q = s.d[d], x = (q.stats[fightId] = q.stats[fightId] || { attempts: 0, wins: 0, best: null });
           x.attempts++;
           if (!won) return;
           x.wins++;
           const cur = { lifeLeft: res.lifeLeft || 0, roundsLost: res.roundsLost || 0 };
           if (!x.best || cur.lifeLeft > x.best.lifeLeft) x.best = cur;
-          s.cleared[fightId] = true;
-          s.stars[fightId] = Math.max(s.stars[fightId] || 0, stars);
-          if (isBoss) s.bossPaid[fightId] = Math.max(s.bossPaid[fightId] || 0, stars);
-          if (f.level.fights.every((ff) => s.cleared[ff.id]) && !s.levelsDone[f.level.id]) { s.levelsDone[f.level.id] = true; out.levelComplete = true; }
+          q.cleared[fightId] = true;
+          q.stars[fightId] = Math.max(q.stars[fightId] || 0, stars);
+          if (isBoss) q.bossPaid[fightId] = Math.max(q.bossPaid[fightId] || 0, stars);
+          if (f.level.fights.every((ff) => q.cleared[ff.id]) && !q.levelsDone[f.level.id]) { q.levelsDone[f.level.id] = true; out.levelComplete = true; }
         });
-        if (pay && isBoss) {
-          newPrizes.forEach((p) => {
-            if (p.shards && deps.wallet) { deps.wallet.add('shards', p.shards, 'campaign'); out.shards += p.shards; }
-            if (p.passXp && deps.addPassXp) { deps.addPassXp(p.passXp); out.passXp += p.passXp; }
-            for (let i = 0; i < (p.packs || 0); i++) if (deps.packs) out.packs.push(deps.packs.open('basic', { free: true }));
-            if (p.card && deps.collection) out.card = grantCard(p.card);
-          });
-          if (!newPrizes.length && deps.wallet) { const rp = LV().CAMPAIGN.rewards.replay.shards; deps.wallet.add('shards', rp, 'campaign'); out.shards = rp; }   // all prizes already paid: the small replay reward
-          if (out.levelComplete && pay.pack && deps.packs) out.pack = deps.packs.open(pay.pack, { free: true });
-        } else if (pay) {
-          if (pay.shards && deps.wallet) { deps.wallet.add('shards', pay.shards, 'campaign'); out.shards = pay.shards; }
-          if (pay.passXp && deps.addPassXp) { deps.addPassXp(pay.passXp); out.passXp = pay.passXp; }
-          if (out.levelComplete && pay.pack && deps.packs) out.pack = deps.packs.open(pay.pack, { free: true });
+        const pay1 = (p) => {
+          if (p.shards && deps.wallet) { deps.wallet.add('shards', p.shards, 'campaign'); out.shards += p.shards; }
+          if (p.passXp && deps.addPassXp) { deps.addPassXp(p.passXp); out.passXp += p.passXp; }
+          for (let i = 0; i < (p.packs || 0); i++) if (deps.packs) out.packs.push(deps.packs.open('basic', { free: true }));
+          if (p.card && deps.collection) out.card = grantCard(p.card);
+        };
+        if (pay) {
+          if (isBoss) {
+            newPrizes.forEach(pay1);
+            if (!newPrizes.length && deps.wallet) { deps.wallet.add('shards', pay.shards, 'campaign'); out.shards += pay.shards; }   // all prizes already paid: the small replay reward
+          } else if (pay.shards || pay.passXp) {
+            pay1({ shards: pay.shards, passXp: pay.passXp });
+          }
+          if (out.levelComplete && pay.levelBonus) {
+            const lb = pay.levelBonus;
+            for (let i = 0; i < (lb.packs || 0); i++) if (deps.packs) out.levelPacks.push(deps.packs.open(R.level.pack, { free: true }));
+            if (lb.shards && deps.wallet) { deps.wallet.add('shards', lb.shards, 'campaign'); out.levelShards = lb.shards; out.shards += lb.shards; }
+            out.pack = out.levelPacks[0] || null;
+          }
         }
-        out.chestsReady = api.readyChests();
+        out.chestsReady = api.readyChests(d);
         if (deps.events) deps.events.emit('fightEnd', Object.assign({}, out, { summary: res }));
         return out;
       },
@@ -8762,7 +8850,7 @@ AMB.IMAGES = {
   }
 
   function node(l, f, i) {
-    const cleared = CAM.isCleared(f.id), open = CAM.isUnlocked(f.id), next = CAM.next() === f.id;
+    const cleared = CAM.isCleared(f.id, CAM.diff()), open = CAM.isUnlocked(f.id), next = CAM.next() === f.id;
     const cls = ['cnode', f.boss ? 'boss' : '', cleared ? 'cleared' : '', open ? 'open' : 'locked', next ? 'next' : ''].join(' ');
     const inner = f.boss ? UI().portrait(AMB.DATA.HEROES[l.hero], { bare: true, k: 'cb' + l.id }) : `<b>${i + 1}</b>`;
     return `<button class="${cls}" ${open ? `data-act="camFight" data-id="${f.id}"` : 'disabled'} title="${esc(f.name)}">${inner}${cleared ? starRow(CAM.stars(f.id), 'mini') : open ? '' : '<i class="lk">🔒</i>'}<span class="cn-name">${esc(f.name)}</span></button>`;
@@ -8782,15 +8870,19 @@ AMB.IMAGES = {
     }
     AMB.TIPS = AMB.TIPS || {};
     AMB.TIPS.caminfo = () => ({ title: 'كيف تشتغل الحملة', html: `<p>كل قتال <b>تكسب جولتين من 3</b> ضد تشكيلة ثابتة. مستويات بطاقاتك وندرتها <b>تنحسب هنا</b>، والمتجر يعرض الوحدات اللي تملكها فقط.</p>
-      <p>الفوز الأول: ${icon('gem')} ${R.fight.shards} + ${R.fight.passXp} خبرة ممر<br>الزعيم (أفضل من 7 جولات): <b>كل نجمة لها جائزة</b> مرة وحدة: ★ ${icon('gem')} ${R.bossStars[0].shards} · ★★ ${icon('gem')} ${R.bossStars[1].shards} + باكج · ★★★ ${icon('gem')} ${R.bossStars[2].shards} + بطاقة رير أو أندر<br>إنهاء المستوى: باكج مجاني<br>الإعادة: ${icon('gem')} ${R.replay.shards}</p>
+      <p>الفوز الأول: ${icon('gem')} ${R.fight.shards} + ${R.fight.passXp} خبرة ممر<br><b>3 صعوبات:</b> سهل (أضعف وجوائز أصغر)، متوسط، صعب (أقوى وجوائز مضاعفة، ينفتح بعد ما تخلص المستوى في متوسط). لكل صعوبة تقدمها ونجومها وصناديقها.<br>الزعيم (أفضل من 7 جولات): <b>كل نجمة لها جائزة</b> مرة وحدة: ★ ${icon('gem')} ${R.bossStars[0].shards} · ★★ ${icon('gem')} ${R.bossStars[1].shards} + باكج · ★★★ ${icon('gem')} ${R.bossStars[2].shards} + بطاقة رير أو أندر<br>إنهاء المستوى: باكج مجاني<br>الإعادة: ${icon('gem')} ${R.replay.shards}</p>
       <h4>النجوم</h4>${LV.CAMPAIGN.stars.rules.map((r) => `<div>${'★'.repeat(r.n)} ${r.text}</div>`).join('')}` });
-    root.innerHTML = `<div class="cam-note">⚔️ جولتين من 3 تكسب (الزعيم 4 من 7) · ⭐ النجوم تفتح صناديق · 👑 كل نجمة زعيم لها جائزة <button class="ibtn" data-act="info" data-k="caminfo" title="شرح">ⓘ</button></div>
+    const DF = LV.DIFFICULTY, cd = CAM.diff();
+    const tabs = `<div class="cam-diff">${CAM.DIFFS.map((k) => `<button class="cd ${k === cd ? 'on' : ''}" style="--dc:${DF[k].color}" data-act="camDiff" data-v="${k}"><b>${DF[k].name}</b><small>★ ${CAM.totalStars(k)}/${CAM.maxStars()}</small></button>`).join('')}</div>
+      <div class="hint cam-dnote">${cd === 'easy' ? 'أعداء أضعف وجوائز أصغر، لقصة مريحة' : cd === 'normal' ? 'الحملة الأساسية' : 'أعداء أقوى بـ30% وجوائز أكبر: باكجات مضاعفة وبطاقات أندر. كل مستوى ينفتح بعد ما تخلصه في «متوسط»'}</div>`;
+    root.innerHTML = tabs + `<div class="cam-note">⚔️ جولتين من 3 تكسب (الزعيم 4 من 7) · ⭐ النجوم تفتح صناديق · 👑 كل نجمة زعيم لها جائزة <button class="ibtn" data-act="info" data-k="caminfo" title="شرح">ⓘ</button></div>
       ${chestsHTML()}
       <div class="cam-levels">${LV.LEVELS.map((l, li) => {
         const pr = CAM.progress(l.id), unlocked = CAM.levelUnlocked(li);
-        return `<section class="cam-level ${unlocked ? '' : 'locked'} ${CAM.levelDone(l.id) ? 'done' : ''}" style="--wc:${W(l.world).color}">
-          <header><span class="cl-n">${li + 1}</span><div><h3>${esc(l.name)}</h3><small>${W(l.world).name} · ${pr.cleared}/${pr.total} · ★ ${CAM.levelStars(l.id)}/${l.fights.length * 3}${CAM.levelDone(l.id) ? ' · ✓ مكتمل' : ''}</small></div>
-          ${unlocked ? '' : '<span class="cl-lock">🔒 خلّص المستوى اللي قبله</span>'}</header>
+        const lockMsg = cd === 'hard' && !CAM.levelDone(l.id, 'normal') ? '🔒 خلّصه في «متوسط» أول' : '🔒 خلّص المستوى اللي قبله';
+        return `<section class="cam-level ${unlocked ? '' : 'locked'} ${CAM.levelDone(l.id, cd) ? 'done' : ''}" style="--wc:${W(l.world).color}">
+          <header><span class="cl-n">${li + 1}</span><div><h3>${esc(l.name)}</h3><small>${W(l.world).name} · ${pr.cleared}/${pr.total} · ★ ${CAM.levelStars(l.id)}/${l.fights.length * 3}${CAM.levelDone(l.id, cd) ? ' · ✓ مكتمل' : ''}</small></div>
+          ${unlocked ? '' : `<span class="cl-lock">${lockMsg}</span>`}</header>
           <div class="cpath">${l.fights.map((f, i) => node(l, f, i)).join('<i class="cline"></i>')}</div></section>`;
       }).join('')}</div>`;
     refreshMenu();
@@ -8807,16 +8899,23 @@ AMB.IMAGES = {
     b.innerHTML = `الحملة${f ? ` <small>${f.li + 1}-${f.fi + 1}</small>` : '<small>✓</small>'}${ch ? `<span class="dot">${ch}</span>` : ''}`;
   }
 
+  // what finishing the whole level pays on this difficulty
+  function levelHint(pay, inline) {
+    const lb = pay && pay.levelBonus; if (!lb || (!lb.packs && !lb.shards)) return '';
+    const t = [lb.packs ? `${lb.packs === 1 ? 'باكج مجاني' : lb.packs + ' باكجات مجانية'}` : '', lb.shards ? `${icon('gem')} ${lb.shards} شظية` : ''].filter(Boolean).join(' + ');
+    return inline ? ` · <b>${t}</b> لإنهاء المستوى` : `<div class="hint">+ <b>${t}</b> لإنهاء المستوى</div>`;
+  }
+
   function preview(fightId) {
-    const ui = UI(), x = CAM.find(fightId), f = x.fight, l = x.level, boss = f.boss ? LV.BOSS[l.world] : null;
+    const ui = UI(), x = CAM.find(fightId), f = x.fight, l = x.level, boss = f.boss ? (LV.BOSS[l.hero] || LV.BOSS[l.world]) : null;
     const pay = CAM.rewardsFor(fightId), st = CAM.stats(fightId);
     const h = pickHero();
     const unitsHTML = f.units.map(([id, star, , from], k) => `<div class="cu">${ui.portrait(AMB.DATA.UNITS[id], { k: 'cpv' + k + id })}${ui.stars(star)}${from > 1 ? `<small>من الجولة ${from}</small>` : ''}</div>`).join('');
     const heroes = C.ownedHeroes().map((id) => `<button class="hchip ${id === h ? 'on' : ''}" data-act="camHero" data-id="${id}" data-f="${fightId}">${ui.portrait(AMB.DATA.HEROES[id], { k: 'cph' + id })}<span>${AMB.DATA.HEROES[id].name}</span></button>`).join('');
     const prizeTxt = (p) => [p.shards ? `${icon('gem')} ${p.shards}` : '', p.passXp ? `+${p.passXp} خبرة` : '', p.packs ? '📦 باكج' : '', p.card ? `🃏 بطاقة ${AMB.ECONOMY.rarities[p.card].name}+` : ''].filter(Boolean).join(' · ');
     const reward = pay.boss
-      ? `<div class="hint" style="margin-bottom:4px">قتال طويل: أفضل من 7 جولات (تكسب 4). كل نجمة لها جائزتها، وتنصرف مرة وحدة.</div>${pay.prizes.map((p) => `<div class="bp ${p.state}"><span class="bp-s">${'★'.repeat(p.star)}</span><span>${prizeTxt(p)}</span><i>${p.state === 'paid' ? '✓ استلمتها' : ''}</i></div>`).join('')}${pay.pack ? '<div class="hint">+ <b>باكج مجاني</b> لإنهاء المستوى</div>' : ''}`
-      : pay.replay ? `إعادة: ${icon('gem')} ${pay.shards}` : `${icon('gem')} ${pay.shards} شظية · +${pay.passXp} خبرة ممر${pay.pack ? ' · <b>باكج مجاني</b> لإنهاء المستوى' : ''}`;
+      ? `<div class="hint" style="margin-bottom:4px">قتال طويل: أفضل من 7 جولات (تكسب 4). كل نجمة لها جائزتها، وتنصرف مرة وحدة.</div>${pay.prizes.map((p) => `<div class="bp ${p.state}"><span class="bp-s">${'★'.repeat(p.star)}</span><span>${prizeTxt(p)}</span><i>${p.state === 'paid' ? '✓ استلمتها' : ''}</i></div>`).join('')}${levelHint(pay)}`
+      : pay.replay ? `إعادة: ${icon('gem')} ${pay.shards}` : `${icon('gem')} ${pay.shards} شظية · +${pay.passXp} خبرة ممر${levelHint(pay, true)}`;
     ui.modal(`<div class="cam-pv" style="--wc:${W(l.world).color}">
       <h2>${f.boss ? '👑 ' : ''}${esc(f.name)}</h2><div class="hint">${esc(l.name)} · ${x.fi + 1}/${l.fights.length}</div>
       ${boss ? `<div class="boss-box">${ui.portrait(AMB.DATA.HEROES[l.hero], { k: 'cpb' })}<div><b>قدرة الزعيم: ${boss.name}</b><p>${boss.text}</p></div></div>` : ''}
@@ -8832,7 +8931,7 @@ AMB.IMAGES = {
   function start(fightId) {
     if (AMB.DeckGate && !AMB.DeckGate.ensure()) return;
     const ui = UI(), S = ui.S;
-    S.mode = 'campaign'; S.campaign = { fightId }; S.picks = [pickHero(), null]; S.pickIdx = 0;
+    S.mode = 'campaign'; S.campaign = { fightId, diff: CAM.diff() }; S.picks = [pickHero(), null]; S.pickIdx = 0;
     ui.closeModal(); ui.startMatch();
   }
 
@@ -8845,7 +8944,8 @@ AMB.IMAGES = {
     const pay = won ? [r.shards ? `${icon('gem')} +${r.shards} شظية` : '', r.passXp ? `+${r.passXp} خبرة ممر` : ''].filter(Boolean).join(' · ') : '';
     const bossPrizes = won && r.boss && r.prizes && r.prizes.length ? `<div class="cam-pack"><b>🏆 جوائز النجوم:</b>${r.prizes.map((p) => `<div class="bp paid"><span class="bp-s">${'★'.repeat(p.star)}</span><span>${[p.shards ? `${icon('gem')} ${p.shards}` : '', p.passXp ? `+${p.passXp} خبرة` : '', p.packs ? '📦 باكج مجاني' : '', p.card ? '🃏 بطاقة ' + AMB.ECONOMY.rarities[p.card].name + ' أو أندر' : ''].filter(Boolean).join(' · ')}</span></div>`).join('')}
       <div class="cam-pack-row">${(r.packs || []).map((pk) => pk.cards.map((c, i) => `<div class="cu">${ui.portrait(C.def(c.id), { k: 'bpk' + i + c.id })}<small class="r-${c.rarity}">${c.isNew ? 'جديدة!' : c.refund ? '+' + c.refund + ' شظية' : '+1 نسخة'}</small></div>`).join('')).join('')}${r.card ? `<div class="cu">${ui.portrait(C.def(r.card.id), { k: 'bcd' + r.card.id })}<small class="r-${r.card.rarity}">${r.card.isNew ? 'جديدة!' : '+1 نسخة'}</small></div>` : ''}</div></div>` : '';
-    const pack = r.pack ? `<div class="cam-pack"><b>🎁 خلّصت المستوى! باكج مجاني:</b><div class="cam-pack-row">${r.pack.cards.map((c, i) => `<div class="cu">${ui.portrait(C.def(c.id), { k: 'crp' + i + c.id })}<small class="r-${c.rarity}">${c.isNew ? 'جديدة!' : c.refund ? '+' + c.refund + ' شظية' : '+1 نسخة'}</small></div>`).join('')}</div></div>` : '';
+    const lp = r.levelPacks || [];
+    const pack = lp.length || r.levelShards ? `<div class="cam-pack"><b>🎁 خلّصت المستوى!${lp.length ? ` ${lp.length === 1 ? 'باكج مجاني' : lp.length + ' باكجات مجانية'}` : ''}${r.levelShards ? ` · ${icon('gem')} +${r.levelShards} شظية` : ''}</b><div class="cam-pack-row">${lp.map((pk) => pk.cards.map((c, i) => `<div class="cu">${ui.portrait(C.def(c.id), { k: 'crp' + i + c.id })}<small class="r-${c.rarity}">${c.isNew ? 'جديدة!' : c.refund ? '+' + c.refund + ' شظية' : '+1 نسخة'}</small></div>`).join('')).join('')}</div></div>` : '';
     $('results').innerHTML = `<div class="res-stage ${won ? 'victory' : 'defeat'}" style="--wc:${W(x.level.world).color}"><div class="res-rays"></div>
         <div class="res-hero">${ui.portrait(won ? AMB.DATA.HEROES[m.players[0].heroId] : AMB.DATA.HEROES[x.level.hero], { bare: true, k: 'crh' })}<i class="sheen"></i></div>
         <div class="res-hname">${esc(x.fight.name)}</div></div>
@@ -8872,6 +8972,7 @@ AMB.IMAGES = {
       camFight: (d) => preview(d.id),
       camHero: (d) => { hero = d.id; preview(d.f); },
       camGo: (d) => start(d.id),
+      camDiff: (d) => { CAM.setDiff(d.v); ui.sfx('click'); render(); },
       tutGo: () => AMB.TutorialUI.start({ after: () => { render(); preview(CAM.next()); } }),
       camStarter: (d) => {
         if (!C.chooseStarter(d.id)) return;

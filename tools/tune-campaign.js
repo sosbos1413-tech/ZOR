@@ -13,7 +13,9 @@ const only = process.argv[3] || null;   // optional: tune just one level, e.g. l
 // reference player per level: what a player plausibly has when reaching it
 const REF = { l1: { lvl: 1, owned: 'starter', t: [0.95, 0.8, 0.72, 0.65, 0.4] }, l2: { lvl: 2, owned: 'starter', t: [0.85, 0.8, 0.75, 0.7, 0.5] },
   l3: { lvl: 1, owned: 'all', t: [0.8, 0.75, 0.7, 0.65, 0.45] }, l4: { lvl: 2, owned: 'all', t: [0.75, 0.7, 0.65, 0.6, 0.4] } };
-const heroes = Object.keys(AMB.DATA.HEROES);
+REF.l5 = { lvl: 3, owned: 'all', t: [0.7, 0.65, 0.6, 0.55, 0.4] }; REF.l6 = { lvl: 3, owned: 'all', t: [0.68, 0.63, 0.58, 0.53, 0.4] };
+REF.l7 = { lvl: 4, owned: 'all', t: [0.66, 0.61, 0.56, 0.5, 0.38] }; REF.l8 = { lvl: 4, owned: 'all', t: [0.64, 0.59, 0.54, 0.48, 0.38] };
+const heroes = Object.keys(AMB.DATA.HEROES).slice(0, 4);   // the four starter heroes
 function profile(lvl, owned) {
   const p = AMB.Profile.boot(AMB.Save.memoryStorage()), C = p.collection;
   if (owned === 'all') C.ids().forEach((id) => C.add(id, 1));

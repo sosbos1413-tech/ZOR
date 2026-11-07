@@ -600,11 +600,12 @@ const runFight = (prof, fightId, hero, seed, forceWin) => {
   }
   return m;
 };
-t('levels data: 4 levels x (4 fights + boss), valid units/slots, boss slot free', () => {
-  const Ls = AMB.LEVELS.LEVELS; eq(Ls.length, 4);
+t('levels data: 8 levels x (4 fights + boss), valid units/slots, boss slot free', () => {
+  const Ls = AMB.LEVELS.LEVELS; eq(Ls.length, 8);
   Ls.forEach((l) => {
     eq(l.fights.length, 5, l.id); ok(l.fights[4].boss && l.fights.slice(0, 4).every((f) => !f.boss), l.id + ' boss last');
-    ok(AMB.DATA.HEROES[l.hero] && AMB.LEVELS.BOSS[l.world], l.id);
+    ok(AMB.DATA.HEROES[l.hero] && (AMB.LEVELS.BOSS[l.hero] || AMB.LEVELS.BOSS[l.world]), l.id);
+    if (AMB.LEVELS.BOSS[l.hero]) AMB.LEVELS.BOSS[l.hero].abilities.forEach((id) => ok(AMB.DATA.HEROES[l.hero].abilities.some((a) => a.id === id), l.id + ' boss ability ' + id));
     l.fights.forEach((f) => {
       ok(f.power > 0, f.id);
       const slots = new Set();
@@ -682,12 +683,12 @@ t('stars: best result is kept, replays only add the difference, totals per level
   o = cam.recordResult('l1f1', { won: true, roundsLost: 1, lifeLeft: 10 }); ok(!o.newBest); eq(cam.stars('l1f1'), 3, 'worse replay keeps best');
   cam.recordResult('l1f2', { won: false }); eq(cam.stars('l1f2'), 0);
   cam.recordResult('l1f2', { won: true, roundsLost: 0, lifeLeft: 90 });
-  eq(cam.levelStars('l1'), 5); eq(cam.totalStars(), 5); eq(cam.maxStars(), 60);
+  eq(cam.levelStars('l1'), 5); eq(cam.totalStars(), 5); eq(cam.maxStars(), 120);
 });
-t('chests: open at 10/25/40/60 stars, once each, with their rewards', () => {
+t('chests: open at 10/25/40/60/80/100/120 stars, once each, with their rewards', () => {
   const prof = AMB.Profile.boot(MEM()), cam = camOf(prof, AMB.util.RNG(4));
   const C = AMB.LEVELS.CAMPAIGN.stars.chests;
-  eq(C.map((c) => c.need).join(), '10,25,40,60'); eq(cam.readyChests(), 0);
+  eq(C.map((c) => c.need).join(), '10,25,40,60,80,100,120'); eq(cam.readyChests(), 0);
   eq(cam.claimChest('ch10'), null, 'locked chest');
   const all = AMB.LEVELS.LEVELS.flatMap((l) => l.fights.map((f) => f.id));
   all.slice(0, 4).forEach((id) => cam.recordResult(id, { won: true, roundsLost: 0, lifeLeft: 100 }));   // 12 stars
@@ -696,10 +697,13 @@ t('chests: open at 10/25/40/60 stars, once each, with their rewards', () => {
   const c1 = cam.claimChest('ch10'); eq(c1.shards, 100); eq(prof.wallet.balance('shards'), sh + 100);
   eq(cam.claimChest('ch10'), null, 'only once');
   all.forEach((id) => cam.recordResult(id, { won: true, roundsLost: 0, lifeLeft: 100 }));
-  eq(cam.totalStars(), 60); eq(cam.readyChests(), 3);
+  eq(cam.totalStars(), 120); eq(cam.readyChests(), 6);
   const opened = prof.packs.stats().opened;
   eq(cam.claimChest('ch25').packs.length, 1); eq(cam.claimChest('ch40').packs.length, 2); eq(prof.packs.stats().opened, opened + 3);
   const c4 = cam.claimChest('ch60'); ok(['epic', 'legendary'].includes(c4.card.rarity), c4.card.rarity); ok(prof.collection.owned(c4.card.id));
+  const c5 = cam.claimChest('ch80'); eq(c5.shards, 200); eq(c5.packs.length, 1);
+  const c6 = cam.claimChest('ch100'); eq(c6.packs.length, 2); ok(['epic', 'legendary'].includes(c6.card.rarity));
+  const c7 = cam.claimChest('ch120'); eq(c7.card.rarity, 'legendary');
   eq(cam.readyChests(), 0); ok(cam.chests().every((c) => c.state === 'claimed'));
 });
 t('stars: saves from before stars get rated from their best results (migration)', () => {
@@ -1186,6 +1190,42 @@ t('boss fights: best of 7 with a growing enemy, and every star pays its own priz
   eq(b.stars, 3); eq(b.prizes.map((x) => x.star).join(), '2,3'); ok(b.card && b.packs.length === 1, 'pack + card prizes');
   const c = C.recordResult('l1boss', { won: true, roundsLost: 0, lifeLeft: 100, maxLife: 100 });
   eq(c.prizes.length, 0, 'every prize is paid once'); ok(C.bossPrizes('l1boss').every((x) => x.state === 'paid'));
+});
+
+t('difficulties: separate progress, scaled enemies and prizes, hard needs medium, old saves become medium', () => {
+  const prof = AMB.Profile.boot(MEM()), C = prof.campaign, X = AMB.LEVELS.DIFFICULTY, R = AMB.LEVELS.CAMPAIGN.rewards;
+  eq(C.diff(), 'normal'); eq(C.setDiff('easy'), 'easy');
+  // enemy power scales
+  const pw = (d) => C.matchOptions('l1f1', 'orath', 1, d).players[1].cardPower.ash_ronin;
+  ok(Math.abs(pw('easy') / pw('normal') - X.easy.power) < 1e-9 && Math.abs(pw('hard') / pw('normal') - X.hard.power) < 1e-9, 'enemy power per difficulty');
+  // progress is separate
+  const e = C.recordResult('l1f1', { won: true }, 'easy'); eq(e.difficulty, 'easy'); eq(e.shards, Math.round(R.fight.shards * X.easy.shards));
+  ok(C.isCleared('l1f1', 'easy') && !C.isCleared('l1f1', 'normal') && C.isCleared('l1f1'), 'cleared only on easy, but "any difficulty" is true');
+  eq(C.stars('l1f1', 'normal'), 0); ok(C.isUnlocked('l1f2', 'easy') && !C.isUnlocked('l1f2', 'normal'));
+  // hard needs the level done on medium
+  ok(!C.levelUnlocked(0, 'hard'), 'hard locked before medium is done');
+  ['l1f1', 'l1f2', 'l1f3', 'l1f4', 'l1boss'].forEach((id) => C.recordResult(id, { won: true, roundsLost: 0, lifeLeft: 100 }, 'normal'));
+  ok(C.levelUnlocked(0, 'hard') && !C.levelUnlocked(1, 'hard'), 'hard level 1 opens, level 2 still needs hard level 1');
+  // bigger prizes on hard
+  const h = C.recordResult('l1f1', { won: true }, 'hard'); eq(h.shards, Math.round(R.fight.shards * X.hard.shards)); eq(h.passXp, Math.round(R.fight.passXp * X.hard.xp));
+  ['l1f2', 'l1f3', 'l1f4'].forEach((id) => C.recordResult(id, { won: true }, 'hard'));
+  const hb = C.recordResult('l1boss', { won: true, roundsLost: 0, lifeLeft: 100 }, 'hard');
+  eq(hb.levelPacks.length, X.hard.levelPacks, 'two free level packs on hard'); eq(hb.packs.length, Math.floor(R.bossStars[1].packs * X.hard.packs) , 'boss star-2 pack x2 on hard');
+  eq(hb.card.rarity === 'rare' || hb.card.rarity === 'epic' || hb.card.rarity === 'legendary', true); ok(hb.shards > R.bossStars[0].shards * 2, 'hard boss pays more');
+  // easy: no packs, bonus shards for finishing a level
+  ['l1f2', 'l1f3', 'l1f4'].forEach((id) => C.recordResult(id, { won: true }, 'easy'));
+  const eb = C.recordResult('l1boss', { won: true, roundsLost: 0, lifeLeft: 100 }, 'easy');
+  eq(eb.levelPacks.length, 0); eq(eb.levelShards, X.easy.levelShards); eq(eb.packs.length, 0, 'no packs on easy');
+  // chest rewards scale too
+  const tot = (d) => C.chests(d).find((c) => c.id === 'ch10').reward.shards;
+  ok(tot('hard') > tot('normal') && tot('normal') > tot('easy'), 'chest prizes by difficulty');
+  // an old save (no difficulties) becomes the medium campaign
+  const mem = MEM(), sv = AMB.Save.create(mem);
+  sv.set('campaign', { cleared: { l1f1: true }, levelsDone: {}, stats: { l1f1: { attempts: 1, wins: 1, best: { lifeLeft: 100, roundsLost: 0 } } }, stars: { l1f1: 3 }, chests: ['ch10'] });
+  const raw = JSON.parse(mem.getItem(AMB.Save.KEY)); raw.sysV.campaign = 2; mem.setItem(AMB.Save.KEY, JSON.stringify(raw));
+  const old = AMB.Profile.boot(mem).campaign;
+  eq(old.diff(), 'normal'); ok(old.isCleared('l1f1', 'normal') && !old.isCleared('l1f1', 'easy')); eq(old.stars('l1f1', 'normal'), 3);
+  ok(old.chests('normal').find((c) => c.id === 'ch10').state === 'claimed', 'claimed chest kept');
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);
