@@ -32,6 +32,7 @@
     },
     arena: {
       default: { name: 'الساحة الأساسية' },
+      tavern: { name: 'طاولة الخان' },
       stardust: { name: 'غبار النجوم' },
       neongrid: { name: 'شبكة النيون' },
       moonwaves: { name: 'أمواج القمر' },
@@ -66,13 +67,13 @@
   // ------------------------------------------------------------- reward tracks (30 levels each)
   const mk = (type, id, extra) => Object.assign({ type, id }, extra || {});
   const FREE = {
-    1: mk('title', 't_recruit'), 2: mk('frame', 'bronze'), 3: mk('avatar', 'yuta'), 4: mk('arena', 'stardust'),
+    1: mk('title', 't_recruit'), 2: mk('frame', 'bronze'), 3: mk('avatar', 'yuta'), 4: mk('arena', 'tavern'),
     5: mk('perk', 'prep5', { sec: 5 }), 6: mk('fx', 'bluespark'), 7: mk('avatar', 'mitsuki'), 8: mk('title', 't_junior'),
     9: mk('frame', 'silver'), 10: mk('arena', 'neongrid'), 11: mk('avatar', 'kinoko'), 12: mk('fx', 'petals'),
-    13: mk('title', 't_formation'), 14: mk('avatar', 'mizuki'), 15: mk('perk', 'prep10', { sec: 5 }), 16: mk('frame', 'forest'),
+    13: mk('arena', 'stardust'), 14: mk('avatar', 'mizuki'), 15: mk('perk', 'prep10', { sec: 5 }), 16: mk('frame', 'forest'),
     17: mk('arena', 'moonwaves'), 18: mk('title', 't_stars'), 19: mk('avatar', 'akane'), 20: mk('fx', 'goldrain'),
     21: mk('frame', 'ember'), 22: mk('title', 't_stages'), 23: mk('avatar', 'miyuki'), 24: mk('arena', 'volcano'),
-    25: mk('fx', 'lightning'), 26: mk('avatar', 'reiji'), 27: mk('frame', 'gold'), 28: mk('avatar', 'kashiwagi'),
+    25: mk('fx', 'lightning'), 26: mk('avatar', 'reiji'), 27: mk('frame', 'gold'), 28: mk('title', 't_formation'),
     29: mk('fx', 'inferno'), 30: mk('arena', 'riftgold', { big: true }),
   };
   const PREMIUM = {
