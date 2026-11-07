@@ -8,7 +8,7 @@
   const C = AMB.collection, RAR = AMB.ECONOMY.rarities;
   const { icon } = AMB.art;
   const UI = () => globalThis.AMB_UI;
-  let filter = '', roleF = '', deckOnly = false, upOnly = false;   // rarity filter ('' = all), role filter, show only the deck
+  let justUp = '', filter = '', roleF = '', deckOnly = false, upOnly = false;   // rarity filter ('' = all), role filter, show only the deck
 
   const pct = (a, b) => (b ? Math.min(100, Math.round((a / b) * 100)) : 100);
 
@@ -53,7 +53,7 @@
     <p>المباراة السريعة وعلى نفس الجهاز ما تستخدم الديك: الكل يلعب بكل الوحدات. والأبطال خارج الديك.</p><p>«ترتيب تلقائي» يختار لك ديك متوازن من أقوى بطاقاتك.</p>` });
   function render() {
     const root = $('collection'); if (!root) return;
-    const ids = C.ids().filter((id) => (!filter || C.rarity(id) === filter) && (!roleF || C.def(id).role === roleF) && (!deckOnly || C.inDeck(id)) && (!upOnly || C.canUpgrade(id)))
+    const ids = C.ids().filter((id) => (!filter || C.rarity(id) === filter) && (!roleF || C.def(id).role === roleF) && (!deckOnly || C.inDeck(id)) && (!upOnly || C.canUpgrade(id) || id === justUp))
       .sort((a, b) => RAR[C.rarity(b)].order - RAR[C.rarity(a)].order || (C.def(a).role ? 1 : 0) - (C.def(b).role ? 1 : 0));
     const ready = C.ids().filter((id) => C.canUpgrade(id)).length;
     const fb = (v, n, col) => `<button class="btn small ${filter === v ? 'on' : ''}" data-act="colFilter" data-v="${v}" ${col ? `style="--rc:${col}"` : ''}>${n}</button>`;
@@ -81,18 +81,27 @@
   function installActions() {
     const ui = UI(); if (!ui || ui.ACT.colUpgrade) return;
     Object.assign(ui.ACT, {
-      colFilter: (d) => { filter = d.v || ''; render(); },
-      colRole: (d) => { deckOnly = d.v === 'deck'; upOnly = d.v === 'up'; roleF = deckOnly || upOnly ? '' : (d.v || ''); render(); },
+      colFilter: (d) => { justUp = ''; filter = d.v || ''; render(); },
+      colRole: (d) => { justUp = ''; deckOnly = d.v === 'deck'; upOnly = d.v === 'up'; roleF = deckOnly || upOnly ? '' : (d.v || ''); render(); },
       colDeck: (d) => { const r = C.toggleDeck(d.id); if (!r.ok) { ui.toast(r.reason, 'err'); return; } ui.sfx('click'); const y = window.scrollY; render(); window.scrollTo(0, y); },
       colAuto: () => { C.autoBuild(); ui.sfx('merge'); ui.toast('تم ترتيب ديك متوازن', 'good'); render(); },
       colClear: () => { C.setDeck([]); render(); },
       deckEdit: () => { ui.closeModal(); ui.show('cards'); },
       colUpgrade: (d) => {
-        const lv = C.upgrade(d.id); if (!lv) return;
-        ui.sfx('merge'); ui.toast(`${C.def(d.id).name} ← المستوى ${lv}`, 'good');
+        const id = d.id, d0 = C.def(id), before = C.level(id), p0 = C.power(id);
+        const lv = C.upgrade(id); if (!lv) return;
+        justUp = id;
+        ui.sfx('merge');
+        const g = (v, p) => Math.round(v * p), p1 = C.power(id), c = AMB.ECONOMY.cards.levelBonus;
+        const row = (n, a, b) => `<div class="up-row"><span>${n}</span><b>${a}</b><i>←</i><b class="new">${b}</b></div>`;
+        const rows = (d0.hp ? row('❤️ الصحة', g(d0.hp, p0), g(d0.hp, p1)) + row('⚔️ الهجوم', g(d0.atk, p0), g(d0.atk, p1)) : '') + row('📈 القوة في الحملة', '+' + Math.round((p0 - 1) * 100) + '%', '+' + Math.round((p1 - 1) * 100) + '%');
+        const nx = C.isMax(id) ? 'وصلت المستوى الأقصى ✓' : `للمستوى التالي: ${C.copies(id)}/${C.needed(id)} نسخ`;
+        ui.modal(`<h2>تطوّرت ${d0.name}!</h2><div class="up-card">${ui.cardHTML(d0, { k: 'up' + id, lvl: lv })}</div>
+          <div class="up-lv">المستوى ${before} ← <b>${lv}</b></div><div class="up-rows">${rows}</div>
+          <p class="hint">كل مستوى يزيد الصحة والهجوم +${Math.round(c * 100)}%. السرعة والمدى ما تتغير. ينحسب في الحملة والبرج والأحداث بس.</p><p class="hint">${nx}</p>`);
         render();
-        const el = document.querySelector(`.cp-tile[data-card="${d.id}"] .tcard`);
-        if (el && ui.burst) [RAR[C.rarity(d.id)].color, '#ffffff', '#ffd24a'].forEach((c) => ui.burst(el, c, 12, { r: 90, s: 6 }));
+        const el = document.querySelector('#modal .tcard');
+        if (el && ui.burst) [RAR[C.rarity(id)].color, '#ffffff', '#ffd24a'].forEach((cc) => ui.burst(el, cc, 14, { r: 100, s: 6 }));
       },
     });
   }
