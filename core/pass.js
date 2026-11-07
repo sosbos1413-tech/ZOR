@@ -78,8 +78,8 @@
     13: mk('arena', 'stardust'), 14: mk('avatar', 'mizuki'), 15: mk('perk', 'prep10', { sec: 5 }), 16: mk('frame', 'forest'),
     17: mk('arena', 'dungeon'), 18: mk('title', 't_stars'), 19: mk('avatar', 'akane'), 20: mk('fx', 'goldrain'),
     21: mk('frame', 'ember'), 22: mk('title', 't_stages'), 23: mk('avatar', 'miyuki'), 24: mk('arena', 'forge'),
-    25: mk('fx', 'lightning'), 26: mk('avatar', 'reiji'), 27: mk('frame', 'gold'), 28: mk('arena', 'warmap'),
-    29: mk('fx', 'inferno'), 30: mk('arena', 'riftgold', { big: true }),
+    25: mk('fx', 'lightning'), 26: mk('fx', 'inferno'), 27: mk('frame', 'gold'), 28: mk('arena', 'warmap'),
+    29: mk('arena', 'riftgold'), 30: mk('avatar', 'rika', { big: true }),
   };
   const PREMIUM = {
     1: mk('avatar', 'kagira'), 2: mk('frame', 'crimson'), 3: mk('title', 't_elite'), 4: mk('arena', 'inkwash'), 5: mk('fx', 'emerald'),
