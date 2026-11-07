@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="714fad8571">
+<meta name="zor-build" content="e4d66a92a1">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -8884,13 +8884,13 @@ AMB.IMAGES = {
       }
       throw new Error('no id');
     },
-    async join(code, step) {
+    async join(code, step, ms) {
       step = step || (() => {});
       await loadPeerJS(); step('٢/٣ الاتصال بخدمة الغرف…');
       const peer = await openPeer(); step('٣/٣ أبحث عن الغرفة وأربط الجوالين… (قد تاخذ نص دقيقة)');
       return new Promise((res, rej) => {
         const conn = peer.connect('zor-' + code, { reliable: true });
-        const to = setTimeout(() => rej(Object.assign(new Error('connect'), { type: 'connect' })), 25000);   // found the room but cannot link the two phones
+        const to = setTimeout(() => rej(Object.assign(new Error('connect'), { type: 'connect' })), ms || 25000);   // found the room but cannot link the two phones
         peer.on('error', (e) => { clearTimeout(to); rej(e); });
         conn.on('error', () => { clearTimeout(to); rej(Object.assign(new Error('connect'), { type: 'connect' })); });
         conn.on('open', () => { clearTimeout(to); res(wrapConn(conn)); });
@@ -8919,7 +8919,76 @@ AMB.IMAGES = {
     ch.onmessage = (ev) => { const m = ev.data; if (m.to !== me || m.from !== other) return; if (m.t === 'msg') link.onmessage && link.onmessage(JSON.parse(m.d)); else if (m.t === 'bye') link.onclose && link.onclose(); };
     return link;
   }
-  const transport = () => (useLocal() ? Locals : Peers);
+  // ---- fallback: relay the messages through a free public pub/sub service (ntfy.sh). Slower than a direct link but it works on any network
+  // that can open a web page (mobile carriers often block direct phone-to-phone links). Messages are tiny: only each player's moves.
+  const RELAY = (() => { const m = /[?&]relay=([^&]+)/.exec(location.search); return m ? decodeURIComponent(m[1]) : 'https://ntfy.sh'; })();
+  function relayTopic(code) { return 'zor-room-' + code.toLowerCase(); }
+  function relayLink(code, me, other) {
+    const topic = relayTopic(code), link = makeLink(null), seen = new Set(), pending = []; let seq = 0, sending = false, closed = false, es = null;
+    const open = () => {
+      es = new EventSource(`${RELAY}/${topic}/sse?since=10m`);
+      es.onmessage = (ev) => {
+        let m; try { m = JSON.parse(JSON.parse(ev.data).message); } catch (e) { return; }
+        if (!m || m.to !== me || m.from !== other || (m.t !== 'msg' && m.t !== 'bye') || seen.has(m.seq)) return;   // only my friend's messages, each once (a reconnect replays recent ones)
+        seen.add(m.seq); if (m.t === 'bye') { link.onclose && link.onclose(); return; }
+        link.onmessage && link.onmessage(JSON.parse(m.d));
+      };
+    };
+    const flush = async () => {
+      if (sending) return; sending = true;
+      while (pending.length && !closed) { const body = pending[0]; try { const r = await fetch(`${RELAY}/${topic}`, { method: 'POST', body }); if (!r.ok) throw new Error('http ' + r.status); pending.shift(); } catch (e) { await new Promise((res) => setTimeout(res, 1500)); } }
+      sending = false;
+    };
+    link.send = (o) => { pending.push(JSON.stringify({ t: 'msg', from: me, to: other, seq: ++seq, d: JSON.stringify(o) })); flush(); };
+    link.close = () => { pending.push(JSON.stringify({ t: 'bye', from: me, to: other, seq: ++seq })); flush(); closed = true; setTimeout(() => { try { es && es.close(); } catch (e) { /* ignore */ } }, 1500); };
+    link.start = open; link.kind = 'relay';
+    return link;
+  }
+  const Relays = {
+    async host(code) {
+      const topic = relayTopic(code), id = 'h' + Math.random().toString(36).slice(2, 8);
+      let es; const linked = new Promise((res, rej) => {
+        es = new EventSource(`${RELAY}/${topic}/sse?since=10m`);
+        es.onmessage = async (ev) => {
+          let m; try { m = JSON.parse(JSON.parse(ev.data).message); } catch (e) { return; }
+          if (!m || m.t !== 'hello') return;
+          es.close(); const link = relayLink(code, id, m.id); link.start();
+          await fetch(`${RELAY}/${topic}`, { method: 'POST', body: JSON.stringify({ t: 'welcome', from: id, to: m.id }) }).catch(() => {});
+          res(link);
+        };
+      });
+      return { code, linked, close: () => { try { es.close(); } catch (e) { /* ignore */ } } };
+    },
+    async join(code, step) {
+      const topic = relayTopic(code), id = 'g' + Math.random().toString(36).slice(2, 8);
+      step && step('أتصل عن طريق الخدمة الاحتياطية…');
+      return new Promise((res, rej) => {
+        const es = new EventSource(`${RELAY}/${topic}/sse?since=1m`); let tries = 0;
+        const hello = () => fetch(`${RELAY}/${topic}`, { method: 'POST', body: JSON.stringify({ t: 'hello', id }) }).catch(() => {});
+        es.onopen = () => hello();
+        const iv = setInterval(() => { if (++tries > 8) { clearInterval(iv); es.close(); rej(Object.assign(new Error('relay'), { type: 'relay' })); } else hello(); }, 5000);
+        es.onmessage = (ev) => { let m; try { m = JSON.parse(JSON.parse(ev.data).message); } catch (e) { return; } if (m && m.t === 'welcome' && m.to === id) { clearInterval(iv); es.close(); const link = relayLink(code, id, m.from); link.start(); res(link); } };
+        es.onerror = () => { /* EventSource retries by itself; the tries counter ends the wait */ };
+      });
+    },
+  };
+  // host: open BOTH kinds of room with the same code (the first friend to arrive wins). join: try the direct link, then fall back to the relay.
+  const Both = {
+    async host() {
+      let direct = null, relay;
+      try { direct = await Peers.host(); } catch (e) { direct = null; }
+      const code = direct ? direct.code : randCode();
+      relay = await Relays.host(code);
+      const linked = new Promise((res) => { if (direct) direct.linked.then((l) => { relay.close(); res(l); }); relay.linked.then((l) => { if (direct) direct.close(); res(l); }); });
+      return { code, linked, close: () => { relay.close(); if (direct) direct.close(); } };
+    },
+    async join(code, step) {
+      try { return await Peers.join(code, step, 12000); }
+      catch (e) { return Relays.join(code, step); }   // any failure of the direct link: use the relay
+    },
+  };
+  const RelayOnly = { host: () => { const code = randCode(); return Relays.host(code); }, join: (code, step) => Relays.join(code, step) };
+  const transport = () => (useLocal() ? Locals : /[?&]forcerelay=1/.test(location.search) ? RelayOnly : Both);
 
   // ------------------------------------------------------------------ lobby
   let room = null;   // { code, close } while waiting for a friend
@@ -8967,6 +9036,7 @@ AMB.IMAGES = {
     const line = (ok, t) => { out.innerHTML += `<div>${ok === null ? '⏳' : ok ? '✅' : '❌'} ${t}</div>`; };
     const time = async (fn) => { const t0 = Date.now(); try { const r = await fn(); return [true, Date.now() - t0, r]; } catch (e) { return [false, Date.now() - t0, e]; } };
     out.innerHTML = '';
+    let r2;
     let r = await time(() => loadPeerJS()); line(r[0], `خدمة الاتصال (تحميل المكتبة): ${r[0] ? r[1] + ' ms' : 'فشل'}`);
     r = await time(() => new Promise((res, rej) => { const w = new WebSocket('wss://0.peerjs.com/peerjs?key=peerjs&id=zorchk' + Math.random().toString(36).slice(2, 8) + '&token=x'); const to = setTimeout(() => { try { w.close(); } catch (e) { /* ignore */ } rej(new Error('timeout')); }, 9000); w.onopen = () => { clearTimeout(to); w.close(); res(); }; w.onerror = () => { clearTimeout(to); rej(new Error('error')); }; }));
     line(r[0], `خدمة الغرف (الوسيط): ${r[0] ? r[1] + ' ms' : 'ما وصلت'}`);
@@ -8975,6 +9045,8 @@ AMB.IMAGES = {
       pc.onicecandidate = (e) => { if (e.candidate) { const m = / typ (\w+)/.exec(e.candidate.candidate); if (m) types.add(m[1]); } else { pc.close(); res(types); } };
       pc.createOffer().then((o) => pc.setLocalDescription(o)); setTimeout(() => { try { pc.close(); } catch (e) { /* ignore */ } res(types); }, 9000);
     }));
+    r2 = await time(() => new Promise((res, rej) => { const to = setTimeout(() => { try { es.close(); } catch (e) { /* ignore */ } rej(new Error('timeout')); }, 9000); const es = new EventSource(`${RELAY}/zor-check-${Math.random().toString(36).slice(2, 8)}/sse`); es.onopen = () => { clearTimeout(to); es.close(); res(); }; }));
+    line(r2[0], `الخدمة الاحتياطية (ترحيل الرسائل): ${r2[0] ? r2[1] + ' ms' : 'ما وصلت'}`);
     const T = [...r[2]]; line(T.includes('srflx') || T.includes('relay'), `ربط الجوالين: ${T.length ? T.join(' + ') : 'ما وصلت أي إشارة'}${T.includes('relay') ? ' (فيه ترحيل)' : T.includes('srflx') ? '' : ' ← الشبكة تمنع الربط المباشر'}`);
     out.innerHTML += '<div class="hint" style="margin-top:6px">صوّر هالنتيجة وارسلها لي</div>';
   }
@@ -8983,6 +9055,7 @@ AMB.IMAGES = {
   function explain(e) {
     const t = (e && (e.type || e.message)) || '';
     if (t === 'peer-unavailable' || t === 'timeout') return 'ما لقيت الغرفة. تأكد من الرمز، وإن صاحبك فاتح نافذة «غرفتك جاهزة» وما طفى الشاشة';
+    if (t === 'relay') return 'ما لقيت الغرفة. تأكد من الرمز، وإن صاحبك فاتح نافذة «غرفتك جاهزة»، والنت شغّال عند الاثنين';
     if (t === 'load') return 'ما قدرت أحمّل خدمة الاتصال. النت عندك ممكن يحجبها، جرّب واي فاي أو شبكة ثانية';
     if (t === 'broker' || t === 'network' || t === 'server-error' || t === 'socket-error' || t === 'socket-closed') return 'ما قدرت أوصل لخدمة الغرف. تأكد من النت، أو جرّب شبكة ثانية';
     if (t === 'connect' || t === 'webrtc') return 'لقيت الغرفة بس ما قدرت أربط الجوالين. جرّبوا الاثنين على نفس الواي فاي، أو غيّروا الشبكة';
