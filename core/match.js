@@ -74,7 +74,8 @@
         let streakBonus = 0;
         E.streakBonus.forEach(([n, b]) => { if (streak >= n) streakBonus = b; });
         const win = this.round > 1 && p.winStreak > 0 ? E.winBonus : 0;
-        const income = this.round === 1 ? E.baseIncome : E.baseIncome + interest + streakBonus + win;
+        const dataStream = AMB.DATA.HEROES[p.heroId].passive.id === 'data_stream' ? 1 : 0;   // Nayako: +1 gold every round
+        const income = (this.round === 1 ? E.baseIncome : E.baseIncome + interest + streakBonus + win) + dataStream;
         p.lastIncome = { base: E.baseIncome, interest: this.round === 1 ? 0 : interest, streak: this.round === 1 ? 0 : streakBonus, win, total: income };
         p.gold += income;
         if (this.round > 1) this._gainXp(p, E.xpPerRound);

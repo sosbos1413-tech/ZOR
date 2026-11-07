@@ -48,7 +48,7 @@
       needsStarter: () => !st().starterHero,
       starterHero: () => st().starterHero,
       chooseStarter(heroId) {
-        if (!AMB.DATA.HEROES[heroId] || st().starterHero) return false;
+        if (!AMB.DATA.HEROES[heroId] || st().starterHero || (AMB.DATA.HERO_STARTERS && !AMB.DATA.HERO_STARTERS.includes(heroId))) return false;
         save.update('collection', (s) => { s.starterHero = heroId; const c = rec(s, heroId); c.owned = true; });
         emit('cardAdded', { id: heroId, isNew: true, copies: 0, starter: true });
         return true;

@@ -82,6 +82,10 @@
         (u.items || []).forEach((it) => ITEMS[it].effects.forEach((eff) => (mods[eff.stat] += eff.value)));
         if (def.world === hero.world) { mods.atkPct += HC.resonancePerAlly; mods.hpPct += HC.resonancePerAlly; }
         if (hero.passive.id === 'ancient_bark' && pos.row === 'front') mods.hpPct += 0.15;
+        if (hero.passive.id === 'forge_heart' && pos.row === 'front') mods.atkPct += 0.045;
+        if (hero.passive.id === 'sea_legs') mods.startShieldPct += 0.13;
+        if (hero.passive.id === 'bear_hide') mods.hpPct += 0.12;
+        if (hero.passive.id === 'data_stream') mods.asPct += 0.08;
         if (spec.summoned) {   // each hero leads differently once it stands on the board
           mods.atkPct += HC.summonAuraAtk + vg('allyAtk'); mods.asPct += vg('allyAs'); mods.dr += vg('allyDr'); mods.regenPct += vg('allyRegen');
           if (pos.row === 'front') mods.hpPct += vg('frontHp');

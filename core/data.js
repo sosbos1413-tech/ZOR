@@ -389,6 +389,54 @@
           text: 'يوقف الصف الأمامي للعدو ثانيتين ويضرّه (100 + 15 مع كل جولة).' },
       ],
     },
+    rika: {
+      id: 'rika', name: 'ريكا', title: 'ملكة الأتون', world: 'ember', style: 'قوة: ضربات ثقيلة وخط أمامي ناري. تحمي وتضرب بنفس الوقت.',
+      board: { atk: 86, as: 0.7, range: 1, def: 0.2, crit: 0.1 },
+      vanguard: { name: 'مطرقة الأتون', text: 'لما ينزل الساحة: الفريق +6% هجوم، والصف الأمامي +10% صحة، وهو أصلب (+10% دفاع) وأقوى بـ6%.', allyAtk: 0.06, frontHp: 0.1, heroDef: 0.1, heroAtk: 0.06 },
+      passive: { id: 'forge_heart', name: 'قلب الأتون', text: 'وحدات الصف الأمامي تاخذ +4.5% هجوم.' },
+      abilities: [
+        { id: 'molten_hammer', name: 'مطرقة الحمم', cost: 4, type: 'damageCluster', dmg: 230, scale: 28, radius: 1.4,
+          text: 'مطرقة تنزل على أكثر مكان فيه أعداء (230 + 28 مع كل جولة).' },
+        { id: 'anvil_ward', name: 'حماية السندان', cost: 3, type: 'shieldAllies', amount: 150, scale: 20,
+          text: 'درع لكل الفريق (150 + 20 مع كل جولة).' },
+      ],
+    },
+    kairyu: {
+      id: 'kairyu', name: 'كايريو', title: 'قبطان العاصفة', world: 'tide', style: 'قيادة: قبطان هادي يوزّع الأوامر. يقوّي الفريق ويثبّت الجبهة.',
+      board: { atk: 80, as: 0.75, range: 2, def: 0.15, crit: 0.08 },
+      vanguard: { name: 'أمر القبطان', text: 'لما ينزل الساحة: الفريق ياخذ ضرر أقل 4% ويتجدد 0.4% كل ثانية، وهو ياخذ درع 3 حياة.', allyDr: 0.04, allyRegen: 0.004, heroShield: 3 },
+      passive: { id: 'sea_legs', name: 'ثبات البحّار', text: 'كل وحداتك تبدأ القتال بدرع 13% من صحتها.' },
+      abilities: [
+        { id: 'captains_order', name: 'أمر القبطان', cost: 3, type: 'buffAllies', atkPct: 0.1, asPct: 0.2, dur: 6,
+          text: '+10% هجوم و+20% سرعة هجوم لكل الفريق لمدة 6 ثواني.' },
+        { id: 'rogue_wave', name: 'موجة غادرة', cost: 4, type: 'stunFront', dur: 1.5, dmg: 120, scale: 20,
+          text: 'يوقف الصف الأمامي للعدو 1.5 ثانية ويضرّه (120 + 20 مع كل جولة).' },
+      ],
+    },
+    nayako: {
+      id: 'nayako', name: 'ناياكو', title: 'نجمة الشبكة', world: 'neon', style: 'إيقاع: نجمة خفيفة تغيّر مجرى المعركة بنبضة. اقتصاد وتشويش.',
+      board: { atk: 72, as: 0.9, range: 4, def: 0.05, crit: 0.18 },
+      vanguard: { name: 'نبضة الإيقاع', text: 'لما ينزل الساحة: الفريق +10% سرعة هجوم، وهو يضرب حرجة أكثر (+8%)، وقدراته أرخص بنقطة.', allyAs: 0.1, heroCrit: 0.08, extraDiscount: 1 },
+      passive: { id: 'data_stream', name: 'تدفق البيانات', text: '+1 ذهب إضافي كل جولة، وكل وحداتك +8% سرعة هجوم.' },
+      abilities: [
+        { id: 'hologram_wall', name: 'جدار الهولوغرام', cost: 3, type: 'shieldAllies', amount: 130, scale: 25,
+          text: 'درع لكل الفريق (130 + 25 مع كل جولة).' },
+        { id: 'glitch_pulse', name: 'نبضة تشويش', cost: 4, type: 'stunEnemies', dur: 1.2,
+          text: 'يوقف كل الأعداء لمدة 1.2 ثانية.' },
+      ],
+    },
+    thora: {
+      id: 'thora', name: 'ثورا', title: 'ملكة الدب', world: 'sylvan', style: 'صمود: قوية وكريمة، تتحمل وترجّع. جلد الدب يحميها وفريقها.',
+      board: { atk: 78, as: 0.7, range: 1, def: 0.25, crit: 0.06 },
+      vanguard: { name: 'زئير الغابة', text: 'لما ينزل الساحة: الصف الأمامي +10% صحة، والفريق يتجدد 0.4% كل ثانية، وهي أصلب (+10% دفاع) وتصمد أطول بـ2 حياة.', frontHp: 0.1, allyRegen: 0.004, knockoutBonus: 2, heroDef: 0.1 },
+      passive: { id: 'bear_hide', name: 'جلد الدب', text: 'كل وحداتك +12% صحة.' },
+      abilities: [
+        { id: 'spring_bloom', name: 'ازدهار الربيع', cost: 4, type: 'healAllies', pct: 0.28,
+          text: 'يعالج كل الفريق بنسبة 28% من صحتهم الكاملة.' },
+        { id: 'axe_cleave', name: 'ضربة الفأس', cost: 3, type: 'damageCluster', dmg: 200, scale: 26, radius: 1.2,
+          text: 'ضربة فأس على أكثر مكان فيه أعداء (200 + 26 مع كل جولة).' },
+      ],
+    },
   };
 
   const ABILITY_TRIGGERS = {
@@ -489,5 +537,6 @@
   ];
 
   Object.values(HEROES).forEach((h) => { h.rarity = h.rarity || 'legendary'; });
-  AMB.DATA = { LEGACY_STARTERS, STARTER_IDS, REWARDS, REWARD_POOLS, WORLDS, ROLES, ROLE_BASE, TIER_MULT, TIER_RARITY, UNITS, HEROES, ITEMS, SYNERGIES, ABILITY_TRIGGERS };
+  const HERO_STARTERS = ['kagira', 'merin', 'zerokai', 'orath'];   // the four heroes a new player can pick; the rest come from packs and the battle pass
+  AMB.DATA = { HERO_STARTERS, LEGACY_STARTERS, STARTER_IDS, REWARDS, REWARD_POOLS, WORLDS, ROLES, ROLE_BASE, TIER_MULT, TIER_RARITY, UNITS, HEROES, ITEMS, SYNERGIES, ABILITY_TRIGGERS };
 })();

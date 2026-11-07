@@ -83,7 +83,7 @@
   // hero ownership (core/collection.js): player 1 picks among owned heroes; a brand-new player first picks a starter.
   // Player 2 on the same device is a guest and may use any hero.
   const starterPick = () => S.pickIdx === 0 && AMB.collection && AMB.collection.needsStarter();
-  const heroLocked = (id) => S.pickIdx === 0 && AMB.collection && !starterPick() && !AMB.collection.owned(id);
+  const heroLocked = (id) => S.pickIdx === 0 && AMB.collection && (starterPick() ? !AMB.DATA.HERO_STARTERS.includes(id) : !AMB.collection.owned(id));
   function renderHeroSelect() {
     const who = starterPick() ? 'اختر بطلك الأول. ما تقدر تغيّره، والباقين تفتحهم من الباكجات أو الباتل باس'
       : S.mode === 'hotseat' ? `اللاعب ${S.pickIdx + 1}: اختر بطلك${S.pickIdx === 1 ? ' (ضيف: كل الأبطال متاحين)' : ''}` : 'اختر بطلك';
@@ -1548,7 +1548,7 @@
   // the four heroes on the main menu
   (function fillMenu() {
     const el = $('menu-heroes');
-    if (el) el.innerHTML = Object.values(HEROES).map((h, i) => cardHTML(h, { k: 'menu' + i })).join('');
+    if (el) el.innerHTML = Object.values(HEROES).filter((h) => AMB.DATA.HERO_STARTERS.includes(h.id)).map((h, i) => cardHTML(h, { k: 'menu' + i })).join('');
     const ms = $('menu-sound'); if (ms) ms.querySelector('.mt-ic').textContent = SND.on ? '🔊' : '🔇';
   })();
 
