@@ -62,7 +62,7 @@
           mode: 'event', seed, progression: true, eventWeek: c.idx,
           rules: Object.assign({}, AMB.LEVELS.CAMPAIGN.rules, { start: api.startFor(stage) }),
           players: [
-            { heroId, name: 'أنت', cardPower: C ? C.powerMap() : null, allowedUnits: C ? C.playableUnits() : null },
+            { heroId, name: 'أنت', cardPower: C ? C.powerMap() : null, allowedUnits: C ? C.playableUnits() : null, heroLevel: (globalThis.AMB.heroes ? AMB.heroes.level(heroId) : 1) },
             { heroId: L.heroId, name: L.name, isAI: true, cardPower: enemyPower, lineup: { units: L.units, summon: L.summon, blessings: L.blessings, abilities: L.abilities } },
           ],
         };

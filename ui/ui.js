@@ -97,7 +97,7 @@
       const lock = heroLocked(h.id) ? '<span class="hero-lock">🔒 مقفل<small>ليجندري: من الباكجات أو الباتل باس</small></span>' : '';
       return `<div class="hero-card ${cur === h.id ? 'sel' : ''} ${lock ? 'locked' : ''}" style="--wc:${W.color}" data-act="pickHero" data-id="${h.id}">${other}${lock}
         ${portrait(h, { k: 'hs' })}
-        <h3>${h.name}</h3><div class="title">${h.title}</div>
+        <h3>${h.name}</h3>${S.mode === 'hotseat' || S.mode === 'online' ? '' : heroLevelHTML(h.id)}<div class="title">${h.title}</div>
         <div class="world">${W.name}</div>
         <div class="style">${h.style}</div>
         <div class="ab"><b>سلبية: ${h.passive.name}</b> — ${h.passive.text}</div>
@@ -1050,6 +1050,7 @@
     const h = HEROES[id], W = WORLDS[h.world];
     modal(`<div class="detail-head">${portrait(h, { k: 'mh' })}<div><h2>${h.name}</h2><div class="hint">${h.title}</div>
       <span class="pill" style="--pc:${W.color}">${W.name}</span><div class="hint">${h.style}</div></div></div>
+      ${heroLevelHTML(id)}<div class="hint" style="margin:-2px 0 6px">كل مباراة تلعبها بالبطل تعطيه خبرة. قوته من المستوى تنحسب في الحملة والبرج والأحداث.</div>
       <div class="skillbox"><b>سلبية: ${h.passive.name}</b> — ${h.passive.text}</div>
       ${h.abilities.map((a) => `<div class="skillbox"><b>${a.name}</b> — <span style="color:var(--ess)">${a.cost} جوهر</span><br>${a.text}</div>`).join('')}
       ${h.vanguard ? `<div class="skillbox vg"><b>👑 ${h.vanguard.name}</b> (لما ينزل الساحة)<br>${h.vanguard.text}</div>` : ''}
@@ -1107,6 +1108,28 @@
       <button class="btn ghost" data-act="abandon">الخروج للقائمة (ما تنحسب)</button></div>`);
   }
 
+  // hero experience: every finished match (except the guided tutorial and same-device play) levels up the hero you played
+  function awardHeroXp(m) {
+    if (!AMB.heroes || m._heroXp || S.mode === 'tutorial' || S.mode === 'hotseat') return;
+    m._heroXp = true;
+    const seat = mySeat(), p = m.players[seat], won = m.winner === seat;
+    const roundsWon = m.history.filter((r) => r.winner === seat).length;
+    const r = AMB.heroes.addXp(p.heroId, AMB.heroes.matchXp({ won, roundsWon, short: !!m.rules }));
+    const h = HEROES[p.heroId];
+    setTimeout(() => {
+      if (r.levelsUp > 0) { sfx('win'); toast(`⬆ ${h.name} صار مستوى ${r.level}! أقوى في الحملة والبرج والأحداث`, 'good'); }
+      else toast(`+${r.gained} خبرة لـ${h.name}`, 'good');
+    }, 900);
+  }
+  // little level badge + bar for a hero (hero select, hero details)
+  function heroLevelHTML(id) {
+    if (!AMB.heroes) return '';
+    const pr = AMB.heroes.progress(id), rk = AMB.heroes.rank(id), pw = AMB.heroes.power(id);
+    return `<div class="hlv" style="--rk:${rk.color}"><b>مستوى ${pr.level}</b><span class="hlv-rank">${rk.name}</span>
+      <span class="hlv-bar"><i style="width:${pr.max ? 100 : Math.round(100 * pr.inLevel / pr.need)}%"></i></span><small>${pr.max ? 'أعلى مستوى' : `${pr.inLevel}/${pr.need}`}</small>
+      ${pr.level > 1 ? `<div class="hlv-pw">نزوله للساحة +${Math.round((pw.atk - 1) * 100)}% هجوم · شكله +${Math.round((pw.vanguard - 1) * 100)}% · قدراته +${Math.round((pw.ability - 1) * 100)}%</div>` : ''}</div>`;
+  }
+
   // ======================================================================= results / stats / codex
   function myAvatar(p, i) {   // equipped battle-pass avatar replaces only the picture of your own hero chip (never stats)
     if (i !== 0 || S.mode === 'hotseat' || !AMB.PassUI) return HEROES[p.heroId];
@@ -1119,6 +1142,7 @@
     cancelAnimationFrame(S.raf);
     S.phase = 'over';
     const secs = Math.round((Date.now() - S.startTs) / 1000);
+    awardHeroXp(m);
     if (S.mode === 'campaign') return AMB.CampaignUI.showResult(m, secs);   // campaign and tower have their own results screens
     if (S.mode === 'tower') return AMB.TowerUI.showResult(m, secs);
     if (S.mode === 'event') return AMB.EventUI.showResult(m, secs);

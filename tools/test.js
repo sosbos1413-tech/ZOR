@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* Rule tests for the core (no browser needed):  node tools/test.js */
 const path = require('path');
-['config', 'data', 'util', 'synergy', 'combat', 'match', 'ai', 'telemetry', 'pass', 'save', 'economy', 'collection', 'packs', 'levels', 'campaign', 'daily', 'album', 'tower', 'events', 'tutorial', 'netsync', 'profile'].forEach((f) => require(path.join(__dirname, '..', 'core', f + '.js')));
+['config', 'data', 'util', 'synergy', 'combat', 'match', 'ai', 'telemetry', 'pass', 'save', 'economy', 'collection', 'packs', 'levels', 'campaign', 'daily', 'album', 'tower', 'events', 'tutorial', 'netsync', 'heroprog', 'profile'].forEach((f) => require(path.join(__dirname, '..', 'core', f + '.js')));
 const AMB = globalThis.AMB;
 let pass = 0, fail = 0;
 function t(name, fn) {
@@ -1125,6 +1125,25 @@ t('heroes: every hero has its own summoned form and a summoned combat runs', () 
     const c = m.createCombat(false), hf = c.fighters.find((f) => f.isHero && f.side === 0); ok(hf && hf.onBoard, 'hero is on the board ' + id);
     const res = c.runToEnd(); ok(res && c.over, 'combat finished ' + id);
   });
+});
+
+t('hero levels: xp from matches, growing cost per level, power only in progression fights, saved', () => {
+  const mem = MEM(), prof = AMB.Profile.boot(mem), H = prof.heroes;
+  eq(H.level('kagira'), 1);
+  ok(H.need(2) > H.need(1), 'each level costs more');
+  let r = H.addXp('kagira', H.need(1)); eq(r.level, 2); eq(r.levelsUp, 1);
+  H.addXp('kagira', 100000); eq(H.level('kagira'), H.MAX, 'capped');
+  ok(H.power('kagira').atk > H.power('merin').atk, 'a higher hero is stronger');
+  eq(AMB.Profile.boot(mem).heroes.level('kagira'), H.MAX, 'saved');
+  // used in a campaign fight, ignored in a quick match
+  const camp = new AMB.Match(prof.campaign.matchOptions('l1f1', 'kagira', 5));
+  eq(camp.players[0].heroLevel, H.MAX);
+  const quick = new AMB.Match({ mode: 'ai', players: [{ heroId: 'kagira', name: 'a', heroLevel: 20 }, { heroId: 'merin', name: 'b' }] });
+  eq(quick.players[0].heroLevel, 1, 'quick matches stay even');
+  // a higher level really fights better: same fight, level 1 vs level 20 summoned hero
+  const run = (lv) => { const m = new AMB.Match({ mode: 'campaign', progression: true, seed: 9, players: [{ heroId: 'kagira', name: 'a', heroLevel: lv }, { heroId: 'merin', name: 'b' }] });
+    m.startRound(); m.players[0].summoned = true; const c = m.createCombat(false); return c.fighters.find((f) => f.isHero && f.side === 0).atk; };
+  ok(run(20) > run(1) * 1.8, 'summoned attack grows with level');
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

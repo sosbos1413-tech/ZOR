@@ -61,7 +61,11 @@
       const HC = AMB.CONFIG.hero;
       const side = this.sides[s];
       const hero = HEROES[spec.heroId];
-      const VS = HC.vanguardScale == null ? 1 : HC.vanguardScale;
+      // hero level (progression fights): stronger summoned body, stronger summoned form, stronger abilities
+      const HL = Math.max(1, spec.heroLevel || 1) - 1;
+      const lvAtk = 1 + 0.05 * HL, lvVan = 1 + 0.03 * HL, lvAb = 1 + 0.03 * HL;
+      side.abilityPower = lvAb;
+      const VS = (HC.vanguardScale == null ? 1 : HC.vanguardScale) * lvVan;
       const vg = (k) => (((hero.vanguard || {})[k]) || 0) * VS;
       const syn = AMB.synergy.evaluate(spec.units, spec.heroId);
       side.synergy = syn;
@@ -113,7 +117,7 @@
         const pos = slotPos(s, spec.heroSlot);
         hf = this._fighter(s, Object.assign(base, {
           onBoard: true, slot: spec.heroSlot, row: pos.row, x: pos.x, y: pos.y,
-          atk: (hero.board.atk + HC.boardAtkPerRound * this.round) * (1 + hMods.atkPct + vg('heroAtk')) * (HC.boardPower == null ? 1 : HC.boardPower) * (spec.heroPower || 1),
+          atk: (hero.board.atk + HC.boardAtkPerRound * this.round) * (1 + hMods.atkPct + vg('heroAtk')) * (HC.boardPower == null ? 1 : HC.boardPower) * (spec.heroPower || 1) * lvAtk,
           as: hero.board.as * (1 + hMods.asPct + vg('heroAs')), range: hero.board.range, def: hero.board.def + hMods.dr + vg('heroDef'),
           crit: hero.board.crit + vg('heroCrit'), critDmg: this.C.critMult, lifesteal: 0, skillPower: 1, regenPct: hMods.regenPct,
         }));
@@ -376,21 +380,22 @@
       const a = ab.def;
       const allies = this.sideFighters(s);
       const enemies = this.sideFighters(1 - s);
+      const P = this.sides[s].abilityPower || 1;   // hero level
       const heroCap = (f) => (f.isHero ? Math.min(f.maxHp, 500) : f.maxHp);
       this.emit({ type: 'heroAbility', side: s, name: a.name });
       switch (a.type) {
-        case 'buffAllies': allies.forEach((f) => f.buffs.push({ atkPct: a.atkPct || 0, asPct: a.asPct || 0, until: this.t + a.dur })); break;
-        case 'shieldAllies': allies.forEach((f) => (f.shield += a.amount + a.scale * this.round)); break;
-        case 'healAllies': allies.forEach((f) => this.heal(f, heroCap(f) * a.pct)); break;
+        case 'buffAllies': allies.forEach((f) => f.buffs.push({ atkPct: (a.atkPct || 0) * P, asPct: (a.asPct || 0) * P, until: this.t + a.dur })); break;
+        case 'shieldAllies': allies.forEach((f) => (f.shield += (a.amount + a.scale * this.round) * P)); break;
+        case 'healAllies': allies.forEach((f) => this.heal(f, heroCap(f) * a.pct * P)); break;
         case 'stunEnemies': enemies.forEach((f) => this.stun(f, a.dur)); break;
-        case 'frontDR': allies.filter((f) => f.row === 'front').forEach((f) => f.buffs.push({ dr: a.dr, until: this.t + a.dur })); break;
-        case 'stunFront': enemies.filter((f) => f.row === 'front').forEach((f) => { this.stun(f, a.dur); this.damage(null, f, a.dmg + a.scale * this.round, { skill: true }); }); break;
+        case 'frontDR': allies.filter((f) => f.row === 'front').forEach((f) => f.buffs.push({ dr: Math.min(0.6, a.dr * P), until: this.t + a.dur })); break;
+        case 'stunFront': enemies.filter((f) => f.row === 'front').forEach((f) => { this.stun(f, a.dur); this.damage(null, f, (a.dmg + a.scale * this.round) * P, { skill: true }); }); break;
         case 'damageCluster': {
           if (!enemies.length) break;
           let best = enemies[0], bn = -1;
           enemies.forEach((e) => { const n = enemies.filter((o) => dist(o, e) <= a.radius).length; if (n > bn) { bn = n; best = e; } });
           this.emit({ type: 'blast', x: best.x, y: best.y, r: a.radius });
-          enemies.filter((o) => dist(o, best) <= a.radius).forEach((o) => this.damage(null, o, a.dmg + a.scale * this.round, { skill: true }));
+          enemies.filter((o) => dist(o, best) <= a.radius).forEach((o) => this.damage(null, o, (a.dmg + a.scale * this.round) * P, { skill: true }));
           break;
         }
       }

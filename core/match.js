@@ -29,7 +29,8 @@
       alive: true,
       blessings: { atkPct: 0, hpPct: 0, asPct: 0 }, rewardOffer: null, rewardLog: [],
       lineup: opts.lineup || null,   // scripted enemy (campaign): { units:[[defId,star,slot,fromRound]], summon, blessings, abilities }
-      cardPower: opts.cardPower || null,   // { defId: mult } from the collection — progression fights only
+      cardPower: opts.cardPower || null,
+      heroLevel: opts.heroLevel || 1,     // hero level from the profile (progression fights only)   // { defId: mult } from the collection — progression fights only
       allowed: opts.allowedUnits ? new Set(opts.allowedUnits) : null,   // units this player owns — progression fights only
     };
   }
@@ -42,7 +43,7 @@
       // card levels/rarity power exist only in progression fights (campaign, tower, events); quick and same-device matches stay even
       this.progression = !!opts.progression;
       this.rules = opts.rules || null;   // short-match rules (campaign): { maxRounds, winsNeeded, start: { gold, level } }
-      this.players = opts.players.map((p, i) => newPlayer(i, this.progression ? p : Object.assign({}, p, { cardPower: null, allowedUnits: null })));
+      this.players = opts.players.map((p, i) => newPlayer(i, this.progression ? p : Object.assign({}, p, { cardPower: null, allowedUnits: null, heroLevel: 1 })));
       // online play: each player has their OWN random stream, unit pool and unit ids, so both phones can replay each other's moves and stay identical
       this.isolated = !!opts.isolated;
       this.round = 0;
@@ -439,6 +440,7 @@
         heroId: p.heroId, life: p.life, maxLife: p.maxLife, summoned: p.summoned, heroSlot: p.heroSlot,
         units: Object.entries(p.board).map(([slot, u]) => ({ uid: u.uid, defId: u.defId, star: u.star, items: u.items.slice(), slot, power: (p.cardPower && p.cardPower[u.defId]) || 1 })),
         heroPower: (p.cardPower && p.cardPower[p.heroId]) || 1,
+        heroLevel: p.heroLevel || 1,
         spells: p.armedSpells.slice(),
         blessings: Object.assign({}, p.blessings),
         abilities: Object.entries(p.abilities).map(([id, trigger]) => ({ id, trigger })),
