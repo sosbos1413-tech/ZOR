@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="e4d66a92a1">
+<meta name="zor-build" content="fc9c198c7e">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -2153,6 +2153,28 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 #scr-match .tcard.hc.cv3.mini.dead .hc-sbar, #scr-match .tcard.hc.cv3.mini.dead .hc-bar { opacity: .35; }
 #scr-match .tcard.hc.cv3.mini.dead::after { content: '✕'; position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--display); font-size: clamp(22px, 9vw, 44px); color: #e0262f; text-shadow: 2px 2px 0 #000, 0 0 8px #000; z-index: 9; filter: none; pointer-events: none; }
 
+/* ===== main menu, calm version: one big button, two half buttons, six places, a quiet row of small things ===== */
+#scr-menu .menu-wrap { max-width: 440px; padding: 0 16px; }
+#scr-menu .menu-buttons { max-width: 400px; margin: 18px auto 18px; gap: 12px; }
+#scr-menu .menu-cta { font-size: 30px !important; padding: 16px 30px !important; }
+#scr-menu .menu-duo { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+#scr-menu .menu-duo .btn.big { padding: 12px 8px !important; font-size: 17px !important; }
+#scr-menu .menu-main { grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 400px; margin: 0 auto 18px; }
+#scr-menu .menu-main .mtile { padding: 14px 6px 11px; gap: 5px; background: #1c1613; border: 2px solid #3a3029; border-radius: 4px; font-size: 14px; }
+#scr-menu .menu-main .mtile .mt-ic { font-size: 28px; }
+#scr-menu .menu-main .mtile:hover, #scr-menu .menu-main .mtile:active { border-color: var(--gold); background: #261d17; }
+#scr-menu .menu-main .mtile .mt-l small { display: block; margin: 1px 0 0; font-size: 11px; }
+#scr-menu .menu-dock { display: flex; justify-content: center; gap: 4px; max-width: 400px; margin: 4px auto 6px; padding-top: 12px; border-top: 1px solid #ffffff14; }
+#scr-menu .menu-dock .dk { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px; background: none; border: 0; color: #cfc4ab; cursor: pointer; font: inherit; opacity: .85; position: relative; }
+#scr-menu .menu-dock .dk .mt-ic { font-size: 19px; filter: grayscale(.35); } #scr-menu .menu-dock .dk .mt-l { font-size: 10.5px; white-space: nowrap; }
+#scr-menu .menu-dock .dk:hover, #scr-menu .menu-dock .dk:active { color: var(--gold); opacity: 1; }
+#scr-menu .menu-dock .dot { top: 0; inset-inline-end: 12px; }
+body.newbie .menu-main { display: none; }
+#scr-menu .fineprint { font-size: 11.5px; opacity: .55; margin-top: 10px; }
+#scr-menu .menu-newbie { margin: 6px auto 12px; font-size: 14px; opacity: .9; }
+#scr-menu .menu-main .mtile .mt-l { white-space: nowrap; font-size: 13.5px; }
+@media (max-height: 700px) { #scr-menu .logo h1 { font-size: clamp(48px, 16vw, 70px) !important; } #scr-menu .menu-main .mtile { padding: 9px 4px 8px; } #scr-menu .menu-main .mtile .mt-ic { font-size: 22px; } #scr-menu .fineprint { display: none; } }
+
 </style>
 </head>
 <body>
@@ -2168,23 +2190,28 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
       </div>
       <div class="menu-buttons">
         <button class="btn big primary menu-cta" data-act="go" data-to="campaign" id="menu-campaign">الحملة</button>
-        <button class="btn big" data-act="go" data-to="mode" id="menu-play">مباراة سريعة</button>
-        <button class="btn big" data-act="netMenu" id="menu-friend">العب ضد صاحبك</button>
+        <div class="menu-duo">
+          <button class="btn big" data-act="go" data-to="mode" id="menu-play">مباراة سريعة</button>
+          <button class="btn big" data-act="netMenu" id="menu-friend">ضد صاحبك</button>
+        </div>
       </div>
-      <!-- secondary screens as small tiles; the progression ones appear after the first campaign win -->
-      <div class="menu-tiles">
-        <button class="mtile mt-prog" data-act="go" data-to="pass" id="menu-pass"><span class="mt-ic">🎖️</span><span class="mt-l">ممر الصدع</span></button>
+      <!-- the main places (they appear after the first campaign win) -->
+      <div class="menu-tiles menu-main">
         <button class="mtile mt-prog" data-act="go" data-to="cards" id="menu-cards"><span class="mt-ic">🃏</span><span class="mt-l">مجموعتي</span></button>
+        <button class="mtile mt-prog" data-act="go" data-to="packs" id="menu-packs"><span class="mt-ic">📦</span><span class="mt-l">الباكجات</span></button>
+        <button class="mtile mt-prog" data-act="go" data-to="pass" id="menu-pass"><span class="mt-ic">🎖️</span><span class="mt-l">ممر الصدع</span></button>
         <button class="mtile mt-prog" data-act="go" data-to="tower" id="menu-tower"><span class="mt-ic">🗼</span><span class="mt-l">البرج</span></button>
         <button class="mtile mt-prog" data-act="go" data-to="event" id="menu-event"><span class="mt-ic">🌟</span><span class="mt-l">الحدث</span></button>
-        <button class="mtile mt-prog" data-act="go" data-to="packs" id="menu-packs"><span class="mt-ic">📦</span><span class="mt-l">الباكجات</span></button>
         <button class="mtile mt-prog" data-act="loginOpen" id="menu-login"><span class="mt-ic">🎁</span><span class="mt-l">الدخول اليومي</span></button>
-        <button class="mtile" data-act="go" data-to="codex" id="menu-album"><span class="mt-ic">📖</span><span class="mt-l">الألبوم</span></button>
-        <button class="mtile" data-act="go" data-to="stats"><span class="mt-ic">📊</span><span class="mt-l">الإحصائيات</span></button>
-        <button class="mtile" data-act="saveOpen" id="menu-save"><span class="mt-ic">💾</span><span class="mt-l">الحفظ</span></button>
-        <button class="mtile" data-act="howto"><span class="mt-ic">❓</span><span class="mt-l">كيف ألعب؟</span></button>
-        <button class="mtile" data-act="rotate" id="menu-rotate"><span class="mt-ic">🔄</span><span class="mt-l">تدوير الشاشة</span></button>
-        <button class="mtile" data-act="sound" id="menu-sound"><span class="mt-ic">🔊</span><span class="mt-l">الصوت</span></button>
+      </div>
+      <!-- small stuff in a quiet row at the bottom -->
+      <div class="menu-dock">
+        <button class="dk" data-act="go" data-to="codex" id="menu-album"><span class="mt-ic">📖</span><span class="mt-l">الألبوم</span></button>
+        <button class="dk" data-act="go" data-to="stats"><span class="mt-ic">📊</span><span class="mt-l">الإحصائيات</span></button>
+        <button class="dk" data-act="howto"><span class="mt-ic">❓</span><span class="mt-l">كيف ألعب</span></button>
+        <button class="dk" data-act="saveOpen" id="menu-save"><span class="mt-ic">💾</span><span class="mt-l">الحفظ</span></button>
+        <button class="dk" data-act="rotate" id="menu-rotate"><span class="mt-ic">🔄</span><span class="mt-l">تدوير</span></button>
+        <button class="dk" data-act="sound" id="menu-sound"><span class="mt-ic">🔊</span><span class="mt-l">الصوت</span></button>
       </div>
       <p class="menu-newbie">ابدأ بالحملة: أول فوز يفتح لك الباكجات ومجموعتك وممر الصدع والجوائز اليومية.</p>
       <div class="menu-heroes" id="menu-heroes"></div>
