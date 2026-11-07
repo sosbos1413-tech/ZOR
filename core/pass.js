@@ -34,6 +34,7 @@
       default: { name: 'الساحة الأساسية' },
       tavern: { name: 'طاولة الخان' },
       gambler: { name: 'طاولة القمار' },
+      warmap: { name: 'خريطة القائد' },
       stardust: { name: 'غبار النجوم' },
       neongrid: { name: 'شبكة النيون' },
       moonwaves: { name: 'أمواج القمر' },
@@ -75,7 +76,7 @@
     13: mk('arena', 'stardust'), 14: mk('avatar', 'mizuki'), 15: mk('perk', 'prep10', { sec: 5 }), 16: mk('frame', 'forest'),
     17: mk('arena', 'moonwaves'), 18: mk('title', 't_stars'), 19: mk('avatar', 'akane'), 20: mk('fx', 'goldrain'),
     21: mk('frame', 'ember'), 22: mk('title', 't_stages'), 23: mk('avatar', 'miyuki'), 24: mk('arena', 'forge'),
-    25: mk('fx', 'lightning'), 26: mk('avatar', 'reiji'), 27: mk('frame', 'gold'), 28: mk('title', 't_formation'),
+    25: mk('fx', 'lightning'), 26: mk('avatar', 'reiji'), 27: mk('frame', 'gold'), 28: mk('arena', 'warmap'),
     29: mk('fx', 'inferno'), 30: mk('arena', 'riftgold', { big: true }),
   };
   const PREMIUM = {

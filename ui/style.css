@@ -2104,3 +2104,11 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 .field.ar-forge .rift-line { background: repeating-linear-gradient(90deg, #ff5a1a 0 16px, #ffd24a 16px 20px, transparent 20px 26px); opacity: .9; filter: drop-shadow(0 0 5px #ff7a2a); }
 .field.ar-forge .cell { border-color: #ff7a2a44; background: #00000030; }
 .field.ar-forge .cell.enemy { border-color: #c4141f77; }
+
+/* commander's war map: aged parchment on a leather-strapped wooden table; the rim stays on the edges */
+.field.ar-warmap, .pv.arena.ar-warmap { background-color: #6a4a2a; background-image: url(../assets/frames/arena-map.webp); background-size: 126% 118%; background-position: center 46%; background-repeat: no-repeat; --rc: #7a2a1a; }
+.pv.arena.ar-warmap { background-size: 100% 100%; background-position: center; }
+.field.ar-warmap .rift-line { background: repeating-linear-gradient(90deg, #7a2a1a 0 9px, transparent 9px 15px); opacity: .85; }
+.field.ar-warmap .cell { border-color: #5a3a1a77; background: #5a3a1a14; }
+.field.ar-warmap .cell.enemy { border-color: #8a1a1a88; }
+.field.ar-warmap .cell:not(:has(.tcard)) svg, .field.ar-warmap .cell:not(:has(.tcard)) .ic { color: #5a3a1a; opacity: .5; }
