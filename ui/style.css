@@ -2285,3 +2285,4 @@ body:not([data-nav="1"]) #more-sheet { display: none !important; }
 /* taps on plain text must not start a text selection; inputs and the room code stay selectable */
 html, body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: text; user-select: text; }
+.mv2 .menu-newbie { display: none !important; }
