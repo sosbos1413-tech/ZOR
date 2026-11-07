@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="384639a701">
+<meta name="zor-build" content="eff72c2469">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -2212,6 +2212,11 @@ body.newbie .menu-main { display: none; }
 .tcard.hc.cv3[class*="fr-"].full.r-epic { filter: drop-shadow(0 0 3px var(--rc3)) drop-shadow(1px 3px 0 #000a); }
 .tcard.hc.cv3[class*="fr-"].full.r-legendary { filter: drop-shadow(0 0 4px var(--rc3)) drop-shadow(1px 3px 0 #000a); }
 
+/* boss prizes, one row per star */
+.bp { display: flex; align-items: center; gap: 8px; padding: 4px 8px; margin: 3px 0; border: 2px solid #0004; background: #0000000f; font-size: 13px; text-align: start; }
+.bp-s { color: var(--gold2); font-size: 14px; letter-spacing: 1px; min-width: 46px; } .bp i { margin-inline-start: auto; font-style: normal; font-size: 11px; color: #2a8a3a; }
+.bp.next { border-color: var(--gold); background: #f2b3001f; } .bp.paid { opacity: .75; } .bp.locked { opacity: .55; }
+
 </style>
 </head>
 <body>
@@ -4146,10 +4151,11 @@ body.newbie .menu-main { display: none; }
     // ================================================================ combat
     buildCombatSpec(pi) {
       const p = this.players[pi];
+      const grow = p.lineup && p.lineup.growth ? 1 + p.lineup.growth * (this.round - 1) : 1;   // long boss fights: the scripted enemy gets stronger every round
       return {
         heroId: p.heroId, life: p.life, maxLife: p.maxLife, summoned: p.summoned, heroSlot: p.heroSlot,
-        units: Object.entries(p.board).map(([slot, u]) => ({ uid: u.uid, defId: u.defId, star: u.star, items: u.items.slice(), slot, power: (p.cardPower && p.cardPower[u.defId]) || 1 })),
-        heroPower: (p.cardPower && p.cardPower[p.heroId]) || 1,
+        units: Object.entries(p.board).map(([slot, u]) => ({ uid: u.uid, defId: u.defId, star: u.star, items: u.items.slice(), slot, power: ((p.cardPower && p.cardPower[u.defId]) || 1) * grow })),
+        heroPower: ((p.cardPower && p.cardPower[p.heroId]) || 1) * grow,
         heroLevel: p.heroLevel || 1,
         spells: p.armedSpells.slice(),
         blessings: Object.assign({}, p.blessings),
@@ -5170,11 +5176,19 @@ body.newbie .menu-main { display: none; }
 
   const CAMPAIGN = {
     rules: { maxRounds: 3, winsNeeded: 2 },          // best of 3 rounds
+    // boss fights are long: best of 7 rounds. The boss line-up keeps growing (extra units join later, and everything gets `growth` stronger each round)
+    bossRules: { maxRounds: 7, winsNeeded: 4, growth: 0.07 },
     rewards: {
       fight: { shards: 20, passXp: 20 },
       boss: { shards: 60, passXp: 40 },
       level: { pack: 'basic' },                       // bonus for clearing every fight of a level
       replay: { shards: 5 },
+      // boss fights: EVERY star pays its own prize, once (the first time you reach that star)
+      bossStars: [
+        { shards: 60, passXp: 40 },
+        { shards: 100, passXp: 30, packs: 1 },
+        { shards: 150, passXp: 40, card: 'rare' },
+      ],
     },
     // star rating per fight (best result is kept): 1 = win, 2 = win without losing a round,
     // 3 = that, and your hero ended at full life. Star totals open chests (each once).
@@ -5210,28 +5224,28 @@ body.newbie .menu-main { display: none; }
       F('l1f2', 'حرّاس الأتون', 1.33, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 1, 'f2', 1], ['thorn_fox', 1, 'f3', 2], ['pixel_sniper', 1, 'b1', 1]]),
       F('l1f3', 'كمين الشرر', 1.12, [['ash_ronin', 1, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['spark_wraith', 1, 'b2', 1], ['pyre_archer', 1, 'b1', 2]]),
       F('l1f4', 'رماة المحرقة', 1.17, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 1, 'f2', 1], ['coral_sentinel', 1, 'f3', 2], ['pyre_archer', 1, 'b1', 1], ['spark_wraith', 1, 'b2', 3]]),
-      F('l1boss', 'الزعيم: كيرو', 0.9, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 2, 'f2', 1], ['pyre_archer', 1, 'b0', 1], ['caldera_seer', 1, 'b2', 2]], { boss: true }),
+      F('l1boss', 'الزعيم: كيرو', 0.83, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 2, 'f2', 1], ['pyre_archer', 1, 'b0', 1], ['caldera_seer', 1, 'b2', 2], ['spark_wraith', 1, 'b3', 4], ['forge_bulwark', 2, 'f3', 6]], { boss: true }),
     ]),
     L('l2', 'tide', 'merin', 'سواحل المدّ القمري', { gold: 8, level: 5 }, [
       F('l2f1', 'حرس المرجان', 1.62, [['coral_sentinel', 1, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['wave_caller', 1, 'b1', 1], ['pixel_sniper', 1, 'b2', 2]]),
       F('l2f2', 'سيوف القمر', 1.32, [['coral_sentinel', 1, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['lunar_blade', 1, 'f3', 2], ['wave_caller', 1, 'b1', 1], ['mist_witch', 1, 'b2', 3]]),
       F('l2f3', 'ضباب الساحرات', 1.08, [['coral_sentinel', 2, 'f1', 1], ['moss_warden', 1, 'f2', 1], ['mist_witch', 1, 'b1', 1], ['wave_caller', 1, 'b2', 1], ['willow_eye', 1, 'b3', 2]]),
       F('l2f4', 'موجة المدّ', 0.76, [['coral_sentinel', 2, 'f1', 1], ['lunar_blade', 2, 'f2', 1], ['thorn_fox', 1, 'f3', 1], ['mist_witch', 1, 'b1', 1], ['wave_caller', 1, 'b2', 2], ['pixel_sniper', 1, 'b3', 3]]),
-      F('l2boss', 'الزعيم: ميران', 0.81, [['coral_sentinel', 2, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['wave_caller', 1, 'b0', 1], ['mist_witch', 1, 'b2', 1], ['tide_priest', 1, 'b3', 2]], { boss: true }),
+      F('l2boss', 'الزعيم: ميران', 0.74, [['coral_sentinel', 2, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['wave_caller', 1, 'b0', 1], ['mist_witch', 1, 'b2', 1], ['tide_priest', 1, 'b3', 2], ['coral_sentinel', 2, 'f0', 4], ['lunar_blade', 2, 'f3', 6]], { boss: true }),
     ]),
     L('l3', 'neon', 'zerokai', 'شوارع نيون-٩', { gold: 10, level: 5 }, [
       F('l3f1', 'كلاب الشبكة', 1.08, [['firewall_unit', 1, 'f1', 1], ['grid_hound', 2, 'f2', 1], ['grid_hound', 1, 'f3', 1], ['pixel_sniper', 1, 'b1', 1], ['spectral_coder', 1, 'b2', 2]]),
       F('l3f2', 'قنّاصو البكسل', 1.12, [['firewall_unit', 1, 'f1', 1], ['chrome_ronin', 1, 'f2', 2], ['pixel_sniper', 2, 'b1', 1], ['pixel_sniper', 1, 'b2', 1], ['spectral_coder', 1, 'b3', 1]]),
       F('l3f3', 'جدار النار', 0.76, [['firewall_unit', 2, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 1, 'b1', 1], ['spectral_coder', 1, 'b2', 2], ['spark_wraith', 1, 'b3', 3]]),
       F('l3f4', 'المبرمجة الطيفية', 0.76, [['firewall_unit', 2, 'f1', 1], ['chrome_ronin', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 2, 'b1', 1], ['spectral_coder', 1, 'b2', 1], ['mist_witch', 1, 'b3', 2]]),
-      F('l3boss', 'الزعيم: زيرو-كاي', 0.65, [['firewall_unit', 2, 'f1', 1], ['chrome_ronin', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 2, 'b0', 1], ['spectral_coder', 1, 'b2', 2]], { boss: true }),
+      F('l3boss', 'الزعيم: زيرو-كاي', 0.63, [['firewall_unit', 2, 'f1', 1], ['chrome_ronin', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 2, 'b0', 1], ['spectral_coder', 1, 'b2', 2], ['pixel_sniper', 2, 'b3', 4], ['firewall_unit', 2, 'f0', 6]], { boss: true }),
     ]),
     L('l4', 'sylvan', 'orath', 'قلب الغابة الأزلية', { gold: 12, level: 6 }, [
       F('l4f1', 'ثعالب الأشواك', 1.19, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['thorn_fox', 1, 'f3', 1], ['willow_eye', 1, 'b1', 1], ['wave_caller', 1, 'b2', 1], ['root_shaman', 1, 'b3', 3]]),
       F('l4f2', 'عيون الصفصاف', 0.78, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['coral_sentinel', 2, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['willow_eye', 1, 'b2', 1], ['spectral_coder', 1, 'b3', 2]]),
       F('l4f3', 'المتربّص', 0.87, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['wave_caller', 2, 'b3', 2]]),
       F('l4f4', 'شامان الجذور', 0.72, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['firewall_unit', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['tide_priest', 1, 'b3', 3]]),
-      F('l4boss', 'الزعيم: أوراث', 0.74, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b0', 1], ['root_shaman', 2, 'b2', 1], ['tide_priest', 1, 'b3', 2]], { boss: true }),
+      F('l4boss', 'الزعيم: أوراث', 0.65, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b0', 1], ['root_shaman', 2, 'b2', 1], ['tide_priest', 1, 'b3', 2], ['wild_stalker', 2, 'f2', 5]], { boss: true }),
     ]),
   ];
 
@@ -5260,7 +5274,7 @@ body.newbie .menu-main { display: none; }
     version: 2,
     // cleared[fightId] = true; levelsDone[levelId] = true; stars[fightId] = best 1..3; chests = claimed chest ids;
     // stats per fight: { attempts, wins, best:{ lifeLeft, roundsLost } }
-    defaults: () => ({ cleared: {}, levelsDone: {}, stats: {}, stars: {}, chests: [] }),
+    defaults: () => ({ cleared: {}, levelsDone: {}, stats: {}, stars: {}, chests: [], bossPaid: {} }),   // bossPaid[fightId] = highest star whose prize was already paid
     // v1 had no stars: rate the best recorded result of every cleared fight (at least 1 star)
     migrate: (s) => {
       s.stars = s.stars || {};
@@ -5320,8 +5334,16 @@ body.newbie .menu-main { display: none; }
         if (deps.events) deps.events.emit('chestOpened', out);
         return out;
       },
+      bossPaid: (fightId) => st().bossPaid[fightId] || 0,
+      /** boss prizes per star with their state: 'paid' | 'next' (the star you are after) | 'locked' */
+      bossPrizes(fightId) { const paid = api.bossPaid(fightId), got = api.stars(fightId); return LV().CAMPAIGN.rewards.bossStars.map((p, i) => Object.assign({ star: i + 1 }, p, { state: i < paid ? 'paid' : i === paid ? 'next' : 'locked', reached: i < got })); },
       rewardsFor(fightId) {
         const f = find(fightId), R = LV().CAMPAIGN.rewards;
+        if (f.fight.boss) {   // a boss pays by star, not by "first win"
+          const prizes = api.bossPrizes(fightId), left = prizes.filter((p) => p.state !== 'paid');
+          const lastOfLevel = f.level.fights.filter((x) => !api.isCleared(x.id)).length === 1;
+          return { boss: true, replay: !left.length, shards: left.length ? R.boss.shards : R.replay.shards, passXp: 0, prizes, pack: lastOfLevel ? R.level.pack : null };
+        }
         if (api.isCleared(fightId)) return { replay: true, shards: R.replay.shards, passXp: 0 };
         const base = f.fight.boss ? R.boss : R.fight;
         const lastOfLevel = f.level.fights.filter((x) => !api.isCleared(x.id)).length === 1;
@@ -5337,11 +5359,11 @@ body.newbie .menu-main { display: none; }
         enemyPower[f.level.hero] = fight.power;
         return {
           mode: 'campaign', seed, progression: true,
-          rules: Object.assign({}, LV().CAMPAIGN.rules, { start: f.level.start }),
+          rules: Object.assign({}, boss ? LV().CAMPAIGN.bossRules : LV().CAMPAIGN.rules, { start: f.level.start }),
           players: [
             { heroId, name: 'أنت', cardPower: C ? C.powerMap() : null, allowedUnits: C ? C.playableUnits() : null, heroLevel: (globalThis.AMB.heroes ? AMB.heroes.level(heroId) : 1) },
             { heroId: f.level.hero, name: fight.name, isAI: true, cardPower: enemyPower,
-              lineup: { units: fight.units, summon: boss ? 'b1' : null, blessings: boss ? boss.blessings : null, abilities: boss ? boss.abilities : [] } },
+              lineup: { units: fight.units, growth: boss ? LV().CAMPAIGN.bossRules.growth : 0, summon: boss ? 'b1' : null, blessings: boss ? boss.blessings : null, abilities: boss ? boss.abilities : [] } },
           ],
         };
       },
@@ -5352,7 +5374,9 @@ body.newbie .menu-main { display: none; }
         const won = !!res.won;
         const pay = won ? api.rewardsFor(fightId) : null;
         const stars = rate(res), prevStars = api.stars(fightId);
-        const out = { fightId, won, boss: !!f.fight.boss, first: !!(pay && !pay.replay), shards: 0, passXp: 0, pack: null, levelComplete: false,
+        const isBoss = !!f.fight.boss, paidBefore = api.bossPaid(fightId);
+        const newPrizes = isBoss && won ? LV().CAMPAIGN.rewards.bossStars.map((p, i) => Object.assign({ star: i + 1 }, p)).filter((p) => p.star > paidBefore && p.star <= stars) : [];
+        const out = { fightId, won, boss: isBoss, first: isBoss ? newPrizes.length > 0 : !!(pay && !pay.replay), shards: 0, passXp: 0, pack: null, packs: [], card: null, prizes: newPrizes, levelComplete: false,
           stars, prevStars, newBest: stars > prevStars, chestsBefore: api.readyChests() };
         save.update('campaign', (s) => {
           const x = (s.stats[fightId] = s.stats[fightId] || { attempts: 0, wins: 0, best: null });
@@ -5363,9 +5387,19 @@ body.newbie .menu-main { display: none; }
           if (!x.best || cur.lifeLeft > x.best.lifeLeft) x.best = cur;
           s.cleared[fightId] = true;
           s.stars[fightId] = Math.max(s.stars[fightId] || 0, stars);
+          if (isBoss) s.bossPaid[fightId] = Math.max(s.bossPaid[fightId] || 0, stars);
           if (f.level.fights.every((ff) => s.cleared[ff.id]) && !s.levelsDone[f.level.id]) { s.levelsDone[f.level.id] = true; out.levelComplete = true; }
         });
-        if (pay) {
+        if (pay && isBoss) {
+          newPrizes.forEach((p) => {
+            if (p.shards && deps.wallet) { deps.wallet.add('shards', p.shards, 'campaign'); out.shards += p.shards; }
+            if (p.passXp && deps.addPassXp) { deps.addPassXp(p.passXp); out.passXp += p.passXp; }
+            for (let i = 0; i < (p.packs || 0); i++) if (deps.packs) out.packs.push(deps.packs.open('basic', { free: true }));
+            if (p.card && deps.collection) out.card = grantCard(p.card);
+          });
+          if (!newPrizes.length && deps.wallet) { const rp = LV().CAMPAIGN.rewards.replay.shards; deps.wallet.add('shards', rp, 'campaign'); out.shards = rp; }   // all prizes already paid: the small replay reward
+          if (out.levelComplete && pay.pack && deps.packs) out.pack = deps.packs.open(pay.pack, { free: true });
+        } else if (pay) {
           if (pay.shards && deps.wallet) { deps.wallet.add('shards', pay.shards, 'campaign'); out.shards = pay.shards; }
           if (pay.passXp && deps.addPassXp) { deps.addPassXp(pay.passXp); out.passXp = pay.passXp; }
           if (out.levelComplete && pay.pack && deps.packs) out.pack = deps.packs.open(pay.pack, { free: true });
@@ -7453,7 +7487,7 @@ AMB.IMAGES = {
     const lc = (pl, hid, k, me) => `<span class="lifechip ${me ? 'me' : ''}">${portrait(hid, { k })}${icon('heart')} <b>${lifeStr(pl.life)}</b><i class="lc-st"></i></span>`;
     $('topbar').innerHTML = `
       <span class="tb-round" title="${icon('flag').replace(/<[^>]+>/g, '')}">${icon('flag')} ${m.round}<small>/${maxR()}</small></span>
-      ${m.rules ? `<span class="stagechip"><b>${p.stats.wins} – ${o.stats.wins}</b><span class="pips">${[0, 1].map((k) => `<i class="pip ${k < p.stats.wins ? 'done' : ''}"></i>`).join('')}</span></span>`
+      ${m.rules ? `<span class="stagechip"><b>${p.stats.wins} – ${o.stats.wins}</b><span class="pips">${Array.from({ length: m.rules.winsNeeded || 2 }, (_, k) => k).map((k) => `<i class="pip ${k < p.stats.wins ? 'done' : ''}"></i>`).join('')}</span></span>`
         : `<span class="stagechip"><span class="pips">${[1, 2, 3, 4, 5, 6, 7].map((r) => `<i class="pip ${r < m.round ? 'done' : r === m.round ? 'now' : ''} ${CFG.match.stages.some((st) => st.rounds[1] === r && r < 7) ? 'gap' : ''}"></i>`).join('')}</span></span>`}
       <span class="timer">${S.paused ? icon('pause') : left}</span>
       <span class="tb-spacer"></span>
@@ -8748,9 +8782,9 @@ AMB.IMAGES = {
     }
     AMB.TIPS = AMB.TIPS || {};
     AMB.TIPS.caminfo = () => ({ title: 'كيف تشتغل الحملة', html: `<p>كل قتال <b>تكسب جولتين من 3</b> ضد تشكيلة ثابتة. مستويات بطاقاتك وندرتها <b>تنحسب هنا</b>، والمتجر يعرض الوحدات اللي تملكها فقط.</p>
-      <p>الفوز الأول: ${icon('gem')} ${R.fight.shards} + ${R.fight.passXp} خبرة ممر<br>الزعيم: ${icon('gem')} ${R.boss.shards} + ${R.boss.passXp} خبرة<br>إنهاء المستوى: باكج مجاني<br>الإعادة: ${icon('gem')} ${R.replay.shards}</p>
+      <p>الفوز الأول: ${icon('gem')} ${R.fight.shards} + ${R.fight.passXp} خبرة ممر<br>الزعيم (أفضل من 7 جولات): <b>كل نجمة لها جائزة</b> مرة وحدة: ★ ${icon('gem')} ${R.bossStars[0].shards} · ★★ ${icon('gem')} ${R.bossStars[1].shards} + باكج · ★★★ ${icon('gem')} ${R.bossStars[2].shards} + بطاقة رير أو أندر<br>إنهاء المستوى: باكج مجاني<br>الإعادة: ${icon('gem')} ${R.replay.shards}</p>
       <h4>النجوم</h4>${LV.CAMPAIGN.stars.rules.map((r) => `<div>${'★'.repeat(r.n)} ${r.text}</div>`).join('')}` });
-    root.innerHTML = `<div class="cam-note">⚔️ جولتين من 3 تكسب · ⭐ النجوم تفتح صناديق · 🎁 باكج لكل مستوى <button class="ibtn" data-act="info" data-k="caminfo" title="شرح">ⓘ</button></div>
+    root.innerHTML = `<div class="cam-note">⚔️ جولتين من 3 تكسب (الزعيم 4 من 7) · ⭐ النجوم تفتح صناديق · 👑 كل نجمة زعيم لها جائزة <button class="ibtn" data-act="info" data-k="caminfo" title="شرح">ⓘ</button></div>
       ${chestsHTML()}
       <div class="cam-levels">${LV.LEVELS.map((l, li) => {
         const pr = CAM.progress(l.id), unlocked = CAM.levelUnlocked(li);
@@ -8779,7 +8813,10 @@ AMB.IMAGES = {
     const h = pickHero();
     const unitsHTML = f.units.map(([id, star, , from], k) => `<div class="cu">${ui.portrait(AMB.DATA.UNITS[id], { k: 'cpv' + k + id })}${ui.stars(star)}${from > 1 ? `<small>من الجولة ${from}</small>` : ''}</div>`).join('');
     const heroes = C.ownedHeroes().map((id) => `<button class="hchip ${id === h ? 'on' : ''}" data-act="camHero" data-id="${id}" data-f="${fightId}">${ui.portrait(AMB.DATA.HEROES[id], { k: 'cph' + id })}<span>${AMB.DATA.HEROES[id].name}</span></button>`).join('');
-    const reward = pay.replay ? `إعادة: ${icon('gem')} ${pay.shards}` : `${icon('gem')} ${pay.shards} شظية · +${pay.passXp} خبرة ممر${pay.pack ? ' · <b>باكج مجاني</b> لإنهاء المستوى' : ''}`;
+    const prizeTxt = (p) => [p.shards ? `${icon('gem')} ${p.shards}` : '', p.passXp ? `+${p.passXp} خبرة` : '', p.packs ? '📦 باكج' : '', p.card ? `🃏 بطاقة ${AMB.ECONOMY.rarities[p.card].name}+` : ''].filter(Boolean).join(' · ');
+    const reward = pay.boss
+      ? `<div class="hint" style="margin-bottom:4px">قتال طويل: أفضل من 7 جولات (تكسب 4). كل نجمة لها جائزتها، وتنصرف مرة وحدة.</div>${pay.prizes.map((p) => `<div class="bp ${p.state}"><span class="bp-s">${'★'.repeat(p.star)}</span><span>${prizeTxt(p)}</span><i>${p.state === 'paid' ? '✓ استلمتها' : ''}</i></div>`).join('')}${pay.pack ? '<div class="hint">+ <b>باكج مجاني</b> لإنهاء المستوى</div>' : ''}`
+      : pay.replay ? `إعادة: ${icon('gem')} ${pay.shards}` : `${icon('gem')} ${pay.shards} شظية · +${pay.passXp} خبرة ممر${pay.pack ? ' · <b>باكج مجاني</b> لإنهاء المستوى' : ''}`;
     ui.modal(`<div class="cam-pv" style="--wc:${W(l.world).color}">
       <h2>${f.boss ? '👑 ' : ''}${esc(f.name)}</h2><div class="hint">${esc(l.name)} · ${x.fi + 1}/${l.fights.length}</div>
       ${boss ? `<div class="boss-box">${ui.portrait(AMB.DATA.HEROES[l.hero], { k: 'cpb' })}<div><b>قدرة الزعيم: ${boss.name}</b><p>${boss.text}</p></div></div>` : ''}
@@ -8806,6 +8843,8 @@ AMB.IMAGES = {
     const r = S.camResult, won = r.won, next = CAM.next(), nx = next && CAM.find(next);
     const score = `${m.players[0].stats.wins} – ${m.players[1].stats.wins}`;
     const pay = won ? [r.shards ? `${icon('gem')} +${r.shards} شظية` : '', r.passXp ? `+${r.passXp} خبرة ممر` : ''].filter(Boolean).join(' · ') : '';
+    const bossPrizes = won && r.boss && r.prizes && r.prizes.length ? `<div class="cam-pack"><b>🏆 جوائز النجوم:</b>${r.prizes.map((p) => `<div class="bp paid"><span class="bp-s">${'★'.repeat(p.star)}</span><span>${[p.shards ? `${icon('gem')} ${p.shards}` : '', p.passXp ? `+${p.passXp} خبرة` : '', p.packs ? '📦 باكج مجاني' : '', p.card ? '🃏 بطاقة ' + AMB.ECONOMY.rarities[p.card].name + ' أو أندر' : ''].filter(Boolean).join(' · ')}</span></div>`).join('')}
+      <div class="cam-pack-row">${(r.packs || []).map((pk) => pk.cards.map((c, i) => `<div class="cu">${ui.portrait(C.def(c.id), { k: 'bpk' + i + c.id })}<small class="r-${c.rarity}">${c.isNew ? 'جديدة!' : c.refund ? '+' + c.refund + ' شظية' : '+1 نسخة'}</small></div>`).join('')).join('')}${r.card ? `<div class="cu">${ui.portrait(C.def(r.card.id), { k: 'bcd' + r.card.id })}<small class="r-${r.card.rarity}">${r.card.isNew ? 'جديدة!' : '+1 نسخة'}</small></div>` : ''}</div></div>` : '';
     const pack = r.pack ? `<div class="cam-pack"><b>🎁 خلّصت المستوى! باكج مجاني:</b><div class="cam-pack-row">${r.pack.cards.map((c, i) => `<div class="cu">${ui.portrait(C.def(c.id), { k: 'crp' + i + c.id })}<small class="r-${c.rarity}">${c.isNew ? 'جديدة!' : c.refund ? '+' + c.refund + ' شظية' : '+1 نسخة'}</small></div>`).join('')}</div></div>` : '';
     $('results').innerHTML = `<div class="res-stage ${won ? 'victory' : 'defeat'}" style="--wc:${W(x.level.world).color}"><div class="res-rays"></div>
         <div class="res-hero">${ui.portrait(won ? AMB.DATA.HEROES[m.players[0].heroId] : AMB.DATA.HEROES[x.level.hero], { bare: true, k: 'crh' })}<i class="sheen"></i></div>
@@ -8815,7 +8854,7 @@ AMB.IMAGES = {
           <p class="hint">${r.newBest ? (r.prevStars ? `رقم جديد! من ${r.prevStars} لين ${r.stars} نجوم` : `${r.stars} من 3 نجوم`) : `أفضل نتيجة لك هنا: ${CAM.stars(fightId)} نجوم`}${r.stars < 3 ? ' · ' + LV.CAMPAIGN.stars.rules[r.stars].text + ' = ★' : ''}</p>` : ''}
         ${r.chestsReady > r.chestsBefore ? '<button class="btn primary" data-act="go" data-to="campaign">🎁 صندوق نجوم جاهز! افتحه من خريطة الحملة</button>' : ''}
         ${won ? `<p class="cam-pay">${r.first ? pay : `إعادة: ${pay || 'بدون جائزة'}`}</p>` : '<p class="hint">طوّر بطاقاتك وجرّب مرة ثانية</p>'}</div>
-      ${pack}
+      ${bossPrizes}${pack}
       ${r.first && fightId === 'l1f1' ? '<div class="cam-unlock">🔓 انفتح: الباكجات · مجموعتي · الممر · الدخول اليومي</div>' : ''}
       <div class="cam-btns">
         ${won && nx ? `<button class="btn primary big" data-act="camGo" data-id="${next}">القتال التالي: ${esc(nx.fight.name)}</button>` : ''}

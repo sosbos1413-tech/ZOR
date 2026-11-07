@@ -608,7 +608,7 @@ t('levels data: 4 levels x (4 fights + boss), valid units/slots, boss slot free'
     l.fights.forEach((f) => {
       ok(f.power > 0, f.id);
       const slots = new Set();
-      f.units.forEach(([id, star, slot, from]) => { ok(AMB.DATA.UNITS[id], f.id + ' ' + id); ok(/^[fb][0-3]$/.test(slot), slot); ok(!slots.has(slot), f.id + ' dup slot ' + slot); slots.add(slot); ok(star >= 1 && star <= 3 && from >= 1 && from <= 3); });
+      f.units.forEach(([id, star, slot, from]) => { ok(AMB.DATA.UNITS[id], f.id + ' ' + id); ok(/^[fb][0-3]$/.test(slot), slot); ok(!slots.has(slot), f.id + ' dup slot ' + slot); slots.add(slot); ok(star >= 1 && star <= 3 && from >= 1 && from <= (f.boss ? 7 : 3)); });
       if (f.boss) ok(!slots.has('b1'), f.id + ' boss hero slot b1 must be free');
     });
   });
@@ -651,9 +651,10 @@ t('campaign: unlock order, first-win rewards, replay rewards, level bonus pack, 
   ok(!cam.isUnlocked('l2f1'), 'next level locked until the boss falls');
   const before = prof.packs.stats().opened;
   const boss = cam.recordResult('l1boss', { won: true });
-  ok(boss.boss && boss.levelComplete && boss.pack && boss.pack.cards.length === 5); eq(boss.shards, R.boss.shards);
-  eq(prof.packs.stats().opened, before + 1, 'bonus pack opened for free');
-  eq(prof.wallet.balance('shards'), sh0 + R.fight.shards * 4 + R.replay.shards + R.boss.shards + (boss.pack.refund || 0));
+  ok(boss.boss && boss.levelComplete && boss.pack && boss.pack.cards.length === 5); eq(boss.stars, 2); eq(boss.shards, R.bossStars[0].shards + R.bossStars[1].shards, 'a 2-star boss win pays the prizes of star 1 and 2'); eq(boss.packs.length, 1, 'star 2 prize pack');
+  eq(prof.packs.stats().opened, before + 2, 'level pack + the star-2 pack opened for free');
+  const refunds = (boss.pack.refund || 0) + boss.packs.reduce((a, pk) => a + (pk.refund || 0), 0);
+  eq(prof.wallet.balance('shards'), sh0 + R.fight.shards * 4 + R.replay.shards + boss.shards + refunds);
   ok(cam.levelDone('l1') && cam.isUnlocked('l2f1')); eq(cam.next(), 'l2f1');
   const again2 = cam.recordResult('l1boss', { won: true }); ok(!again2.levelComplete && !again2.pack, 'level bonus only once');
   const cam2 = AMB.Profile.boot(mem).campaign; ok(cam2.levelDone('l1')); eq(cam2.next(), 'l2f1');
@@ -1164,6 +1165,27 @@ t('auto-arrange: never loses a unit, however often it is pressed, with or withou
       ok(Object.keys(p.board).length <= p.level, 'board within the level');
     }
   }
+});
+
+t('boss fights: best of 7 with a growing enemy, and every star pays its own prize once', () => {
+  const prof = AMB.Profile.boot(MEM()), C = prof.campaign, R = AMB.LEVELS.CAMPAIGN.rewards, BR = AMB.LEVELS.CAMPAIGN.bossRules;
+  const o = C.matchOptions('l1boss', 'orath', 3); eq(o.rules.maxRounds, 7); eq(o.rules.winsNeeded, 4); ok(o.players[1].lineup.growth > 0);
+  const o2 = C.matchOptions('l1f1', 'orath', 3); eq(o2.rules.maxRounds, 3, 'normal fights stay best of 3'); ok(!o2.players[1].lineup.growth);
+  // the enemy really grows: same boss, round 1 vs round 5
+  const m = new AMB.Match(o); m.startRound(); const p1 = m.buildCombatSpec(1).units[0].power;
+  for (let i = 0; i < 4; i++) { m.round++; } m.applyLineup(1); const p5 = m.buildCombatSpec(1).units[0].power;
+  ok(Math.abs(p5 / p1 - (1 + BR.growth * 4) / 1) < 1e-9, 'enemy power grows ' + BR.growth * 100 + '% per round');
+  ['l1f1', 'l1f2', 'l1f3', 'l1f4'].forEach((id) => C.recordResult(id, { won: true }));
+  const sh = () => prof.wallet.balance('shards'), packs0 = prof.packs.stats().opened;
+  let s0 = sh();
+  const a = C.recordResult('l1boss', { won: true, roundsLost: 2, lifeLeft: 40 });   // 1 star
+  eq(a.stars, 1); eq(a.prizes.length, 1); ok(a.shards >= R.bossStars[0].shards);
+  const a2 = C.recordResult('l1boss', { won: true, roundsLost: 2, lifeLeft: 40 });    // nothing new: only the small replay reward
+  eq(a2.prizes.length, 0); eq(a2.shards, R.replay.shards);
+  const b = C.recordResult('l1boss', { won: true, roundsLost: 0, lifeLeft: 100, maxLife: 100 });   // now 3 stars: prizes of star 2 and 3
+  eq(b.stars, 3); eq(b.prizes.map((x) => x.star).join(), '2,3'); ok(b.card && b.packs.length === 1, 'pack + card prizes');
+  const c = C.recordResult('l1boss', { won: true, roundsLost: 0, lifeLeft: 100, maxLife: 100 });
+  eq(c.prizes.length, 0, 'every prize is paid once'); ok(C.bossPrizes('l1boss').every((x) => x.state === 'paid'));
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

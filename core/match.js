@@ -439,10 +439,11 @@
     // ================================================================ combat
     buildCombatSpec(pi) {
       const p = this.players[pi];
+      const grow = p.lineup && p.lineup.growth ? 1 + p.lineup.growth * (this.round - 1) : 1;   // long boss fights: the scripted enemy gets stronger every round
       return {
         heroId: p.heroId, life: p.life, maxLife: p.maxLife, summoned: p.summoned, heroSlot: p.heroSlot,
-        units: Object.entries(p.board).map(([slot, u]) => ({ uid: u.uid, defId: u.defId, star: u.star, items: u.items.slice(), slot, power: (p.cardPower && p.cardPower[u.defId]) || 1 })),
-        heroPower: (p.cardPower && p.cardPower[p.heroId]) || 1,
+        units: Object.entries(p.board).map(([slot, u]) => ({ uid: u.uid, defId: u.defId, star: u.star, items: u.items.slice(), slot, power: ((p.cardPower && p.cardPower[u.defId]) || 1) * grow })),
+        heroPower: ((p.cardPower && p.cardPower[p.heroId]) || 1) * grow,
         heroLevel: p.heroLevel || 1,
         spells: p.armedSpells.slice(),
         blessings: Object.assign({}, p.blessings),

@@ -36,6 +36,7 @@ for (const l of AMB.LEVELS.LEVELS) {
   if (only && l.id !== only) continue;
   const R = REF[l.id], prof = profile(R.lvl, R.owned), out = [];
   l.fights.forEach((f, i) => {
+    if (process.argv[4] === 'boss' && !f.boss) return;   // node tools/tune-campaign.js 30 l1 boss  -> only the boss
     let lo = 0.3, hi = 2.6;
     for (let it = 0; it < 7; it++) { const mid = (lo + hi) / 2; if (rate(prof, f, mid) > R.t[i]) lo = mid; else hi = mid; }
     f.power = Math.round(((lo + hi) / 2) * 100) / 100;

@@ -18,7 +18,7 @@
     version: 2,
     // cleared[fightId] = true; levelsDone[levelId] = true; stars[fightId] = best 1..3; chests = claimed chest ids;
     // stats per fight: { attempts, wins, best:{ lifeLeft, roundsLost } }
-    defaults: () => ({ cleared: {}, levelsDone: {}, stats: {}, stars: {}, chests: [] }),
+    defaults: () => ({ cleared: {}, levelsDone: {}, stats: {}, stars: {}, chests: [], bossPaid: {} }),   // bossPaid[fightId] = highest star whose prize was already paid
     // v1 had no stars: rate the best recorded result of every cleared fight (at least 1 star)
     migrate: (s) => {
       s.stars = s.stars || {};
@@ -78,8 +78,16 @@
         if (deps.events) deps.events.emit('chestOpened', out);
         return out;
       },
+      bossPaid: (fightId) => st().bossPaid[fightId] || 0,
+      /** boss prizes per star with their state: 'paid' | 'next' (the star you are after) | 'locked' */
+      bossPrizes(fightId) { const paid = api.bossPaid(fightId), got = api.stars(fightId); return LV().CAMPAIGN.rewards.bossStars.map((p, i) => Object.assign({ star: i + 1 }, p, { state: i < paid ? 'paid' : i === paid ? 'next' : 'locked', reached: i < got })); },
       rewardsFor(fightId) {
         const f = find(fightId), R = LV().CAMPAIGN.rewards;
+        if (f.fight.boss) {   // a boss pays by star, not by "first win"
+          const prizes = api.bossPrizes(fightId), left = prizes.filter((p) => p.state !== 'paid');
+          const lastOfLevel = f.level.fights.filter((x) => !api.isCleared(x.id)).length === 1;
+          return { boss: true, replay: !left.length, shards: left.length ? R.boss.shards : R.replay.shards, passXp: 0, prizes, pack: lastOfLevel ? R.level.pack : null };
+        }
         if (api.isCleared(fightId)) return { replay: true, shards: R.replay.shards, passXp: 0 };
         const base = f.fight.boss ? R.boss : R.fight;
         const lastOfLevel = f.level.fights.filter((x) => !api.isCleared(x.id)).length === 1;
@@ -95,11 +103,11 @@
         enemyPower[f.level.hero] = fight.power;
         return {
           mode: 'campaign', seed, progression: true,
-          rules: Object.assign({}, LV().CAMPAIGN.rules, { start: f.level.start }),
+          rules: Object.assign({}, boss ? LV().CAMPAIGN.bossRules : LV().CAMPAIGN.rules, { start: f.level.start }),
           players: [
             { heroId, name: 'أنت', cardPower: C ? C.powerMap() : null, allowedUnits: C ? C.playableUnits() : null, heroLevel: (globalThis.AMB.heroes ? AMB.heroes.level(heroId) : 1) },
             { heroId: f.level.hero, name: fight.name, isAI: true, cardPower: enemyPower,
-              lineup: { units: fight.units, summon: boss ? 'b1' : null, blessings: boss ? boss.blessings : null, abilities: boss ? boss.abilities : [] } },
+              lineup: { units: fight.units, growth: boss ? LV().CAMPAIGN.bossRules.growth : 0, summon: boss ? 'b1' : null, blessings: boss ? boss.blessings : null, abilities: boss ? boss.abilities : [] } },
           ],
         };
       },
@@ -110,7 +118,9 @@
         const won = !!res.won;
         const pay = won ? api.rewardsFor(fightId) : null;
         const stars = rate(res), prevStars = api.stars(fightId);
-        const out = { fightId, won, boss: !!f.fight.boss, first: !!(pay && !pay.replay), shards: 0, passXp: 0, pack: null, levelComplete: false,
+        const isBoss = !!f.fight.boss, paidBefore = api.bossPaid(fightId);
+        const newPrizes = isBoss && won ? LV().CAMPAIGN.rewards.bossStars.map((p, i) => Object.assign({ star: i + 1 }, p)).filter((p) => p.star > paidBefore && p.star <= stars) : [];
+        const out = { fightId, won, boss: isBoss, first: isBoss ? newPrizes.length > 0 : !!(pay && !pay.replay), shards: 0, passXp: 0, pack: null, packs: [], card: null, prizes: newPrizes, levelComplete: false,
           stars, prevStars, newBest: stars > prevStars, chestsBefore: api.readyChests() };
         save.update('campaign', (s) => {
           const x = (s.stats[fightId] = s.stats[fightId] || { attempts: 0, wins: 0, best: null });
@@ -121,9 +131,19 @@
           if (!x.best || cur.lifeLeft > x.best.lifeLeft) x.best = cur;
           s.cleared[fightId] = true;
           s.stars[fightId] = Math.max(s.stars[fightId] || 0, stars);
+          if (isBoss) s.bossPaid[fightId] = Math.max(s.bossPaid[fightId] || 0, stars);
           if (f.level.fights.every((ff) => s.cleared[ff.id]) && !s.levelsDone[f.level.id]) { s.levelsDone[f.level.id] = true; out.levelComplete = true; }
         });
-        if (pay) {
+        if (pay && isBoss) {
+          newPrizes.forEach((p) => {
+            if (p.shards && deps.wallet) { deps.wallet.add('shards', p.shards, 'campaign'); out.shards += p.shards; }
+            if (p.passXp && deps.addPassXp) { deps.addPassXp(p.passXp); out.passXp += p.passXp; }
+            for (let i = 0; i < (p.packs || 0); i++) if (deps.packs) out.packs.push(deps.packs.open('basic', { free: true }));
+            if (p.card && deps.collection) out.card = grantCard(p.card);
+          });
+          if (!newPrizes.length && deps.wallet) { const rp = LV().CAMPAIGN.rewards.replay.shards; deps.wallet.add('shards', rp, 'campaign'); out.shards = rp; }   // all prizes already paid: the small replay reward
+          if (out.levelComplete && pay.pack && deps.packs) out.pack = deps.packs.open(pay.pack, { free: true });
+        } else if (pay) {
           if (pay.shards && deps.wallet) { deps.wallet.add('shards', pay.shards, 'campaign'); out.shards = pay.shards; }
           if (pay.passXp && deps.addPassXp) { deps.addPassXp(pay.passXp); out.passXp = pay.passXp; }
           if (out.levelComplete && pay.pack && deps.packs) out.pack = deps.packs.open(pay.pack, { free: true });

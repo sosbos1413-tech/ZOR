@@ -2191,3 +2191,8 @@ body.newbie .menu-main { display: none; }
 .tcard.hc.cv3[class*="fr-"].full { filter: drop-shadow(0 0 2px var(--rc3)) drop-shadow(1px 3px 0 #000a); }
 .tcard.hc.cv3[class*="fr-"].full.r-epic { filter: drop-shadow(0 0 3px var(--rc3)) drop-shadow(1px 3px 0 #000a); }
 .tcard.hc.cv3[class*="fr-"].full.r-legendary { filter: drop-shadow(0 0 4px var(--rc3)) drop-shadow(1px 3px 0 #000a); }
+
+/* boss prizes, one row per star */
+.bp { display: flex; align-items: center; gap: 8px; padding: 4px 8px; margin: 3px 0; border: 2px solid #0004; background: #0000000f; font-size: 13px; text-align: start; }
+.bp-s { color: var(--gold2); font-size: 14px; letter-spacing: 1px; min-width: 46px; } .bp i { margin-inline-start: auto; font-style: normal; font-size: 11px; color: #2a8a3a; }
+.bp.next { border-color: var(--gold); background: #f2b3001f; } .bp.paid { opacity: .75; } .bp.locked { opacity: .55; }
