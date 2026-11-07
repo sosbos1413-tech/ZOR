@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="47ebc8997b">
+<meta name="zor-build" content="0213ac392d">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -2228,6 +2228,32 @@ body.newbie .menu-main { display: none; }
 .up-row{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border-radius:10px;padding:8px 10px}
 .up-row span{flex:1}.up-row i{opacity:.6;font-style:normal}.up-row .new{color:#7dffa0;font-size:17px}
 .up-row b{direction:ltr;unicode-bidi:isolate}
+
+/* ---- cards v5: no notched painted frame. a clean rounded edge, rarity shown as stars, legendary glows */
+.tcard.hc.cv3 { --notch: inset(0 round 7%); }
+.tcard.hc.cv3.full .hc-art { clip-path: inset(0 round 6%); }
+.tcard.hc.cv3 .hc-frame { clip-path: inset(0 round 7%); background: linear-gradient(160deg, var(--rc3), color-mix(in srgb, var(--rc3) 40%, #000)); }
+.tcard.hc.cv3.mini .hc-art { clip-path: inset(0 round 8%); }
+.tcard.hc.cv3.full .hc-gems { left: 0; right: 0; top: calc(3.5 * var(--u)); width: auto; justify-content: center; display: flex; gap: calc(.5 * var(--u)); font-size: calc(9 * var(--u)); line-height: 1; letter-spacing: 0; color: var(--rc3); text-shadow: 0 0 calc(3 * var(--u)) #000, 1px 1px 0 #000, -1px -1px 0 #000; z-index: 5; }
+.tcard.hc.cv3.full .hc-icons { top: calc(19 * var(--u)); }
+@keyframes legendglow { 0%,100% { filter: drop-shadow(0 0 8px #ffb02e) drop-shadow(0 0 2px #ffe08a) drop-shadow(2px 3px 0 #000); } 50% { filter: drop-shadow(0 0 20px #ffb02e) drop-shadow(0 0 7px #fff1b8) drop-shadow(2px 3px 0 #000); } }
+.tcard.hc.cv3.full.r-legendary, .tcard.hc.cv3.mini.r-legendary { animation: legendglow 2.2s ease-in-out infinite; }
+/* bigger cards in the collection, the upgrade popup and the in-match upgrade list */
+.cp-tile .tcard.hc.full { --hw: 150px; width: 150px; height: 210px; }
+.cp-bar { max-width: 150px; }
+.up-card .tcard.hc.full { --hw: 190px; width: 190px; height: 266px; }
+.upg-row { grid-template-columns: 84px 1fr auto; } .upg-row .portrait { width: 84px; height: 84px; }
+/* v5: drop the painted frames (the frame images stay in assets but are not drawn) */
+.tcard.hc.cv3[class*="fr-"]:not(.item) .hc-art { inset: calc(2.5 * var(--u, 1px)); border-radius: 6%; clip-path: inset(0 round 6%); -webkit-mask: none; mask: none; }
+.tcard.hc.cv3.mini[class*="fr-"]:not(.item) .hc-art { inset: 2.5cqw; }
+.tcard.hc.cv3[class*="fr-"]:not(.item) .hc-frame { background: linear-gradient(160deg, var(--rc3), color-mix(in srgb, var(--rc3) 35%, #000)); clip-path: inset(0 round 7%); border-radius: 7%; overflow: hidden; z-index: 0; }
+.tcard.hc.cv3[class*="fr-"]:not(.item) .hc-art { z-index: 1; }
+.tcard.hc.cv3[class*="fr-"].full.r-legendary { animation: legendglow 2.2s ease-in-out infinite; }
+.tcard.hc.cv3.full .hc-lvl { top: calc(3.5 * var(--u)); bottom: auto; left: calc(4 * var(--u)); transform: none; font-size: calc(8 * var(--u)); line-height: calc(11 * var(--u)); padding: 0 calc(3 * var(--u)); border-radius: calc(3 * var(--u)); border-width: 1.5px; }
+#modal .up-card .tcard.hc.cv3.full { --hw: 190px; width: 190px; height: 266px; }
+#collection .cp-tile .tcard.hc.full { zoom: 1; --hw: 140px; width: 140px; height: 196px; }
+.cp-bar { max-width: 140px; }
+#modal .up-card .tcard.hc.cv3.full { zoom: 1; --hw: 170px; width: 170px; height: 238px; }
 
 </style>
 </head>
@@ -7216,7 +7242,7 @@ AMB.IMAGES = {
   // Icon language: every fact on a card is a symbol, only numbers (and one short name) remain as text.
   const ART = AMB.art;
   const disc = (cls, iconName, title, tip) => `<span class="bd ${cls}" title="${esc(title || '')}" ${tip ? `data-act="tip" data-k="${tip[0]}" data-id="${tip[1]}"${tip[2] ? ` data-x="${tip[2]}"` : ''}` : ''}>${icon(iconName)}</span>`;
-  const gems = (n) => `<span class="gems t${n}">${icon('gem').repeat(n)}</span>`;
+  const gems = (n) => `<span class="gems t${n}">${'★'.repeat(n)}</span>`;
   const sv = (ic, v, cls) => `<span class="sv ${cls || ''}">${icon(ic)}<b>${v}</b></span>`;
 
   /** Fantasy-card look. 'full' = shop/codex card; 'mini' = board minion (oval portrait + attack/health discs). */

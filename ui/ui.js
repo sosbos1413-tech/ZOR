@@ -362,7 +362,7 @@
   // Icon language: every fact on a card is a symbol, only numbers (and one short name) remain as text.
   const ART = AMB.art;
   const disc = (cls, iconName, title, tip) => `<span class="bd ${cls}" title="${esc(title || '')}" ${tip ? `data-act="tip" data-k="${tip[0]}" data-id="${tip[1]}"${tip[2] ? ` data-x="${tip[2]}"` : ''}` : ''}>${icon(iconName)}</span>`;
-  const gems = (n) => `<span class="gems t${n}">${icon('gem').repeat(n)}</span>`;
+  const gems = (n) => `<span class="gems t${n}">${'★'.repeat(n)}</span>`;
   const sv = (ic, v, cls) => `<span class="sv ${cls || ''}">${icon(ic)}<b>${v}</b></span>`;
 
   /** Fantasy-card look. 'full' = shop/codex card; 'mini' = board minion (oval portrait + attack/health discs). */
