@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="c41f50e997">
+<meta name="zor-build" content="384639a701">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -4110,11 +4110,13 @@ body.newbie .menu-main { display: none; }
       const skip = (arr) => arr.filter((x) => !(p.summoned && p.heroSlot === x));
       const fs = skip(FR), bs = skip(BK);
       p.board = {};
-      front.forEach((u, i) => { p.board[fs[i] || bs.shift()] = u; });
-      back.forEach((u, i) => { p.board[bs[i] || fs.shift()] = u; });
-      const rest = all.filter((u) => !want.includes(u));
+      const spill = [];   // units that found no slot go to the bench instead of vanishing
+      const put = (u, first, second) => { const slot = first.shift() || second.shift(); if (slot) p.board[slot] = u; else spill.push(u); };
+      front.forEach((u) => put(u, fs, bs));
+      back.forEach((u) => put(u, bs, fs));
+      const rest = all.filter((u) => !Object.values(p.board).includes(u));
       p.bench = new Array(AMB.CONFIG.economy.benchSize).fill(null);
-      rest.forEach((u, i) => { if (i < p.bench.length) p.bench[i] = u; });
+      rest.forEach((u) => { const bi = p.bench.indexOf(null); if (bi >= 0) p.bench[bi] = u; else this._placeAnywhere(p, u); });
       return { ok: true };
     }
 

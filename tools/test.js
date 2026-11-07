@@ -1146,5 +1146,25 @@ t('hero levels: xp from matches, growing cost per level, power only in progressi
   ok(run(20) > run(1) * 1.8, 'summoned attack grows with level');
 });
 
+t('auto-arrange: never loses a unit, however often it is pressed, with or without the hero on the board', () => {
+  const heroes = Object.keys(AMB.DATA.HEROES);
+  for (let g = 0; g < 40; g++) {
+    const m = new AMB.Match({ mode: 'ai', seed: 500 + g, players: [{ heroId: heroes[g % 8], name: 'a' }, { heroId: heroes[(g + 1) % 8], name: 'b' }] });
+    m.startRound(); const p = m.players[0]; p.gold = 99; p.level = 3 + (g % 6);
+    for (let i = 0; i < 12; i++) { m.buy(0, i % 5); if (i % 5 === 4) m.reroll(0); }
+    m.allUnits(p).slice(0, p.level).forEach((u) => { if (!Object.values(p.board).includes(u)) m.move(0, u.uid, { zone: 'board', slot: ['f0', 'f1', 'f2', 'f3', 'b0', 'b1', 'b2', 'b3'].find((x) => !p.board[x]) }); });
+    if (g % 2) { const r = m.toggleSummon(0, ['f1', 'b1', 'f3', 'b3'][g % 4]); }
+    const total = m.allUnits(p).length, ids = m.allUnits(p).map((u) => u.uid).sort().join();
+    for (let k = 0; k < 6; k++) {
+      m.autoArrange(0);
+      eq(m.allUnits(p).length, total, `units lost after press ${k + 1} (game ${g}, level ${p.level}, hero ${p.summoned})`);
+      eq(m.allUnits(p).map((u) => u.uid).sort().join(), ids, 'same units');
+      ok(!('undefined' in p.board), 'no undefined slot');
+      if (p.summoned) ok(!p.board[p.heroSlot], 'hero slot stays free');
+      ok(Object.keys(p.board).length <= p.level, 'board within the level');
+    }
+  }
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

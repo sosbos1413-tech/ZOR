@@ -403,11 +403,13 @@
       const skip = (arr) => arr.filter((x) => !(p.summoned && p.heroSlot === x));
       const fs = skip(FR), bs = skip(BK);
       p.board = {};
-      front.forEach((u, i) => { p.board[fs[i] || bs.shift()] = u; });
-      back.forEach((u, i) => { p.board[bs[i] || fs.shift()] = u; });
-      const rest = all.filter((u) => !want.includes(u));
+      const spill = [];   // units that found no slot go to the bench instead of vanishing
+      const put = (u, first, second) => { const slot = first.shift() || second.shift(); if (slot) p.board[slot] = u; else spill.push(u); };
+      front.forEach((u) => put(u, fs, bs));
+      back.forEach((u) => put(u, bs, fs));
+      const rest = all.filter((u) => !Object.values(p.board).includes(u));
       p.bench = new Array(AMB.CONFIG.economy.benchSize).fill(null);
-      rest.forEach((u, i) => { if (i < p.bench.length) p.bench[i] = u; });
+      rest.forEach((u) => { const bi = p.bench.indexOf(null); if (bi >= 0) p.bench[bi] = u; else this._placeAnywhere(p, u); });
       return { ok: true };
     }
 
