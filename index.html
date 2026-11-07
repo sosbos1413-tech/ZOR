@@ -23,40 +23,23 @@
 
   <!-- ============ MAIN MENU ============ -->
   <section class="screen active" id="scr-menu">
-    <div class="menu-wrap">
-      <div class="logo">
-        <div class="logo-rift"></div>
-        <h1>ZOR</h1>
-        <p class="sub">Zones Of Rift · مناطق الصدع</p>
+    <div class="mv2" id="mv2">
+      <div class="mv2-bg" id="mv2-bg"></div>
+      <div class="mv2-top">
+        <div class="mv2-title"><b>ZOR</b><small>مناطق الصدع</small></div>
+        <button class="mv2-gift" data-act="loginOpen" id="menu-login"><i class="ico i-gift"></i><span class="mt-l">الدخول اليومي</span></button>
       </div>
-      <div class="menu-buttons">
-        <button class="btn big primary menu-cta" data-act="go" data-to="campaign" id="menu-campaign">الحملة</button>
-        <div class="menu-duo">
-          <button class="btn big" data-act="go" data-to="mode" id="menu-play">مباراة سريعة</button>
-          <button class="btn big" data-act="netMenu" id="menu-friend">ضد صاحبك</button>
-        </div>
+      <div class="mv2-stage"><div class="menu-heroes" id="menu-heroes"></div></div>
+      <div class="mv2-side">
+        <button class="mv2-sq" data-act="go" data-to="event" id="menu-event"><i class="ico i-pack"></i><span class="mt-l">الحدث</span></button>
+        <button class="mv2-sq" data-act="go" data-to="tower" id="menu-tower"><i class="ico i-tower"></i><span class="mt-l">البرج</span></button>
       </div>
-      <!-- the main places (they appear after the first campaign win) -->
-      <div class="menu-tiles menu-main">
-        <button class="mtile mt-prog" data-act="go" data-to="cards" id="menu-cards"><span class="mt-ic">🃏</span><span class="mt-l">مجموعتي</span></button>
-        <button class="mtile mt-prog" data-act="go" data-to="packs" id="menu-packs"><span class="mt-ic">📦</span><span class="mt-l">الباكجات</span></button>
-        <button class="mtile mt-prog" data-act="go" data-to="pass" id="menu-pass"><span class="mt-ic">🎖️</span><span class="mt-l">ممر الصدع</span></button>
-        <button class="mtile mt-prog" data-act="go" data-to="tower" id="menu-tower"><span class="mt-ic">🗼</span><span class="mt-l">البرج</span></button>
-        <button class="mtile mt-prog" data-act="go" data-to="event" id="menu-event"><span class="mt-ic">🌟</span><span class="mt-l">الحدث</span></button>
-        <button class="mtile mt-prog" data-act="loginOpen" id="menu-login"><span class="mt-ic">🎁</span><span class="mt-l">الدخول اليومي</span></button>
+      <div class="mv2-modes">
+        <button class="mv2-m" data-act="go" data-to="mode" id="menu-play"><b>⚔️</b>مباراة سريعة</button>
+        <button class="mv2-m" data-act="netMenu" id="menu-friend"><b>👥</b>ضد صاحبك</button>
       </div>
-      <!-- small stuff in a quiet row at the bottom -->
-      <div class="menu-dock">
-        <button class="dk" data-act="go" data-to="codex" id="menu-album"><span class="mt-ic">📖</span><span class="mt-l">الألبوم</span></button>
-        <button class="dk" data-act="go" data-to="stats"><span class="mt-ic">📊</span><span class="mt-l">الإحصائيات</span></button>
-        <button class="dk" data-act="howto"><span class="mt-ic">❓</span><span class="mt-l">كيف ألعب</span></button>
-        <button class="dk" data-act="saveOpen" id="menu-save"><span class="mt-ic">💾</span><span class="mt-l">الحفظ</span></button>
-        <button class="dk" data-act="rotate" id="menu-rotate"><span class="mt-ic">🔄</span><span class="mt-l">تدوير</span></button>
-        <button class="dk" data-act="sound" id="menu-sound"><span class="mt-ic">🔊</span><span class="mt-l">الصوت</span></button>
-      </div>
+      <button class="mv2-play" data-act="go" data-to="campaign" id="menu-campaign">الحملة</button>
       <p class="menu-newbie">ابدأ بالحملة: أول فوز يفتح لك الباكجات ومجموعتك وممر الصدع والجوائز اليومية.</p>
-      <div class="menu-heroes" id="menu-heroes"></div>
-      <p class="fineprint">كل العوالم والشخصيات أصلية. اللعبة تجريبية، وتقدمك ينحفظ في هالمتصفح.</p>
     </div>
   </section>
 
@@ -179,6 +162,21 @@
     <div class="codex" id="codex"></div>
   </section>
 
+<nav id="bnav">
+  <button data-act="go" data-to="menu" data-n="menu"><i class="ico i-home"></i><span>الرئيسية</span></button>
+  <button data-act="go" data-to="cards" id="menu-cards" data-n="cards"><i class="ico i-cards"></i><span class="mt-l">المجموعة</span></button>
+  <button data-act="go" data-to="packs" id="menu-packs" data-n="packs"><i class="ico i-pack"></i><span class="mt-l">الباكجات</span></button>
+  <button data-act="go" data-to="pass" id="menu-pass" data-n="pass"><i class="ico i-medal"></i><span class="mt-l">الممر</span></button>
+  <button data-act="more" id="bn-more" data-n="more"><i class="ico i-more"></i><span>المزيد</span></button>
+</nav>
+<div id="more-sheet">
+  <button class="dk" data-act="go" data-to="codex" id="menu-album"><span class="mt-ic">📖</span><span class="mt-l">الألبوم</span></button>
+  <button class="dk" data-act="go" data-to="stats"><span class="mt-ic">📊</span><span class="mt-l">الإحصائيات</span></button>
+  <button class="dk" data-act="howto"><span class="mt-ic">❓</span><span class="mt-l">كيف ألعب</span></button>
+  <button class="dk" data-act="saveOpen" id="menu-save"><span class="mt-ic">💾</span><span class="mt-l">الحفظ</span></button>
+  <button class="dk" data-act="rotate" id="menu-rotate"><span class="mt-ic">🔄</span><span class="mt-l">تدوير</span></button>
+  <button class="dk" data-act="sound" id="menu-sound"><span class="mt-ic">🔊</span><span class="mt-l">الصوت</span></button>
+</div>
   <div class="overlay" id="overlay"></div>
   <div class="modal-back" id="modal-back"><div class="modal" id="modal"></div></div>
   <div class="toasts" id="toasts"></div>

@@ -18,7 +18,7 @@ manifest = manifest.replace(/"(assets\/characters\/[^"]+\.(?:jpe?g|png|webp))"/g
 });
 
 // stylesheet (card frames referenced as url(../assets/frames/x.webp) are inlined as data URIs)
-const css = read('ui/style.css').replace(/url\((?:\.\.\/)?(assets\/frames\/[^)'"]+\.webp)\)/g, (m, f) => 'url(data:image/webp;base64,' + fs.readFileSync(path.join(root, f)).toString('base64') + ')');
+const css = read('ui/style.css').replace(/url\((?:\.\.\/)?(assets\/(?:frames|ui)\/[^)'"]+\.webp)\)/g, (m, f) => 'url(data:image/webp;base64,' + fs.readFileSync(path.join(root, f)).toString('base64') + ')');
 html = html.replace(/<link rel="stylesheet" href="ui\/style\.css">/, () => '<style>\n' + css + '\n</style>');
 // scripts, in page order
 html = html.replace(/<script src="([^"]+)"><\/script>/g, (m, src) => {

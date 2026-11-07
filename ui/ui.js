@@ -40,7 +40,11 @@
   function show(screen) {
     document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('active', s.id === 'scr-' + screen));
     S.screen = screen;
-    document.body.classList.toggle('in-match', screen === 'match');   // page scroll is locked only during a match
+    document.body.classList.toggle('in-match', screen === 'match');
+    document.body.dataset.nav = ['menu', 'cards', 'packs', 'pass', 'campaign', 'tower', 'event', 'mode', 'codex', 'stats'].includes(screen) ? '1' : '0';
+    document.body.classList.remove('more-open');
+    document.querySelectorAll('#bnav button').forEach((b) => b.classList.toggle('on', b.dataset.n === screen));
+    if (screen === 'menu') { try { fillMenu(); } catch (err) { reportErr(err); } }   // page scroll is locked only during a match
     window.scrollTo(0, 0);
     // every screen refreshes on its own: one that fails must never stop the others (or leave the player stuck)
     const T = (f) => { try { f(); } catch (err) { reportErr(err); } };
@@ -1366,6 +1370,7 @@
     summon: () => { if (prepActive() && res(S.match.toggleSummon(S.v))) { S.sel = null; toast(me().summoned ? 'البطل نزل الساحة' : 'البطل رجع لمركزه', 'good'); renderMatch(); } },
     detail: (d, el, e) => { e.stopPropagation(); unitDetail(d.id, d.star ? +d.star : 0); },
     upgrades: () => upgradesModal(),
+    more: () => { document.body.classList.toggle('more-open'); sfx('click'); },
     closeModal: () => { closeModal(); if (S._resumeAfterMenu) { ACT.resumeMenu(); } },
     pause: () => {
       if (S.mode === 'online') { toast('ما يصير توقف وأنت تلعب مع صاحبك', 'err'); return; }
@@ -1545,12 +1550,18 @@
     c.style.setProperty('--gx', x * 100 + '%'); c.style.setProperty('--gy', y * 100 + '%');
     S.tilt = c;
   });
-  // the four heroes on the main menu
-  (function fillMenu() {
+  // the main menu shows your hero big, on their world's colours
+  function fillMenu() {
     const el = $('menu-heroes');
-    if (el) el.innerHTML = Object.values(HEROES).filter((h) => AMB.DATA.HERO_STARTERS.includes(h.id)).map((h, i) => cardHTML(h, { k: 'menu' + i })).join('');
+    if (el) {
+      const A = globalThis.AMB, id = (A.collection && A.collection.starterHero && A.collection.starterHero()) || A.DATA.HERO_STARTERS[0], h = HEROES[id] || HEROES[A.DATA.HERO_STARTERS[0]];
+      el.innerHTML = `<div class="mv2-hero">${portrait(h, { bare: true, k: 'mhero' })}</div>`;
+      const bg = $('mv2-bg'), W = WORLDS[h.world];
+      if (bg) { bg.className = 'mv2-bg' + (h.world === 'tide' ? ' tide' : ''); bg.style.setProperty('--wc', W.color); }
+    }
     const ms = $('menu-sound'); if (ms) ms.querySelector('.mt-ic').textContent = SND.on ? '🔊' : '🔇';
-  })();
+  }
+  fillMenu();
 
   // debug / testing hook
   globalThis.AMB_UI = { renderHeroSelect, startCombat, afterReward, showResults, S, ACT, itemsHTML: () => Object.values(ITEMS).map((it) => itemCardHTML(it)).join(''), renderMatch, cardHTML, itemCardHTML, show, toast, sfx, burst, modal, closeModal, overlay, closeOverlay, startMatch, portrait, stars };
