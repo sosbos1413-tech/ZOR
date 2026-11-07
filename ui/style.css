@@ -2119,3 +2119,11 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 .field.ar-dungeon .rift-line { background: repeating-linear-gradient(90deg, #7a1a1a 0 14px, #e0262f 14px 18px, transparent 18px 24px); opacity: .9; filter: drop-shadow(0 0 4px #e0262f); }
 .field.ar-dungeon .cell { border-color: #ffb34744; background: #0000002a; }
 .field.ar-dungeon .cell.enemy { border-color: #c4141f77; }
+
+/* abandoned temple: cracked mossy stone slab with sun shafts; the carved rim is mostly outside the field, ferns and moss show at the corners */
+.field.ar-temple, .pv.arena.ar-temple { background-color: #4a5a4a; background-image: url(../assets/frames/arena-temple.webp); background-size: 168% 156%; background-position: center 48%; background-repeat: no-repeat; --rc: #d9c070; }
+.pv.arena.ar-temple { background-size: 100% 100%; background-position: center; }
+.field.ar-temple .rift-line { background: repeating-linear-gradient(90deg, #3a2a1a 0 12px, #d9c070 12px 16px, transparent 16px 22px); opacity: .9; }
+.field.ar-temple .cell { border-color: #2a3a2a88; background: #0000001c; }
+.field.ar-temple .cell.enemy { border-color: #8a1a1a88; }
+.field.ar-temple .cell:not(:has(.tcard)) svg, .field.ar-temple .cell:not(:has(.tcard)) .ic { color: #2a3a2a; opacity: .55; }
