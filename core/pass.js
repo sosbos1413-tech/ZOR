@@ -33,6 +33,7 @@
     arena: {
       default: { name: 'الساحة الأساسية' },
       tavern: { name: 'طاولة الخان' },
+      gambler: { name: 'طاولة القمار' },
       stardust: { name: 'غبار النجوم' },
       neongrid: { name: 'شبكة النيون' },
       moonwaves: { name: 'أمواج القمر' },
@@ -68,7 +69,7 @@
   const mk = (type, id, extra) => Object.assign({ type, id }, extra || {});
   const FREE = {
     1: mk('title', 't_recruit'), 2: mk('frame', 'bronze'), 3: mk('avatar', 'yuta'), 4: mk('arena', 'tavern'),
-    5: mk('perk', 'prep5', { sec: 5 }), 6: mk('fx', 'bluespark'), 7: mk('avatar', 'mitsuki'), 8: mk('title', 't_junior'),
+    5: mk('perk', 'prep5', { sec: 5 }), 6: mk('arena', 'gambler'), 7: mk('avatar', 'mitsuki'), 8: mk('title', 't_junior'),
     9: mk('frame', 'silver'), 10: mk('arena', 'neongrid'), 11: mk('avatar', 'kinoko'), 12: mk('fx', 'petals'),
     13: mk('arena', 'stardust'), 14: mk('avatar', 'mizuki'), 15: mk('perk', 'prep10', { sec: 5 }), 16: mk('frame', 'forest'),
     17: mk('arena', 'moonwaves'), 18: mk('title', 't_stars'), 19: mk('avatar', 'akane'), 20: mk('fx', 'goldrain'),

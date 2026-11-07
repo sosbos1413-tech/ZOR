@@ -2090,3 +2090,10 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 #scr-match .side .bslot .tcard.hc.cv3.mini .hc-atk b, #scr-match .side .bslot .tcard.hc.cv3.mini .hc-hp b { font-size: 9.5px; line-height: 1; font-family: var(--display); text-shadow: 1px 1px 0 #000; }
 #scr-match .side .bslot .tcard.hc.cv3.mini .hc-atk b.sm, #scr-match .side .bslot .tcard.hc.cv3.mini .hc-hp b.sm { font-size: 8px; }
 @media (max-width: 860px) and (orientation: portrait) { #scr-match .side .bslot { height: 60px; } }
+
+/* gambling table arena: green felt inside a dark walnut rim (the image is 2:3, the field a bit wider: cover + pushed out so the rim stays on the sides) */
+.field.ar-gambler, .pv.arena.ar-gambler { background-color: #123a22; background-image: url(../assets/frames/arena-gambler.webp); background-size: 118% 112%; background-position: center 45%; background-repeat: no-repeat; --rc: #d9b24a; }
+.pv.arena.ar-gambler { background-size: 100% 100%; background-position: center; }
+.field.ar-gambler .rift-line { background: repeating-linear-gradient(90deg, #d9b24a 0 14px, transparent 14px 20px); opacity: .85; }
+.field.ar-gambler .cell { border-color: #d9b24a55; background: #00000022; }
+.field.ar-gambler .cell.enemy { border-color: #c4141f66; }
