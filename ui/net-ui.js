@@ -18,14 +18,22 @@
   function loadPeerJS() {
     return new Promise((res, rej) => {
       if (globalThis.Peer) return res();
-      const s = document.createElement('script'); s.src = PEER_SRC; s.onload = () => res(); s.onerror = () => rej(new Error('load'));
-      document.head.appendChild(s); setTimeout(() => rej(new Error('timeout')), 12000);
+      const s = document.createElement('script'); s.src = PEER_SRC; s.onload = () => res(); s.onerror = () => rej(Object.assign(new Error('load'), { type: 'load' }));
+      document.head.appendChild(s); setTimeout(() => rej(Object.assign(new Error('load'), { type: 'load' })), 15000);
     });
   }
+  // STUN finds your public address; TURN relays the game when two phones cannot reach each other directly (mobile networks usually need it)
+  const ICE = { iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:global.stun.twilio.com:3478' },
+    { urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443', 'turn:openrelay.metered.ca:443?transport=tcp'], username: 'openrelayproject', credential: 'openrelayproject' },
+  ] };
   function openPeer(id) {
     return new Promise((res, rej) => {
-      const p = id ? new Peer(id, { debug: 0 }) : new Peer({ debug: 0 });
-      p.on('open', () => res(p)); p.on('error', rej); setTimeout(() => rej(new Error('timeout')), 12000);
+      const p = id ? new Peer(id, { debug: 0, config: ICE }) : new Peer({ debug: 0, config: ICE });
+      const to = setTimeout(() => rej(Object.assign(new Error('broker'), { type: 'broker' })), 15000);
+      p.on('open', () => { clearTimeout(to); res(p); }); p.on('error', (e) => { clearTimeout(to); rej(e); });
+      // the broker drops idle phones (screen off, app in background): reconnect so the room code keeps working
+      p.on('disconnected', () => { try { p.reconnect(); } catch (e) { /* ignore */ } });
     });
   }
   function wrapConn(conn) {
@@ -55,8 +63,9 @@
       const peer = await openPeer();
       return new Promise((res, rej) => {
         const conn = peer.connect('zor-' + code, { reliable: true });
-        const to = setTimeout(() => rej(new Error('timeout')), 12000);
+        const to = setTimeout(() => rej(Object.assign(new Error('connect'), { type: 'connect' })), 25000);   // found the room but cannot link the two phones
         peer.on('error', (e) => { clearTimeout(to); rej(e); });
+        conn.on('error', () => { clearTimeout(to); rej(Object.assign(new Error('connect'), { type: 'connect' })); });
         conn.on('open', () => { clearTimeout(to); res(wrapConn(conn)); });
       });
     },
@@ -99,12 +108,12 @@
     ui().modal(`<h2>جاري تجهيز الغرفة…</h2><p class="hint">لحظة</p>`);
     try {
       room = await transport().host();
-    } catch (e) { ui().modal(`<h2>ما قدرت أسوّي الغرفة</h2><p class="hint">تأكد من النت وجرّب مرة ثانية.</p><div class="net-btns"><button class="btn" data-act="closeModal">تمام</button></div>`); return; }
-    const code = room.code;
+    } catch (e) { ui().modal(`<h2>ما قدرت أسوّي الغرفة</h2><p class="hint">${explain(e)}</p><div class="net-btns"><button class="btn" data-act="closeModal">تمام</button></div>`); return; }
+    const code = room.code; keepAwake();
     ui().modal(`<h2>غرفتك جاهزة</h2><p class="hint">أعطِ صاحبك هالرمز، وخلّه يضغط «ادخل غرفة»:</p>
       <div class="net-code" dir="ltr">${code}</div>
       <div class="net-btns"><button class="btn" data-act="netCopy">نسخ الرمز</button><button class="btn" data-act="netShare">إرسال</button><button class="btn ghost" data-act="netCancel">إلغاء</button></div>
-      <p class="hint" id="net-status">ينتظر صاحبك…</p>`);
+      <p class="hint" id="net-status">ينتظر صاحبك… <b>لا تطفّي الشاشة ولا تطلع من اللعبة</b> لين يدخل</p>`);
     const myRoom = room;
     myRoom.linked.then((link) => { if (room !== myRoom) { link.close(); return; } room = null; connected(0, link); });
   }
@@ -120,10 +129,25 @@
     if (code.length < 4) { if (st) st.textContent = 'اكتب الرمز كامل'; return; }
     if (st) st.textContent = 'جاري الدخول…';
     try { const link = await transport().join(code); connected(1, link); }
-    catch (e) { if (st) st.textContent = (e && e.type === 'peer-unavailable') || (e && e.message === 'timeout') ? 'ما لقيت الغرفة. تأكد من الرمز وإن صاحبك فاتحها' : 'ما قدرت أتصل، جرّب مرة ثانية'; }
+    catch (e) { if (st) st.textContent = explain(e); }
   }
 
+  // say WHAT failed, so a bad code is not confused with a blocked network
+  function explain(e) {
+    const t = (e && (e.type || e.message)) || '';
+    if (t === 'peer-unavailable' || t === 'timeout') return 'ما لقيت الغرفة. تأكد من الرمز، وإن صاحبك فاتح نافذة «غرفتك جاهزة» وما طفى الشاشة';
+    if (t === 'load') return 'ما قدرت أحمّل خدمة الاتصال. النت عندك ممكن يحجبها، جرّب واي فاي أو شبكة ثانية';
+    if (t === 'broker' || t === 'network' || t === 'server-error' || t === 'socket-error' || t === 'socket-closed') return 'ما قدرت أوصل لخدمة الغرف. تأكد من النت، أو جرّب شبكة ثانية';
+    if (t === 'connect' || t === 'webrtc') return 'لقيت الغرفة بس ما قدرت أربط الجوالين. جرّبوا الاثنين على نفس الواي فاي، أو غيّروا الشبكة';
+    return 'ما قدرت أتصل (' + t + '). جرّب مرة ثانية';
+  }
+  // keep the phone awake while waiting in the room
+  let wake = null;
+  const keepAwake = async () => { try { if (navigator.wakeLock) wake = await navigator.wakeLock.request('screen'); } catch (e) { /* ignore */ } };
+  const letSleep = () => { try { if (wake) wake.release(); } catch (e) { /* ignore */ } wake = null; };
+
   function connected(idx, link) {
+    letSleep();
     const S = ui().S;
     S.net = fresh(idx, link);
     link.onmessage = onMessage;
@@ -247,7 +271,7 @@
     setTimeout(() => { try { n.link.close(); } catch (e) { /* ignore */ } }, 250);
     S.net = null;
   }
-  function cancelRoom() { if (room) { room.close(); room = null; } ui().closeModal(); }
+  function cancelRoom() { letSleep(); if (room) { room.close(); room = null; } ui().closeModal(); }
 
   function installActions() {
     const u = ui(); if (!u || u.ACT.netHost) return;
