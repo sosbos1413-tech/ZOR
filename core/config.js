@@ -90,7 +90,7 @@
       meleeRange: 1.15,
       moveSpeed: 1.3,
       assassinMoveSpeed: 2.2,
-      assassinLeapAt: 4.5,      // assassins jump to the enemy back line at this time
+      assassinLeapAt: 1.5,      // assassins jump to the enemy back line at this time
       critMult: 1.5,
       skillDefFactor: 0.5,      // skills ignore half of the target's defence
       maxDef: 0.7,

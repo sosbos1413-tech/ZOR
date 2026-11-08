@@ -35,7 +35,7 @@
   const ROLE_BASE = {
     guardian: { hp: 620, atk: 44, as: 0.6, range: 1, def: 0.25, crit: 0.05 },
     fighter: { hp: 540, atk: 60, as: 0.75, range: 1, def: 0.12, crit: 0.05 },
-    assassin: { hp: 420, atk: 68, as: 0.85, range: 1, def: 0.05, crit: 0.25 },
+    assassin: { hp: 420, atk: 62, as: 0.85, range: 1, def: 0.05, crit: 0.25 },
     mage: { hp: 470, atk: 46, as: 0.6, range: 3, def: 0, crit: 0.05 },
     marksman: { hp: 410, atk: 66, as: 0.75, range: 4, def: 0, crit: 0.1 },
     support: { hp: 630, atk: 47, as: 0.6, range: 3, def: 0.05, crit: 0.05 },

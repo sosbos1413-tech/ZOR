@@ -856,6 +856,14 @@ t('desync fingerprint includes each phone\'s own unit pool (online), so a pool d
   B.players[1].pool.ash_ronin -= 1;
   ok(AMB.NetSync.hash(A) !== AMB.NetSync.hash(B), 'a pool difference changes the fingerprint');
 });
+t('role contract: an assassin commits to the dive early and goes for the back line; guardians and fighters hold the front; ranged units hold their row', () => {
+  const c = new AMB.Combat([side([U('grid_hound', 'f1'), U('moss_warden', 'f2'), U('ash_ronin', 'f0'), U('pixel_sniper', 'b1')]), side([U('forge_bulwark', 'f1'), U('wave_caller', 'b1'), U('caldera_seer', 'b2')])], { seed: 12, round: 1 });
+  const by = (d) => c.fighters.find((f) => f.defId === d && f.side === 0);
+  const y0 = { g: by('moss_warden').y, f: by('ash_ronin').y, s: by('pixel_sniper').y };
+  const dt = 0.05; let t = 0; while (t < 2.5 && !c.over) { c.step ? c.step(dt) : c.update(dt); t += dt; }
+  ok(by('grid_hound').leaped, 'assassin leapt by 2.5s'); ok(by('grid_hound').y > 3, 'and stands in the enemy back line');
+  ok(Math.abs(by('moss_warden').y - y0.g) < 1.5, 'guardian stays at the front'); ok(Math.abs(by('pixel_sniper').y - y0.s) < 1.2, 'marksman holds its row');
+});
 t('album: world set reward is claimable once, gives shards + title + frame (equippable in the pass)', () => {
   const prof = AMB.Profile.boot(MEM()), A = prof.album;
   const pass = AMB.Pass.create(prof.save.storageFor('pass'), null, null, (type) => A.ownedCosmetics(type));
