@@ -1177,6 +1177,8 @@ t('hero levels: xp from matches, growing cost per level, power only in progressi
   const quick = new AMB.Match({ mode: 'ai', players: [{ heroId: 'kagira', name: 'a', heroLevel: 20 }, { heroId: 'merin', name: 'b' }] });
   eq(quick.players[0].heroLevel, 20, 'quick matches count the hero level');
   eq(new AMB.Match({ mode: 'hotseat', players: [{ heroId: 'kagira', name: 'a' }, { heroId: 'merin', name: 'b' }] }).players[0].heroLevel, 1, 'hotseat stays even');
+  const hi = new AMB.Match({ mode: 'ai', players: [{ heroId: 'kagira', name: 'a', heroLevel: 11 }, { heroId: 'merin', name: 'b' }] });
+  eq(hi.players[0].maxLife, 110, 'hero level adds life (+1 per level)'); eq(hi.players[0].life, 110); eq(hi.players[1].maxLife, 100, 'level 1 = 100');
   // a higher level really fights better: same fight, level 1 vs level 20 summoned hero
   const run = (lv) => { const m = new AMB.Match({ mode: 'campaign', progression: true, seed: 9, players: [{ heroId: 'kagira', name: 'a', heroLevel: lv }, { heroId: 'merin', name: 'b' }] });
     m.startRound(); m.players[0].summoned = true; const c = m.createCombat(false); return c.fighters.find((f) => f.isHero && f.side === 0).atk; };

@@ -11,6 +11,7 @@
     version: '0.1.0',
 
     match: {
+      heroLifePerLevel: 1,   // +1 hero life per hero level above 1 (the profile's hero level; online, quick vs AI and progression fights)
       heroLife: 100,            // life total of every hero
       prepSeconds: 40,          // prep timer (shop + formation) vs AI
       hotseatPrepSeconds: 45,   // prep timer per player in same-device PvP

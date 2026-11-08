@@ -21,7 +21,7 @@
   }
   function tile(id) {
     const d = C.def(id), owned = C.owned(id), lv = C.level(id), need = C.needed(id), have = C.copies(id), max = C.isMax(id);
-    const card = UI().cardHTML(d, { k: 'col' + id, lvl: owned ? lv : 0, pow: owned ? (d.role ? C.power(id) : (AMB.heroes ? AMB.heroes.power(id).atk : 1)) : 1, cls: owned ? '' : 'unowned', attrs: `data-act="${d.role ? 'detail' : 'heroInfo'}" data-id="${id}"` });
+    const card = UI().cardHTML(d, { k: 'col' + id, lvl: owned ? (d.role || !AMB.heroes ? lv : AMB.heroes.level(id)) : 0, pow: owned && d.role ? C.power(id) : 1, cls: owned ? '' : 'unowned', attrs: `data-act="${d.role ? 'detail' : 'heroInfo'}" data-id="${id}"` });
     const bar = max ? '<div class="cp-bar max"><i style="width:100%"></i><span>المستوى الأقصى ✓</span></div>'
       : `<div class="cp-bar ${have >= need ? 'ready' : ''}"><i style="width:${pct(have, need)}%"></i><span>نسخ ${have}/${need}</span></div>`;
     const gain = Math.round(AMB.ECONOMY.cards.levelBonus * 100);

@@ -15,7 +15,7 @@
     return {
       index: i, name: opts.name || `لاعب ${i + 1}`, heroId: hero.id, isAI: !!opts.isAI,
       aiStyle: opts.aiStyle || 'balanced', difficulty: opts.difficulty || 'normal',
-      life: AMB.CONFIG.match.heroLife, maxLife: AMB.CONFIG.match.heroLife,
+      life: AMB.CONFIG.match.heroLife + Math.max(0, (opts.heroLevel || 1) - 1) * (AMB.CONFIG.match.heroLifePerLevel || 0), maxLife: AMB.CONFIG.match.heroLife + Math.max(0, (opts.heroLevel || 1) - 1) * (AMB.CONFIG.match.heroLifePerLevel || 0),
       gold: 0, xp: 0, level: E.startLevel, essence: E.essenceStart,
       bench: new Array(E.benchSize).fill(null),
       board: {},            // slot -> unit

@@ -383,13 +383,16 @@
     let pw = o.pow;
     if (pw == null && !isHero && S.screen === 'match' && S.match && S.match.players && S.match.players[S.v] && S.match.players[S.v].cardPower) pw = S.match.players[S.v].cardPower[def.id];
     pw = pw || 1;
+    // a hero card outside a match shows the profile's hero level: life +1 per level, summoned attack +5% per level
+    const hLv = isHero && o.life == null && S.screen !== 'match' && S.mode !== 'hotseat' && S.mode !== 'online' && AMB.heroes ? AMB.heroes.level(def.id) : 1;
+    if (isHero && hLv > 1) pw = pw * AMB.heroes.power(def.id).atk;
     const atk = isHero ? Math.round(def.board.atk * pw) : Math.round(cardStats(def, star).atk * pw);
-    const hp = isHero ? (o.life != null ? o.life : 100) : Math.round(cardStats(def, star).hp * pw);
+    const hp = isHero ? (o.life != null ? o.life : CFG.match.heroLife + (hLv - 1) * (CFG.match.heroLifePerLevel || 0)) : Math.round(cardStats(def, star).hp * pw);
     const upCls = pw > 1.001 ? ' up' : '';
     const numCls = (n) => (String(n).length > 3 ? ' class="sm"' : '');
     const tp = (k, id, x) => (o.size === 'mini' ? '' : ` data-act="tip" data-k="${k}" data-id="${id}"${x ? ` data-x="${x}"` : ''}`);   // full cards: every badge explains itself when tapped
     const atkBd = `<span class="hc-atk${upCls}"${tp('atk', def.id, star)}>${icon('sword')}<b${numCls(atk)}>${atk}</b></span>`;
-    const hpBd = `<span class="hc-hp${isHero ? '' : upCls}"${tp('hp', def.id, star)}>${icon('heart')}<b${numCls(hp)}>${hp}</b></span>`;
+    const hpBd = `<span class="hc-hp${isHero ? (hLv > 1 ? ' up' : '') : upCls}"${tp('hp', def.id, star)}>${icon('heart')}<b${numCls(hp)}>${hp}</b></span>`;
     const T3 = (k, id) => (o.size === 'mini' ? null : [k, id]);
     const roleD = isHero ? disc('role hero', 'crown', 'بطل', T3('herorole', def.id)) : disc('role', ART.ROLE_ICON[def.role], ROLES[def.role].name, T3('role', def.id));
     if (o.size === 'mini') {
@@ -1136,7 +1139,7 @@
     const pr = AMB.heroes.progress(id), rk = AMB.heroes.rank(id), pw = AMB.heroes.power(id);
     return `<div class="hlv" style="--rk:${rk.color}"><b>مستوى ${pr.level}</b><span class="hlv-rank">${rk.name}</span>
       <span class="hlv-bar"><i style="width:${pr.max ? 100 : Math.round(100 * pr.inLevel / pr.need)}%"></i></span><small>${pr.max ? 'أعلى مستوى' : `${pr.inLevel}/${pr.need}`}</small>
-      ${pr.level > 1 ? `<div class="hlv-pw">نزوله للساحة +${Math.round((pw.atk - 1) * 100)}% هجوم · شكله +${Math.round((pw.vanguard - 1) * 100)}% · قدراته +${Math.round((pw.ability - 1) * 100)}%</div>` : ''}</div>`;
+      ${pr.level > 1 ? `<div class="hlv-pw">حياته +${pr.level - 1} · نزوله للساحة +${Math.round((pw.atk - 1) * 100)}% هجوم · شكله +${Math.round((pw.vanguard - 1) * 100)}% · قدراته +${Math.round((pw.ability - 1) * 100)}%</div>` : ''}</div>`;
   }
 
   // ======================================================================= results / stats / codex
