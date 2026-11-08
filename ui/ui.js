@@ -379,12 +379,17 @@
     const sc = isHero ? '' : ' s' + star;
     const sel = o.sel ? ' sel' : '';
     const attrs = o.attrs || '';
-    const atk = isHero ? def.board.atk : cardStats(def, star).atk;
-    const hp = isHero ? (o.life != null ? o.life : 100) : cardStats(def, star).hp;
+    // card level / rarity (and hero level) power only exists in progression fights: show the real numbers where they count
+    let pw = o.pow;
+    if (pw == null && !isHero && S.screen === 'match' && S.match && S.match.players && S.match.players[S.v] && S.match.players[S.v].cardPower) pw = S.match.players[S.v].cardPower[def.id];
+    pw = pw || 1;
+    const atk = isHero ? Math.round(def.board.atk * pw) : Math.round(cardStats(def, star).atk * pw);
+    const hp = isHero ? (o.life != null ? o.life : 100) : Math.round(cardStats(def, star).hp * pw);
+    const upCls = pw > 1.001 ? ' up' : '';
     const numCls = (n) => (String(n).length > 3 ? ' class="sm"' : '');
     const tp = (k, id, x) => (o.size === 'mini' ? '' : ` data-act="tip" data-k="${k}" data-id="${id}"${x ? ` data-x="${x}"` : ''}`);   // full cards: every badge explains itself when tapped
-    const atkBd = `<span class="hc-atk"${tp('atk', def.id, star)}>${icon('sword')}<b${numCls(atk)}>${atk}</b></span>`;
-    const hpBd = `<span class="hc-hp"${tp('hp', def.id, star)}>${icon('heart')}<b${numCls(hp)}>${hp}</b></span>`;
+    const atkBd = `<span class="hc-atk${upCls}"${tp('atk', def.id, star)}>${icon('sword')}<b${numCls(atk)}>${atk}</b></span>`;
+    const hpBd = `<span class="hc-hp${isHero ? '' : upCls}"${tp('hp', def.id, star)}>${icon('heart')}<b${numCls(hp)}>${hp}</b></span>`;
     const T3 = (k, id) => (o.size === 'mini' ? null : [k, id]);
     const roleD = isHero ? disc('role hero', 'crown', 'بطل', T3('herorole', def.id)) : disc('role', ART.ROLE_ICON[def.role], ROLES[def.role].name, T3('role', def.id));
     if (o.size === 'mini') {

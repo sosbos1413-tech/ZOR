@@ -2286,3 +2286,5 @@ body:not([data-nav="1"]) #more-sheet { display: none !important; }
 html, body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: text; user-select: text; }
 .mv2 .menu-newbie { display: none !important; }
+/* numbers raised by card level, rarity or hero level show green */
+.hc-atk.up b, .hc-hp.up b { color: #7dffa0 !important; text-shadow: 0 0 6px #1b6b34, 1px 1px 0 #000; }

@@ -21,7 +21,7 @@
   }
   function tile(id) {
     const d = C.def(id), owned = C.owned(id), lv = C.level(id), need = C.needed(id), have = C.copies(id), max = C.isMax(id);
-    const card = UI().cardHTML(d, { k: 'col' + id, lvl: owned ? lv : 0, cls: owned ? '' : 'unowned', attrs: `data-act="${d.role ? 'detail' : 'heroInfo'}" data-id="${id}"` });
+    const card = UI().cardHTML(d, { k: 'col' + id, lvl: owned ? lv : 0, pow: owned ? (d.role ? C.power(id) : (AMB.heroes ? AMB.heroes.power(id).atk : 1)) : 1, cls: owned ? '' : 'unowned', attrs: `data-act="${d.role ? 'detail' : 'heroInfo'}" data-id="${id}"` });
     const bar = max ? '<div class="cp-bar max"><i style="width:100%"></i><span>المستوى الأقصى ✓</span></div>'
       : `<div class="cp-bar ${have >= need ? 'ready' : ''}"><i style="width:${pct(have, need)}%"></i><span>نسخ ${have}/${need}</span></div>`;
     const gain = Math.round(AMB.ECONOMY.cards.levelBonus * 100);
@@ -96,7 +96,7 @@
         const row = (n, a, b) => `<div class="up-row"><span>${n}</span><b>${a}</b><i>←</i><b class="new">${b}</b></div>`;
         const rows = (d0.hp ? row('❤️ الصحة', g(d0.hp, p0), g(d0.hp, p1)) + row('⚔️ الهجوم', g(d0.atk, p0), g(d0.atk, p1)) : '') + row('📈 القوة في الحملة', '+' + Math.round((p0 - 1) * 100) + '%', '+' + Math.round((p1 - 1) * 100) + '%');
         const nx = C.isMax(id) ? 'وصلت المستوى الأقصى ✓' : `للمستوى التالي: ${C.copies(id)}/${C.needed(id)} نسخ`;
-        ui.modal(`<h2>تطوّرت ${d0.name}!</h2><div class="up-card">${ui.cardHTML(d0, { k: 'up' + id, lvl: lv })}</div>
+        ui.modal(`<h2>تطوّرت ${d0.name}!</h2><div class="up-card">${ui.cardHTML(d0, { k: 'up' + id, lvl: lv, pow: C.power(id) })}</div>
           <div class="up-lv">المستوى ${before} ← <b>${lv}</b></div><div class="up-rows">${rows}</div>
           <p class="hint">كل مستوى يزيد الصحة والهجوم +${Math.round(c * 100)}%. السرعة والمدى ما تتغير. ينحسب في الحملة والبرج والأحداث بس.</p><p class="hint">${nx}</p>`);
         render();
