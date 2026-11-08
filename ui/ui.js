@@ -352,7 +352,7 @@
       : S.mode === 'hotseat' ? `الجولة ${m.round}: فاز ${esc(m.players[rep.winner].name)}`
       : over ? (rep.winner === mi ? 'فزت بالمباراة! 🎉' : 'خسرت المباراة')
       : `الجولة ${m.round}: ${rep.winner === mi ? 'فزت' : 'خسرت'}`;
-    const whyTxt = S.mode !== 'hotseat' && rep.winner === 1 - mi ? (me0.exposed ? 'سقط خط الدفاع وانكشف بطلك' : 'العدو كان أقوى هالجولة') : '';
+    const whyTxt = S.mode !== 'hotseat' && rep.winner === 1 - mi ? (me0.exposed ? 'سقط خط الدفاع عندك' : 'العدو كان أقوى هالجولة') : '';
     overlay(`<div class="ov-card rr ${cls}"><div class="rr-title">${title}</div><div class="rr-big">${icon(rep.winner === null ? 'swap' : cls === 'lose' ? 'skull' : 'crown')}</div>
       <div class="rr-row">${side(0)}<div class="rr-vs">${icon('sword')}</div>${side(1)}</div>${why}${whyTxt ? `<div class="rr-note">${whyTxt}</div>` : ''}${rep.finale ? `<div class="rr-why">${icon('flame')} ×${CFG.match.finaleLossMult}</div>` : ''}
       <button class="btn primary big rr-go" data-act="${over ? 'toResults' : m.rewardPending ? 'rewards' : 'nextRound'}">${over ? 'النتيجة' : m.rewardPending ? 'اختر مكافأتك' : 'الجولة الجاية'}</button></div>`);
@@ -654,7 +654,7 @@
       } else if (e.type === 'heroAbility' || e.type === 'spell') {
         addFloat(50, e.side === S.combatViewer ? 62 : 38, (e.type === 'spell' ? '✦ ' : '⚡ ') + e.name, 'big');
       } else if (e.type === 'exposed') {
-        addFloat(50, e.side === S.combatViewer ? 84 : 16, 'سقط خط الدفاع، البطل صار مكشوف!', 'big');
+        addFloat(50, e.side === S.combatViewer ? 84 : 16, 'سقط خط الدفاع!', 'big');
       } else if (e.type === 'assault') {
         addFloat(50, e.side === S.combatViewer ? 80 : 20, 'يهجمون على البطل!', 'big');
       } else if (e.type === 'retreat') {
@@ -916,7 +916,7 @@
     const sc = m.players[1 - S.v].lineup ? m.buildCombatSpec(1 - S.v) : m.scout[1 - S.v];
     const oppSyn = sc ? AMB.synergy.evaluate(sc.units, sc.heroId).list.filter((x) => x.activeTier >= 0) : [];
     const timeline = m.history.map((r) => `<span class="${r.winner === null ? 'wd' : r.winner === S.v ? 'w0' : 'w1'}">${r.round}</span>`).join('');
-    AMB.TIPS.guard = () => ({ title: 'حماية البطل', html: '<p>طول ما عندك وحدة حية في الصف الأمامي، <b>العدو ما يقدر يضرب بطلك</b>. وإذا سقطت كلها ينكشف البطل ويتضرر.</p><p>القتلة يقفزون للصف الخلفي بس ما يقدرون يضربون البطل وهو محمي. وإذا نزّلت بطلك الساحة ياخذ الضرر كامل.</p>' });
+    AMB.TIPS.guard = () => ({ title: 'حماية البطل', html: '<p>طول ما عندك <b>أي وحدة حية على الساحة</b>، العدو ما يقدر يضرب بطلك. وإذا سقطت كلها ينكشف البطل ويتضرر. (سقوط الصف الأمامي بس يفعّل قدراتك «عند انكشاف الخط».)</p><p>القتلة يقفزون للصف الخلفي بس ما يقدرون يضربون البطل وهو محمي. وإذا نزّلت بطلك الساحة ياخذ الضرر كامل.</p>' });
     const guard = heroFront || front === 0 ? `<button class="guard risk" data-act="info" data-k="guard">${icon('warn')}</button>` : `<button class="guard safe" data-act="info" data-k="guard">${icon('shield')}<b>${front}</b></button>`;
     $('panel-left').innerHTML = `
       <section class="rail-guard">${guard}</section>
@@ -1098,7 +1098,7 @@
       <div class="skillbox"><b>المتجر:</b> اشتر الوحدات بالذهب، وحدّث العروض (${CFG.economy.rerollCost} ذهب)، واشتر خبرة عشان ترفع المستوى (المستوى = عدد الوحدات اللي تحطها في الساحة). والفايدة: +1 عن كل ${CFG.economy.interestPer} ذهب موفّر (لين ${CFG.economy.interestMax}). وسلسلة الفوز أو الخسارة تعطيك ذهب زيادة.</div>
       <div class="skillbox"><b>التطوير:</b> ${CFG.stars.copiesPerStar} نسخ متطابقة = نجمة زيادة، وتنحسب لحالها.</div>
       <div class="skillbox"><b>الساحة:</b> صف أمامي (خط الدفاع) وصف خلفي. الحراس والمقاتلين قدّام، والسحرة والقناصة والدعم ورا. القتلة يقفزون للصف الخلفي عند العدو.</div>
-      <div class="skillbox"><b>البطل:</b> يبقى خلف صفوفك وما أحد يقدر يضربه طول ما عندك وحدة حية في الصف الأمامي. وإذا سقط خط الدفاع ينكشف. تقدر تنزّله الساحة يقاتل بنفسه، وهذا مكسب كبير بس فيه مخاطرة.</div>
+      <div class="skillbox"><b>البطل:</b> يبقى خلف صفوفك وما أحد يقدر يضربه طول ما عندك أي وحدة حية على الساحة. وإذا سقطت كلها ينكشف. تقدر تنزّله الساحة يقاتل بنفسه، وهذا مكسب كبير بس فيه مخاطرة.</div>
       <div class="skillbox"><b>القدرات:</b> جهّز قدرات البطل واختر متى تشتغل (بداية القتال، بعد 5 ثواني، لما يسقط أول واحد من فريقك، أو لما ينكشف البطل). وتخسّر جوهر.</div>
       <div class="skillbox"><b>التآزر:</b> وحدات من نفس العالم أو نفس الدور تعطيك مكافآت. ووحدات عالم بطلك تاخذ رنين. وإذا جمعت 3 أو 4 عوالم مختلفة يشتغل «تقارب العوالم» عشان التشكيلة المختلطة ما تكون أضعف.</div>
       <div class="skillbox"><b>المراحل والمكافآت:</b> المباراة ${CFG.match.maxRounds} جولات في 4 مراحل: ${CFG.match.stages.map((x) => x.name + ' (' + (x.rounds[0] === x.rounds[1] ? 'الجولة ' + x.rounds[0] : 'الجولتان ' + x.rounds[0] + '–' + x.rounds[1]) + ')').join('، ')}. بعد كل مرحلة (عدا الأخيرة) تختار <b>مكافأة من 3</b>: وحدة مجانية، ذهب، خبرة، جوهر، معدة، <b>بركة دائمة</b> للفريق، أو شفاء للبطل. جولة الحسم تضاعف خسارة الحياة ×${CFG.match.finaleLossMult}. وإذا ما سقط أي بطل قبلها يفوز اللي حياته أعلى. وداخل القتال الضرر يزيد بعد ${CFG.combat.furyStart} ثانية (الغضب).</div>`);

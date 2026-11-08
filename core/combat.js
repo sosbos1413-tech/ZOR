@@ -42,7 +42,7 @@
       this.events = [];
       this.fighters = [];
       this.sides = [0, 1].map((s) => ({
-        spec: specs[s], deaths: 0, exposed: false, exposedAt: null, abilities: [], spellsTimed: [],
+        spec: specs[s], deaths: 0, exposed: false, exposedAt: null, frontDown: false, frontDownAt: null, abilities: [], spellsTimed: [],
         hero: null, synergy: null, blazing: false,
       }));
       this.assault = null;
@@ -185,19 +185,26 @@
       return this.sides[e.side].exposed;
     }
 
+    // The hero is protected by EVERY living unit of its side: it can only be hit once the whole field is dead (or when it stands in the front row itself).
+    // `frontDown` (the front row fell) is separate: it drives the "defence line fell" banner, the "when exposed" abilities and Kagira's blazing will.
     _updateExposure(initial) {
       [0, 1].forEach((s) => {
         const side = this.sides[s];
         const front = this.fighters.some((f) => f.side === s && f.alive && !f.isHero && f.row === 'front');
-        if (!front && !side.exposed) {
-          side.exposed = true;
-          side.exposedAt = this.t;
+        if (!front && !side.frontDown) {
+          side.frontDown = true;
+          side.frontDownAt = this.t;
           this.emit({ type: 'exposed', side: s });
           if (this.sides[s].spec && AMB.DATA.HEROES[this.sides[s].spec.heroId].passive.id === 'blazing_will' && !side.blazing) {
             side.blazing = true;
             this.sideFighters(s).forEach((a) => a.buffs.push({ atkPct: 0.25, until: Infinity }));
             this.emit({ type: 'heroAbility', side: s, name: 'إرادة متقدة' });
           }
+        }
+        if (!side.exposed && !this.fighters.some((f) => f.side === s && f.alive && !f.isHero)) {
+          side.exposed = true;
+          side.exposedAt = this.t;
+          this.emit({ type: 'heroExposed', side: s });
         }
       });
     }
@@ -426,7 +433,7 @@
           if (ab.fired) return;
           const tr = ab.trigger;
           if ((tr === 'start') || (tr === 't5' && this.t >= 5) ||
-              (tr === 'firstDeath' && side.deaths >= 1) || (tr === 'exposed' && side.exposed)) this._fireAbility(s, ab);
+              (tr === 'firstDeath' && side.deaths >= 1) || (tr === 'exposed' && side.frontDown)) this._fireAbility(s, ab);
         });
         side.spellsTimed.forEach((st) => { if (!st.fired && this.t >= st.at) this._fireSpell(s, st); });
       });
@@ -531,7 +538,7 @@
         heroKilled: !sd.hero.alive,
         survivors: this.fighters.filter((f) => f.side === s && f.alive && !f.isHero).map((f) => ({ defId: f.defId, star: f.star })),
         abilitiesFired: sd.abilities.filter((a) => a.fired).map((a) => a.def.id),
-        exposed: sd.exposed,
+        exposed: !!sd.frontDown,
       }));
       const unitDamage = {};
       this.fighters.forEach((f) => { if (!f.isHero) unitDamage[f.uid] = Math.round(f.dmgDealt); });

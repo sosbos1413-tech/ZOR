@@ -23,16 +23,17 @@ t('hero is untargetable while a front-row ally lives', () => {
   const hound = c.fighters.find((f) => f.defId === 'grid_hound');
   ok(!hound.target || !hound.target.isHero, 'assassin targeted protected hero');
 });
-t('hero becomes exposed when the front line falls', () => {
+t('the hero is protected by every living unit: exposed only when the whole field is dead (the front line falling just flags frontDown)', () => {
   const c = new AMB.Combat([side([U('moss_warden', 'f1'), U('pixel_sniper', 'b1')]), side([U('chrome_ronin', 'f1', 3)])], { seed: 2, round: 1 });
-  const warden = c.fighters.find((f) => f.defId === 'moss_warden');
+  const warden = c.fighters.find((f) => f.defId === 'moss_warden'), sniper = c.fighters.find((f) => f.defId === 'pixel_sniper');
   c.damage(null, warden, 1e6);
-  ok(c.sides[0].exposed, 'side should be exposed');
-  ok(c.targetable(c.sides[0].hero), 'exposed hero should be targetable');
+  ok(c.sides[0].frontDown, 'front line fell'); ok(!c.sides[0].exposed, 'hero still protected by the back row'); ok(!c.targetable(c.sides[0].hero), 'hero must not be targetable');
+  c.damage(null, sniper, 1e6);
+  ok(c.sides[0].exposed, 'whole field dead => exposed'); ok(c.targetable(c.sides[0].hero), 'exposed hero should be targetable');
 });
-t('no front row => exposed from the start', () => {
+t('no front row: the front-down flag is up from the start, the hero stays protected by the back row', () => {
   const c = new AMB.Combat([side([U('pixel_sniper', 'b1')]), side([U('grid_hound', 'f1')])], { seed: 3, round: 1 });
-  ok(c.sides[0].exposed);
+  ok(c.sides[0].frontDown); ok(!c.sides[0].exposed);
 });
 t('summoned hero in the front row is always targetable', () => {
   const c = new AMB.Combat([side([U('moss_warden', 'f2')], { summoned: true, heroSlot: 'f1' }), side([U('grid_hound', 'f1')])], { seed: 4, round: 1 });
