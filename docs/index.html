@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="aa0344681e">
+<meta name="zor-build" content="419d182728">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -2308,6 +2308,25 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
 .mv2 .menu-newbie { display: none !important; }
 /* numbers raised by card level, rarity or hero level show green */
 .hc-atk.up b, .hc-hp.up b { color: #7dffa0 !important; text-shadow: 0 0 6px #1b6b34, 1px 1px 0 #000; }
+
+/* ===== album as a storybook: one page per world, flip with arrows / swipe, claim-all at the end of the page ===== */
+.al-book { position: relative; margin: 10px auto 0; max-width: 560px; border-radius: 14px; padding: 10px 10px 14px; background: linear-gradient(#e9dcc0, #dccaa4); color: #2a1a10; border: 3px solid #3a2616; box-shadow: 0 0 0 3px var(--wc), 0 10px 0 #000a, inset 0 0 40px #8a6a3a55; }
+.al-pagehead { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 2px solid #3a261655; padding-bottom: 8px; }
+.al-title { text-align: center; flex: 1; } .al-title h3 { margin: 0; font: 400 26px var(--display); color: #2a1a10; text-shadow: 1px 1px 0 var(--wc); } .al-title small { color: #6d5a42; font-size: 11px; }
+.al-flip { width: 44px; height: 44px; border-radius: 50%; border: 2px solid #3a2616; background: #f6ecd2; color: #2a1a10; font-size: 26px; line-height: 1; cursor: pointer; } .al-flip:disabled { opacity: .3; cursor: default; }
+.al-sheet { min-height: 280px; } .al-sheet.in-r { animation: alIn .28s ease-out; } .al-sheet.in-l { animation: alInL .28s ease-out; }
+@keyframes alIn { from { opacity: 0; transform: translateX(-30px) rotateY(18deg); } } @keyframes alInL { from { opacity: 0; transform: translateX(30px) rotateY(-18deg); } }
+.al-book .al-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 12px; }
+.al-set { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: space-between; margin-top: 10px; padding: 8px 10px; border: 2px dashed #3a261666; border-radius: 10px; font-size: 13px; } .al-set.ready { border-color: var(--gold2); background: #fff3c4; } .al-set b { direction: ltr; }
+.al-tile { position: relative; } .al-claim { position: absolute; top: 2px; left: 50%; transform: translateX(-50%); z-index: 8; border: 2px solid #000; background: linear-gradient(#ffd24a, #f2b300); color: #2a1a10; border-radius: 14px; padding: 3px 10px; font: 800 13px system-ui; cursor: pointer; box-shadow: 0 3px 0 #000a; animation: alPulse 1.2s ease-in-out infinite; direction: ltr; }
+.al-claim .ic { width: 12px; height: 12px; vertical-align: -1px; } @keyframes alPulse { 50% { transform: translateX(-50%) scale(1.08); } }
+.al-got { position: absolute; top: 4px; left: 8px; z-index: 8; background: #2a7; color: #fff; border-radius: 50%; width: 22px; height: 22px; display: grid; place-items: center; font-weight: 800; border: 2px solid #000; }
+.al-all { display: flex; justify-content: center; align-items: center; margin: 16px auto 4px; text-align: center; } .al-all.done { color: #6d5a42; font-size: 13px; } .al-all small { display: block; font-size: 11px; opacity: .9; }
+.al-all.btn { width: 100%; }
+.al-dots { display: flex; justify-content: center; gap: 8px; margin-top: 10px; } .al-dots button { position: relative; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #3a2616; background: #f6ecd2; padding: 0; cursor: pointer; } .al-dots button.on { background: var(--wc); width: 28px; border-radius: 6px; }
+.al-dots button i { position: absolute; top: -5px; right: -4px; width: 9px; height: 9px; border-radius: 50%; background: var(--red); border: 1.5px solid #fff; }
+.al-claim { position: static !important; transform: none !important; margin-top: -2px; animation: alPulse2 1.2s ease-in-out infinite !important; } @keyframes alPulse2 { 50% { transform: scale(1.08) !important; } }
+.al-tile .al-got { top: 6px; left: 12px; }
 
 </style>
 </head>
@@ -4903,6 +4922,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
         sylvan: { shards: 300, title: 'alb_sylvan', frame: 'alb_sylvan' },
       },
       all: { packs: 3, title: 'alb_all' },
+      card: { normal: 50, legendary: 100 },   // first time you get a character (starting roster excluded)
     },
     // Deck: progression fights (campaign / tower / events) draw their shop only from your deck of up to `size` units
     // (at least `min` to play); quick matches ignore it. Heroes are not part of the deck.
@@ -6061,7 +6081,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
 (function () {
   const AMB = globalThis.AMB;
 
-  AMB.Save.register('album', { version: 1, defaults: () => ({ claimed: {}, all: false }) });
+  AMB.Save.register('album', { version: 2, defaults: () => ({ claimed: {}, all: false, cards: {} }) });   // cards[id] = true once its discovery prize was taken
 
   function Album(save, deps) {
     deps = deps || {};
@@ -6080,13 +6100,44 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
       /** 'claimed' | 'ready' | 'locked' */
       state(world) { if (st().claimed[world]) return 'claimed'; const p = api.progress(world); return p.owned >= p.total ? 'ready' : 'locked'; },
       allState() { if (st().all) return 'claimed'; const t = api.total(); return t.owned >= t.total ? 'ready' : 'locked'; },
-      readyCount() { return api.worlds().filter((w) => api.state(w) === 'ready').length + (api.allState() === 'ready' ? 1 : 0); },
+      readyCount() { return api.worlds().filter((w) => api.state(w) === 'ready').length + (api.allState() === 'ready' ? 1 : 0) + api.worlds().concat(['heroes', 'exclusive']).filter((k) => api.pageReady(k).length).length; },
       /** cosmetic ids the album gave (the pass lists them as owned) */
       ownedCosmetics(type) {
         const out = [];
         api.worlds().forEach((w) => { if (st().claimed[w] && A().worlds[w][type]) out.push(A().worlds[w][type]); });
         if (st().all && A().all[type]) out.push(A().all[type]);
         return out;
+      },
+      // ---- discovery prizes: every character you get for the first time pays once (common 50, legendary 100); the starting roster pays nothing
+      cardPrize(id) { const d = AMB.DATA.UNITS[id] || AMB.DATA.HEROES[id]; if (!d) return 0; const C = (A().card || { normal: 50, legendary: 100 }); return d.rarity === 'legendary' ? C.legendary : C.normal; },
+      isStarterFree(id) { const d = AMB.DATA.UNITS[id]; if (d) return !!d.starter; return !!deps.collection.starterHero && deps.collection.starterHero() === id; },
+      /** 'claimed' | 'ready' | 'free' (starting card) | 'locked' (not yours yet) */
+      cardState(id) {
+        if (st().cards[id]) return 'claimed';
+        if (!deps.collection.owned(id)) return 'locked';
+        return api.isStarterFree(id) ? 'free' : 'ready';
+      },
+      /** the characters on one album page: a world id, 'heroes' or 'exclusive' */
+      pageIds(key) {
+        if (key === 'heroes') return Object.keys(AMB.DATA.HEROES);
+        if (key === 'exclusive') return api.exclusives();
+        return units(key).sort((a, b) => AMB.DATA.UNITS[a].tier - AMB.DATA.UNITS[b].tier);
+      },
+      pageReady(key) { return api.pageIds(key).filter((id) => api.cardState(id) === 'ready'); },
+      pagePrize(key) { return api.pageReady(key).reduce((n, id) => n + api.cardPrize(id), 0); },
+      claimCard(id) {
+        if (api.cardState(id) !== 'ready') return null;
+        const n = api.cardPrize(id);
+        save.update('album', (s) => { s.cards[id] = true; });
+        if (n && deps.wallet) deps.wallet.add('shards', n, 'album');
+        if (deps.events) deps.events.emit('albumCard', { id, shards: n });
+        return { id, shards: n };
+      },
+      /** "claim all" at the end of a page */
+      claimPage(key) {
+        const ids = api.pageReady(key); if (!ids.length) return null;
+        let total = 0; ids.forEach((id) => { const r = api.claimCard(id); if (r) total += r.shards; });
+        return { key, count: ids.length, shards: total };
       },
       claim(world) {
         if (api.state(world) !== 'ready') return null;
@@ -10099,10 +10150,17 @@ AMB.IMAGES = {
   const W = (id) => AMB.DATA.WORLDS[id];
   const hint = (id) => (AMB.CollectionUI ? AMB.CollectionUI.unlockHint(id) : 'من الباكجات');
 
+  // the album is a storybook: one page per world, then the heroes, the event exclusives and the gear
+  const PAGES = ['ember', 'tide', 'neon', 'sylvan', 'heroes', 'exclusive', 'items'];
+  let page = 0, dir = 0;
+  const pageName = (k) => (W(k) ? W(k).name : k === 'heroes' ? 'الأبطال' : k === 'exclusive' ? '🌟 حصريات الأحداث' : 'المعدات والتعاويذ');
+  const pageColor = (k) => (W(k) ? W(k).color : k === 'heroes' ? '#ff5a64' : k === 'exclusive' ? '#ffd24a' : '#b8a89a');
+
   function cardTile(id) {
-    const d = C.def(id), owned = C.owned(id);
+    const d = C.def(id), owned = C.owned(id), s = A.cardState(id);
     const card = UI().cardHTML(d, { k: 'alb' + id, lvl: owned ? C.level(id) : 0, cls: owned ? '' : 'unowned', attrs: `data-act="${d.role ? 'detail' : 'heroInfo'}" data-id="${id}"` });
-    return `<div class="al-tile ${owned ? '' : 'miss'}">${card}${owned ? '' : `<small class="al-hint">🔒 ${hint(id)}</small>`}</div>`;
+    const chip = s === 'ready' ? `<button class="al-claim" data-act="albCard" data-id="${id}">+${A.cardPrize(id)} ${icon('gem')}</button>` : s === 'claimed' ? '<span class="al-got">✓</span>' : '';
+    return `<div class="al-tile ${owned ? '' : 'miss'} ${s}">${card}${owned ? chip : `<small class="al-hint">🔒 ${hint(id)}</small>`}</div>`;
   }
 
   function rewardText(rw) {
@@ -10114,28 +10172,35 @@ AMB.IMAGES = {
     return bits.join(' · ');
   }
 
-  function worldSection(w) {
-    const p = A.progress(w), st = A.state(w), rw = A.reward(w);
-    const btn = st === 'ready' ? `<button class="btn primary" data-act="albClaim" data-w="${w}">استلم الجائزة</button>` : st === 'claimed' ? '<span class="al-done">✓ تم الاستلام</span>' : '';
-    return `<section class="al-world ${st}" style="--wc:${W(w).color}">
-      <header><h3>${W(w).name}</h3><span class="al-count">${p.owned}/${p.total}</span><span class="al-rw">${rewardText(rw)}</span>${btn}</header>
-      <div class="al-bar"><i style="width:${(100 * p.owned) / p.total}%"></i></div>
-      <div class="al-grid">${A.units(w).sort((a, b) => AMB.DATA.UNITS[a].tier - AMB.DATA.UNITS[b].tier).map(cardTile).join('')}</div></section>`;
+  function pageHTML(k) {
+    if (k === 'items') return `<div class="codex-grid">${UI().itemsHTML()}</div>`;
+    const ids = A.pageIds(k), owned = ids.filter((id) => C.owned(id)).length, ready = A.pageReady(k), prize = A.pagePrize(k);
+    let setRow = '';
+    if (W(k)) {
+      const st = A.state(k), rw = A.reward(k), p = A.progress(k);
+      setRow = `<div class="al-set ${st}"><span>جائزة إكمال العالم: ${rewardText(rw)}</span><b>${p.owned}/${p.total}</b>${st === 'ready' ? `<button class="btn small primary" data-act="albClaim" data-w="${k}">استلم</button>` : st === 'claimed' ? '<span class="al-done">✓</span>' : ''}</div>`;
+    }
+    const allBtn = ready.length ? `<button class="btn big primary al-all" data-act="albPage" data-k="${k}">استلام الكل · +${prize} ${icon('gem')} <small>(${ready.length} ${ready.length === 1 ? 'شخصية' : 'شخصيات'})</small></button>`
+      : `<div class="al-all done">${owned === ids.length ? '✓ كل جوائز الصفحة مستلمة' : 'اجمع شخصيات جديدة وتجيك جوائزها هنا'}</div>`;
+    return `${setRow}<div class="al-grid">${ids.map(cardTile).join('')}</div>${allBtn}`;
   }
 
   function render() {
     const root = $('codex'); if (!root) return;
-    const t = A.total(), as = A.allState(), rwAll = AMB.ECONOMY.album.all;
+    const t = A.total(), as = A.allState(), rwAll = AMB.ECONOMY.album.all, k = PAGES[page];
+    const readyOn = (key) => key !== 'items' && A.pageReady(key).length;
     root.innerHTML = `<div class="al-head"><div class="al-total"><b>${t.owned}/${t.total}</b> وحدة<div class="al-bar big"><i style="width:${(100 * t.owned) / t.total}%"></i></div></div>
         <div class="al-grand ${as}">${as === 'claimed' ? '✓ ' : '🏆 '}كل الوحدات: ${rewardText(rwAll)}
           ${as === 'ready' ? '<button class="btn primary" data-act="albClaimAll">استلم</button>' : ''}</div>
         <button class="ibtn" data-act="info" data-k="albinfo" title="شرح">ⓘ</button></div>
-      ${A.worlds().map(worldSection).join('')}
-      <section class="al-world" style="--wc:#ff5a64"><header><h3>الأبطال</h3><span class="al-count">${C.ownedHeroes().length}/${A.heroes().length}</span></header>
-        <div class="al-grid">${A.heroes().map((h) => cardTile(h.id)).join('')}</div></section>
-      <section class="al-world" style="--wc:#ffd24a"><header><h3>🌟 حصريات الأحداث</h3><span class="al-count">${A.exclusives().filter((id) => C.owned(id)).length}/${A.exclusives().length}</span></header>
-        <div class="al-grid">${A.exclusives().map(cardTile).join('')}</div></section>
-      <h3 class="al-items-h">المعدات والتعاويذ</h3><div class="codex-grid">${UI().itemsHTML()}</div>`;
+      <div class="al-book" style="--wc:${pageColor(k)}">
+        <div class="al-pagehead"><button class="al-flip" data-act="albGo" data-d="1" ${page >= PAGES.length - 1 ? 'disabled' : ''}>›</button>
+          <div class="al-title"><small>الصفحة ${page + 1} من ${PAGES.length}</small><h3>${pageName(k)}</h3></div>
+          <button class="al-flip" data-act="albGo" data-d="-1" ${page <= 0 ? 'disabled' : ''}>‹</button></div>
+        <div class="al-sheet ${dir > 0 ? 'in-r' : dir < 0 ? 'in-l' : ''}">${pageHTML(k)}</div>
+        <div class="al-dots">${PAGES.map((key, i) => `<button class="${i === page ? 'on' : ''}" data-act="albGoTo" data-i="${i}" title="${pageName(key)}">${readyOn(key) ? '<i></i>' : ''}</button>`).join('')}</div>
+      </div>`;
+    dir = 0;
     refreshMenu();
   }
 
@@ -10157,16 +10222,33 @@ AMB.IMAGES = {
 
   AMB.TIPS = AMB.TIPS || {};
   AMB.TIPS.albinfo = () => ({ title: 'الألبوم', html: `<p>كل بطاقات اللعبة هنا. البطاقة اللي ما تملكها تطلع ظل مع طريقة الحصول عليها.</p>
-    <p>اجمع <b>الوحدات الخمس</b> لأي عالم واستلم جائزته مرة واحدة (شظايا + لقب + إطار بلون العالم). وكل الوحدات العشرين = باكجين + لقب «جامع الصدع».</p>` });
+    <p>الألبوم كتاب: كل صفحة عالم، وتقلبها بالأسهم أو بسحبة. كل شخصية تحصل عليها لأول مرة تعطيك <b>٥٠ شظية</b> (والليجندري <b>١٠٠</b>)، وفي نهاية الصفحة زر <b>استلام الكل</b>. شخصيات البداية ما تعطي جائزة.</p>
+    <p>وإكمال كل شخصيات عالم يعطيك جائزة العالم (شظايا + لقب + إطار)، وكل الوحدات = باكجات + لقب «جامع الصدع».</p>` });
 
   function installActions() {
     const ui = UI(); if (!ui || ui.ACT.albClaim) return;
     Object.assign(ui.ACT, {
+      albGo: (d) => { page = Math.max(0, Math.min(PAGES.length - 1, page + +d.d)); dir = +d.d; ui.sfx('click'); render(); },
+      albGoTo: (d) => { const i = +d.i; dir = i > page ? 1 : -1; page = i; ui.sfx('click'); render(); },
+      albCard: (d) => { const r = A.claimCard(d.id); if (!r) return; ui.sfx('merge'); ui.toast(`+${r.shards} شظية`, 'good'); render(); ['PacksUI', 'PassUI'].forEach((k) => AMB[k] && AMB[k].refreshMenu && AMB[k].refreshMenu()); },
+      albPage: (d) => { const r = A.claimPage(d.k); if (!r) return; ui.sfx('merge'); ui.toast(`+${r.shards} شظية من ${r.count} ${r.count === 1 ? 'شخصية' : 'شخصيات'}`, 'good'); render(); ['PacksUI', 'PassUI'].forEach((k) => AMB[k] && AMB[k].refreshMenu && AMB[k].refreshMenu()); },
       albClaim: (d) => { const r = A.claim(d.w); if (!r) return; celebrate(r); render(); ['PacksUI', 'PassUI'].forEach((k) => AMB[k] && AMB[k].refreshMenu && AMB[k].refreshMenu()); },
       albClaimAll: () => { const r = A.claimAll(); if (!r) return; celebrate(r, r.packs); render(); ['PacksUI', 'CollectionUI'].forEach((k) => AMB[k] && AMB[k].refreshMenu && AMB[k].refreshMenu()); },
     });
   }
 
+  // swipe between pages
+  (function swipe() {
+    let x0 = null;
+    document.addEventListener('touchstart', (e) => { x0 = e.target.closest && e.target.closest('#codex .al-book') ? e.touches[0].clientX : null; }, { passive: true });
+    document.addEventListener('touchend', (e) => {
+      if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null;
+      if (Math.abs(dx) < 70) return;
+      // RTL book: swipe right = next page
+      const d = dx > 0 ? 1 : -1, np = page + d; if (np < 0 || np >= PAGES.length || !UI()) return;
+      page = np; dir = d; render();
+    }, { passive: true });
+  })();
   AMB.AlbumUI = { render, refreshMenu, installActions };
   if (UI()) installActions();
   refreshMenu();

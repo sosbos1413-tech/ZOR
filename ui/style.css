@@ -2288,3 +2288,22 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
 .mv2 .menu-newbie { display: none !important; }
 /* numbers raised by card level, rarity or hero level show green */
 .hc-atk.up b, .hc-hp.up b { color: #7dffa0 !important; text-shadow: 0 0 6px #1b6b34, 1px 1px 0 #000; }
+
+/* ===== album as a storybook: one page per world, flip with arrows / swipe, claim-all at the end of the page ===== */
+.al-book { position: relative; margin: 10px auto 0; max-width: 560px; border-radius: 14px; padding: 10px 10px 14px; background: linear-gradient(#e9dcc0, #dccaa4); color: #2a1a10; border: 3px solid #3a2616; box-shadow: 0 0 0 3px var(--wc), 0 10px 0 #000a, inset 0 0 40px #8a6a3a55; }
+.al-pagehead { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 2px solid #3a261655; padding-bottom: 8px; }
+.al-title { text-align: center; flex: 1; } .al-title h3 { margin: 0; font: 400 26px var(--display); color: #2a1a10; text-shadow: 1px 1px 0 var(--wc); } .al-title small { color: #6d5a42; font-size: 11px; }
+.al-flip { width: 44px; height: 44px; border-radius: 50%; border: 2px solid #3a2616; background: #f6ecd2; color: #2a1a10; font-size: 26px; line-height: 1; cursor: pointer; } .al-flip:disabled { opacity: .3; cursor: default; }
+.al-sheet { min-height: 280px; } .al-sheet.in-r { animation: alIn .28s ease-out; } .al-sheet.in-l { animation: alInL .28s ease-out; }
+@keyframes alIn { from { opacity: 0; transform: translateX(-30px) rotateY(18deg); } } @keyframes alInL { from { opacity: 0; transform: translateX(30px) rotateY(-18deg); } }
+.al-book .al-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 12px; }
+.al-set { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: space-between; margin-top: 10px; padding: 8px 10px; border: 2px dashed #3a261666; border-radius: 10px; font-size: 13px; } .al-set.ready { border-color: var(--gold2); background: #fff3c4; } .al-set b { direction: ltr; }
+.al-tile { position: relative; } .al-claim { position: absolute; top: 2px; left: 50%; transform: translateX(-50%); z-index: 8; border: 2px solid #000; background: linear-gradient(#ffd24a, #f2b300); color: #2a1a10; border-radius: 14px; padding: 3px 10px; font: 800 13px system-ui; cursor: pointer; box-shadow: 0 3px 0 #000a; animation: alPulse 1.2s ease-in-out infinite; direction: ltr; }
+.al-claim .ic { width: 12px; height: 12px; vertical-align: -1px; } @keyframes alPulse { 50% { transform: translateX(-50%) scale(1.08); } }
+.al-got { position: absolute; top: 4px; left: 8px; z-index: 8; background: #2a7; color: #fff; border-radius: 50%; width: 22px; height: 22px; display: grid; place-items: center; font-weight: 800; border: 2px solid #000; }
+.al-all { display: flex; justify-content: center; align-items: center; margin: 16px auto 4px; text-align: center; } .al-all.done { color: #6d5a42; font-size: 13px; } .al-all small { display: block; font-size: 11px; opacity: .9; }
+.al-all.btn { width: 100%; }
+.al-dots { display: flex; justify-content: center; gap: 8px; margin-top: 10px; } .al-dots button { position: relative; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #3a2616; background: #f6ecd2; padding: 0; cursor: pointer; } .al-dots button.on { background: var(--wc); width: 28px; border-radius: 6px; }
+.al-dots button i { position: absolute; top: -5px; right: -4px; width: 9px; height: 9px; border-radius: 50%; background: var(--red); border: 1.5px solid #fff; }
+.al-claim { position: static !important; transform: none !important; margin-top: -2px; animation: alPulse2 1.2s ease-in-out infinite !important; } @keyframes alPulse2 { 50% { transform: scale(1.08) !important; } }
+.al-tile .al-got { top: 6px; left: 12px; }

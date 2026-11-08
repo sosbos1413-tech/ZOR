@@ -71,6 +71,7 @@
         sylvan: { shards: 300, title: 'alb_sylvan', frame: 'alb_sylvan' },
       },
       all: { packs: 3, title: 'alb_all' },
+      card: { normal: 50, legendary: 100 },   // first time you get a character (starting roster excluded)
     },
     // Deck: progression fights (campaign / tower / events) draw their shop only from your deck of up to `size` units
     // (at least `min` to play); quick matches ignore it. Heroes are not part of the deck.

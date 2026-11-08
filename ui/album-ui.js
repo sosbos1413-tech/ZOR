@@ -11,10 +11,17 @@
   const W = (id) => AMB.DATA.WORLDS[id];
   const hint = (id) => (AMB.CollectionUI ? AMB.CollectionUI.unlockHint(id) : 'من الباكجات');
 
+  // the album is a storybook: one page per world, then the heroes, the event exclusives and the gear
+  const PAGES = ['ember', 'tide', 'neon', 'sylvan', 'heroes', 'exclusive', 'items'];
+  let page = 0, dir = 0;
+  const pageName = (k) => (W(k) ? W(k).name : k === 'heroes' ? 'الأبطال' : k === 'exclusive' ? '🌟 حصريات الأحداث' : 'المعدات والتعاويذ');
+  const pageColor = (k) => (W(k) ? W(k).color : k === 'heroes' ? '#ff5a64' : k === 'exclusive' ? '#ffd24a' : '#b8a89a');
+
   function cardTile(id) {
-    const d = C.def(id), owned = C.owned(id);
+    const d = C.def(id), owned = C.owned(id), s = A.cardState(id);
     const card = UI().cardHTML(d, { k: 'alb' + id, lvl: owned ? C.level(id) : 0, cls: owned ? '' : 'unowned', attrs: `data-act="${d.role ? 'detail' : 'heroInfo'}" data-id="${id}"` });
-    return `<div class="al-tile ${owned ? '' : 'miss'}">${card}${owned ? '' : `<small class="al-hint">🔒 ${hint(id)}</small>`}</div>`;
+    const chip = s === 'ready' ? `<button class="al-claim" data-act="albCard" data-id="${id}">+${A.cardPrize(id)} ${icon('gem')}</button>` : s === 'claimed' ? '<span class="al-got">✓</span>' : '';
+    return `<div class="al-tile ${owned ? '' : 'miss'} ${s}">${card}${owned ? chip : `<small class="al-hint">🔒 ${hint(id)}</small>`}</div>`;
   }
 
   function rewardText(rw) {
@@ -26,28 +33,35 @@
     return bits.join(' · ');
   }
 
-  function worldSection(w) {
-    const p = A.progress(w), st = A.state(w), rw = A.reward(w);
-    const btn = st === 'ready' ? `<button class="btn primary" data-act="albClaim" data-w="${w}">استلم الجائزة</button>` : st === 'claimed' ? '<span class="al-done">✓ تم الاستلام</span>' : '';
-    return `<section class="al-world ${st}" style="--wc:${W(w).color}">
-      <header><h3>${W(w).name}</h3><span class="al-count">${p.owned}/${p.total}</span><span class="al-rw">${rewardText(rw)}</span>${btn}</header>
-      <div class="al-bar"><i style="width:${(100 * p.owned) / p.total}%"></i></div>
-      <div class="al-grid">${A.units(w).sort((a, b) => AMB.DATA.UNITS[a].tier - AMB.DATA.UNITS[b].tier).map(cardTile).join('')}</div></section>`;
+  function pageHTML(k) {
+    if (k === 'items') return `<div class="codex-grid">${UI().itemsHTML()}</div>`;
+    const ids = A.pageIds(k), owned = ids.filter((id) => C.owned(id)).length, ready = A.pageReady(k), prize = A.pagePrize(k);
+    let setRow = '';
+    if (W(k)) {
+      const st = A.state(k), rw = A.reward(k), p = A.progress(k);
+      setRow = `<div class="al-set ${st}"><span>جائزة إكمال العالم: ${rewardText(rw)}</span><b>${p.owned}/${p.total}</b>${st === 'ready' ? `<button class="btn small primary" data-act="albClaim" data-w="${k}">استلم</button>` : st === 'claimed' ? '<span class="al-done">✓</span>' : ''}</div>`;
+    }
+    const allBtn = ready.length ? `<button class="btn big primary al-all" data-act="albPage" data-k="${k}">استلام الكل · +${prize} ${icon('gem')} <small>(${ready.length} ${ready.length === 1 ? 'شخصية' : 'شخصيات'})</small></button>`
+      : `<div class="al-all done">${owned === ids.length ? '✓ كل جوائز الصفحة مستلمة' : 'اجمع شخصيات جديدة وتجيك جوائزها هنا'}</div>`;
+    return `${setRow}<div class="al-grid">${ids.map(cardTile).join('')}</div>${allBtn}`;
   }
 
   function render() {
     const root = $('codex'); if (!root) return;
-    const t = A.total(), as = A.allState(), rwAll = AMB.ECONOMY.album.all;
+    const t = A.total(), as = A.allState(), rwAll = AMB.ECONOMY.album.all, k = PAGES[page];
+    const readyOn = (key) => key !== 'items' && A.pageReady(key).length;
     root.innerHTML = `<div class="al-head"><div class="al-total"><b>${t.owned}/${t.total}</b> وحدة<div class="al-bar big"><i style="width:${(100 * t.owned) / t.total}%"></i></div></div>
         <div class="al-grand ${as}">${as === 'claimed' ? '✓ ' : '🏆 '}كل الوحدات: ${rewardText(rwAll)}
           ${as === 'ready' ? '<button class="btn primary" data-act="albClaimAll">استلم</button>' : ''}</div>
         <button class="ibtn" data-act="info" data-k="albinfo" title="شرح">ⓘ</button></div>
-      ${A.worlds().map(worldSection).join('')}
-      <section class="al-world" style="--wc:#ff5a64"><header><h3>الأبطال</h3><span class="al-count">${C.ownedHeroes().length}/${A.heroes().length}</span></header>
-        <div class="al-grid">${A.heroes().map((h) => cardTile(h.id)).join('')}</div></section>
-      <section class="al-world" style="--wc:#ffd24a"><header><h3>🌟 حصريات الأحداث</h3><span class="al-count">${A.exclusives().filter((id) => C.owned(id)).length}/${A.exclusives().length}</span></header>
-        <div class="al-grid">${A.exclusives().map(cardTile).join('')}</div></section>
-      <h3 class="al-items-h">المعدات والتعاويذ</h3><div class="codex-grid">${UI().itemsHTML()}</div>`;
+      <div class="al-book" style="--wc:${pageColor(k)}">
+        <div class="al-pagehead"><button class="al-flip" data-act="albGo" data-d="1" ${page >= PAGES.length - 1 ? 'disabled' : ''}>›</button>
+          <div class="al-title"><small>الصفحة ${page + 1} من ${PAGES.length}</small><h3>${pageName(k)}</h3></div>
+          <button class="al-flip" data-act="albGo" data-d="-1" ${page <= 0 ? 'disabled' : ''}>‹</button></div>
+        <div class="al-sheet ${dir > 0 ? 'in-r' : dir < 0 ? 'in-l' : ''}">${pageHTML(k)}</div>
+        <div class="al-dots">${PAGES.map((key, i) => `<button class="${i === page ? 'on' : ''}" data-act="albGoTo" data-i="${i}" title="${pageName(key)}">${readyOn(key) ? '<i></i>' : ''}</button>`).join('')}</div>
+      </div>`;
+    dir = 0;
     refreshMenu();
   }
 
@@ -69,16 +83,33 @@
 
   AMB.TIPS = AMB.TIPS || {};
   AMB.TIPS.albinfo = () => ({ title: 'الألبوم', html: `<p>كل بطاقات اللعبة هنا. البطاقة اللي ما تملكها تطلع ظل مع طريقة الحصول عليها.</p>
-    <p>اجمع <b>الوحدات الخمس</b> لأي عالم واستلم جائزته مرة واحدة (شظايا + لقب + إطار بلون العالم). وكل الوحدات العشرين = باكجين + لقب «جامع الصدع».</p>` });
+    <p>الألبوم كتاب: كل صفحة عالم، وتقلبها بالأسهم أو بسحبة. كل شخصية تحصل عليها لأول مرة تعطيك <b>٥٠ شظية</b> (والليجندري <b>١٠٠</b>)، وفي نهاية الصفحة زر <b>استلام الكل</b>. شخصيات البداية ما تعطي جائزة.</p>
+    <p>وإكمال كل شخصيات عالم يعطيك جائزة العالم (شظايا + لقب + إطار)، وكل الوحدات = باكجات + لقب «جامع الصدع».</p>` });
 
   function installActions() {
     const ui = UI(); if (!ui || ui.ACT.albClaim) return;
     Object.assign(ui.ACT, {
+      albGo: (d) => { page = Math.max(0, Math.min(PAGES.length - 1, page + +d.d)); dir = +d.d; ui.sfx('click'); render(); },
+      albGoTo: (d) => { const i = +d.i; dir = i > page ? 1 : -1; page = i; ui.sfx('click'); render(); },
+      albCard: (d) => { const r = A.claimCard(d.id); if (!r) return; ui.sfx('merge'); ui.toast(`+${r.shards} شظية`, 'good'); render(); ['PacksUI', 'PassUI'].forEach((k) => AMB[k] && AMB[k].refreshMenu && AMB[k].refreshMenu()); },
+      albPage: (d) => { const r = A.claimPage(d.k); if (!r) return; ui.sfx('merge'); ui.toast(`+${r.shards} شظية من ${r.count} ${r.count === 1 ? 'شخصية' : 'شخصيات'}`, 'good'); render(); ['PacksUI', 'PassUI'].forEach((k) => AMB[k] && AMB[k].refreshMenu && AMB[k].refreshMenu()); },
       albClaim: (d) => { const r = A.claim(d.w); if (!r) return; celebrate(r); render(); ['PacksUI', 'PassUI'].forEach((k) => AMB[k] && AMB[k].refreshMenu && AMB[k].refreshMenu()); },
       albClaimAll: () => { const r = A.claimAll(); if (!r) return; celebrate(r, r.packs); render(); ['PacksUI', 'CollectionUI'].forEach((k) => AMB[k] && AMB[k].refreshMenu && AMB[k].refreshMenu()); },
     });
   }
 
+  // swipe between pages
+  (function swipe() {
+    let x0 = null;
+    document.addEventListener('touchstart', (e) => { x0 = e.target.closest && e.target.closest('#codex .al-book') ? e.touches[0].clientX : null; }, { passive: true });
+    document.addEventListener('touchend', (e) => {
+      if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null;
+      if (Math.abs(dx) < 70) return;
+      // RTL book: swipe right = next page
+      const d = dx > 0 ? 1 : -1, np = page + d; if (np < 0 || np >= PAGES.length || !UI()) return;
+      page = np; dir = d; render();
+    }, { passive: true });
+  })();
   AMB.AlbumUI = { render, refreshMenu, installActions };
   if (UI()) installActions();
   refreshMenu();

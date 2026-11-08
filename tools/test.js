@@ -782,7 +782,7 @@ t('album: world set reward is claimable once, gives shards + title + frame (equi
   const prof = AMB.Profile.boot(MEM()), A = prof.album;
   const pass = AMB.Pass.create(prof.save.storageFor('pass'), null, null, (type) => A.ownedCosmetics(type));
   A.units('ember').forEach((id) => prof.collection.add(id, 1));
-  eq(A.state('ember'), 'ready'); eq(A.readyCount(), 1);
+  eq(A.state('ember'), 'ready'); eq(A.readyCount(), 2);   // the world set + the page's discovery prizes
   ok(!pass.owned('title').includes('alb_ember'), 'not before claiming');
   const sh = prof.wallet.balance('shards');
   const r = A.claim('ember'); ok(r); eq(prof.wallet.balance('shards'), sh + AMB.ECONOMY.album.worlds.ember.shards);
@@ -791,6 +791,24 @@ t('album: world set reward is claimable once, gives shards + title + frame (equi
   ok(pass.equip('title', 'alb_ember') && pass.equip('frame', 'alb_ember'));
   ok(AMB.Pass.COSMETICS.frame.alb_ember.c1 && AMB.Pass.COSMETICS.title.alb_all);
   eq(A.claim('tide'), null, 'incomplete world cannot be claimed');
+});
+t('album: discovery prizes (common 50, legendary 100), starting cards pay nothing, claim-all per page, once each', () => {
+  const prof = AMB.Profile.boot(MEM()), A = prof.album, D = AMB.DATA;
+  const st = Object.values(D.UNITS).find((u) => u.starter), nw = Object.values(D.UNITS).find((u) => !u.starter && !u.exclusive && u.rarity !== 'legendary' && !prof.collection.owned(u.id));
+  const lg = Object.values(D.UNITS).find((u) => !u.exclusive && u.rarity === 'legendary' && !prof.collection.owned(u.id));
+  eq(A.cardState(st.id), 'free', 'a starting card pays nothing');
+  eq(A.cardState(nw.id), 'locked');
+  prof.collection.add(nw.id, 1); prof.collection.add(lg.id, 1);
+  eq(A.cardState(nw.id), 'ready'); eq(A.cardPrize(nw.id), 50); eq(A.cardPrize(lg.id), 100);
+  const sh = prof.wallet.balance('shards');
+  const r = A.claimCard(nw.id); eq(r.shards, 50); eq(prof.wallet.balance('shards'), sh + 50);
+  eq(A.claimCard(nw.id), null, 'once only'); eq(A.cardState(nw.id), 'claimed');
+  // claim-all on a page: only that page's ready cards, each once
+  const w = lg.world, extra = A.pageIds(w).find((id) => id !== lg.id && id !== nw.id && !prof.collection.owned(id));
+  if (extra) prof.collection.add(extra, 1);
+  const before = prof.wallet.balance('shards'), want = A.pagePrize(w);
+  const all = A.claimPage(w); eq(all.shards, want); eq(prof.wallet.balance('shards'), before + want);
+  eq(A.claimPage(w), null, 'nothing left to claim'); eq(A.pageReady(w).length, 0);
 });
 t('album: all 65 units = free packs + grand title; saved across reloads', () => {
   const mem = MEM(), prof = AMB.Profile.boot(mem), A = prof.album;
