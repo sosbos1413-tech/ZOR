@@ -80,7 +80,7 @@
         p.gold += income;
         if (this.round > 1) this._gainXp(p, E.xpPerRound);
         const essGain = E.essencePerRound + (AMB.DATA.HEROES[p.heroId].passive.id === 'deep_reserve' ? 1 : 0);
-        if (this.round > 1) p.essence = Math.min(E.essenceMax, p.essence + essGain);
+        if (this.round > 1) p.essence = Math.max(p.essence, Math.min(E.essenceMax, p.essence + essGain));   // a 'pure essence' reward above the cap is kept (never clamped away)
         p.freeRerolls = AMB.DATA.HEROES[p.heroId].passive.id === 'free_reroll' ? 1 : 0;
         if (!p.shopLocked || !p.shop.length) this._rollShop(p);
         p.shopLocked = false;

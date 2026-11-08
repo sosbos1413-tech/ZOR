@@ -829,6 +829,15 @@ t('save: wrong-typed data is repaired per system (never throws later), unknown k
   ok(prof.save.hasBackup('preimport')); prof.save.restore('preimport');
   eq(prof.save.exportJSON() === good || JSON.parse(prof.save.exportJSON()).systems.future.keep === 1, true, 'restored the previous save');
 });
+t('front line flag: a summoned hero in front counts (A5); a leaped assassin no longer holds the front (A13); a pure-essence reward above the cap survives the next round (A3)', () => {
+  const a = new AMB.Combat([side([U('pixel_sniper', 'b1')], { summoned: true, heroSlot: 'f1' }), side([U('grid_hound', 'f1')])], { seed: 8, round: 1 });
+  ok(!a.sides[0].frontDown, 'the hero standing in front is the defence line');
+  const b = new AMB.Combat([side([U('grid_hound', 'f1')]), side([U('moss_warden', 'f1')])], { seed: 9, round: 1 });
+  ok(!b.sides[0].frontDown); b.fighters.find((f) => f.defId === 'grid_hound').leaped = true; b._updateExposure(); ok(b.sides[0].frontDown, 'leaped assassin does not hold the front line');
+  const m = new AMB.Match({ mode: 'ai', seed: 3, players: [{ heroId: 'orath', name: 'a' }, { heroId: 'merin', name: 'b', isAI: true }] });
+  m.startRound(); m.players[0].essence = 13; m.resolveCombat(m.createCombat(false).runToEnd()); m.startRound();
+  ok(m.players[0].essence >= 13, 'essence above the cap is kept');
+});
 t('album: world set reward is claimable once, gives shards + title + frame (equippable in the pass)', () => {
   const prof = AMB.Profile.boot(MEM()), A = prof.album;
   const pass = AMB.Pass.create(prof.save.storageFor('pass'), null, null, (type) => A.ownedCosmetics(type));

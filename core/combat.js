@@ -189,7 +189,8 @@
     _updateExposure(initial) {
       [0, 1].forEach((s) => {
         const side = this.sides[s];
-        const front = this.fighters.some((f) => f.side === s && f.alive && !f.isHero && f.row === 'front');
+        // the front line = living front-row units (a summoned hero standing in front counts; an assassin that leaped to the enemy back line no longer does)
+        const front = this.fighters.some((f) => f.side === s && f.alive && (!f.isHero || f.onBoard) && f.row === 'front' && !f.leaped);
         if (!front && !side.frontDown) {
           side.frontDown = true;
           side.frontDownAt = this.t;
