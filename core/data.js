@@ -79,7 +79,7 @@
   const EXCLUSIVE_NERF = 0.92;
   // ---- Emberreach (no support)
   unit('ash_ronin', 'رونين الرماد', 'Ash Ronin', 'ember', 'fighter', 1, 70,
-    { type: 'cleave', name: 'قطع الرماد', dmg: [120, 200, 340], radius: 1.2,
+    { type: 'cleave', name: 'قطع الرماد', dmg: [185, 310, 520], radius: 1.2,
       text: 'ضربة تلف وتصيب الهدف واللي حوله.' });
   unit('forge_bulwark', 'حامي الأتون', 'Forge Bulwark', 'ember', 'guardian', 1, 90,
     { type: 'taunt', name: 'تحدّي الحدّاد', shield: [200, 350, 600], radius: 2.2, dur: 3,
@@ -88,7 +88,7 @@
     { type: 'nuke', name: 'طعنة الشرر', dmg: [230, 390, 660],
       text: 'طعنة سريعة بضرر عالي على الهدف.' });
   unit('pyre_archer', 'رامية المحرقة', 'Pyre Archer', 'ember', 'marksman', 2, 70,
-    { type: 'burn', name: 'سهم المحرقة', dps: [60, 100, 170], dur: 4,
+    { type: 'burn', name: 'سهم المحرقة', dps: [52, 88, 150], dur: 4,
       text: 'يحرق الهدف ويضره كل ثانية لمدة 4 ثواني.' });
   unit('caldera_seer', 'عرّافة البركان', 'Caldera Seer', 'ember', 'mage', 3, 90,
     { type: 'aoe', name: 'انفجار الفوهة', dmg: [340, 560, 960], radius: 1.6,
@@ -133,7 +133,7 @@
     { type: 'healSelf', name: 'تجدد الطحلب', heal: [240, 400, 680],
       text: 'يرجّع جزء كبير من صحته.' });
   unit('thorn_fox', 'ثعلب الأشواك', 'Thorn Fox', 'sylvan', 'fighter', 1, 70,
-    { type: 'stunStrike', name: 'وخزة شائكة', dmg: [100, 170, 300], stun: [1, 1.2, 1.5],
+    { type: 'stunStrike', name: 'وخزة شائكة', dmg: [140, 240, 410], stun: [1.3, 1.5, 1.8],
       text: 'يضرب الهدف ويوقفه لحظات.' });
   unit('willow_eye', 'عين الصفصاف', 'Willow Eye', 'sylvan', 'marksman', 2, 80,
     { type: 'multishot', name: 'وابل الأوراق', dmg: [130, 220, 380], count: 3,
@@ -168,7 +168,7 @@
     { type: 'execute', name: 'عاصفة النصلين', dmg: [200, 350, 610],
       text: 'ضربتها تتضاعف على اللي صحته أقل من 40%.' });
   unit('yoshino', 'يوشينو', 'Yoshino', 'sylvan', 'support', 2, 90,
-    { type: 'hasteAllies', name: 'لحن الورقة', pct: [0.25, 0.38, 0.55], dur: 5,
+    { type: 'hasteAllies', name: 'لحن الورقة', pct: [0.4, 0.6, 0.82], dur: 5,
       text: 'يسرّع هجوم كل الفريق لفترة قصيرة.' });
   unit('kinoko', 'كينوكو', 'Kinoko', 'sylvan', 'support', 1, 60,
     { type: 'healLowest', name: 'بوغ الشفاء', heal: [230, 380, 640],
@@ -180,7 +180,7 @@
     { type: 'multishot', name: 'ضربة الصقر', dmg: [110, 180, 320], count: 3,
       text: 'يرمي ثلاثة سهام على أقرب ثلاثة أعداء.' });
   unit('gensai', 'جينساي', 'Gensai', 'sylvan', 'mage', 2, 90,
-    { type: 'aoe', name: 'كرة العاصفة', dmg: [280, 460, 780], radius: 1.6,
+    { type: 'aoe', name: 'كرة العاصفة', dmg: [340, 560, 940], radius: 1.6,
       text: 'انفجار يضرب المنطقة حول الهدف.' });
   unit('ibara', 'إيبارا', 'Ibara', 'sylvan', 'mage', 2, 85,
     { type: 'stunAoe', name: 'سجن الأشواك', dmg: [120, 200, 350], stun: [1.4, 1.7, 2.1], radius: 1.4,
@@ -232,7 +232,7 @@
     { type: 'cleave', name: 'نار العرش', dmg: [170, 290, 490], radius: 1.4,
       text: 'ضربة تلف وتصيب الهدف واللي حوله.' }, { rarity: 'legendary' });
   unit('ryuji', 'ريوجي', 'Ryuji', 'ember', 'fighter', 1, 70,
-    { type: 'stunStrike', name: 'قبضة الجمر', dmg: [100, 170, 300], stun: [1, 1.2, 1.5],
+    { type: 'stunStrike', name: 'قبضة الجمر', dmg: [140, 240, 410], stun: [1.3, 1.5, 1.8],
       text: 'يضرب الهدف ويوقفه لحظات.' });
   unit('akane', 'أكاني', 'Akane', 'ember', 'assassin', 2, 60,
     { type: 'nuke', name: 'نصلا اللهب', dmg: [180, 310, 540],
@@ -240,8 +240,8 @@
   unit('natsuki', 'ناتسوكي', 'Natsuki', 'ember', 'mage', 2, 80,
     { type: 'aoe', name: 'موجة الحمم', dmg: [280, 460, 780], radius: 1.6,
       text: 'انفجار يضرب المنطقة حول الهدف.' });
-  unit('shiro', 'شيرو', 'Shiro', 'ember', 'mage', 1, 90,
-    { type: 'aoe', name: 'شرارة مبتدئ', dmg: [230, 380, 650], radius: 1.5,
+  unit('shiro', 'شيرو', 'Shiro', 'ember', 'mage', 1, 75,
+    { type: 'aoe', name: 'شرارة مبتدئ', dmg: [290, 470, 800], radius: 1.5,
       text: 'انفجار يضرب المنطقة حول الهدف.' });
   unit('kurenai', 'كورينائي', 'Kurenai', 'ember', 'guardian', 3, 90,
     { type: 'taunt', name: 'قلعة القرمزي', shield: [290, 510, 870], radius: 2.4, dur: 3,
@@ -344,8 +344,8 @@
     kagira: {
       id: 'kagira', name: 'كيرو', title: 'الجمر الهادئ', world: 'ember', style: 'هجومي: هادي وحسّابه، وإذا هجم ينفجر. ضغط من البداية وضرر قوي.',
       board: { atk: 85, as: 0.8, range: 1, def: 0.2, crit: 0.1 },
-      vanguard: { name: 'الهجوم الكاسح', text: 'لما ينزل الساحة: الفريق +12% هجوم، وهو يضرب أقوى (+10% هجوم، +6% فرصة حرجة).', allyAtk: 0.07, heroAtk: 0.1, heroCrit: 0.06 },
-      passive: { id: 'blazing_will', name: 'إرادة متقدة', text: 'لما يصير البطل مكشوف، الفريق ياخذ +25% هجوم.' },
+      vanguard: { name: 'الهجوم الكاسح', text: 'لما ينزل الساحة: الفريق +22% هجوم، وهو يضرب أقوى (+10% هجوم، +6% فرصة حرجة).', allyAtk: 0.22, heroAtk: 0.1, heroCrit: 0.06 },
+      passive: { id: 'blazing_will', name: 'إرادة متقدة', text: 'لما يسقط الصف الأمامي، الفريق ياخذ +45% هجوم.' },
       abilities: [
         { id: 'inferno_banner', name: 'أمر الهجوم', cost: 3, type: 'buffAllies', atkPct: 0.3, dur: 6,
           text: '+30% هجوم لكل الفريق لمدة 6 ثواني.' },
@@ -357,7 +357,7 @@
       id: 'merin', name: 'ميران', title: 'حارس المدّ الصامت', world: 'tide', style: 'صمود: هادي ويحمي الفريق. دروع وعلاج ومعارك طويلة.',
       board: { atk: 86, as: 0.8, range: 3, def: 0.1, crit: 0.05 },
       vanguard: { name: 'درع المدّ', text: 'لما ينزل الساحة: الفريق يتجدد 0.4% من صحته كل ثانية، وهو ياخذ درع 2 حياة ويصمد أطول بـ2 حياة قبل ما ينسحب.', allyRegen: 0.004, heroShield: 2, knockoutBonus: 2 },
-      passive: { id: 'deep_reserve', name: 'مخزون عميق', text: '+1 جوهرة زيادة كل جولة.' },
+      passive: { id: 'deep_reserve', name: 'مخزون عميق', text: '+2 جوهرة زيادة كل جولة.' },
       abilities: [
         { id: 'tidal_ward', name: 'حاجز المدّ', cost: 3, type: 'shieldAllies', amount: 200, scale: 25,
           text: 'درع لكل الفريق (200 + 25 مع كل جولة).' },
@@ -368,7 +368,7 @@
     zerokai: {
       id: 'zerokai', name: 'زيرو-كاي', title: 'الظلّ المشفّر', world: 'neon', style: 'سرعة: غامض وسابق خصمه بخطوة. اقتصاد مرن وحركة سريعة.',
       board: { atk: 74, as: 0.85, range: 4, def: 0.05, crit: 0.15 },
-      vanguard: { name: 'نبض السرعة', text: 'لما ينزل الساحة: الفريق +17% سرعة هجوم، وهو أسرع بـ20%، وكل قدراته تتكلف نقطة أقل.', allyAs: 0.17, heroAs: 0.2, extraDiscount: 1 },
+      vanguard: { name: 'نبض السرعة', text: 'لما ينزل الساحة: الفريق +13% سرعة هجوم، وهو أسرع بـ20%، وكل قدراته تتكلف نقطة أقل.', allyAs: 0.13, heroAs: 0.2, extraDiscount: 1 },
       passive: { id: 'free_reroll', name: 'وصول خلفي', text: 'أول تحديث للمتجر في كل جولة مجاني.' },
       abilities: [
         { id: 'overclock', name: 'كسر السرعة', cost: 3, type: 'buffAllies', asPct: 0.25, dur: 5,
@@ -380,8 +380,8 @@
     orath: {
       id: 'orath', name: 'أوراث', title: 'الحارس المحلّل', world: 'sylvan', style: 'دفاعي: هادي ويحلل، ويقرأ المعركة قبل لا تبدأ. خط أمامي قوي وسيطرة.',
       board: { atk: 75, as: 0.65, range: 1, def: 0.3, crit: 0.05 },
-      vanguard: { name: 'الجدار الحي', text: 'لما ينزل الساحة: الصف الأمامي +22% صحة، وكل الفريق ياخذ ضرر أقل 7%، وهو أصلب (+15% دفاع).', frontHp: 0.22, allyDr: 0.07, heroDef: 0.15 },
-      passive: { id: 'ancient_bark', name: 'لحاء صلب', text: 'وحدات الصف الأمامي تاخذ +15% صحة.' },
+      vanguard: { name: 'الجدار الحي', text: 'لما ينزل الساحة: الصف الأمامي +22% صحة، وكل الفريق ياخذ ضرر أقل 4%، وهو أصلب (+15% دفاع).', frontHp: 0.22, allyDr: 0.04, heroDef: 0.15 },
+      passive: { id: 'ancient_bark', name: 'لحاء صلب', text: 'وحدات الصف الأمامي تاخذ +6% صحة.' },
       abilities: [
         { id: 'thorn_wall', name: 'جدار الأشواك', cost: 3, type: 'frontDR', dr: 0.35, dur: 6,
           text: 'الصف الأمامي ياخذ ضرر أقل بـ 35% لمدة 6 ثواني.' },
@@ -416,8 +416,8 @@
     nayako: {
       id: 'nayako', name: 'ناياكو', title: 'نجمة الشبكة', world: 'neon', style: 'إيقاع: نجمة خفيفة تغيّر مجرى المعركة بنبضة. اقتصاد وتشويش.',
       board: { atk: 72, as: 0.9, range: 4, def: 0.05, crit: 0.18 },
-      vanguard: { name: 'نبضة الإيقاع', text: 'لما ينزل الساحة: الفريق +10% سرعة هجوم، وهو يضرب حرجة أكثر (+8%)، وقدراته أرخص بنقطة.', allyAs: 0.1, heroCrit: 0.08, extraDiscount: 1 },
-      passive: { id: 'data_stream', name: 'تدفق البيانات', text: '+1 ذهب إضافي كل جولة، وكل وحداتك +8% سرعة هجوم.' },
+      vanguard: { name: 'نبضة الإيقاع', text: 'لما ينزل الساحة: الفريق +4% سرعة هجوم، وهو يضرب حرجة أكثر (+8%)، وقدراته أرخص بنقطة.', allyAs: 0.04, heroCrit: 0.08, extraDiscount: 1 },
+      passive: { id: 'data_stream', name: 'تدفق البيانات', text: '+1 ذهب إضافي كل جولة، وكل وحداتك +2% سرعة هجوم.' },
       abilities: [
         { id: 'hologram_wall', name: 'جدار الهولوغرام', cost: 3, type: 'shieldAllies', amount: 130, scale: 25,
           text: 'درع لكل الفريق (130 + 25 مع كل جولة).' },
@@ -494,14 +494,14 @@
       { n: 2, effects: [{ scope: 'members', stat: 'dr', value: 0.15 }], text: 'الحراس ياخذون 15% ضرر أقل' },
       { n: 4, effects: [{ scope: 'members', stat: 'dr', value: 0.25 }, { scope: 'all', stat: 'dr', value: 0.08 }], text: 'الحراس ياخذون 25% ضرر أقل، والباقي 8%' }] },
     fighter: { id: 'fighter', kind: 'role', name: 'المقاتلون', tiers: [
-      { n: 2, effects: [{ scope: 'members', stat: 'lifesteal', value: 0.15 }], text: 'المقاتلون يسرقون 15% من ضررهم صحة' },
-      { n: 4, effects: [{ scope: 'members', stat: 'lifesteal', value: 0.3 }, { scope: 'members', stat: 'atkPct', value: 0.1 }], text: 'يسرقون 30% صحة، و+10% هجوم' }] },
+      { n: 2, effects: [{ scope: 'members', stat: 'lifesteal', value: 0.2 }], text: 'المقاتلون يسرقون 20% من ضررهم صحة' },
+      { n: 4, effects: [{ scope: 'members', stat: 'lifesteal', value: 0.35 }, { scope: 'members', stat: 'atkPct', value: 0.1 }], text: 'يسرقون 35% صحة، و+10% هجوم' }] },
     assassin: { id: 'assassin', kind: 'role', name: 'القتلة', tiers: [
       { n: 2, effects: [{ scope: 'members', stat: 'crit', value: 0.15 }, { scope: 'members', stat: 'critDmg', value: 0.3 }], text: '+15% فرصة حرجة، و+30% ضرر الحرجة' },
       { n: 3, effects: [{ scope: 'members', stat: 'crit', value: 0.3 }, { scope: 'members', stat: 'critDmg', value: 0.6 }], text: '+30% فرصة حرجة، و+60% ضرر الحرجة' }] },
     mage: { id: 'mage', kind: 'role', name: 'السحرة', tiers: [
-      { n: 2, effects: [{ scope: 'members', stat: 'skillPower', value: 0.35 }, { scope: 'members', stat: 'startMana', value: 30 }], text: '+35% قوة المهارة، و+30 مانا' },
-      { n: 3, effects: [{ scope: 'members', stat: 'skillPower', value: 0.7 }, { scope: 'members', stat: 'startMana', value: 50 }], text: '+70% قوة المهارة، و+50 مانا' }] },
+      { n: 2, effects: [{ scope: 'members', stat: 'skillPower', value: 0.45 }, { scope: 'members', stat: 'startMana', value: 30 }], text: '+45% قوة المهارة، و+30 مانا' },
+      { n: 3, effects: [{ scope: 'members', stat: 'skillPower', value: 0.9 }, { scope: 'members', stat: 'startMana', value: 50 }], text: '+90% قوة المهارة، و+50 مانا' }] },
     marksman: { id: 'marksman', kind: 'role', name: 'القناصة', tiers: [
       { n: 2, effects: [{ scope: 'members', stat: 'atkPct', value: 0.15 }, { scope: 'members', stat: 'range', value: 1 }], text: '+15% هجوم، و+1 مدى' },
       { n: 3, effects: [{ scope: 'members', stat: 'atkPct', value: 0.35 }, { scope: 'members', stat: 'range', value: 1 }], text: '+35% هجوم، و+1 مدى' }] },
