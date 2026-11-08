@@ -44,7 +44,7 @@
     tower: {
       floors: 30, bossEvery: 5,
       unlock: { campaignLevel: 'l1' },                 // finish campaign level 1 first
-      power: [1.16,1.28,1.28,1.19,0.94,1.26,1.14,1.07,1.16,0.84,1.09,1.04,1.32,0.97,1.11,1.49,0.97,0.96,1.12,0.62,1.21,0.89,0.91,1.12,0.76,0.87,0.71,1.16,1.19,0.86],   // per floor, from tools/tune-tower.js
+      power: [1.16,1.28,1.28,1.19,0.96,1.26,1.14,1.07,1.16,0.84,1.09,1.04,1.32,0.97,1.11,1.49,0.97,0.96,1.12,0.62,1.21,0.89,0.91,1.12,0.76,0.87,0.71,1.16,1.19,0.88],   // per floor, from tools/tune-tower.js
       start: [{ from: 1, gold: 8, level: 5 }, { from: 15, gold: 12, level: 6 }, { from: 25, gold: 14, level: 7 }],
       rewards: { shardsFirst: 20, shardsLast: 50, passXp: 10, passXpBoss: 30, bossPack: 'basic', finalCard: 'epic' },   // first clear only
     },
@@ -58,7 +58,7 @@
       stages: [{ n: 10 }, { n: 18 }, { n: 24, boss: true }],   // difficulty position (1..30, like tower floors)
       start: [{ gold: 10, level: 5 }, { gold: 12, level: 6 }, { gold: 14, level: 7 }],
       rewards: [{ shards: 40, passXp: 10 }, { shards: 60, passXp: 20, pack: 'basic' }, { shards: 100, passXp: 50, exclusive: true }],
-      power: { ember: [1.16, 1.34, 0.78], tide: [0.94, 1.09, 0.97], neon: [1.16, 1.17, 0.76], sylvan: [1.01, 1.32, 0.92] },
+      power: { ember: [1.12, 1.34, 0.78], tide: [0.93, 1.09, 0.97], neon: [1.16, 1.17, 0.76], sylvan: [0.96, 1.32, 0.92] },
     },
     // Guided first match: a fixed weak enemy (2 units, the 2nd joins in round 2), a little extra gold/level, a reward once
     tutorial: { start: { gold: 10, level: 4 }, enemy: [['thorn_fox', 1, 'f1', 1], ['pixel_sniper', 1, 'b1', 2]], reward: { shards: 50 } },

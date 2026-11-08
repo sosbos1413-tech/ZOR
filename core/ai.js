@@ -103,9 +103,9 @@
     const hero = AMB.DATA.HEROES[p.heroId];
 
     // --- leveling
-    const reserve = reserveTarget(match, p);
+    const reserve = cfg.reserveCap && match.round > 4 ? Math.min(cfg.reserveCap, reserveTarget(match, p)) : reserveTarget(match, p);
     let guard = 0;
-    while (guard++ < 6 && p.level < E.maxLevel && match.round >= 2) {
+    while (guard++ < 6 && p.level < (cfg.maxLevel || E.maxLevel) && match.round >= 2) {
       const boardFull = match.boardCount(p) >= p.level || match.allUnits(p).length > p.level;
       const surplus = p.gold - E.xpCost - reserve * (1 / cfg.levelAggro);
       const almost = match.xpNeeded(p) - p.xp <= E.xpPerBuy;
@@ -144,7 +144,7 @@
 
     // --- hero summon decision (before arranging so a slot is kept)
     const aggressive = hero.id === 'kagira';
-    const wantSummon = match.round >= (aggressive ? 3 : 5) && p.life - AMB.CONFIG.combat.summonKnockout >= (aggressive ? 30 : 45);
+    const wantSummon = !cfg.noSummon && match.round >= (cfg.summonFrom || (aggressive ? 3 : 5)) && p.life - AMB.CONFIG.combat.summonKnockout >= (cfg.summonMinLife ? cfg.summonMinLife - AMB.CONFIG.combat.summonKnockout : aggressive ? 30 : 45);
     p.summoned = wantSummon && match.allUnits(p).length >= Math.min(p.level, 3) && p.level < 8;
 
     arrange(match, p, rng, cfg);

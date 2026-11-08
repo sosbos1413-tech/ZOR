@@ -40,10 +40,10 @@
       rerollCost: 1,
       xpCost: 4,
       xpPerBuy: 4,
-      xpPerRound: 2,
+      xpPerRound: 3,
       startLevel: 3,            // level == max units on the board
       maxLevel: 8,
-      xpToLevel: { 3: 4, 4: 6, 5: 10, 6: 14, 7: 20 },
+      xpToLevel: { 3: 4, 4: 8, 5: 12, 6: 18, 7: 24 },
       shopSlots: 5,
       itemShopSlots: 2,
       benchSize: 6,
@@ -84,7 +84,7 @@
       commandPostFortify: 0.25, // damage multiplier vs a hero NOT summoned
       postDamageCapBase: 3,     // max life a command-post hero loses to hits in one combat
       postDamageCapPerRound: 1,
-      summonKnockout: 12,       // a summoned hero retreats after losing this much life in one combat
+      summonKnockout: 9,       // a summoned hero retreats after losing this much life in one combat
       manaPerAttack: 10,
       manaPerHit: 3,
       meleeRange: 1.15,
@@ -111,15 +111,16 @@
       summonAuraAtk: 0.05,      // summoned hero inspires allies
       summonAbilityDiscount: 1, // abilities cost less while the hero fights
       boardAtkPerRound: 5,      // summoned hero attack scales with the round
-      boardPower: 0.3,            // overall strength of the summoned hero's own fighting (tuned so summoning is a real choice, not always best)
+      boardPower: 0.22,            // overall strength of the summoned hero's own fighting (tuned so summoning is a real choice, not always best)
       vanguardScale: 1,         // strength of each hero's summoned-form bonuses
     },
 
     ai: {
       // difficulty knobs used by core/ai.js
-      easy: { mistakes: 0.35, rerollGreed: 0.4, levelAggro: 0.6 },
+      // easy holds its level at 5 and never summons; hard levels hard, keeps a small bank only and summons from round 2
+      easy: { mistakes: 0.35, rerollGreed: 0.4, levelAggro: 0.6, maxLevel: 5, noSummon: true },
       normal: { mistakes: 0.12, rerollGreed: 0.7, levelAggro: 1.0 },
-      hard: { mistakes: 0.0, rerollGreed: 1.0, levelAggro: 1.15 },
+      hard: { mistakes: 0.0, rerollGreed: 1.0, levelAggro: 1.6, reserveCap: 10, summonFrom: 2, summonMinLife: 40 },
     },
   };
 })();
