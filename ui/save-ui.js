@@ -65,6 +65,12 @@
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
   document.addEventListener('pointerdown', function once() { askPersist(); document.removeEventListener('pointerdown', once); }, { once: true });
 
+  // another tab wrote the save: this one is stale and has stopped writing; the player must reload (the newest tab wins)
+  if (AMB.save && AMB.save.onLock) AMB.save.onLock(() => {
+    const d = document.createElement('div'); d.id = 'save-lock';
+    d.innerHTML = '<div class="sl-box"><h2>اللعبة مفتوحة في تبويب ثاني</h2><p>تقدمك انحفظ في التبويب الجديد. هذا التبويب ما يحفظ حتى ما يمسح عليه. حدّث الصفحة وكمّل.</p><button class="btn big primary" onclick="location.reload()">حدّث الصفحة</button></div>';
+    document.body.appendChild(d);
+  });
   AMB.SaveUI = { open, installActions };
   if (UI()) installActions();
 })();

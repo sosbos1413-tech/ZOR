@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="3efb7a1a3a">
+<meta name="zor-build" content="81551fe93a">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -2327,6 +2327,8 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
 .al-dots button i { position: absolute; top: -5px; right: -4px; width: 9px; height: 9px; border-radius: 50%; background: var(--red); border: 1.5px solid #fff; }
 .al-claim { position: static !important; transform: none !important; margin-top: -2px; animation: alPulse2 1.2s ease-in-out infinite !important; } @keyframes alPulse2 { 50% { transform: scale(1.08) !important; } }
 .al-tile .al-got { top: 6px; left: 12px; }
+#save-lock { position: fixed; inset: 0; z-index: 9999; background: #000d; display: grid; place-items: center; padding: 20px; }
+#save-lock .sl-box { background: var(--paper, #f3ead6); color: #121010; border: 3px solid #121010; box-shadow: 6px 6px 0 var(--red, #e0262f); padding: 22px 18px; max-width: 340px; text-align: center; } #save-lock h2 { margin: 0 0 10px; font-size: 22px; } #save-lock p { margin: 0 0 16px; line-height: 1.7; }
 
 </style>
 </head>
@@ -4783,7 +4785,9 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
     return dst;
   }
 
-  function create(storage, nowFn) {
+  // hooks.onForeignWrite(cb): called when ANOTHER tab/window wrote our key. Default: the browser 'storage' event (it never fires in the tab that wrote).
+  function create(storage, nowFn, hooks) {
+    const realStorage = !storage;
     storage = storage || browserStorage();
     const now = nowFn || (() => Date.now());
     let root = null, corrupt = false, recovered = false;
@@ -4811,7 +4815,12 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
     let listeners = [];
 
     // every change is written to storage at once (nothing to "save" by hand); `updated` shows in the save screen
-    const write = () => { try { root.updated = now(); storage.setItem(KEY, JSON.stringify(root)); return true; } catch (e) { return false; } };
+    // single writer: when another tab writes the save, this tab's copy is stale. It stops writing (so it can never overwrite the newer progress) and asks the player to reload.
+    let locked = false, lockListeners = [];
+    const lock = () => { if (locked) return; locked = true; lockListeners.forEach((f) => { try { f(); } catch (e) { /* ignore */ } }); };
+    const hook = (hooks && hooks.onForeignWrite) || (realStorage && typeof window !== 'undefined' && window.addEventListener ? ((cb) => window.addEventListener('storage', (e) => { if (e.key === KEY || e.key === null) cb(); })) : null);
+    if (hook) hook(lock);
+    const write = () => { if (locked) return false; try { root.updated = now(); storage.setItem(KEY, JSON.stringify(root)); return true; } catch (e) { return false; } };
     write();
 
     /** State of one system: migrated + defaults filled. The returned object is live: change it, then call save.write(). */
@@ -4850,7 +4859,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
       root = r; root.sysV = root.sysV || {}; root.bakDay = dayOf(now()); write(); emit('*'); return true;
     }
 
-    return { get, set, update, reset, write, storageFor, onChange, exportJSON, importJSON, wasCorrupt: corrupt, recovered, updated: () => root.updated || 0, systems: () => Object.keys(root.systems), now };
+    return { get, set, update, reset, write, storageFor, isLocked: () => locked, onLock: (f) => { lockListeners.push(f); if (locked) f(); }, onChange, exportJSON, importJSON, wasCorrupt: corrupt, recovered, updated: () => root.updated || 0, systems: () => Object.keys(root.systems), now };
   }
 
   AMB.Save = { create, register, KEY, VERSION, LEGACY, REGISTRY, memoryStorage, browserStorage };
@@ -10561,6 +10570,12 @@ AMB.IMAGES = {
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
   document.addEventListener('pointerdown', function once() { askPersist(); document.removeEventListener('pointerdown', once); }, { once: true });
 
+  // another tab wrote the save: this one is stale and has stopped writing; the player must reload (the newest tab wins)
+  if (AMB.save && AMB.save.onLock) AMB.save.onLock(() => {
+    const d = document.createElement('div'); d.id = 'save-lock';
+    d.innerHTML = '<div class="sl-box"><h2>اللعبة مفتوحة في تبويب ثاني</h2><p>تقدمك انحفظ في التبويب الجديد. هذا التبويب ما يحفظ حتى ما يمسح عليه. حدّث الصفحة وكمّل.</p><button class="btn big primary" onclick="location.reload()">حدّث الصفحة</button></div>';
+    document.body.appendChild(d);
+  });
   AMB.SaveUI = { open, installActions };
   if (UI()) installActions();
 })();

@@ -39,7 +39,9 @@
     return dst;
   }
 
-  function create(storage, nowFn) {
+  // hooks.onForeignWrite(cb): called when ANOTHER tab/window wrote our key. Default: the browser 'storage' event (it never fires in the tab that wrote).
+  function create(storage, nowFn, hooks) {
+    const realStorage = !storage;
     storage = storage || browserStorage();
     const now = nowFn || (() => Date.now());
     let root = null, corrupt = false, recovered = false;
@@ -67,7 +69,12 @@
     let listeners = [];
 
     // every change is written to storage at once (nothing to "save" by hand); `updated` shows in the save screen
-    const write = () => { try { root.updated = now(); storage.setItem(KEY, JSON.stringify(root)); return true; } catch (e) { return false; } };
+    // single writer: when another tab writes the save, this tab's copy is stale. It stops writing (so it can never overwrite the newer progress) and asks the player to reload.
+    let locked = false, lockListeners = [];
+    const lock = () => { if (locked) return; locked = true; lockListeners.forEach((f) => { try { f(); } catch (e) { /* ignore */ } }); };
+    const hook = (hooks && hooks.onForeignWrite) || (realStorage && typeof window !== 'undefined' && window.addEventListener ? ((cb) => window.addEventListener('storage', (e) => { if (e.key === KEY || e.key === null) cb(); })) : null);
+    if (hook) hook(lock);
+    const write = () => { if (locked) return false; try { root.updated = now(); storage.setItem(KEY, JSON.stringify(root)); return true; } catch (e) { return false; } };
     write();
 
     /** State of one system: migrated + defaults filled. The returned object is live: change it, then call save.write(). */
@@ -106,7 +113,7 @@
       root = r; root.sysV = root.sysV || {}; root.bakDay = dayOf(now()); write(); emit('*'); return true;
     }
 
-    return { get, set, update, reset, write, storageFor, onChange, exportJSON, importJSON, wasCorrupt: corrupt, recovered, updated: () => root.updated || 0, systems: () => Object.keys(root.systems), now };
+    return { get, set, update, reset, write, storageFor, isLocked: () => locked, onLock: (f) => { lockListeners.push(f); if (locked) f(); }, onChange, exportJSON, importJSON, wasCorrupt: corrupt, recovered, updated: () => root.updated || 0, systems: () => Object.keys(root.systems), now };
   }
 
   AMB.Save = { create, register, KEY, VERSION, LEGACY, REGISTRY, memoryStorage, browserStorage };

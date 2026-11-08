@@ -790,6 +790,21 @@ t('album: 5 units per world, progress counts owned units, starters count', () =>
   eq(A.progress('ember').owned, 3, 'ash_ronin, forge_bulwark, shiro');
   eq(A.state('ember'), 'locked');
 });
+t('save: a second tab becomes the only writer, the stale tab locks and can never overwrite newer progress', () => {
+  const mem = AMB.Save.memoryStorage();
+  let fire = null; const hooks = { onForeignWrite: (cb) => { fire = cb; } };
+  AMB.Save.register('lockt', { defaults: () => ({ n: 0 }) });
+  const tabA = AMB.Save.create(mem, null, hooks);                 // the old tab
+  tabA.update('lockt', (s) => { s.n = 1; });
+  const tabB = AMB.Save.create(mem);                              // a second tab opens and writes
+  tabB.update('lockt', (s) => { s.n = 600; });
+  eq(tabA.isLocked(), false); let notified = 0; tabA.onLock(() => notified++);
+  fire();                                                         // the browser tells tab A that tab B wrote
+  eq(tabA.isLocked(), true); eq(notified, 1, 'the UI is told');
+  tabA.update('lockt', (s) => { s.n = 100; });                    // the stale tab keeps playing…
+  eq(tabA.write(), false, 'locked tabs never write');
+  eq(AMB.Save.create(mem).get('lockt').n, 600, 'the newer progress is untouched');
+});
 t('album: world set reward is claimable once, gives shards + title + frame (equippable in the pass)', () => {
   const prof = AMB.Profile.boot(MEM()), A = prof.album;
   const pass = AMB.Pass.create(prof.save.storageFor('pass'), null, null, (type) => A.ownedCosmetics(type));
