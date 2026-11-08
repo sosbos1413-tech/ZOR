@@ -1108,9 +1108,9 @@
   }
 
   function matchMenu() {
-    const wasPaused = S.paused;
-    S.paused = true; S.pausedLeft = S.deadline - Date.now();
-    S._resumeAfterMenu = !wasPaused;
+    const wasPaused = S.paused, canPause = S.mode !== 'online';   // online: the menu never freezes the prep clock (the friend is waiting)
+    if (canPause) { S.paused = true; S.pausedLeft = S.phase === 'prep' ? S.deadline - Date.now() : null; }   // only a running prep timer has time left to restore
+    S._resumeAfterMenu = canPause && !wasPaused;
     modal(`<h2>القائمة</h2><div style="display:grid;gap:10px;margin-top:12px">
       <button class="btn" data-act="resumeMenu">متابعة</button>
       <button class="btn" data-act="rotate">تدوير الشاشة (طول / عرض)</button>
@@ -1395,7 +1395,7 @@
     menuMatch: () => matchMenu(),
     resumeMenu: () => {
       closeModal();
-      if (S._resumeAfterMenu) { S.paused = false; if (S.phase === 'prep') S.deadline = Date.now() + S.pausedLeft; }
+      if (S._resumeAfterMenu) { S.paused = false; if (S.phase === 'prep') S.deadline = Date.now() + (S.pausedLeft != null ? S.pausedLeft : prepSeconds() * 1000); }   // menu opened during the 0.9s 'resources' phase: prep starts fresh instead of ending at once
       S._resumeAfterMenu = false;
       renderTop();
     },
