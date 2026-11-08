@@ -181,8 +181,7 @@
       if (!e.alive) return false;
       if (!e.isHero) return true;
       if (e.sealed) return false;
-      if (e.onBoard && e.row === 'front') return true;
-      return this.sides[e.side].exposed;
+      return this.sides[e.side].exposed;   // the hero is hit last, even when it fights on the board: only after every other unit of its side is dead
     }
 
     // The hero is protected by EVERY living unit of its side: it can only be hit once the whole field is dead (or when it stands in the front row itself).
@@ -215,15 +214,17 @@
     fury() { return this.t > this.C.furyStart ? 1 + this.C.furyPerSec * (this.t - this.C.furyStart) : 1; }
 
     findTarget(f) {
-      const enemies = this.enemiesOf(f).filter((e) => this.targetable(e));
+      let enemies = this.enemiesOf(f).filter((e) => this.targetable(e));
       if (!enemies.length) return null;
+      // hit order: shields soak first (see damage()), then the front line, then the back line, and the hero last (even when it stands on the board)
+      const live = enemies.filter((e) => !e.isHero);
+      if (live.length) { const fr = live.filter((e) => e.row === 'front'); enemies = fr.length && f.role !== 'assassin' ? fr : live; }
       if (f.tauntBy && f.tauntUntil > this.t) {
         const tb = this.fighters.find((x) => x.id === f.tauntBy);
         if (tb && tb.alive) return tb;
       }
       if (f.role === 'assassin') {
-        const hero = enemies.find((e) => e.isHero);
-        if (hero) return hero;
+        if (enemies.length === 1 && enemies[0].isHero) return enemies[0];
         // back line first: farthest from own side
         const dir = f.side === 0 ? 1 : -1;
         enemies.sort((a, b) => (b.y - a.y) * dir || dist(f, a) - dist(f, b) || a.id - b.id);
@@ -312,7 +313,7 @@
       f.mana = 0;
       this.emit({ type: 'cast', id: f.id, name: sk.name });
       // splash spreads sideways along the target's row (it no longer drags the squishy back row down with the front line)
-      const enemiesNear = (c, r) => this.enemiesOf(f).filter((e) => (this.targetable(e) || (e.isHero && e.onBoard)) && dist(e, c) <= r && (e === c || Math.abs(e.y - c.y) < 0.6));
+      const enemiesNear = (c, r) => this.enemiesOf(f).filter((e) => this.targetable(e) && dist(e, c) <= r && (e === c || Math.abs(e.y - c.y) < 0.6));
       switch (sk.type) {
         case 'nuke': this.damage(f, tgt, sk.dmg[s] * p, { skill: true }); break;
         case 'cleave':

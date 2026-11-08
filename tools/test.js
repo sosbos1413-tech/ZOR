@@ -35,9 +35,20 @@ t('no front row: the front-down flag is up from the start, the hero stays protec
   const c = new AMB.Combat([side([U('pixel_sniper', 'b1')]), side([U('grid_hound', 'f1')])], { seed: 3, round: 1 });
   ok(c.sides[0].frontDown); ok(!c.sides[0].exposed);
 });
-t('summoned hero in the front row is always targetable', () => {
+t('a summoned hero is still hit last: not targetable while a unit of its side lives, targetable once it stands alone', () => {
   const c = new AMB.Combat([side([U('moss_warden', 'f2')], { summoned: true, heroSlot: 'f1' }), side([U('grid_hound', 'f1')])], { seed: 4, round: 1 });
-  ok(c.targetable(c.sides[0].hero));
+  ok(!c.targetable(c.sides[0].hero), 'protected while the warden lives');
+  c.damage(null, c.fighters.find((f) => f.defId === 'moss_warden'), 1e6);
+  ok(c.targetable(c.sides[0].hero), 'alone on the field');
+});
+t('hit order: front line first, then the back line, the hero last', () => {
+  const c = new AMB.Combat([side([U('chrome_ronin', 'f1', 3)]), side([U('moss_warden', 'f1'), U('pixel_sniper', 'b1')])], { seed: 6, round: 1 });
+  const atk = c.fighters.find((f) => f.defId === 'chrome_ronin'), warden = c.fighters.find((f) => f.defId === 'moss_warden'), sniper = c.fighters.find((f) => f.defId === 'pixel_sniper');
+  eq(c.findTarget(atk).defId, 'moss_warden', 'front first');
+  c.damage(null, warden, 1e6);
+  eq(c.findTarget(atk).defId, 'pixel_sniper', 'then the back line');
+  c.damage(null, sniper, 1e6);
+  ok(c.findTarget(atk).isHero, 'the hero last');
 });
 t('command-post damage is capped per combat', () => {
   const c = new AMB.Combat([side([]), side([U('chrome_ronin', 'f1', 3), U('wild_stalker', 'f2', 3)])], { seed: 5, round: 1 });
