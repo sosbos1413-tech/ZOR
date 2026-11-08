@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="1e17e8a52c">
+<meta name="zor-build" content="52c89a1d68">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -2329,6 +2329,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
 .al-tile .al-got { top: 6px; left: 12px; }
 #save-lock { position: fixed; inset: 0; z-index: 9999; background: #000d; display: grid; place-items: center; padding: 20px; }
 #save-lock .sl-box { background: var(--paper, #f3ead6); color: #121010; border: 3px solid #121010; box-shadow: 6px 6px 0 var(--red, #e0262f); padding: 22px 18px; max-width: 340px; text-align: center; } #save-lock h2 { margin: 0 0 10px; font-size: 22px; } #save-lock p { margin: 0 0 16px; line-height: 1.7; }
+.rar-box { border-color: #a855f7aa; } .rar-box div { margin-top: 3px; } .rar-box .sig-line { color: #b36200; margin-top: 6px; }
 
 </style>
 </head>
@@ -2663,7 +2664,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
   // identities: guardian = TANK (huge hp, high defence, little damage) · fighter = ATTACKER (hits hard and fast, weak defence)
   // assassin = glass cannon that dives · marksman = steady damage from far · mage = fragile, strength lives in the skill · support = sturdy healer, almost no damage
   const ROLE_BASE = {
-    guardian: { hp: 760, atk: 34, as: 0.55, range: 1, def: 0.33, crit: 0.03 },
+    guardian: { hp: 700, atk: 34, as: 0.55, range: 1, def: 0.28, crit: 0.03 },
     fighter: { hp: 480, atk: 72, as: 0.8, range: 1, def: 0.04, crit: 0.08 },
     assassin: { hp: 380, atk: 54, as: 0.9, range: 1, def: 0, crit: 0.28 },
     mage: { hp: 440, atk: 44, as: 0.6, range: 3, def: 0, crit: 0.05 },
@@ -2961,6 +2962,38 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
   });
   const UNITS = {};
   U.forEach((u) => { if (u.exclusive) { u.hp = Math.round(u.hp * EXCLUSIVE_NERF); u.atk = Math.round(u.atk * EXCLUSIVE_NERF); } UNITS[u.id] = u; });
+  // ---- rarity ladder: common = the role's plain job · rare = +1 trait · epic = +2 traits · legendary = +2 traits and a signature mechanic of its own (core/combat.js)
+  const TRAITS = {
+    ironhide: { name: 'جلد حديدي', text: '+6% دفاع', mods: { dr: 0.06 } }, frenzy: { name: 'هيجان', text: '+10% سرعة هجوم', mods: { asPct: 0.1 } },
+    keen: { name: 'حدة', text: '+8% فرصة حرجة', mods: { crit: 0.08 } }, steady: { name: 'ثبات اليد', text: '+8% هجوم', mods: { atkPct: 0.08 } },
+    focus: { name: 'تركيز', text: '+20 مانا من البداية', mods: { startMana: 20 } }, gentle: { name: 'حنان', text: '+15% قوة المهارة', mods: { skillPower: 0.15 } },
+    ironhide2: { name: 'جلد حديدي+', text: '+9% دفاع', mods: { dr: 0.09 } }, bulwark: { name: 'حصن', text: 'يبدأ بدرع 12% من صحته', mods: { startShieldPct: 0.12 } },
+    frenzy2: { name: 'هيجان+', text: '+15% سرعة هجوم', mods: { asPct: 0.15 } }, bite: { name: 'عضّة', text: 'يسرق 8% من ضرره صحة', mods: { lifesteal: 0.08 } },
+    keen2: { name: 'حدة+', text: '+12% فرصة حرجة', mods: { crit: 0.12 } }, razor: { name: 'نصل', text: '+30% ضرر الحرجة', mods: { critDmg: 0.3 } },
+    steady2: { name: 'ثبات اليد+', text: '+12% هجوم', mods: { atkPct: 0.12 } }, farsight: { name: 'بعد نظر', text: '+6% فرصة حرجة', mods: { crit: 0.06 } },
+    focus2: { name: 'تركيز+', text: '+30 مانا من البداية', mods: { startMana: 30 } }, arcane: { name: 'سحر خام', text: '+20% قوة المهارة', mods: { skillPower: 0.2 } },
+    gentle2: { name: 'حنان+', text: '+22% قوة المهارة', mods: { skillPower: 0.22 } }, vital: { name: 'حيوية', text: 'يتجدد 1% من صحته كل ثانية', mods: { regenPct: 0.01 } },
+  };
+  const RARE_TRAIT = { guardian: ['ironhide'], fighter: ['frenzy'], assassin: ['keen'], marksman: ['steady'], mage: ['focus'], support: ['gentle'] };
+  const EPIC_TRAITS = { guardian: ['ironhide2', 'bulwark'], fighter: ['frenzy2', 'bite'], assassin: ['keen2', 'razor'], marksman: ['steady2', 'farsight'], mage: ['focus2', 'arcane'], support: ['gentle2', 'vital'] };
+  const SIGS = {   // legendary signatures: the mechanic lives in core/combat.js
+    reflect: { name: 'مرآة الجدار', text: 'يرد 15% من أي ضرر ياخذه على اللي ضربه' },
+    bloodrush: { name: 'اندفاع الدم', text: 'كل قتل: +20% سرعة هجوم (حتى 3 مرات)' },
+    reaper: { name: 'الحاصد', text: 'كل قتل: مهارته تجهز فورًا (مانا كاملة)' },
+    deadeye: { name: 'العين القاتلة', text: 'كل ضربة ثالثة حرجة مضمونة' },
+    overload: { name: 'فرط الحمل', text: 'كل ضربة +3% سرعة هجوم (حتى 10 مرات)' },
+    echo: { name: 'صدى', text: 'بعد مهارته يرجع له نص المانا فيعيدها أسرع' },
+    frostaura: { name: 'هالة الصقيع', text: 'الأعداء القريبون منه يبطؤون 12%' },
+    lifeline: { name: 'حبل النجاة', text: 'مرة وحدة: أول حليف يموت ينجو بـ20% صحة' },
+    bloom: { name: 'ازدهار', text: 'كل 3 ثواني يعالج الفريق كله 3% من صحتهم' },
+  };
+  const SIG_OF = { taiju: 'reflect', goka: 'bloodrush', hinotori: 'reaper', mikazuki: 'deadeye', kaminari: 'overload', mugen: 'echo', shiori: 'frostaura', otohime: 'lifeline', kodama: 'bloom' };
+  U.forEach((u) => {
+    if (u.rarity === 'rare') u.traits = (RARE_TRAIT[u.role] || []).slice();
+    else if (u.rarity === 'epic' || u.rarity === 'legendary') u.traits = (EPIC_TRAITS[u.role] || []).slice();
+    else u.traits = [];
+    if (u.rarity === 'legendary') { u.sig = SIG_OF[u.id] || null; }
+  });
   // The starter roster: 8 basic units (every role covered). Everything else comes from the gift packs, packs, the pass or events.
   const STARTER_IDS = ['ash_ronin', 'forge_bulwark', 'wave_caller', 'grid_hound', 'pixel_sniper', 'moss_warden', 'thorn_fox', 'shiro'];
   STARTER_IDS.forEach((id) => (UNITS[id].starter = true));
@@ -3168,7 +3201,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
 
   Object.values(HEROES).forEach((h) => { h.rarity = h.rarity || 'legendary'; });
   const HERO_STARTERS = ['kagira', 'merin', 'zerokai', 'orath'];   // the four heroes a new player can pick; the rest come from packs and the battle pass
-  AMB.DATA = { HERO_STARTERS, LEGACY_STARTERS, STARTER_IDS, REWARDS, REWARD_POOLS, WORLDS, ROLES, ROLE_BASE, TIER_MULT, TIER_RARITY, UNITS, HEROES, ITEMS, SYNERGIES, ABILITY_TRIGGERS };
+  AMB.DATA = { TRAITS, SIGS, HERO_STARTERS, LEGACY_STARTERS, STARTER_IDS, REWARDS, REWARD_POOLS, WORLDS, ROLES, ROLE_BASE, TIER_MULT, TIER_RARITY, UNITS, HEROES, ITEMS, SYNERGIES, ABILITY_TRIGGERS };
 })();
 
 </script>
@@ -3353,6 +3386,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
           if (AMB.synergy.appliesTo(SYNERGIES[sy.id], eff, def, pos.row)) mods[eff.stat] += eff.value;
         }));
         (u.items || []).forEach((it) => ITEMS[it].effects.forEach((eff) => (mods[eff.stat] += eff.value)));
+        (def.traits || []).forEach((id) => { const tr = AMB.DATA.TRAITS[id]; if (tr) Object.keys(tr.mods).forEach((k) => (mods[k] += tr.mods[k])); });   // rarity traits (rare 1, epic/legendary 2)
         if (def.world === hero.world) { mods.atkPct += HC.resonancePerAlly; mods.hpPct += HC.resonancePerAlly; }
         if (hero.passive.id === 'ancient_bark' && pos.row === 'front') mods.hpPct += 0.06;
         if (hero.passive.id === 'forge_heart' && pos.row === 'front') mods.atkPct += 0.045;
@@ -3375,7 +3409,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
           maxHp, hp: maxHp, atk: def.atk * sm * (1 + mods.atkPct), as: def.as * (1 + mods.asPct),
           range: def.range + mods.range, def: def.def + mods.dr, crit: def.crit + mods.crit,
           critDmg: this.C.critMult + mods.critDmg, lifesteal: mods.lifesteal, skillPower: 1 + mods.skillPower,
-          regenPct: mods.regenPct, mana: mods.startMana, maxMana: def.mana, skill: def.skill,
+          regenPct: mods.regenPct, mana: mods.startMana, maxMana: def.mana, skill: def.skill, sig: def.sig || null,
         });
         if (mods.startShieldPct) f.shield += maxHp * mods.startShieldPct;
       });
@@ -3520,6 +3554,11 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
       if (opts.skill) def *= this.C.skillDefFactor;
       let dmg = raw * (1 - def) * this.fury();
       if (tgt.isHero && !tgt.onBoard) dmg *= this.C.commandPostFortify;
+      // legendary 'lifeline' (Otohime): once per fight the first ally that would die survives with 30% health
+      if (!tgt.isHero && tgt.hp - Math.max(0, dmg - (tgt.shield || 0)) <= 0) {
+        const ll = this.fighters.find((a) => a.side === tgt.side && a.alive && a.sig === 'lifeline' && !a._ll);
+        if (ll) { ll._ll = true; tgt.shield = 0; tgt.hp = Math.max(1, tgt.maxHp * 0.2); this.emit({ type: 'heroAbility', side: tgt.side, name: 'حبل النجاة' }); return 0; }
+      }
       if (tgt.shield > 0) {
         const absorbed = Math.min(tgt.shield, dmg);
         tgt.shield -= absorbed;
@@ -3534,6 +3573,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
         return dmg;
       }
       tgt.hp -= dmg;
+      if (src && src !== tgt && tgt.sig === 'reflect' && !opts.thorn && dmg > 0) this.damage(null, src, dmg * 0.15, { thorn: true, skill: true });   // legendary 'reflect' (Taiju)
       if (src && src !== tgt && tgt.thorns && tgt.thorns.until > this.t && !opts.dot && !opts.thorn) this.damage(null, src, dmg * tgt.thorns.pct, { thorn: true, skill: true });   // "thorns" twist: a share of the hit goes back
       if (src) {
         src.dmgDealt += dmg;
@@ -3572,6 +3612,10 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
       f.alive = false;
       f.hp = 0;
       this.sides[f.side].deaths += f.isHero ? 0 : 1;
+      if (src && src.alive && !src.isHero) {   // legendary kill triggers
+        if (src.sig === 'bloodrush' && (src._br || 0) < 3) { src._br = (src._br || 0) + 1; src.buffs.push({ asPct: 0.2, until: Infinity }); }
+        if (src.sig === 'reaper' && src.skill) src.mana = src.maxMana;
+      }
       this.emit({ type: 'death', id: f.id, hero: f.isHero });
       this._updateExposure();
     }
@@ -3584,7 +3628,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
       const tgt = f.target && f.target.alive ? f.target : this.findTarget(f);
       const needsTarget = ['nuke', 'cleave', 'aoe', 'stunAoe', 'stunStrike', 'burn', 'drain', 'execute'].includes(sk.type);
       if (needsTarget && !tgt) return false;
-      f.mana = 0;
+      f.mana = f.sig === 'echo' ? Math.floor(f.maxMana * 0.5) : 0;   // legendary 'echo': half the mana comes back
       this.emit({ type: 'cast', id: f.id, name: sk.name });
       // splash spreads sideways along the target's row (it no longer drags the squishy back row down with the front line)
       const enemiesNear = (c, r) => this.enemiesOf(f).filter((e) => this.targetable(e) && dist(e, c) <= r && (e === c || Math.abs(e.y - c.y) < 0.6));
@@ -3741,6 +3785,8 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
       for (const f of this.fighters) {
         if (!f.alive) continue;
         f.buffs = f.buffs.filter((b) => b.until > this.t);
+        if (f.sig === 'frostaura' && this.t >= (f._au || 0)) { f._au = this.t + 0.25; this.enemiesOf(f).forEach((e) => { if (!e.isHero && dist(e, f) <= 2.6) e.buffs.push({ asPct: -0.12, until: this.t + 0.4 }); }); }
+        if (f.sig === 'bloom' && this.t >= (f._bl || 3)) { f._bl = this.t + 3; this.fighters.forEach((a) => { if (a.side === f.side && a.alive && !a.isHero) this.heal(a, a.maxHp * 0.03, true); }); }
         if (f.dots.length) {
           f.dots = f.dots.filter((d) => d.until > this.t);
           for (const d of f.dots) {
@@ -3770,7 +3816,9 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
           f.atkCd -= dt;
           if (f.atkCd <= 0) {
             f.atkCd += 1 / Math.max(0.1, this.effAs(f));
-            const crit = this.rng.chance(f.crit);
+            f.atkN = (f.atkN || 0) + 1;
+            const crit = this.rng.chance(f.crit) || (f.sig === 'deadeye' && f.atkN % 3 === 0);   // legendary 'deadeye': every third hit crits
+            if (f.sig === 'overload' && (f.ov || 0) < 10) { f.ov = (f.ov || 0) + 1; f.as *= 1.03; }
             this.emit({ type: 'attack', from: f.id, to: tgt.id, ranged: f.range > 1 });
             this.damage(f, tgt, this.effAtk(f) * (crit ? f.critDmg : 1), { crit });
             if (f.skill) f.mana = Math.min(f.maxMana, f.mana + this.C.manaPerAttack);
@@ -8126,6 +8174,7 @@ AMB.IMAGES = {
       ${rows.map(([n, f, dg, suf]) => `<tr><td>${n}</td>${[1, 2, 3].map((s) => { const v = f(s), b = f(1); return `<td>${fmt(v, dg || 0)}${suf || ''}${s > 1 && v !== b ? `<div class="delta">+${Math.round(((v - b) / b) * 100)}%</div>` : ''}</td>`; }).join('')}</tr>`).join('')}</table>
       <div class="skillbox"><b>المهارة — ${sk.name}:</b> ${sk.text}
         ${skRows ? `<table><tr><th></th><th>★</th><th>★★</th><th>★★★</th></tr>${skRows}</table>` : ''}</div>
+      ${(d.traits && d.traits.length) || d.sig ? `<div class="skillbox rar-box"><b>صفات ${AMB.ECONOMY.rarities[d.rarity] ? AMB.ECONOMY.rarities[d.rarity].name : ''}:</b>${(d.traits || []).map((id) => `<div>• ${AMB.DATA.TRAITS[id].name}: ${AMB.DATA.TRAITS[id].text}</div>`).join('')}${d.sig ? `<div class="sig-line">★ <b>${AMB.DATA.SIGS[d.sig].name}</b>: ${AMB.DATA.SIGS[d.sig].text}</div>` : ''}</div>` : `<div class="hint">كومن: يسوي دور ${ROLES[d.role].name} الأساسي بدون صفات إضافية.</div>`}
       <div class="hint"><b>التطوير:</b> ${CFG.stars.copiesPerStar} نسخ ★ = ★★ ، و ${CFG.stars.copiesPerStar} نسخ ★★ = ★★★ (الحد الأقصى). الصحة والهجوم ×${SM[2]} ثم ×${SM[3]}؛ السرعة والمدى ما تتغير عشان ما تصير وحدة واحدة ما أحد يقدر عليها.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
         <div><span class="wtag" style="--w:${W.color}">${SYNERGIES[d.world].name}</span>${synOf(d.world)}</div>

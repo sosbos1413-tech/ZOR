@@ -864,6 +864,25 @@ t('role contract: an assassin commits to the dive early and goes for the back li
   ok(by('grid_hound').leaped, 'assassin leapt by 2.5s'); ok(by('grid_hound').y > 3, 'and stands in the enemy back line');
   ok(Math.abs(by('moss_warden').y - y0.g) < 1.5, 'guardian stays at the front'); ok(Math.abs(by('pixel_sniper').y - y0.s) < 1.2, 'marksman holds its row');
 });
+t('rarity ladder: traits by rarity, and every legendary signature does what it says', () => {
+  const D = AMB.DATA, N = (r) => Object.values(D.UNITS).filter((u) => u.rarity === r);
+  N('common').forEach((u) => eq(u.traits.length, 0, u.id)); N('rare').forEach((u) => eq(u.traits.length, 1, u.id));
+  N('epic').concat(N('legendary')).forEach((u) => eq(u.traits.length, 2, u.id)); N('legendary').forEach((u) => ok(u.sig && D.SIGS[u.sig], 'signature ' + u.id));
+  const mk = (a, b) => new AMB.Combat([side(a), side(b)], { seed: 41, round: 1 });
+  const get = (c, d, sd) => c.fighters.find((f) => f.defId === d && f.side === (sd || 0));
+  // a rare fighter really is faster than a common one of the same role (frenzy +10% attack speed)
+  const cr = mk([U('lunar_blade', 'f1'), U('ash_ronin', 'f2')], [U('grid_hound', 'f1')]);
+  ok(get(cr, 'lunar_blade').as / get(cr, 'ash_ronin').as > 1.05 * (D.UNITS.lunar_blade.as / D.UNITS.ash_ronin.as), 'rare trait applied');
+  // reflect (Taiju)
+  const a = mk([U('taiju', 'f1')], [U('grid_hound', 'f1')]); const tai = get(a, 'taiju'), hit = get(a, 'grid_hound', 1);
+  const h0 = hit.hp; a.damage(hit, tai, 400); ok(hit.hp < h0, 'reflect hurts the attacker');
+  // lifeline (Otohime): the first lethal hit on an ally is survived once
+  const b = mk([U('otohime', 'b1'), U('moss_warden', 'f1')], [U('grid_hound', 'f1')]); const w = get(b, 'moss_warden'), en = get(b, 'grid_hound', 1);
+  b.damage(en, w, 1e6); ok(w.alive && w.hp > 0, 'saved once'); b.damage(en, w, 1e6); ok(!w.alive, 'but not twice');
+  // bloodrush (Goka): kills speed it up (max 3)
+  const g = mk([U('goka', 'f1')], [U('grid_hound', 'f1'), U('pixel_sniper', 'b1')]); const gk = get(g, 'goka'); const as0 = g.effAs(gk);
+  g.kill(get(g, 'grid_hound', 1), gk); ok(g.effAs(gk) > as0 * 1.15, 'bloodrush');
+});
 t('album: world set reward is claimable once, gives shards + title + frame (equippable in the pass)', () => {
   const prof = AMB.Profile.boot(MEM()), A = prof.album;
   const pass = AMB.Pass.create(prof.save.storageFor('pass'), null, null, (type) => A.ownedCosmetics(type));

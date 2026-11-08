@@ -80,6 +80,7 @@
           if (AMB.synergy.appliesTo(SYNERGIES[sy.id], eff, def, pos.row)) mods[eff.stat] += eff.value;
         }));
         (u.items || []).forEach((it) => ITEMS[it].effects.forEach((eff) => (mods[eff.stat] += eff.value)));
+        (def.traits || []).forEach((id) => { const tr = AMB.DATA.TRAITS[id]; if (tr) Object.keys(tr.mods).forEach((k) => (mods[k] += tr.mods[k])); });   // rarity traits (rare 1, epic/legendary 2)
         if (def.world === hero.world) { mods.atkPct += HC.resonancePerAlly; mods.hpPct += HC.resonancePerAlly; }
         if (hero.passive.id === 'ancient_bark' && pos.row === 'front') mods.hpPct += 0.06;
         if (hero.passive.id === 'forge_heart' && pos.row === 'front') mods.atkPct += 0.045;
@@ -102,7 +103,7 @@
           maxHp, hp: maxHp, atk: def.atk * sm * (1 + mods.atkPct), as: def.as * (1 + mods.asPct),
           range: def.range + mods.range, def: def.def + mods.dr, crit: def.crit + mods.crit,
           critDmg: this.C.critMult + mods.critDmg, lifesteal: mods.lifesteal, skillPower: 1 + mods.skillPower,
-          regenPct: mods.regenPct, mana: mods.startMana, maxMana: def.mana, skill: def.skill,
+          regenPct: mods.regenPct, mana: mods.startMana, maxMana: def.mana, skill: def.skill, sig: def.sig || null,
         });
         if (mods.startShieldPct) f.shield += maxHp * mods.startShieldPct;
       });
@@ -247,6 +248,11 @@
       if (opts.skill) def *= this.C.skillDefFactor;
       let dmg = raw * (1 - def) * this.fury();
       if (tgt.isHero && !tgt.onBoard) dmg *= this.C.commandPostFortify;
+      // legendary 'lifeline' (Otohime): once per fight the first ally that would die survives with 30% health
+      if (!tgt.isHero && tgt.hp - Math.max(0, dmg - (tgt.shield || 0)) <= 0) {
+        const ll = this.fighters.find((a) => a.side === tgt.side && a.alive && a.sig === 'lifeline' && !a._ll);
+        if (ll) { ll._ll = true; tgt.shield = 0; tgt.hp = Math.max(1, tgt.maxHp * 0.2); this.emit({ type: 'heroAbility', side: tgt.side, name: 'حبل النجاة' }); return 0; }
+      }
       if (tgt.shield > 0) {
         const absorbed = Math.min(tgt.shield, dmg);
         tgt.shield -= absorbed;
@@ -261,6 +267,7 @@
         return dmg;
       }
       tgt.hp -= dmg;
+      if (src && src !== tgt && tgt.sig === 'reflect' && !opts.thorn && dmg > 0) this.damage(null, src, dmg * 0.15, { thorn: true, skill: true });   // legendary 'reflect' (Taiju)
       if (src && src !== tgt && tgt.thorns && tgt.thorns.until > this.t && !opts.dot && !opts.thorn) this.damage(null, src, dmg * tgt.thorns.pct, { thorn: true, skill: true });   // "thorns" twist: a share of the hit goes back
       if (src) {
         src.dmgDealt += dmg;
@@ -299,6 +306,10 @@
       f.alive = false;
       f.hp = 0;
       this.sides[f.side].deaths += f.isHero ? 0 : 1;
+      if (src && src.alive && !src.isHero) {   // legendary kill triggers
+        if (src.sig === 'bloodrush' && (src._br || 0) < 3) { src._br = (src._br || 0) + 1; src.buffs.push({ asPct: 0.2, until: Infinity }); }
+        if (src.sig === 'reaper' && src.skill) src.mana = src.maxMana;
+      }
       this.emit({ type: 'death', id: f.id, hero: f.isHero });
       this._updateExposure();
     }
@@ -311,7 +322,7 @@
       const tgt = f.target && f.target.alive ? f.target : this.findTarget(f);
       const needsTarget = ['nuke', 'cleave', 'aoe', 'stunAoe', 'stunStrike', 'burn', 'drain', 'execute'].includes(sk.type);
       if (needsTarget && !tgt) return false;
-      f.mana = 0;
+      f.mana = f.sig === 'echo' ? Math.floor(f.maxMana * 0.5) : 0;   // legendary 'echo': half the mana comes back
       this.emit({ type: 'cast', id: f.id, name: sk.name });
       // splash spreads sideways along the target's row (it no longer drags the squishy back row down with the front line)
       const enemiesNear = (c, r) => this.enemiesOf(f).filter((e) => this.targetable(e) && dist(e, c) <= r && (e === c || Math.abs(e.y - c.y) < 0.6));
@@ -468,6 +479,8 @@
       for (const f of this.fighters) {
         if (!f.alive) continue;
         f.buffs = f.buffs.filter((b) => b.until > this.t);
+        if (f.sig === 'frostaura' && this.t >= (f._au || 0)) { f._au = this.t + 0.25; this.enemiesOf(f).forEach((e) => { if (!e.isHero && dist(e, f) <= 2.6) e.buffs.push({ asPct: -0.12, until: this.t + 0.4 }); }); }
+        if (f.sig === 'bloom' && this.t >= (f._bl || 3)) { f._bl = this.t + 3; this.fighters.forEach((a) => { if (a.side === f.side && a.alive && !a.isHero) this.heal(a, a.maxHp * 0.03, true); }); }
         if (f.dots.length) {
           f.dots = f.dots.filter((d) => d.until > this.t);
           for (const d of f.dots) {
@@ -497,7 +510,9 @@
           f.atkCd -= dt;
           if (f.atkCd <= 0) {
             f.atkCd += 1 / Math.max(0.1, this.effAs(f));
-            const crit = this.rng.chance(f.crit);
+            f.atkN = (f.atkN || 0) + 1;
+            const crit = this.rng.chance(f.crit) || (f.sig === 'deadeye' && f.atkN % 3 === 0);   // legendary 'deadeye': every third hit crits
+            if (f.sig === 'overload' && (f.ov || 0) < 10) { f.ov = (f.ov || 0) + 1; f.as *= 1.03; }
             this.emit({ type: 'attack', from: f.id, to: tgt.id, ranged: f.range > 1 });
             this.damage(f, tgt, this.effAtk(f) * (crit ? f.critDmg : 1), { crit });
             if (f.skill) f.mana = Math.min(f.maxMana, f.mana + this.C.manaPerAttack);

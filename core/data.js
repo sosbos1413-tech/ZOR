@@ -35,7 +35,7 @@
   // identities: guardian = TANK (huge hp, high defence, little damage) · fighter = ATTACKER (hits hard and fast, weak defence)
   // assassin = glass cannon that dives · marksman = steady damage from far · mage = fragile, strength lives in the skill · support = sturdy healer, almost no damage
   const ROLE_BASE = {
-    guardian: { hp: 760, atk: 34, as: 0.55, range: 1, def: 0.33, crit: 0.03 },
+    guardian: { hp: 700, atk: 34, as: 0.55, range: 1, def: 0.28, crit: 0.03 },
     fighter: { hp: 480, atk: 72, as: 0.8, range: 1, def: 0.04, crit: 0.08 },
     assassin: { hp: 380, atk: 54, as: 0.9, range: 1, def: 0, crit: 0.28 },
     mage: { hp: 440, atk: 44, as: 0.6, range: 3, def: 0, crit: 0.05 },
@@ -333,6 +333,38 @@
   });
   const UNITS = {};
   U.forEach((u) => { if (u.exclusive) { u.hp = Math.round(u.hp * EXCLUSIVE_NERF); u.atk = Math.round(u.atk * EXCLUSIVE_NERF); } UNITS[u.id] = u; });
+  // ---- rarity ladder: common = the role's plain job · rare = +1 trait · epic = +2 traits · legendary = +2 traits and a signature mechanic of its own (core/combat.js)
+  const TRAITS = {
+    ironhide: { name: 'جلد حديدي', text: '+6% دفاع', mods: { dr: 0.06 } }, frenzy: { name: 'هيجان', text: '+10% سرعة هجوم', mods: { asPct: 0.1 } },
+    keen: { name: 'حدة', text: '+8% فرصة حرجة', mods: { crit: 0.08 } }, steady: { name: 'ثبات اليد', text: '+8% هجوم', mods: { atkPct: 0.08 } },
+    focus: { name: 'تركيز', text: '+20 مانا من البداية', mods: { startMana: 20 } }, gentle: { name: 'حنان', text: '+15% قوة المهارة', mods: { skillPower: 0.15 } },
+    ironhide2: { name: 'جلد حديدي+', text: '+9% دفاع', mods: { dr: 0.09 } }, bulwark: { name: 'حصن', text: 'يبدأ بدرع 12% من صحته', mods: { startShieldPct: 0.12 } },
+    frenzy2: { name: 'هيجان+', text: '+15% سرعة هجوم', mods: { asPct: 0.15 } }, bite: { name: 'عضّة', text: 'يسرق 8% من ضرره صحة', mods: { lifesteal: 0.08 } },
+    keen2: { name: 'حدة+', text: '+12% فرصة حرجة', mods: { crit: 0.12 } }, razor: { name: 'نصل', text: '+30% ضرر الحرجة', mods: { critDmg: 0.3 } },
+    steady2: { name: 'ثبات اليد+', text: '+12% هجوم', mods: { atkPct: 0.12 } }, farsight: { name: 'بعد نظر', text: '+6% فرصة حرجة', mods: { crit: 0.06 } },
+    focus2: { name: 'تركيز+', text: '+30 مانا من البداية', mods: { startMana: 30 } }, arcane: { name: 'سحر خام', text: '+20% قوة المهارة', mods: { skillPower: 0.2 } },
+    gentle2: { name: 'حنان+', text: '+22% قوة المهارة', mods: { skillPower: 0.22 } }, vital: { name: 'حيوية', text: 'يتجدد 1% من صحته كل ثانية', mods: { regenPct: 0.01 } },
+  };
+  const RARE_TRAIT = { guardian: ['ironhide'], fighter: ['frenzy'], assassin: ['keen'], marksman: ['steady'], mage: ['focus'], support: ['gentle'] };
+  const EPIC_TRAITS = { guardian: ['ironhide2', 'bulwark'], fighter: ['frenzy2', 'bite'], assassin: ['keen2', 'razor'], marksman: ['steady2', 'farsight'], mage: ['focus2', 'arcane'], support: ['gentle2', 'vital'] };
+  const SIGS = {   // legendary signatures: the mechanic lives in core/combat.js
+    reflect: { name: 'مرآة الجدار', text: 'يرد 15% من أي ضرر ياخذه على اللي ضربه' },
+    bloodrush: { name: 'اندفاع الدم', text: 'كل قتل: +20% سرعة هجوم (حتى 3 مرات)' },
+    reaper: { name: 'الحاصد', text: 'كل قتل: مهارته تجهز فورًا (مانا كاملة)' },
+    deadeye: { name: 'العين القاتلة', text: 'كل ضربة ثالثة حرجة مضمونة' },
+    overload: { name: 'فرط الحمل', text: 'كل ضربة +3% سرعة هجوم (حتى 10 مرات)' },
+    echo: { name: 'صدى', text: 'بعد مهارته يرجع له نص المانا فيعيدها أسرع' },
+    frostaura: { name: 'هالة الصقيع', text: 'الأعداء القريبون منه يبطؤون 12%' },
+    lifeline: { name: 'حبل النجاة', text: 'مرة وحدة: أول حليف يموت ينجو بـ20% صحة' },
+    bloom: { name: 'ازدهار', text: 'كل 3 ثواني يعالج الفريق كله 3% من صحتهم' },
+  };
+  const SIG_OF = { taiju: 'reflect', goka: 'bloodrush', hinotori: 'reaper', mikazuki: 'deadeye', kaminari: 'overload', mugen: 'echo', shiori: 'frostaura', otohime: 'lifeline', kodama: 'bloom' };
+  U.forEach((u) => {
+    if (u.rarity === 'rare') u.traits = (RARE_TRAIT[u.role] || []).slice();
+    else if (u.rarity === 'epic' || u.rarity === 'legendary') u.traits = (EPIC_TRAITS[u.role] || []).slice();
+    else u.traits = [];
+    if (u.rarity === 'legendary') { u.sig = SIG_OF[u.id] || null; }
+  });
   // The starter roster: 8 basic units (every role covered). Everything else comes from the gift packs, packs, the pass or events.
   const STARTER_IDS = ['ash_ronin', 'forge_bulwark', 'wave_caller', 'grid_hound', 'pixel_sniper', 'moss_warden', 'thorn_fox', 'shiro'];
   STARTER_IDS.forEach((id) => (UNITS[id].starter = true));
@@ -540,5 +572,5 @@
 
   Object.values(HEROES).forEach((h) => { h.rarity = h.rarity || 'legendary'; });
   const HERO_STARTERS = ['kagira', 'merin', 'zerokai', 'orath'];   // the four heroes a new player can pick; the rest come from packs and the battle pass
-  AMB.DATA = { HERO_STARTERS, LEGACY_STARTERS, STARTER_IDS, REWARDS, REWARD_POOLS, WORLDS, ROLES, ROLE_BASE, TIER_MULT, TIER_RARITY, UNITS, HEROES, ITEMS, SYNERGIES, ABILITY_TRIGGERS };
+  AMB.DATA = { TRAITS, SIGS, HERO_STARTERS, LEGACY_STARTERS, STARTER_IDS, REWARDS, REWARD_POOLS, WORLDS, ROLES, ROLE_BASE, TIER_MULT, TIER_RARITY, UNITS, HEROES, ITEMS, SYNERGIES, ABILITY_TRIGGERS };
 })();

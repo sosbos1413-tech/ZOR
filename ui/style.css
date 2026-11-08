@@ -2309,3 +2309,4 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
 .al-tile .al-got { top: 6px; left: 12px; }
 #save-lock { position: fixed; inset: 0; z-index: 9999; background: #000d; display: grid; place-items: center; padding: 20px; }
 #save-lock .sl-box { background: var(--paper, #f3ead6); color: #121010; border: 3px solid #121010; box-shadow: 6px 6px 0 var(--red, #e0262f); padding: 22px 18px; max-width: 340px; text-align: center; } #save-lock h2 { margin: 0 0 10px; font-size: 22px; } #save-lock p { margin: 0 0 16px; line-height: 1.7; }
+.rar-box { border-color: #a855f7aa; } .rar-box div { margin-top: 3px; } .rar-box .sig-line { color: #b36200; margin-top: 6px; }
