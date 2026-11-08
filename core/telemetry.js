@@ -16,7 +16,7 @@
 
   function load() {
     if (!hasLS()) return memory.data;
-    try { return JSON.parse(localStorage.getItem(KEY)) || empty(); } catch (e) { return empty(); }
+    try { const d = JSON.parse(localStorage.getItem(KEY)); return d && typeof d === 'object' && !Array.isArray(d) ? Object.assign(empty(), d) : empty(); } catch (e) { return empty(); }   // missing fields of an older/partial record come from the defaults
   }
   function save(d) {
     if (!hasLS()) { memory.data = d; return; }

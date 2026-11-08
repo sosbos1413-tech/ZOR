@@ -130,7 +130,8 @@
   ];
 
   const dayKey = (t) => { const d = new Date(t); return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); };
-  const weekKey = (t) => { const d = new Date(t); const o = new Date(d.getFullYear(), 0, 1); return d.getFullYear() * 100 + Math.floor(((d - o) / DAY + o.getDay()) / 7); };
+  // weeks run Monday-Sunday like the weekly event (core/events.js), counted from Monday 1 Jan 2024; no break at New Year. (The key changed once: weekly mission progress reset once when this shipped.)
+  const weekKey = (t) => { const d = new Date(t); return Math.floor((Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / DAY) - 19723) / 7); };
   const hash = (s) => {   // murmur-style mixing so neighbouring days give unrelated orders
     let h = 2166136261;
     for (const c of String(s)) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); }
@@ -187,7 +188,7 @@
       claimMission(id) {
         const m = api.dailyMissions().concat(api.weeklyMissions()).find((x) => x.id === id);
         if (!m || !m.done || m.claimed) return null;
-        st.claimedMissions.push(id); const before = api.level(); st.xp += m.xp; save();
+        st.claimedMissions.push(id); const before = api.level(); if (!api.ended()) st.xp += m.xp; save();   // no XP after the season closed (the shards still pay)
         if (m.shards && onReward) { try { onReward({ type: 'shards', n: m.shards, mission: id }); } catch (e) { /* never blocks claiming */ } }
         return { xp: m.xp, shards: m.shards || 0, levelUp: api.level() - before > 0 };
       },

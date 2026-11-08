@@ -1169,7 +1169,7 @@
     if (S.mode === 'tower') return AMB.TowerUI.showResult(m, secs);
     if (S.mode === 'event') return AMB.EventUI.showResult(m, secs);
     if (S.mode === 'tutorial') return AMB.TutorialUI.showResult(m, secs);
-    if (S.mode !== 'friendly' && S.mode !== 'online' && !m._recorded) { AMB.telemetry.recordMatch(m, { seconds: secs }); m._recorded = true; }
+    if (S.mode !== 'friendly' && S.mode !== 'online' && !m._recorded) { try { AMB.telemetry.recordMatch(m, { seconds: secs }); } catch (e) { reportErr(e); } m._recorded = true; /* analytics must never block the results screen */ }
     if (!m._counted) { m._counted = true; try { localStorage.setItem('amb_played', String(+(localStorage.getItem('amb_played') || 0) + 1)); } catch (e) { /* ignore */ } }
     if (!m._passDone && S.mode !== 'online' && fought(m)) { m._passDone = true; try { S.passResult = AMB.pass.recordMatch(m.summary(0)); } catch (e) { S.passResult = null; } }
     let title;
@@ -1599,6 +1599,16 @@
       } catch (err) { reportErr(err); }
       if (exiting) { try { history.back(); } catch (e) { /* ignore */ } } else { try { history.pushState({ zor: 1 }, ''); } catch (e) { /* ignore */ } }
     });
+  })();
+
+  // accessibility: icon-only buttons get an accessible name (their title, or a known Arabic label by action)
+  (function a11y() {
+    const NAMES = { menuMatch: 'القائمة', pause: 'إيقاف مؤقت', closeModal: 'إغلاق', rotate: 'تدوير الشاشة', sound: 'الصوت', info: 'شرح', summon: 'نزّل البطل', tg: 'التالي' };
+    const fix = (root) => (root.querySelectorAll ? root : document).querySelectorAll('button:not([aria-label])').forEach((b) => {
+      const t = (b.textContent || '').trim(), name = b.getAttribute('title') || NAMES[b.dataset.act];
+      if (name && (!t || t.length <= 2 || b.dataset.act === 'info')) b.setAttribute('aria-label', name);
+    });
+    try { fix(document); new MutationObserver((ms) => { let again = false; ms.forEach((m) => { if (m.addedNodes.length) again = true; }); if (again) fix(document); }).observe(document.body, { childList: true, subtree: true }); } catch (e) { /* ignore */ }
   })();
 
   // debug / testing hook

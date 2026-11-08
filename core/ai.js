@@ -90,7 +90,7 @@
     rest.sort((a, b) => power(b) - power(a));
     rest.forEach((u, i) => {
       if (i < p.bench.length) p.bench[i] = u;
-      else { p.gold += match.sellValue(u); match._pool(p)[u.defId] += match.copiesOf(u); p.items.push(...u.items); }
+      else { p.gold += match.sellValue(u); match._pool(p)[u.defId] += match.copiesOf(u); match._stash(p, u.items); }
     });
   }
 
@@ -187,7 +187,7 @@
         case 'bless_atk': return 5.2 + (board >= 4 ? 0.8 : 0);
         case 'bless_hp': return 5 + (p.life < 70 ? 0.6 : 0);
         case 'bless_as': return 4.6;
-        case 'heal': return p.life < 60 ? 7 : p.life < 80 ? 4 : 1;
+        case 'heal': return p.life < 40 ? 9 : p.life < 60 ? 7 : p.life < 80 ? 4 : 1;   // a badly hurt hero heals before it recruits
         case 'xp': return lvlRoom ? 4.4 : 0.5;
         case 'gold': return 3.8;
         case 'essence': return 3.2;
@@ -196,7 +196,7 @@
       }
     };
     let best = 0, bs = -1;
-    o.options.forEach((id, i) => { const sc = score(id) + Math.random() * 0.01; if (sc > bs) { bs = sc; best = i; } });
+    o.options.forEach((id, i) => { const sc = score(id); if (sc > bs) { bs = sc; best = i; } });
     return match.claimReward(pi, best);
   }
   function claimRewards(match) { match.players.forEach((_, i) => { if (match.players[i].rewardOffer && !match.players[i].rewardOffer.claimed) claimReward(match, i); }); }

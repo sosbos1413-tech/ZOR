@@ -13,7 +13,7 @@
   let pending = null, banner = null;
   const ss = { get: (k) => { try { return sessionStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { sessionStorage.setItem(k, v); } catch (e) { /* ignore */ } }, del: (k) => { try { sessionStorage.removeItem(k); } catch (e) { /* ignore */ } } };
   const UI = () => globalThis.AMB_UI;
-  const busy = () => { const u = UI(); return !u || u.S.screen === 'match' || u.S.screen === 'hero' || document.getElementById('overlay').classList.contains('on'); };
+  const busy = () => { const u = UI(); return !u || u.S.screen === 'match' || u.S.screen === 'hero' || document.getElementById('overlay').classList.contains('on') || document.getElementById('modal-back').classList.contains('on') || !!u.S.net; };
 
   // the notice comes, stays ~2 seconds and goes (it never sits on top of the cards); it is not repeated for the same message
   let hideT = 0, lastMsg = '';

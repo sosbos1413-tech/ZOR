@@ -18,7 +18,7 @@
   function open() {
     const sv = AMB.save;
     UI().modal(`<h2>💾 الحفظ</h2>
-      <div class="save-box ok">✓ <b>الحفظ تلقائي</b>: تقدمك ينحفظ لحاله مع كل تغيير، ما تحتاج تضغط شي.</div>
+      ${sv.writeFailed() ? '<div class="save-box" style="border-color:#e0262f;color:#e0262f">⚠ <b>التقدم ما ينحفظ في هالمتصفح</b>: التخزين مقفل أو ممتلئ (أو وضع خاص). نزّل نسخة احتياطية بالزر تحت بعد كل جلسة.</div>' : '<div class="save-box ok">✓ <b>الحفظ تلقائي</b>: تقدمك ينحفظ لحاله مع كل تغيير، ما تحتاج تضغط شي.</div>'}
       <div class="save-kv"><span>آخر حفظ</span><b>${fmt(sv.updated())}</b></div>
       <div class="save-kv"><span>حجم البيانات</span><b style="direction:ltr">${sizeKB()} KB</b></div>
       <div class="save-kv"><span>الحماية من المسح التلقائي</span><b>${persisted === null ? 'غير معروفة' : persisted ? 'مفعّلة ✓' : 'يقرّرها المتصفح'}</b></div>
@@ -68,6 +68,7 @@
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
   document.addEventListener('pointerdown', function once() { askPersist(); document.removeEventListener('pointerdown', once); }, { once: true });
 
+  if (AMB.save && AMB.save.onWriteFail) AMB.save.onWriteFail(() => { try { UI().toast('⚠ التقدم ما ينحفظ في هالمتصفح. نزّل نسخة احتياطية من «الحفظ»', 'err'); } catch (e) { /* ignore */ } });
   // another tab wrote the save: this one is stale and has stopped writing; the player must reload (the newest tab wins)
   if (AMB.save && AMB.save.onLock) AMB.save.onLock(() => {
     const d = document.createElement('div'); d.id = 'save-lock';

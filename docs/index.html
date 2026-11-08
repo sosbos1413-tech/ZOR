@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="310c1fdc5e">
+<meta name="zor-build" content="cc99c02344">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -2491,8 +2491,8 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
   <button class="dk" data-act="rotate" id="menu-rotate"><span class="mt-ic">🔄</span><span class="mt-l">تدوير</span></button>
   <button class="dk" data-act="sound" id="menu-sound"><span class="mt-ic">🔊</span><span class="mt-l">الصوت</span></button>
 </div>
-  <div class="overlay" id="overlay"></div>
-  <div class="modal-back" id="modal-back"><div class="modal" id="modal"></div></div>
+  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="نافذة"></div>
+  <div class="modal-back" id="modal-back"><div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="نافذة"></div></div>
   <div class="toasts" id="toasts"></div>
 </div>
 
@@ -3857,7 +3857,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
       abilities: {},        // abilityId -> trigger
       summoned: false, heroSlot: 'b1',
       shop: [], itemShop: [], shopLocked: false, freeRerolls: 0,
-      winStreak: 0, lossStreak: 0, lastIncome: null,
+      winStreak: 0, lossStreak: 0, lastWon: false, lastIncome: null,
       stats: { damageDealt: 0, goldSpent: 0, rerolls: 0, unitsBought: 0, merges: 0, wins: 0, losses: 0, draws: 0 },
       alive: true,
       blessings: { atkPct: 0, hpPct: 0, asPct: 0 }, rewardOffer: null, rewardLog: [],
@@ -3908,7 +3908,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
         const streak = Math.max(p.winStreak, p.lossStreak);
         let streakBonus = 0;
         E.streakBonus.forEach(([n, b]) => { if (streak >= n) streakBonus = b; });
-        const win = this.round > 1 && p.winStreak > 0 ? E.winBonus : 0;
+        const win = this.round > 1 && p.lastWon ? E.winBonus : 0;   // the win bonus is for WINNING the last round (a drawn round does not pay it)
         const dataStream = AMB.DATA.HEROES[p.heroId].passive.id === 'data_stream' ? 1 : 0;   // Nayako: +1 gold every round
         const income = (this.round === 1 ? E.baseIncome : E.baseIncome + interest + streakBonus + win) + dataStream;
         p.lastIncome = { base: E.baseIncome, interest: this.round === 1 ? 0 : interest, streak: this.round === 1 ? 0 : streakBonus, win, total: income };
@@ -3926,17 +3926,19 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
     }
 
     // ================================================================ economy
-    xpNeeded(p) { return AMB.CONFIG.economy.xpToLevel[p.level] || null; }
+    /** put items into the bag; the bag holds itemBenchSize (6): the rest turns into gold (+3 each, like the 'item' reward) so the limit can never be bypassed */
+    _stash(p, items) { const cap = AMB.CONFIG.economy.itemBenchSize; items.forEach((it) => { if (p.items.length < cap) p.items.push(it); else p.gold += 3; }); }
+    xpNeeded(p) { return AMB.CONFIG.economy.xpToLevel[Math.max(3, p.level)] || null; }   // levels 1-2 (scripted line-ups) use the level-3 cost; null never means "free level-up"
     _gainXp(p, n) {
       const E = AMB.CONFIG.economy;
       if (p.level >= E.maxLevel) return;
       p.xp += n;
-      while (p.level < E.maxLevel && p.xp >= this.xpNeeded(p)) { p.xp -= this.xpNeeded(p); p.level++; }
+      while (p.level < E.maxLevel && this.xpNeeded(p) != null && p.xp >= this.xpNeeded(p)) { p.xp -= this.xpNeeded(p); p.level++; }
       if (p.level >= E.maxLevel) p.xp = 0;
     }
 
     _drawUnit(p) {
-      const odds = AMB.CONFIG.economy.tierOdds[p.level];
+      const odds = AMB.CONFIG.economy.tierOdds[Math.max(3, p.level)];
       const tier = this._rng(p).weighted(odds.map((w, i) => [i + 1, w]).filter((e) => e[1] > 0));
       const mine = (u) => !p.allowed || p.allowed.has(u.id);   // progression: only units the player owns
       let entries = Object.values(AMB.DATA.UNITS).filter((u) => u.tier === tier && mine(u)).map((u) => [u.id, this._pool(p)[u.id]]);
@@ -4036,7 +4038,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
         if (p._overflow && use.includes(p._overflow)) p._overflow = null;
         const up = { uid: this._uid(p), defId: check.defId, star: check.star + 1, items: [] };
         const maxI = AMB.CONFIG.economy.maxItemsPerUnit;
-        items.forEach((it) => (up.items.length < maxI ? up.items.push(it) : p.items.push(it)));
+        items.forEach((it) => (up.items.length < maxI ? up.items.push(it) : this._stash(p, [it])));
         if (keepLoc && keepLoc.zone === 'board') p.board[keepLoc.slot] = up;
         else {
           const bi = keepLoc && keepLoc.zone === 'bench' ? keepLoc.idx : p.bench.indexOf(null);
@@ -4081,7 +4083,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
       this._remove(p, u);
       p.gold += this.sellValue(u);
       this._pool(p)[u.defId] += this.copiesOf(u);
-      p.items.push(...u.items);
+      this._stash(p, u.items);
       return { ok: true };
     }
 
@@ -4329,6 +4331,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
         p.essence = Math.max(0, p.essence - spent);
         p.armedSpells = [];
         // streaks
+        p.lastWon = result.winner === i;
         if (result.winner === i) { p.winStreak++; p.lossStreak = 0; p.stats.wins++; }
         else if (result.winner === 1 - i) { p.lossStreak++; p.winStreak = 0; p.stats.losses++; }
         else { p.stats.draws++; }
@@ -4564,7 +4567,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
     rest.sort((a, b) => power(b) - power(a));
     rest.forEach((u, i) => {
       if (i < p.bench.length) p.bench[i] = u;
-      else { p.gold += match.sellValue(u); match._pool(p)[u.defId] += match.copiesOf(u); p.items.push(...u.items); }
+      else { p.gold += match.sellValue(u); match._pool(p)[u.defId] += match.copiesOf(u); match._stash(p, u.items); }
     });
   }
 
@@ -4661,7 +4664,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
         case 'bless_atk': return 5.2 + (board >= 4 ? 0.8 : 0);
         case 'bless_hp': return 5 + (p.life < 70 ? 0.6 : 0);
         case 'bless_as': return 4.6;
-        case 'heal': return p.life < 60 ? 7 : p.life < 80 ? 4 : 1;
+        case 'heal': return p.life < 40 ? 9 : p.life < 60 ? 7 : p.life < 80 ? 4 : 1;   // a badly hurt hero heals before it recruits
         case 'xp': return lvlRoom ? 4.4 : 0.5;
         case 'gold': return 3.8;
         case 'essence': return 3.2;
@@ -4670,7 +4673,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
       }
     };
     let best = 0, bs = -1;
-    o.options.forEach((id, i) => { const sc = score(id) + Math.random() * 0.01; if (sc > bs) { bs = sc; best = i; } });
+    o.options.forEach((id, i) => { const sc = score(id); if (sc > bs) { bs = sc; best = i; } });
     return match.claimReward(pi, best);
   }
   function claimRewards(match) { match.players.forEach((_, i) => { if (match.players[i].rewardOffer && !match.players[i].rewardOffer.claimed) claimReward(match, i); }); }
@@ -4698,7 +4701,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
 
   function load() {
     if (!hasLS()) return memory.data;
-    try { return JSON.parse(localStorage.getItem(KEY)) || empty(); } catch (e) { return empty(); }
+    try { const d = JSON.parse(localStorage.getItem(KEY)); return d && typeof d === 'object' && !Array.isArray(d) ? Object.assign(empty(), d) : empty(); } catch (e) { return empty(); }   // missing fields of an older/partial record come from the defaults
   }
   function save(d) {
     if (!hasLS()) { memory.data = d; return; }
@@ -4776,7 +4779,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
   }
 
   // in-memory stand-in when localStorage is blocked (private mode, sandboxed previews…)
-  function memoryStorage() { const m = {}; return { getItem: (k) => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v); }, removeItem: (k) => { delete m[k]; } }; }
+  function memoryStorage() { const m = {}; return { __mem: true, getItem: (k) => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v); }, removeItem: (k) => { delete m[k]; } }; }
   function browserStorage() {
     try { const s = globalThis.localStorage, k = '__amb_t'; s.setItem(k, '1'); s.removeItem(k); return s; } catch (e) { return memoryStorage(); }
   }
@@ -4841,7 +4844,9 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
     const lock = () => { if (locked) return; locked = true; lockListeners.forEach((f) => { try { f(); } catch (e) { /* ignore */ } }); };
     const hook = (hooks && hooks.onForeignWrite) || (realStorage && typeof window !== 'undefined' && window.addEventListener ? ((cb) => window.addEventListener('storage', (e) => { if (e.key === KEY || e.key === null) cb(); })) : null);
     if (hook) hook(lock);
-    const write = () => { if (locked) return false; try { root.updated = now(); storage.setItem(KEY, JSON.stringify(root)); return true; } catch (e) { return false; } };
+    let failed = !!storage.__mem && realStorage, failListeners = [];   // memory fallback (private mode / blocked storage) means progress is lost on reload
+    const noteFail = () => { if (failed) return; failed = true; failListeners.forEach((f) => { try { f(); } catch (e) { /* ignore */ } }); };
+    const write = () => { if (locked) return false; try { root.updated = now(); storage.setItem(KEY, JSON.stringify(root)); failed = !!storage.__mem && realStorage; return true; } catch (e) { noteFail(); return false; } };
     write();
 
     /** State of one system: migrated + defaults filled. The returned object is live: change it, then call save.write(). */
@@ -4893,7 +4898,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
       write(); emit('*'); return true;
     }
 
-    return { get, set, update, reset, write, storageFor, hasBackup, restore, isLocked: () => locked, onLock: (f) => { lockListeners.push(f); if (locked) f(); }, onChange, exportJSON, importJSON, wasCorrupt: corrupt, recovered, updated: () => root.updated || 0, systems: () => Object.keys(root.systems), now };
+    return { get, set, update, reset, write, storageFor, hasBackup, restore, writeFailed: () => failed, onWriteFail: (f) => { failListeners.push(f); if (failed) f(); }, isLocked: () => locked, onLock: (f) => { lockListeners.push(f); if (locked) f(); }, onChange, exportJSON, importJSON, wasCorrupt: corrupt, recovered, updated: () => root.updated || 0, systems: () => Object.keys(root.systems), now };
   }
 
   AMB.Save = { create, register, KEY, VERSION, LEGACY, REGISTRY, memoryStorage, browserStorage };
@@ -6390,7 +6395,8 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
   ];
 
   const dayKey = (t) => { const d = new Date(t); return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); };
-  const weekKey = (t) => { const d = new Date(t); const o = new Date(d.getFullYear(), 0, 1); return d.getFullYear() * 100 + Math.floor(((d - o) / DAY + o.getDay()) / 7); };
+  // weeks run Monday-Sunday like the weekly event (core/events.js), counted from Monday 1 Jan 2024; no break at New Year. (The key changed once: weekly mission progress reset once when this shipped.)
+  const weekKey = (t) => { const d = new Date(t); return Math.floor((Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / DAY) - 19723) / 7); };
   const hash = (s) => {   // murmur-style mixing so neighbouring days give unrelated orders
     let h = 2166136261;
     for (const c of String(s)) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); }
@@ -6447,7 +6453,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
       claimMission(id) {
         const m = api.dailyMissions().concat(api.weeklyMissions()).find((x) => x.id === id);
         if (!m || !m.done || m.claimed) return null;
-        st.claimedMissions.push(id); const before = api.level(); st.xp += m.xp; save();
+        st.claimedMissions.push(id); const before = api.level(); if (!api.ended()) st.xp += m.xp; save();   // no XP after the season closed (the shards still pay)
         if (m.shards && onReward) { try { onReward({ type: 'shards', n: m.shards, mission: id }); } catch (e) { /* never blocks claiming */ } }
         return { xp: m.xp, shards: m.shards || 0, levelUp: api.level() - before > 0 };
       },
@@ -8223,7 +8229,7 @@ AMB.IMAGES = {
     if (S.mode === 'tower') return AMB.TowerUI.showResult(m, secs);
     if (S.mode === 'event') return AMB.EventUI.showResult(m, secs);
     if (S.mode === 'tutorial') return AMB.TutorialUI.showResult(m, secs);
-    if (S.mode !== 'friendly' && S.mode !== 'online' && !m._recorded) { AMB.telemetry.recordMatch(m, { seconds: secs }); m._recorded = true; }
+    if (S.mode !== 'friendly' && S.mode !== 'online' && !m._recorded) { try { AMB.telemetry.recordMatch(m, { seconds: secs }); } catch (e) { reportErr(e); } m._recorded = true; /* analytics must never block the results screen */ }
     if (!m._counted) { m._counted = true; try { localStorage.setItem('amb_played', String(+(localStorage.getItem('amb_played') || 0) + 1)); } catch (e) { /* ignore */ } }
     if (!m._passDone && S.mode !== 'online' && fought(m)) { m._passDone = true; try { S.passResult = AMB.pass.recordMatch(m.summary(0)); } catch (e) { S.passResult = null; } }
     let title;
@@ -8653,6 +8659,16 @@ AMB.IMAGES = {
       } catch (err) { reportErr(err); }
       if (exiting) { try { history.back(); } catch (e) { /* ignore */ } } else { try { history.pushState({ zor: 1 }, ''); } catch (e) { /* ignore */ } }
     });
+  })();
+
+  // accessibility: icon-only buttons get an accessible name (their title, or a known Arabic label by action)
+  (function a11y() {
+    const NAMES = { menuMatch: 'القائمة', pause: 'إيقاف مؤقت', closeModal: 'إغلاق', rotate: 'تدوير الشاشة', sound: 'الصوت', info: 'شرح', summon: 'نزّل البطل', tg: 'التالي' };
+    const fix = (root) => (root.querySelectorAll ? root : document).querySelectorAll('button:not([aria-label])').forEach((b) => {
+      const t = (b.textContent || '').trim(), name = b.getAttribute('title') || NAMES[b.dataset.act];
+      if (name && (!t || t.length <= 2 || b.dataset.act === 'info')) b.setAttribute('aria-label', name);
+    });
+    try { fix(document); new MutationObserver((ms) => { let again = false; ms.forEach((m) => { if (m.addedNodes.length) again = true; }); if (again) fix(document); }).observe(document.body, { childList: true, subtree: true }); } catch (e) { /* ignore */ }
   })();
 
   // debug / testing hook
@@ -9563,7 +9579,8 @@ AMB.IMAGES = {
   }
   // ---- fallback: relay the messages through a free public pub/sub service (ntfy.sh). Slower than a direct link but it works on any network
   // that can open a web page (mobile carriers often block direct phone-to-phone links). Messages are tiny: only each player's moves.
-  const RELAY = (() => { const m = /[?&]relay=([^&]+)/.exec(location.search); return m ? decodeURIComponent(m[1]) : 'https://ntfy.sh'; })();
+  // the relay may be changed from the link only to ntfy itself or a local test server (a shared link must not be able to redirect every game message to a stranger's server)
+  const RELAY = (() => { const m = /[?&]relay=([^&]+)/.exec(location.search); if (!m) return 'https://ntfy.sh'; try { const u = new URL(decodeURIComponent(m[1])); return (/(^|\.)ntfy\.sh$/.test(u.hostname) && u.protocol === 'https:') || /^(localhost|127\.0\.0\.1)$/.test(u.hostname) ? u.origin : 'https://ntfy.sh'; } catch (e) { return 'https://ntfy.sh'; } })();
   function relayTopic(code) { return 'zor-room-' + code.toLowerCase(); }
   function relayLink(code, me, other) {
     const topic = relayTopic(code), link = makeLink(null), seen = new Set(), pending = []; let seq = 0, sending = false, closed = false, es = null;
@@ -10612,7 +10629,7 @@ AMB.IMAGES = {
   function open() {
     const sv = AMB.save;
     UI().modal(`<h2>💾 الحفظ</h2>
-      <div class="save-box ok">✓ <b>الحفظ تلقائي</b>: تقدمك ينحفظ لحاله مع كل تغيير، ما تحتاج تضغط شي.</div>
+      ${sv.writeFailed() ? '<div class="save-box" style="border-color:#e0262f;color:#e0262f">⚠ <b>التقدم ما ينحفظ في هالمتصفح</b>: التخزين مقفل أو ممتلئ (أو وضع خاص). نزّل نسخة احتياطية بالزر تحت بعد كل جلسة.</div>' : '<div class="save-box ok">✓ <b>الحفظ تلقائي</b>: تقدمك ينحفظ لحاله مع كل تغيير، ما تحتاج تضغط شي.</div>'}
       <div class="save-kv"><span>آخر حفظ</span><b>${fmt(sv.updated())}</b></div>
       <div class="save-kv"><span>حجم البيانات</span><b style="direction:ltr">${sizeKB()} KB</b></div>
       <div class="save-kv"><span>الحماية من المسح التلقائي</span><b>${persisted === null ? 'غير معروفة' : persisted ? 'مفعّلة ✓' : 'يقرّرها المتصفح'}</b></div>
@@ -10662,6 +10679,7 @@ AMB.IMAGES = {
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
   document.addEventListener('pointerdown', function once() { askPersist(); document.removeEventListener('pointerdown', once); }, { once: true });
 
+  if (AMB.save && AMB.save.onWriteFail) AMB.save.onWriteFail(() => { try { UI().toast('⚠ التقدم ما ينحفظ في هالمتصفح. نزّل نسخة احتياطية من «الحفظ»', 'err'); } catch (e) { /* ignore */ } });
   // another tab wrote the save: this one is stale and has stopped writing; the player must reload (the newest tab wins)
   if (AMB.save && AMB.save.onLock) AMB.save.onLock(() => {
     const d = document.createElement('div'); d.id = 'save-lock';
@@ -10689,7 +10707,7 @@ AMB.IMAGES = {
   let pending = null, banner = null;
   const ss = { get: (k) => { try { return sessionStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { sessionStorage.setItem(k, v); } catch (e) { /* ignore */ } }, del: (k) => { try { sessionStorage.removeItem(k); } catch (e) { /* ignore */ } } };
   const UI = () => globalThis.AMB_UI;
-  const busy = () => { const u = UI(); return !u || u.S.screen === 'match' || u.S.screen === 'hero' || document.getElementById('overlay').classList.contains('on'); };
+  const busy = () => { const u = UI(); return !u || u.S.screen === 'match' || u.S.screen === 'hero' || document.getElementById('overlay').classList.contains('on') || document.getElementById('modal-back').classList.contains('on') || !!u.S.net; };
 
   // the notice comes, stays ~2 seconds and goes (it never sits on top of the cards); it is not repeated for the same message
   let hideT = 0, lastMsg = '';

@@ -303,10 +303,20 @@ t('interest and streak income', () => {
   const m = new AMB.Match({ seed: 14, players: [{ heroId: 'kagira' }, { heroId: 'orath' }] });
   m.startRound();
   const p = m.players[0];
-  p.gold = 25; p.winStreak = 2;
+  p.gold = 25; p.winStreak = 2; p.lastWon = true;
   m.startRound();
   const E = AMB.CONFIG.economy;
   eq(p.lastIncome.total, E.baseIncome + 2 + 1 + E.winBonus);
+  // a drawn round keeps the streak but does not pay the win bonus (A8)
+  p.gold = 25; p.winStreak = 2; p.lastWon = false; m.startRound();
+  eq(p.lastIncome.total, E.baseIncome + 2 + 1, 'no win bonus after a draw');
+});
+t('A10/A11: levels 1-2 never level up for free or crash the shop; the item bag cannot exceed its limit', () => {
+  const m = new AMB.Match({ seed: 33, players: [{ heroId: 'kagira' }, { heroId: 'orath' }] }); m.startRound();
+  const p = m.players[0]; p.level = 1; p.xp = 0; m._gainXp(p, 2);
+  eq(p.level, 1, 'no free level-up'); p._t = 1; m._rollShop(p); ok(p.shop.length > 0, 'the shop rolls at level 1');
+  const cap = AMB.CONFIG.economy.itemBenchSize; p.items = ['sword', 'sword', 'sword', 'sword', 'sword', 'sword'].slice(0, cap);
+  const g = p.gold; m._stash(p, ['a', 'b']); eq(p.items.length, cap); eq(p.gold, g + 6, 'overflow items turn into +3 gold each');
 });
 t('abilities reserve essence and refund when not triggered', () => {
   const m = new AMB.Match({ seed: 15, players: [{ heroId: 'merin' }, { heroId: 'orath' }] });

@@ -23,7 +23,7 @@
   }
 
   // in-memory stand-in when localStorage is blocked (private mode, sandboxed previews…)
-  function memoryStorage() { const m = {}; return { getItem: (k) => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v); }, removeItem: (k) => { delete m[k]; } }; }
+  function memoryStorage() { const m = {}; return { __mem: true, getItem: (k) => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v); }, removeItem: (k) => { delete m[k]; } }; }
   function browserStorage() {
     try { const s = globalThis.localStorage, k = '__amb_t'; s.setItem(k, '1'); s.removeItem(k); return s; } catch (e) { return memoryStorage(); }
   }
@@ -88,7 +88,9 @@
     const lock = () => { if (locked) return; locked = true; lockListeners.forEach((f) => { try { f(); } catch (e) { /* ignore */ } }); };
     const hook = (hooks && hooks.onForeignWrite) || (realStorage && typeof window !== 'undefined' && window.addEventListener ? ((cb) => window.addEventListener('storage', (e) => { if (e.key === KEY || e.key === null) cb(); })) : null);
     if (hook) hook(lock);
-    const write = () => { if (locked) return false; try { root.updated = now(); storage.setItem(KEY, JSON.stringify(root)); return true; } catch (e) { return false; } };
+    let failed = !!storage.__mem && realStorage, failListeners = [];   // memory fallback (private mode / blocked storage) means progress is lost on reload
+    const noteFail = () => { if (failed) return; failed = true; failListeners.forEach((f) => { try { f(); } catch (e) { /* ignore */ } }); };
+    const write = () => { if (locked) return false; try { root.updated = now(); storage.setItem(KEY, JSON.stringify(root)); failed = !!storage.__mem && realStorage; return true; } catch (e) { noteFail(); return false; } };
     write();
 
     /** State of one system: migrated + defaults filled. The returned object is live: change it, then call save.write(). */
@@ -140,7 +142,7 @@
       write(); emit('*'); return true;
     }
 
-    return { get, set, update, reset, write, storageFor, hasBackup, restore, isLocked: () => locked, onLock: (f) => { lockListeners.push(f); if (locked) f(); }, onChange, exportJSON, importJSON, wasCorrupt: corrupt, recovered, updated: () => root.updated || 0, systems: () => Object.keys(root.systems), now };
+    return { get, set, update, reset, write, storageFor, hasBackup, restore, writeFailed: () => failed, onWriteFail: (f) => { failListeners.push(f); if (failed) f(); }, isLocked: () => locked, onLock: (f) => { lockListeners.push(f); if (locked) f(); }, onChange, exportJSON, importJSON, wasCorrupt: corrupt, recovered, updated: () => root.updated || 0, systems: () => Object.keys(root.systems), now };
   }
 
   AMB.Save = { create, register, KEY, VERSION, LEGACY, REGISTRY, memoryStorage, browserStorage };

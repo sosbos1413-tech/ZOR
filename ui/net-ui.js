@@ -95,7 +95,8 @@
   }
   // ---- fallback: relay the messages through a free public pub/sub service (ntfy.sh). Slower than a direct link but it works on any network
   // that can open a web page (mobile carriers often block direct phone-to-phone links). Messages are tiny: only each player's moves.
-  const RELAY = (() => { const m = /[?&]relay=([^&]+)/.exec(location.search); return m ? decodeURIComponent(m[1]) : 'https://ntfy.sh'; })();
+  // the relay may be changed from the link only to ntfy itself or a local test server (a shared link must not be able to redirect every game message to a stranger's server)
+  const RELAY = (() => { const m = /[?&]relay=([^&]+)/.exec(location.search); if (!m) return 'https://ntfy.sh'; try { const u = new URL(decodeURIComponent(m[1])); return (/(^|\.)ntfy\.sh$/.test(u.hostname) && u.protocol === 'https:') || /^(localhost|127\.0\.0\.1)$/.test(u.hostname) ? u.origin : 'https://ntfy.sh'; } catch (e) { return 'https://ntfy.sh'; } })();
   function relayTopic(code) { return 'zor-room-' + code.toLowerCase(); }
   function relayLink(code, me, other) {
     const topic = relayTopic(code), link = makeLink(null), seen = new Set(), pending = []; let seq = 0, sending = false, closed = false, es = null;

@@ -24,7 +24,7 @@
       abilities: {},        // abilityId -> trigger
       summoned: false, heroSlot: 'b1',
       shop: [], itemShop: [], shopLocked: false, freeRerolls: 0,
-      winStreak: 0, lossStreak: 0, lastIncome: null,
+      winStreak: 0, lossStreak: 0, lastWon: false, lastIncome: null,
       stats: { damageDealt: 0, goldSpent: 0, rerolls: 0, unitsBought: 0, merges: 0, wins: 0, losses: 0, draws: 0 },
       alive: true,
       blessings: { atkPct: 0, hpPct: 0, asPct: 0 }, rewardOffer: null, rewardLog: [],
@@ -75,7 +75,7 @@
         const streak = Math.max(p.winStreak, p.lossStreak);
         let streakBonus = 0;
         E.streakBonus.forEach(([n, b]) => { if (streak >= n) streakBonus = b; });
-        const win = this.round > 1 && p.winStreak > 0 ? E.winBonus : 0;
+        const win = this.round > 1 && p.lastWon ? E.winBonus : 0;   // the win bonus is for WINNING the last round (a drawn round does not pay it)
         const dataStream = AMB.DATA.HEROES[p.heroId].passive.id === 'data_stream' ? 1 : 0;   // Nayako: +1 gold every round
         const income = (this.round === 1 ? E.baseIncome : E.baseIncome + interest + streakBonus + win) + dataStream;
         p.lastIncome = { base: E.baseIncome, interest: this.round === 1 ? 0 : interest, streak: this.round === 1 ? 0 : streakBonus, win, total: income };
@@ -93,17 +93,19 @@
     }
 
     // ================================================================ economy
-    xpNeeded(p) { return AMB.CONFIG.economy.xpToLevel[p.level] || null; }
+    /** put items into the bag; the bag holds itemBenchSize (6): the rest turns into gold (+3 each, like the 'item' reward) so the limit can never be bypassed */
+    _stash(p, items) { const cap = AMB.CONFIG.economy.itemBenchSize; items.forEach((it) => { if (p.items.length < cap) p.items.push(it); else p.gold += 3; }); }
+    xpNeeded(p) { return AMB.CONFIG.economy.xpToLevel[Math.max(3, p.level)] || null; }   // levels 1-2 (scripted line-ups) use the level-3 cost; null never means "free level-up"
     _gainXp(p, n) {
       const E = AMB.CONFIG.economy;
       if (p.level >= E.maxLevel) return;
       p.xp += n;
-      while (p.level < E.maxLevel && p.xp >= this.xpNeeded(p)) { p.xp -= this.xpNeeded(p); p.level++; }
+      while (p.level < E.maxLevel && this.xpNeeded(p) != null && p.xp >= this.xpNeeded(p)) { p.xp -= this.xpNeeded(p); p.level++; }
       if (p.level >= E.maxLevel) p.xp = 0;
     }
 
     _drawUnit(p) {
-      const odds = AMB.CONFIG.economy.tierOdds[p.level];
+      const odds = AMB.CONFIG.economy.tierOdds[Math.max(3, p.level)];
       const tier = this._rng(p).weighted(odds.map((w, i) => [i + 1, w]).filter((e) => e[1] > 0));
       const mine = (u) => !p.allowed || p.allowed.has(u.id);   // progression: only units the player owns
       let entries = Object.values(AMB.DATA.UNITS).filter((u) => u.tier === tier && mine(u)).map((u) => [u.id, this._pool(p)[u.id]]);
@@ -203,7 +205,7 @@
         if (p._overflow && use.includes(p._overflow)) p._overflow = null;
         const up = { uid: this._uid(p), defId: check.defId, star: check.star + 1, items: [] };
         const maxI = AMB.CONFIG.economy.maxItemsPerUnit;
-        items.forEach((it) => (up.items.length < maxI ? up.items.push(it) : p.items.push(it)));
+        items.forEach((it) => (up.items.length < maxI ? up.items.push(it) : this._stash(p, [it])));
         if (keepLoc && keepLoc.zone === 'board') p.board[keepLoc.slot] = up;
         else {
           const bi = keepLoc && keepLoc.zone === 'bench' ? keepLoc.idx : p.bench.indexOf(null);
@@ -248,7 +250,7 @@
       this._remove(p, u);
       p.gold += this.sellValue(u);
       this._pool(p)[u.defId] += this.copiesOf(u);
-      p.items.push(...u.items);
+      this._stash(p, u.items);
       return { ok: true };
     }
 
@@ -496,6 +498,7 @@
         p.essence = Math.max(0, p.essence - spent);
         p.armedSpells = [];
         // streaks
+        p.lastWon = result.winner === i;
         if (result.winner === i) { p.winStreak++; p.lossStreak = 0; p.stats.wins++; }
         else if (result.winner === 1 - i) { p.lossStreak++; p.winStreak = 0; p.stats.losses++; }
         else { p.stats.draws++; }
