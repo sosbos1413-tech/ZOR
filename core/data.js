@@ -23,22 +23,24 @@
   };
 
   const ROLES = {
-    guardian: { side: 'front', kind: 'def', place: 'أمامي', id: 'guardian', name: 'حارس', en: 'Guardian', icon: 'shield', desc: 'يوقف قدّام ويحمي الفريق، ويشغل العدو عن البقية.' },
-    fighter: { side: 'front', kind: 'off', place: 'أمامي', id: 'fighter', name: 'مقاتل', en: 'Fighter', icon: 'sword', desc: 'قتال قريب: يتحمل وفي نفس الوقت يضرب.' },
-    assassin: { side: 'any', kind: 'off', place: 'أمامي أو خلفي (يقفز للخلف)', id: 'assassin', name: 'قاتل', en: 'Assassin', icon: 'dagger', desc: 'يقفز فوق الدفاع ويروح للصف الخلفي عند الخصم.' },
-    mage: { side: 'back', kind: 'off', place: 'خلفي', id: 'mage', name: 'ساحر', en: 'Mage', icon: 'orb', desc: 'مهاراته قوية وتضرب منطقة، بس صحته قليلة.' },
-    marksman: { side: 'back', kind: 'off', place: 'خلفي', id: 'marksman', name: 'قناص', en: 'Marksman', icon: 'bow', desc: 'يضرب من بعيد وبشكل مستمر.' },
-    support: { side: 'back', kind: 'def', place: 'خلفي', id: 'support', name: 'دعم', en: 'Support', icon: 'wings', desc: 'يعالج ويعطي دروع ويقوّي الفريق.' },
+    guardian: { side: 'front', kind: 'def', place: 'أمامي', id: 'guardian', name: 'حارس', en: 'Guardian', icon: 'shield', desc: 'تانك: صحة ضخمة ودفاع عالي وضرر قليل. يوقف قدّام ويسحب الضرب عن الفريق.' },
+    fighter: { side: 'front', kind: 'off', place: 'أمامي', id: 'fighter', name: 'مقاتل', en: 'Fighter', icon: 'sword', desc: 'مهاجم قريب: ضرر وسرعة عالية ودفاع ضعيف. يضرب قوي بس ينكسر بسرعة.' },
+    assassin: { side: 'any', kind: 'off', place: 'أمامي أو خلفي (يقفز للخلف)', id: 'assassin', name: 'قاتل', en: 'Assassin', icon: 'dagger', desc: 'قاتل زجاجي: ضرر وحرجة عالية وصحة قليلة. يقفز مبكر للصف الخلفي ويصطاد.' },
+    mage: { side: 'back', kind: 'off', place: 'خلفي', id: 'mage', name: 'ساحر', en: 'Mage', icon: 'orb', desc: 'ساحر: صحة قليلة وقوته في مهاراته اللي تضرب منطقة.' },
+    marksman: { side: 'back', kind: 'off', place: 'خلفي', id: 'marksman', name: 'قناص', en: 'Marksman', icon: 'bow', desc: 'قناص: ضرر ثابت من بعيد. ضعيف قدام القتلة.' },
+    support: { side: 'back', kind: 'def', place: 'خلفي', id: 'support', name: 'دعم', en: 'Support', icon: 'wings', desc: 'دعم: صحة متينة وضرر قليل. يعالج ويعطي دروع ويقوّي الفريق.' },
   };
 
   // 1-star, tier-1 baseline per role. Tier multiplies hp & atk.
+  // identities: guardian = TANK (huge hp, high defence, little damage) · fighter = ATTACKER (hits hard and fast, weak defence)
+  // assassin = glass cannon that dives · marksman = steady damage from far · mage = fragile, strength lives in the skill · support = sturdy healer, almost no damage
   const ROLE_BASE = {
-    guardian: { hp: 620, atk: 44, as: 0.6, range: 1, def: 0.25, crit: 0.05 },
-    fighter: { hp: 540, atk: 60, as: 0.75, range: 1, def: 0.12, crit: 0.05 },
-    assassin: { hp: 420, atk: 62, as: 0.85, range: 1, def: 0.05, crit: 0.25 },
-    mage: { hp: 470, atk: 46, as: 0.6, range: 3, def: 0, crit: 0.05 },
-    marksman: { hp: 410, atk: 66, as: 0.75, range: 4, def: 0, crit: 0.1 },
-    support: { hp: 630, atk: 47, as: 0.6, range: 3, def: 0.05, crit: 0.05 },
+    guardian: { hp: 760, atk: 34, as: 0.55, range: 1, def: 0.33, crit: 0.03 },
+    fighter: { hp: 480, atk: 72, as: 0.8, range: 1, def: 0.04, crit: 0.08 },
+    assassin: { hp: 380, atk: 54, as: 0.9, range: 1, def: 0, crit: 0.28 },
+    mage: { hp: 440, atk: 44, as: 0.6, range: 3, def: 0, crit: 0.05 },
+    marksman: { hp: 400, atk: 76, as: 0.75, range: 4, def: 0, crit: 0.12 },
+    support: { hp: 660, atk: 42, as: 0.55, range: 3, def: 0.08, crit: 0.03 },
   };
   const TIER_MULT = { 1: 1, 2: 1.22, 3: 1.5 };
 
@@ -497,8 +499,8 @@
       { n: 2, effects: [{ scope: 'members', stat: 'lifesteal', value: 0.2 }], text: 'المقاتلون يسرقون 20% من ضررهم صحة' },
       { n: 4, effects: [{ scope: 'members', stat: 'lifesteal', value: 0.35 }, { scope: 'members', stat: 'atkPct', value: 0.1 }], text: 'يسرقون 35% صحة، و+10% هجوم' }] },
     assassin: { id: 'assassin', kind: 'role', name: 'القتلة', tiers: [
-      { n: 2, effects: [{ scope: 'members', stat: 'crit', value: 0.15 }, { scope: 'members', stat: 'critDmg', value: 0.3 }], text: '+15% فرصة حرجة، و+30% ضرر الحرجة' },
-      { n: 3, effects: [{ scope: 'members', stat: 'crit', value: 0.3 }, { scope: 'members', stat: 'critDmg', value: 0.6 }], text: '+30% فرصة حرجة، و+60% ضرر الحرجة' }] },
+      { n: 2, effects: [{ scope: 'members', stat: 'crit', value: 0.12 }, { scope: 'members', stat: 'critDmg', value: 0.25 }], text: '+12% فرصة حرجة، و+25% ضرر الحرجة' },
+      { n: 3, effects: [{ scope: 'members', stat: 'crit', value: 0.2 }, { scope: 'members', stat: 'critDmg', value: 0.4 }], text: '+20% فرصة حرجة، و+40% ضرر الحرجة' }] },
     mage: { id: 'mage', kind: 'role', name: 'السحرة', tiers: [
       { n: 2, effects: [{ scope: 'members', stat: 'skillPower', value: 0.45 }, { scope: 'members', stat: 'startMana', value: 30 }], text: '+45% قوة المهارة، و+30 مانا' },
       { n: 3, effects: [{ scope: 'members', stat: 'skillPower', value: 0.9 }, { scope: 'members', stat: 'startMana', value: 50 }], text: '+90% قوة المهارة، و+50 مانا' }] },
@@ -507,7 +509,7 @@
       { n: 3, effects: [{ scope: 'members', stat: 'atkPct', value: 0.35 }, { scope: 'members', stat: 'range', value: 1 }], text: '+35% هجوم، و+1 مدى' }] },
     support: { id: 'support', kind: 'role', name: 'الداعمون', tiers: [
       { n: 2, effects: [{ scope: 'all', stat: 'regenPct', value: 0.02 }], text: 'كل الفريق يتجدد 2% كل ثانية' },
-      { n: 3, effects: [{ scope: 'all', stat: 'regenPct', value: 0.04 }], text: 'كل الفريق يتجدد 4% كل ثانية' }] },
+      { n: 3, effects: [{ scope: 'all', stat: 'regenPct', value: 0.05 }], text: 'كل الفريق يتجدد 5% كل ثانية' }] },
 
     convergence: { id: 'convergence', kind: 'special', name: 'تقارب العوالم', countBy: 'worlds', tiers: [
       { n: 3, effects: [{ scope: 'all', stat: 'atkPct', value: 0.1 }, { scope: 'all', stat: 'hpPct', value: 0.1 }], text: '3 عوالم: الكل +10% هجوم وصحة' },
