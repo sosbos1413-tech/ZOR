@@ -257,7 +257,7 @@
     const S = ui().S, n = S.net; if (!n) return;
     n.myHero = hero;
     n.myPower = { cp: AMB.collection ? AMB.collection.powerMap() : null, hl: AMB.heroes ? AMB.heroes.level(hero) : 1 };
-    n.link.send({ t: 'hero', hero, cp: n.myPower.cp, hl: n.myPower.hl });
+    n.link.send({ t: 'hero', hero, ver: buildOf(), cp: n.myPower.cp, hl: n.myPower.hl });
     waiting('ينتظر صاحبك يختار بطله…');
     tryStart();
   }
@@ -314,19 +314,30 @@
     if (!n.peerReward || n.peerReward.round !== m.round) waiting('ينتظر صاحبك يختار مكافأته…');
     pump();
   }
+  // the two phones disagree (bad message, different versions): end the match cleanly instead of hanging on "waiting for your friend"
+  function netProblem(text) {
+    const S = ui().S, n = S.net; if (!n || n.over) return;
+    n.over = true; try { n.link.send({ t: 'leave' }); } catch (e) { /* ignore */ }
+    ui().closeOverlay();
+    ui().modal(`<h2>اختلفت المباراة بين الجوالين</h2><p class="hint">${text}</p><div class="net-btns"><button class="btn primary" data-act="abandon">للقائمة</button></div>`);
+  }
+  const buildOf = () => { const m = document.querySelector('meta[name="zor-build"]'); return m ? m.content : 'dev'; };
   function pump() {
+    try { pumpInner(); } catch (e) { netProblem('صار خطأ في الاتصال. جرّبوا مباراة جديدة وتأكدوا إن الاثنين على آخر نسخة.'); }
+  }
+  function pumpInner() {
     const S = ui().S, n = S.net; if (!n || !S.match) return;
     const m = S.match, other = 1 - n.idx;
     if (n.sentReady && n.peerReady && n.peerReady.round === m.round && S.phase === 'waiting') {
       const bad = AMB.NetSync.replay(m, other, n.peerReady.ops);
-      if (bad.length) console.warn('online: replay problems', bad);
+      if (bad.length) { console.warn('online: replay problems', bad); netProblem('حركة صاحبك ما انطبقت عندك. غالبًا النسختين مختلفتين، حدّثوا الاثنين.'); return; }
       n.sentReady = false; n.peerReady = null;
       ui().closeOverlay();
       ui().startCombat();
     }
     if (n.iClaimed && n.peerReward && n.peerReward.round === m.round && S.phase === 'result') {
       const bad = AMB.NetSync.replay(m, other, n.peerReward.ops);
-      if (bad.length) console.warn('online: reward replay problems', bad);
+      if (bad.length) { console.warn('online: reward replay problems', bad); netProblem('جائزة صاحبك ما انطبقت عندك. حدّثوا الاثنين.'); return; }
       n.iClaimed = false; n.peerReward = null;
       ui().closeOverlay();
       ui().afterReward();
@@ -335,7 +346,9 @@
   function onMessage(msg) {
     const S = ui().S, n = S.net; if (!n || !msg) return;
     switch (msg.t) {
-      case 'hero': n.theirHero = msg.hero; n.theirPower = { cp: cleanPower(msg.cp), hl: Math.max(1, Math.min(20, +msg.hl || 1)) }; tryStart(); break;
+      case 'hero': if (!AMB.DATA.HEROES[msg.hero]) { netProblem('البطل اللي وصلنا من صاحبك مو معروف عندي. حدّثوا الاثنين.'); break; }
+        if (msg.ver && buildOf() !== 'dev' && msg.ver !== 'dev' && msg.ver !== buildOf()) { netProblem('نسخة اللعبة عندك مختلفة عن صاحبك. حدّثوا الصفحة عند الاثنين وجرّبوا من جديد.'); break; }
+        n.theirHero = msg.hero; n.theirPower = { cp: cleanPower(msg.cp), hl: Math.max(1, Math.min(20, +msg.hl || 1)) }; tryStart(); break;
       case 'start': n.theirStart = msg; tryStart(); break;
       case 'ready': n.peerReady = msg; pump(); break;
       case 'reward': n.peerReward = msg; pump(); break;

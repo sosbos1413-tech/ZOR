@@ -253,6 +253,9 @@
 
     /** dest: {zone:'bench', idx} | {zone:'board', slot} — swaps if occupied. */
     move(pi, uid, dest) {
+      // a friend's move arrives over the network: reject any destination the UI could never send (unknown slot, bench index out of range)
+      if (!dest || typeof dest !== 'object') return this._fail('وجهة غلط');
+      if (dest.zone === 'board' ? !SLOTS.includes(dest.slot) : dest.zone === 'bench' ? !(Number.isInteger(dest.idx) && dest.idx >= 0 && dest.idx < AMB.CONFIG.economy.benchSize) : true) return this._fail('وجهة غلط');
       const p = this.players[pi];
       const u = this.findUnit(p, uid);
       if (!u) return this._fail('ما لقيت الوحدة');
@@ -368,6 +371,7 @@
     }
 
     toggleSummon(pi, slot) {
+      if (slot != null && !SLOTS.includes(slot)) return this._fail('خانة غلط');
       const p = this.players[pi];
       if (p.summoned) { p.summoned = false; this._validateAbilities(p); return { ok: true }; }
       const s = slot || p.heroSlot;
@@ -378,6 +382,7 @@
       return { ok: true };
     }
     moveHero(pi, slot) {
+      if (!SLOTS.includes(slot)) return this._fail('خانة غلط');
       const p = this.players[pi];
       if (!p.summoned) return this._fail('البطل مو في الساحة');
       const other = p.board[slot];

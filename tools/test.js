@@ -805,6 +805,17 @@ t('save: a second tab becomes the only writer, the stale tab locks and can never
   eq(tabA.write(), false, 'locked tabs never write');
   eq(AMB.Save.create(mem).get('lockt').n, 600, 'the newer progress is untouched');
 });
+t('online safety: a friend cannot send an impossible slot/index or a malformed op (nothing throws, nothing is duplicated)', () => {
+  const m = new AMB.Match({ mode: 'online', seed: 5, isolated: true, players: [{ heroId: 'orath', name: 'a' }, { heroId: 'merin', name: 'b' }] });
+  m.startRound(); const p = m.players[1]; p.gold = 50;
+  eq(m.buy(1, 0).ok, true); const u = p.bench.find(Boolean);
+  eq(m.move(1, u.uid, { zone: 'board', slot: 'zz9' }).ok, false, 'unknown slot'); eq(m.move(1, u.uid, { zone: 'bench', idx: 99 }).ok, false, 'bench index out of range');
+  eq(m.move(1, u.uid, { zone: 'bench', idx: -1 }).ok, false); eq(m.move(1, u.uid, undefined).ok, false, 'missing destination'); eq(m.move(1, u.uid, { zone: 'x' }).ok, false);
+  eq(m.moveHero(1, 'zz').ok, false); eq(m.toggleSummon(1, 'q7').ok, false);
+  eq(Object.keys(p.board).length + p.bench.filter(Boolean).length, 1, 'still exactly one unit');
+  const bad = AMB.NetSync.replay(m, 1, [['move', u.uid], ['bogus', 1], 'nope', [], ['sell', 'nobody'], ['move', u.uid, { zone: 'board', slot: 'f9' }]]);
+  ok(bad.length >= 4, 'every bad op is reported, none throws'); eq(AMB.NetSync.replay(m, 1, 'not-an-array').length, 1);
+});
 t('album: world set reward is claimable once, gives shards + title + frame (equippable in the pass)', () => {
   const prof = AMB.Profile.boot(MEM()), A = prof.album;
   const pass = AMB.Pass.create(prof.save.storageFor('pass'), null, null, (type) => A.ownedCosmetics(type));

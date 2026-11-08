@@ -41,11 +41,16 @@
 
   function replay(match, pi, ops) {
     const failed = [];
-    for (const [name, ...args] of ops) {
-      const fn = match[name] && (match[name].__orig || match[name]);
-      if (typeof fn !== 'function' || !OPS.includes(name)) { failed.push(name); continue; }
-      const r = fn.call(match, pi, ...args);
-      if (r && r.ok === false) failed.push(name + ':' + r.reason);
+    if (!Array.isArray(ops)) return ['ops'];
+    for (const op of ops) {
+      if (!Array.isArray(op) || typeof op[0] !== 'string') { failed.push('shape'); continue; }
+      const [name, ...args] = op;
+      const fn = OPS.includes(name) && match[name] && (match[name].__orig || match[name]);
+      if (typeof fn !== 'function') { failed.push(name); continue; }
+      try {
+        const r = fn.call(match, pi, ...args);
+        if (r && r.ok === false) failed.push(name + ':' + r.reason);
+      } catch (e) { failed.push(name + ':exception'); }   // a malformed op from the peer must never hang the match
     }
     return failed;   // should always be empty: a non-empty list means the two phones disagree
   }
