@@ -1112,7 +1112,7 @@
       <button class="btn" data-act="resumeMenu">متابعة</button>
       <button class="btn" data-act="rotate">تدوير الشاشة (طول / عرض)</button>
       <button class="btn" data-act="tutorial">دليل سريع</button>
-      <button class="btn" data-act="howto">كل القواعد</button>
+      <button class="btn" data-act="rules">كل القواعد</button>
       <button class="btn danger" data-act="surrender">انسحب (${esc(me().name)})</button>
       <button class="btn ghost" data-act="abandon">الخروج للقائمة (ما تنحسب)</button></div>`);
   }
@@ -1283,6 +1283,7 @@
   const ACT = {
     go: (d) => { if (S.net && S.screen === 'hero') AMB.NetUI.leave(); show(d.to); if (d.to === 'stats') renderStats(); if (d.to === 'codex') renderCodex(); },
     howto: () => (AMB.TutorialUI ? AMB.TutorialUI.start({ replay: true }) : howto()),
+    rules: () => howto(),   // inside a match: just the rules text (never restarts the tutorial / throws the match away)
     tutorial: () => showTutorial(),
     diff: (d) => { S.difficulty = d.v; document.querySelectorAll('#diff-seg button').forEach((b) => b.classList.toggle('on', b.dataset.v === d.v)); },
     mode: (d) => { S.mode = d.v; S.picks = [null, null]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
