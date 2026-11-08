@@ -395,6 +395,13 @@
     }
 
     /** Smart arrangement: the strongest `level` units on the board, tanks in front, ranged behind, the rest on the bench. */
+    /** put units into the given free slots: a unit goes to a slot of its own role first (that is where it gets its role bonus), the rest take what is left */
+    static placeByRole(units, slots) {
+      const U = AMB.DATA.UNITS, SR = AMB.DATA.SLOT_ROLES, free = slots.slice(), out = {}, rest = [];
+      units.forEach((u) => { const s = free.find((x) => SR[x] && SR[x].includes(U[u.defId].role)); if (s) { out[s] = u; free.splice(free.indexOf(s), 1); } else rest.push(u); });
+      const spill = []; rest.forEach((u) => { const s = free.shift(); if (s) out[s] = u; else spill.push(u); });
+      return { out, spill, free };
+    }
     autoArrange(pi) {
       const p = this.players[pi], U = AMB.DATA.UNITS, R = AMB.DATA.ROLES;
       const pw = (u) => (AMB.AI && AMB.AI.power ? AMB.AI.power(u) : U[u.defId].tier * AMB.CONFIG.stars.mult[u.star]);
@@ -413,8 +420,10 @@
       p.board = {};
       const spill = [];   // units that found no slot go to the bench instead of vanishing
       const put = (u, first, second) => { const slot = first.shift() || second.shift(); if (slot) p.board[slot] = u; else spill.push(u); };
-      front.forEach((u) => put(u, fs, bs));
-      back.forEach((u) => put(u, bs, fs));
+      const fr = Match.placeByRole(front, fs), bk = Match.placeByRole(back, bs);
+      Object.assign(p.board, fr.out, bk.out);
+      fr.spill.forEach((u) => put(u, bk.free, []));
+      bk.spill.forEach((u) => put(u, fr.free, []));
       const rest = all.filter((u) => !Object.values(p.board).includes(u));
       p.bench = new Array(AMB.CONFIG.economy.benchSize).fill(null);
       rest.forEach((u) => { const bi = p.bench.indexOf(null); if (bi >= 0) p.bench[bi] = u; else this._placeAnywhere(p, u); });

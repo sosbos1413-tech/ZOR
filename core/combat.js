@@ -80,6 +80,8 @@
           if (AMB.synergy.appliesTo(SYNERGIES[sy.id], eff, def, pos.row)) mods[eff.stat] += eff.value;
         }));
         (u.items || []).forEach((it) => ITEMS[it].effects.forEach((eff) => (mods[eff.stat] += eff.value)));
+        const slotRoles = AMB.DATA.SLOT_ROLES[u.slot], rb = AMB.DATA.ROLE_BONUS[def.role], inPlace = !!(slotRoles && rb && slotRoles.includes(def.role));   // standing in its own role's slot
+        if (inPlace) Object.keys(rb.mods).forEach((k) => (mods[k] += rb.mods[k]));
         (def.traits || []).forEach((id) => { const tr = AMB.DATA.TRAITS[id]; if (tr) Object.keys(tr.mods).forEach((k) => (mods[k] += tr.mods[k])); });   // rarity traits (rare 1, epic/legendary 2)
         if (def.world === hero.world) { mods.atkPct += HC.resonancePerAlly; mods.hpPct += HC.resonancePerAlly; }
         if (hero.passive.id === 'ancient_bark' && pos.row === 'front') mods.hpPct += 0.06;
@@ -103,7 +105,7 @@
           maxHp, hp: maxHp, atk: def.atk * sm * (1 + mods.atkPct), as: def.as * (1 + mods.asPct),
           range: def.range + mods.range, def: def.def + mods.dr, crit: def.crit + mods.crit,
           critDmg: this.C.critMult + mods.critDmg, lifesteal: mods.lifesteal, skillPower: 1 + mods.skillPower,
-          regenPct: mods.regenPct, mana: mods.startMana, maxMana: def.mana, skill: def.skill, sig: def.sig || null,
+          regenPct: mods.regenPct, mana: mods.startMana, maxMana: def.mana, skill: def.skill, sig: def.sig || null, inPlace,
         });
         if (mods.startShieldPct) f.shield += maxHp * mods.startShieldPct;
       });

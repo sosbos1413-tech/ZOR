@@ -365,6 +365,14 @@
     else u.traits = [];
     if (u.rarity === 'legendary') { u.sig = SIG_OF[u.id] || null; }
   });
+  // ---- role slots: every field slot belongs to a role; a card standing in a slot of its own role gets that role's bonus
+  //  front: f1,f2 = guardians (the wall) · f0,f3 = fighters/assassins (the flanks)   back: b0,b3 = marksmen (the wings) · b1 = mage · b2 = support
+  const SLOT_ROLES = { f0: ['fighter', 'assassin'], f1: ['guardian'], f2: ['guardian'], f3: ['fighter', 'assassin'], b0: ['marksman'], b1: ['mage'], b2: ['support'], b3: ['marksman'] };
+  const ROLE_BONUS = {
+    guardian: { mods: { hpPct: 0.15, dr: 0.05 }, text: '+15% صحة و+5% دفاع' }, fighter: { mods: { atkPct: 0.1, asPct: 0.05 }, text: '+10% هجوم و+5% سرعة' },
+    assassin: { mods: { crit: 0.08, atkPct: 0.06 }, text: '+8% حرجة و+6% هجوم' }, marksman: { mods: { atkPct: 0.08 }, text: '+8% هجوم' },
+    mage: { mods: { skillPower: 0.1, startMana: 10 }, text: '+10% قوة المهارة و+10 مانا' }, support: { mods: { skillPower: 0.15, regenPct: 0.005 }, text: '+15% قوة المهارة وتجدد 0.5%' },
+  };
   // The starter roster: 8 basic units (every role covered). Everything else comes from the gift packs, packs, the pass or events.
   const STARTER_IDS = ['ash_ronin', 'forge_bulwark', 'wave_caller', 'grid_hound', 'pixel_sniper', 'moss_warden', 'thorn_fox', 'shiro'];
   STARTER_IDS.forEach((id) => (UNITS[id].starter = true));
@@ -572,5 +580,5 @@
 
   Object.values(HEROES).forEach((h) => { h.rarity = h.rarity || 'legendary'; });
   const HERO_STARTERS = ['kagira', 'merin', 'zerokai', 'orath'];   // the four heroes a new player can pick; the rest come from packs and the battle pass
-  AMB.DATA = { TRAITS, SIGS, HERO_STARTERS, LEGACY_STARTERS, STARTER_IDS, REWARDS, REWARD_POOLS, WORLDS, ROLES, ROLE_BASE, TIER_MULT, TIER_RARITY, UNITS, HEROES, ITEMS, SYNERGIES, ABILITY_TRIGGERS };
+  AMB.DATA = { SLOT_ROLES, ROLE_BONUS, TRAITS, SIGS, HERO_STARTERS, LEGACY_STARTERS, STARTER_IDS, REWARDS, REWARD_POOLS, WORLDS, ROLES, ROLE_BASE, TIER_MULT, TIER_RARITY, UNITS, HEROES, ITEMS, SYNERGIES, ABILITY_TRIGGERS };
 })();

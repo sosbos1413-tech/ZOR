@@ -883,6 +883,18 @@ t('rarity ladder: traits by rarity, and every legendary signature does what it s
   const g = mk([U('goka', 'f1')], [U('grid_hound', 'f1'), U('pixel_sniper', 'b1')]); const gk = get(g, 'goka'); const as0 = g.effAs(gk);
   g.kill(get(g, 'grid_hound', 1), gk); ok(g.effAs(gk) > as0 * 1.15, 'bloodrush');
 });
+t('role slots: a card in its own role slot gets the role bonus; auto-arrange and the AI put units in their role slots', () => {
+  const D = AMB.DATA;
+  const mkc = (slot) => new AMB.Combat([side([U('moss_warden', slot)]), side([U('grid_hound', 'f1')])], { seed: 55, round: 1 });
+  const inP = mkc('f1').fighters.find((f) => f.defId === 'moss_warden'), out = mkc('f0').fighters.find((f) => f.defId === 'moss_warden');
+  ok(inP.inPlace && !out.inPlace, 'only the guardian slot counts'); ok(inP.maxHp > out.maxHp * 1.12, 'guardian in a guardian slot: +15% hp');
+  const r = AMB.Match.placeByRole([{ defId: 'ash_ronin' }, { defId: 'moss_warden' }, { defId: 'forge_bulwark' }, { defId: 'grid_hound' }], ['f1', 'f2', 'f0', 'f3']);
+  ok(['f1', 'f2'].includes(Object.keys(r.out).find((k) => r.out[k].defId === 'moss_warden')), 'guardian to the wall'); ok(['f0', 'f3'].includes(Object.keys(r.out).find((k) => r.out[k].defId === 'ash_ronin')), 'fighter to a flank');
+  const m = new AMB.Match({ mode: 'ai', seed: 9, players: [{ heroId: 'orath', name: 'a' }, { heroId: 'merin', name: 'b', isAI: true }] });
+  m.startRound(); const p = m.players[0]; p.gold = 99; p.level = 6;
+  ['moss_warden', 'ash_ronin', 'pixel_sniper', 'wave_caller'].forEach((id) => { const u = m._newUnit ? m._newUnit(p, id) : null; });
+  ok(D.SLOT_ROLES.f1.includes('guardian') && D.SLOT_ROLES.b1[0] === 'mage');
+});
 t('album: world set reward is claimable once, gives shards + title + frame (equippable in the pass)', () => {
   const prof = AMB.Profile.boot(MEM()), A = prof.album;
   const pass = AMB.Pass.create(prof.save.storageFor('pass'), null, null, (type) => A.ownedCosmetics(type));

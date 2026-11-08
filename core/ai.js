@@ -62,7 +62,7 @@
     }
     for (const u of ranked) { if (chosen.length >= p.level) break; if (!chosen.includes(u)) chosen.push(u); }
 
-    const front = chosen.filter((u) => ['guardian', 'fighter'].includes(UNITS[u.defId].role));
+    const front = chosen.filter((u) => ['guardian', 'fighter', 'assassin'].includes(UNITS[u.defId].role));
     const back = chosen.filter((u) => !front.includes(u));
     if (!front.length && back.length > 1) { // somebody has to hold the line
       back.sort((a, b) => UNITS[b.defId].hp * AMB.CONFIG.stars.mult[b.star] - UNITS[a.defId].hp * AMB.CONFIG.stars.mult[a.star]);
@@ -75,8 +75,8 @@
     const heroBack = p.summoned;
     const backSlots = BACK.slice();
     if (heroBack) { p.heroSlot = back.length < 4 ? backSlots.pop() : FRONT.find((s, i) => i >= front.length) || 'b3'; }
-    front.forEach((u, i) => (p.board[FRONT[i]] = u));
-    back.forEach((u, i) => (p.board[backSlots[i]] = u));
+    const fr = AMB.Match.placeByRole(front, FRONT), bk = AMB.Match.placeByRole(back, backSlots);   // every unit in the slot of its own role = its role bonus
+    Object.assign(p.board, fr.out, bk.out);
     if (cfg.mistakes && rng.chance(cfg.mistakes * 0.5) && front.length && back.length) { // occasional misplacement
       const f = FRONT[0], b = backSlots[0];
       const t = p.board[f]; p.board[f] = p.board[b]; p.board[b] = t;

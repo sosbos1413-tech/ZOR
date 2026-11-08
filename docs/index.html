@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="52c89a1d68">
+<meta name="zor-build" content="b0d36a83f1">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -2330,6 +2330,11 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
 #save-lock { position: fixed; inset: 0; z-index: 9999; background: #000d; display: grid; place-items: center; padding: 20px; }
 #save-lock .sl-box { background: var(--paper, #f3ead6); color: #121010; border: 3px solid #121010; box-shadow: 6px 6px 0 var(--red, #e0262f); padding: 22px 18px; max-width: 340px; text-align: center; } #save-lock h2 { margin: 0 0 10px; font-size: 22px; } #save-lock p { margin: 0 0 16px; line-height: 1.7; }
 .rar-box { border-color: #a855f7aa; } .rar-box div { margin-top: 3px; } .rar-box .sig-line { color: #b36200; margin-top: 6px; }
+/* role slots: the empty slot shows its role; a card in the right slot glows and carries the ✦ bonus mark */
+.field .cell.inplace { box-shadow: inset 0 0 0 2px #f2b300cc, inset 0 0 14px #f2b30066; }
+.field .cell.inplace::after { content: '✦'; position: absolute; top: 1px; right: 3px; z-index: 6; color: #f2b300; font-size: 13px; text-shadow: 0 0 4px #000, 1px 1px 0 #000; pointer-events: none; }
+.field .cell { position: relative; }
+.field .cell:not(:has(.tcard, .piece)) .rowic { opacity: .75; }
 
 </style>
 </head>
@@ -2994,6 +2999,14 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
     else u.traits = [];
     if (u.rarity === 'legendary') { u.sig = SIG_OF[u.id] || null; }
   });
+  // ---- role slots: every field slot belongs to a role; a card standing in a slot of its own role gets that role's bonus
+  //  front: f1,f2 = guardians (the wall) · f0,f3 = fighters/assassins (the flanks)   back: b0,b3 = marksmen (the wings) · b1 = mage · b2 = support
+  const SLOT_ROLES = { f0: ['fighter', 'assassin'], f1: ['guardian'], f2: ['guardian'], f3: ['fighter', 'assassin'], b0: ['marksman'], b1: ['mage'], b2: ['support'], b3: ['marksman'] };
+  const ROLE_BONUS = {
+    guardian: { mods: { hpPct: 0.15, dr: 0.05 }, text: '+15% صحة و+5% دفاع' }, fighter: { mods: { atkPct: 0.1, asPct: 0.05 }, text: '+10% هجوم و+5% سرعة' },
+    assassin: { mods: { crit: 0.08, atkPct: 0.06 }, text: '+8% حرجة و+6% هجوم' }, marksman: { mods: { atkPct: 0.08 }, text: '+8% هجوم' },
+    mage: { mods: { skillPower: 0.1, startMana: 10 }, text: '+10% قوة المهارة و+10 مانا' }, support: { mods: { skillPower: 0.15, regenPct: 0.005 }, text: '+15% قوة المهارة وتجدد 0.5%' },
+  };
   // The starter roster: 8 basic units (every role covered). Everything else comes from the gift packs, packs, the pass or events.
   const STARTER_IDS = ['ash_ronin', 'forge_bulwark', 'wave_caller', 'grid_hound', 'pixel_sniper', 'moss_warden', 'thorn_fox', 'shiro'];
   STARTER_IDS.forEach((id) => (UNITS[id].starter = true));
@@ -3201,7 +3214,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
 
   Object.values(HEROES).forEach((h) => { h.rarity = h.rarity || 'legendary'; });
   const HERO_STARTERS = ['kagira', 'merin', 'zerokai', 'orath'];   // the four heroes a new player can pick; the rest come from packs and the battle pass
-  AMB.DATA = { TRAITS, SIGS, HERO_STARTERS, LEGACY_STARTERS, STARTER_IDS, REWARDS, REWARD_POOLS, WORLDS, ROLES, ROLE_BASE, TIER_MULT, TIER_RARITY, UNITS, HEROES, ITEMS, SYNERGIES, ABILITY_TRIGGERS };
+  AMB.DATA = { SLOT_ROLES, ROLE_BONUS, TRAITS, SIGS, HERO_STARTERS, LEGACY_STARTERS, STARTER_IDS, REWARDS, REWARD_POOLS, WORLDS, ROLES, ROLE_BASE, TIER_MULT, TIER_RARITY, UNITS, HEROES, ITEMS, SYNERGIES, ABILITY_TRIGGERS };
 })();
 
 </script>
@@ -3386,6 +3399,8 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
           if (AMB.synergy.appliesTo(SYNERGIES[sy.id], eff, def, pos.row)) mods[eff.stat] += eff.value;
         }));
         (u.items || []).forEach((it) => ITEMS[it].effects.forEach((eff) => (mods[eff.stat] += eff.value)));
+        const slotRoles = AMB.DATA.SLOT_ROLES[u.slot], rb = AMB.DATA.ROLE_BONUS[def.role], inPlace = !!(slotRoles && rb && slotRoles.includes(def.role));   // standing in its own role's slot
+        if (inPlace) Object.keys(rb.mods).forEach((k) => (mods[k] += rb.mods[k]));
         (def.traits || []).forEach((id) => { const tr = AMB.DATA.TRAITS[id]; if (tr) Object.keys(tr.mods).forEach((k) => (mods[k] += tr.mods[k])); });   // rarity traits (rare 1, epic/legendary 2)
         if (def.world === hero.world) { mods.atkPct += HC.resonancePerAlly; mods.hpPct += HC.resonancePerAlly; }
         if (hero.passive.id === 'ancient_bark' && pos.row === 'front') mods.hpPct += 0.06;
@@ -3409,7 +3424,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
           maxHp, hp: maxHp, atk: def.atk * sm * (1 + mods.atkPct), as: def.as * (1 + mods.asPct),
           range: def.range + mods.range, def: def.def + mods.dr, crit: def.crit + mods.crit,
           critDmg: this.C.critMult + mods.critDmg, lifesteal: mods.lifesteal, skillPower: 1 + mods.skillPower,
-          regenPct: mods.regenPct, mana: mods.startMana, maxMana: def.mana, skill: def.skill, sig: def.sig || null,
+          regenPct: mods.regenPct, mana: mods.startMana, maxMana: def.mana, skill: def.skill, sig: def.sig || null, inPlace,
         });
         if (mods.startShieldPct) f.shield += maxHp * mods.startShieldPct;
       });
@@ -4279,6 +4294,13 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
     }
 
     /** Smart arrangement: the strongest `level` units on the board, tanks in front, ranged behind, the rest on the bench. */
+    /** put units into the given free slots: a unit goes to a slot of its own role first (that is where it gets its role bonus), the rest take what is left */
+    static placeByRole(units, slots) {
+      const U = AMB.DATA.UNITS, SR = AMB.DATA.SLOT_ROLES, free = slots.slice(), out = {}, rest = [];
+      units.forEach((u) => { const s = free.find((x) => SR[x] && SR[x].includes(U[u.defId].role)); if (s) { out[s] = u; free.splice(free.indexOf(s), 1); } else rest.push(u); });
+      const spill = []; rest.forEach((u) => { const s = free.shift(); if (s) out[s] = u; else spill.push(u); });
+      return { out, spill, free };
+    }
     autoArrange(pi) {
       const p = this.players[pi], U = AMB.DATA.UNITS, R = AMB.DATA.ROLES;
       const pw = (u) => (AMB.AI && AMB.AI.power ? AMB.AI.power(u) : U[u.defId].tier * AMB.CONFIG.stars.mult[u.star]);
@@ -4297,8 +4319,10 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
       p.board = {};
       const spill = [];   // units that found no slot go to the bench instead of vanishing
       const put = (u, first, second) => { const slot = first.shift() || second.shift(); if (slot) p.board[slot] = u; else spill.push(u); };
-      front.forEach((u) => put(u, fs, bs));
-      back.forEach((u) => put(u, bs, fs));
+      const fr = Match.placeByRole(front, fs), bk = Match.placeByRole(back, bs);
+      Object.assign(p.board, fr.out, bk.out);
+      fr.spill.forEach((u) => put(u, bk.free, []));
+      bk.spill.forEach((u) => put(u, fr.free, []));
       const rest = all.filter((u) => !Object.values(p.board).includes(u));
       p.bench = new Array(AMB.CONFIG.economy.benchSize).fill(null);
       rest.forEach((u) => { const bi = p.bench.indexOf(null); if (bi >= 0) p.bench[bi] = u; else this._placeAnywhere(p, u); });
@@ -4590,7 +4614,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
     }
     for (const u of ranked) { if (chosen.length >= p.level) break; if (!chosen.includes(u)) chosen.push(u); }
 
-    const front = chosen.filter((u) => ['guardian', 'fighter'].includes(UNITS[u.defId].role));
+    const front = chosen.filter((u) => ['guardian', 'fighter', 'assassin'].includes(UNITS[u.defId].role));
     const back = chosen.filter((u) => !front.includes(u));
     if (!front.length && back.length > 1) { // somebody has to hold the line
       back.sort((a, b) => UNITS[b.defId].hp * AMB.CONFIG.stars.mult[b.star] - UNITS[a.defId].hp * AMB.CONFIG.stars.mult[a.star]);
@@ -4603,8 +4627,8 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
     const heroBack = p.summoned;
     const backSlots = BACK.slice();
     if (heroBack) { p.heroSlot = back.length < 4 ? backSlots.pop() : FRONT.find((s, i) => i >= front.length) || 'b3'; }
-    front.forEach((u, i) => (p.board[FRONT[i]] = u));
-    back.forEach((u, i) => (p.board[backSlots[i]] = u));
+    const fr = AMB.Match.placeByRole(front, FRONT), bk = AMB.Match.placeByRole(back, backSlots);   // every unit in the slot of its own role = its role bonus
+    Object.assign(p.board, fr.out, bk.out);
     if (cfg.mistakes && rng.chance(cfg.mistakes * 0.5) && front.length && back.length) { // occasional misplacement
       const f = FRONT[0], b = backSlots[0];
       const t = p.board[f]; p.board[f] = p.board[b]; p.board[b] = t;
@@ -7898,11 +7922,16 @@ AMB.IMAGES = {
         if (u) inner = cardHTML(UNITS[u.defId], { size: 'mini', star: u.star, items: u.items, k: 'sc' + slot, cls: 'ghost' });
         else if (sc.summoned && sc.heroSlot === slot) inner = cardHTML(HEROES[sc.heroId], { size: 'mini', k: 'sch', cls: 'ghost' });
       }
+      const SR = AMB.DATA.SLOT_ROLES[slot], srName = SR ? SR.map((r) => ROLES[r].name).join(' / ') : '';
+      let inPlace = false;   // a card standing in a slot of its own role gets that role's bonus
+      if (inCombat) { const ff = S.combat.fighters.find((x) => x.side === side && x.slot === slot); inPlace = !!(ff && ff.inPlace); }
+      else if (mine) { const uu = p.board[slot]; inPlace = !!(uu && SR && SR.includes(UNITS[uu.defId].role)); }
+      else if (sc) { const uu = sc.units.find((x) => x.slot === slot); inPlace = !!(uu && SR && SR.includes(UNITS[uu.defId].role)); }
       const act = mine && !inCombat ? `data-act="slot" data-slot="${slot}" data-drop="board:${slot}"` : '';
       let rec = '';
       if (mine && !inCombat && S.sel && S.sel.kind === 'unit') { const su = m.findUnit(p, S.sel.uid); if (su) { const sd = ROLES[UNITS[su.defId].role].side; if (sd === 'any' || (sd === 'front') === (slot[0] === 'f')) rec = ' rec'; } }
-      if (!inner && mine && !inCombat) inner = `<i class="rowic">${icon(slot[0] === 'f' ? 'shield' : 'bow')}</i>`;   // empty cell: front row = shield, back row = bow
-      return `<div class="cell ${cls}${rec}" ${act}>${inner}</div>`;
+      if (!inner && mine && !inCombat) inner = `<i class="rowic">${icon(SR ? ART.ROLE_ICON[SR[0]] : (slot[0] === 'f' ? 'shield' : 'bow'))}</i>`;   // empty cell shows the role this slot is for
+      return `<div class="cell ${cls}${rec}${inPlace ? ' inplace' : ''}" ${act} title="${esc(srName)}${SR && !inCombat ? ' — ' + esc(AMB.DATA.ROLE_BONUS[SR[0]].text) : ''}" data-sr="${SR ? SR[0] : ''}">${inner}</div>`;
     };
     const row = (side, ch, mine) => [0, 1, 2, 3].map((k) => cell(side, ch + (mine ? k : 3 - k), mine)).join('');
     const o = 1 - v;

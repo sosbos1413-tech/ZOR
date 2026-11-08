@@ -783,11 +783,16 @@
         if (u) inner = cardHTML(UNITS[u.defId], { size: 'mini', star: u.star, items: u.items, k: 'sc' + slot, cls: 'ghost' });
         else if (sc.summoned && sc.heroSlot === slot) inner = cardHTML(HEROES[sc.heroId], { size: 'mini', k: 'sch', cls: 'ghost' });
       }
+      const SR = AMB.DATA.SLOT_ROLES[slot], srName = SR ? SR.map((r) => ROLES[r].name).join(' / ') : '';
+      let inPlace = false;   // a card standing in a slot of its own role gets that role's bonus
+      if (inCombat) { const ff = S.combat.fighters.find((x) => x.side === side && x.slot === slot); inPlace = !!(ff && ff.inPlace); }
+      else if (mine) { const uu = p.board[slot]; inPlace = !!(uu && SR && SR.includes(UNITS[uu.defId].role)); }
+      else if (sc) { const uu = sc.units.find((x) => x.slot === slot); inPlace = !!(uu && SR && SR.includes(UNITS[uu.defId].role)); }
       const act = mine && !inCombat ? `data-act="slot" data-slot="${slot}" data-drop="board:${slot}"` : '';
       let rec = '';
       if (mine && !inCombat && S.sel && S.sel.kind === 'unit') { const su = m.findUnit(p, S.sel.uid); if (su) { const sd = ROLES[UNITS[su.defId].role].side; if (sd === 'any' || (sd === 'front') === (slot[0] === 'f')) rec = ' rec'; } }
-      if (!inner && mine && !inCombat) inner = `<i class="rowic">${icon(slot[0] === 'f' ? 'shield' : 'bow')}</i>`;   // empty cell: front row = shield, back row = bow
-      return `<div class="cell ${cls}${rec}" ${act}>${inner}</div>`;
+      if (!inner && mine && !inCombat) inner = `<i class="rowic">${icon(SR ? ART.ROLE_ICON[SR[0]] : (slot[0] === 'f' ? 'shield' : 'bow'))}</i>`;   // empty cell shows the role this slot is for
+      return `<div class="cell ${cls}${rec}${inPlace ? ' inplace' : ''}" ${act} title="${esc(srName)}${SR && !inCombat ? ' — ' + esc(AMB.DATA.ROLE_BONUS[SR[0]].text) : ''}" data-sr="${SR ? SR[0] : ''}">${inner}</div>`;
     };
     const row = (side, ch, mine) => [0, 1, 2, 3].map((k) => cell(side, ch + (mine ? k : 3 - k), mine)).join('');
     const o = 1 - v;
