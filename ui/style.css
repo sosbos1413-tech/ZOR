@@ -2315,3 +2315,9 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
 .field .cell.inplace::after { content: '✦'; position: absolute; top: 1px; right: 3px; z-index: 6; color: #f2b300; font-size: 13px; text-shadow: 0 0 4px #000, 1px 1px 0 #000; pointer-events: none; }
 .field .cell { position: relative; }
 .field .cell:not(:has(.tcard, .piece)) .rowic { opacity: .75; }
+
+/* audit phase 2: synergy chips visible during the fight; bigger touch areas for small buttons */
+#combat-ctrl .cc-syn { flex: 1 1 100%; justify-content: center; margin-top: 4px; }
+@media (min-width: 861px) { #combat-ctrl .cc-syn { display: none; } }
+#scr-match .topbar .ibtn2, .ibtn { position: relative; }
+#scr-match .topbar .ibtn2::after, .ibtn::after { content: ''; position: absolute; inset: -6px; }

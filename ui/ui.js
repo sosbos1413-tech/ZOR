@@ -1026,12 +1026,20 @@
       <span class="pb-btns"><button class="btn small ib ${p.summoned ? 'on' : ''}" data-act="summon">${p.summoned ? '👑 رجّع البطل' : '👑 نزّل البطل'}</button><button class="btn small ib" data-act="autoArrange">تلقائي</button></span></div>`;
   }
 
+  // the synergy chips stay visible during the fight, so you can see WHY your board is strong (same chips as the prep bar; no new panels)
+  function combatSynHTML() {
+    try {
+      const pl = S.match && S.match.players[S.v]; if (!pl) return '';
+      const sev = AMB.synergy.evaluate(Object.values(pl.board).filter(Boolean), pl.heroId);
+      return sev.list.length ? `<span class="pb-syn cc-syn">${synergyHTML(sev.list.slice(0, 4), 0)}</span>` : '';
+    } catch (e) { return ''; }
+  }
   function renderCombatCtrl() {
     const el = $('combat-ctrl');
     if (S.phase === 'combat') {
       el.innerHTML = `<span class="clock">0.0s</span>
         ${[1, 2, 4].map((s) => `<button class="btn small ${S.speed === s ? 'on' : ''}" data-act="speed" data-v="${s}">${s}x</button>`).join('')}
-        <button class="btn small ib" data-act="skip">تخطي</button><span class="fury"></span>`;
+        <button class="btn small ib" data-act="skip">تخطي</button><span class="fury"></span>${combatSynHTML()}`;
     } else if (S.phase === 'prep' || S.phase === 'resources') {
       el.innerHTML = prepBarHTML();
     } else el.innerHTML = '';
