@@ -61,7 +61,7 @@
       power: { ember: [1.12, 1.34, 0.78], tide: [0.93, 1.09, 0.97], neon: [1.16, 1.17, 0.76], sylvan: [0.96, 1.32, 0.92] },
     },
     // Guided first match: a fixed weak enemy (2 units, the 2nd joins in round 2), a little extra gold/level, a reward once
-    tutorial: { start: { gold: 10, level: 4 }, enemy: [['thorn_fox', 1, 'f1', 1], ['pixel_sniper', 1, 'b1', 2]], reward: { shards: 50 } },
+    tutorial: { start: { gold: 10, level: 4 }, enemy: [['thorn_fox', 1, 'f1', 1], ['pixel_sniper', 1, 'b1', 2], ['moss_warden', 1, 'f2', 3]], reward: { shards: 50 } },   // 3 rounds: 1 buy+place, 2 merge+refresh, 3 level up + send the hero
     // album: own all 5 units of a world -> its reward (once); own all 20 -> the grand reward
     album: {
       worlds: {

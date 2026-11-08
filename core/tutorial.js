@@ -1,5 +1,5 @@
 /*
- * Guided first match ("التدريب"): 2 short rounds against a fixed, weak enemy with a scripted shop, so a new player learns
+ * Guided first match ("التدريب"): 3 short rounds against a fixed, weak enemy with a scripted shop, so a new player learns
  * buy -> place (front/back) -> ready -> merge -> refresh by DOING each move. Mandatory for brand-new players (they get a
  * reward once). The step-by-step guide itself is ui/tutorial-ui.js; this file holds the match, the scripted shop and the reward.
  */
@@ -10,7 +10,7 @@
   AMB.Save.register('tutorial', { version: 1, defaults: () => ({ done: false, rewarded: false, plays: 0 }) });
 
   // the shop of each round is fixed (round 2 has three copies of one unit so a merge to a star is guaranteed)
-  const SHOP = { 1: ['forge_bulwark', 'ash_ronin', 'pixel_sniper', 'wave_caller', 'grid_hound'], 2: ['ash_ronin', 'ash_ronin', 'ash_ronin', 'thorn_fox', 'moss_warden'] };
+  const SHOP = { 1: ['forge_bulwark', 'ash_ronin', 'pixel_sniper', 'wave_caller', 'grid_hound'], 2: ['ash_ronin', 'ash_ronin', 'ash_ronin', 'thorn_fox', 'moss_warden'], 3: ['thorn_fox', 'moss_warden', 'pixel_sniper', 'wave_caller', 'grid_hound'] };
 
   function Tutorial(save, deps) {
     deps = deps || {};
@@ -26,7 +26,7 @@
         const enemyHero = heroId === 'merin' ? 'zerokai' : 'merin';
         return {
           mode: 'tutorial', seed: seed || 4242, progression: false,
-          rules: { maxRounds: 2, winsNeeded: 2, start: T().start },
+          rules: { maxRounds: 3, winsNeeded: 3, start: T().start },   // always three rounds: the third teaches levelling up and sending the hero
           players: [{ heroId, name: 'أنت' },
             { heroId: enemyHero, name: '', isAI: true, lineup: { units: T().enemy, summon: null, blessings: { atkPct: -0.15, hpPct: -0.15, asPct: 0 }, abilities: [] } }],
         };

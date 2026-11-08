@@ -39,7 +39,11 @@
     { id: 'ready1', round: 1, bar: [G('sword'), G('check')], target: () => ready(), done: () => UI().S.phase === 'combat' || UI().S.match.round > 1 },
     { id: 'merge', round: 2, bar: ['🃏', '🃏', '🃏', ARR, G('star')], target: () => { for (let i = 0; i < 3; i++) { const el = q(`.shop-cards .tcard[data-idx="${i}"]:not(.empty)`); if (el && P().shop[i]) return el; } return null; }, done: () => UI().S.match.allUnits(P()).some((u) => u.star >= 2) },
     { id: 'reroll', round: 2, bar: [G('gold'), G('refresh')], target: () => reroll(), done: () => P().stats.rerolls >= 1 },
-    { id: 'ready2', round: 2, bar: [G('sword'), G('check')], target: () => ready(), done: () => UI().S.phase === 'combat' },
+    { id: 'ready2', round: 2, bar: [G('sword'), G('check')], target: () => ready(), done: () => UI().S.phase === 'combat' || UI().S.match.round > 2 },
+    // round 3: the two things that decide real matches: spend gold on levels (more units on the board), and send the hero in
+    { id: 'xp', round: 3, bar: [G('gold'), ARR, G('up')], target: () => q('#shopbar [data-act="xp"]') || q('[data-act="xp"]'), done: () => P().xp > 0 || P().level > 4 },
+    { id: 'summon', round: 3, bar: [G('crown'), ARR, G('sword')], target: () => q('[data-act="summon"]'), done: () => P().summoned },
+    { id: 'ready3', round: 3, bar: [G('sword'), G('check')], target: () => ready(), done: () => UI().S.phase === 'combat' },
   ];
 
   // ---------------------------------------------------------------- layers

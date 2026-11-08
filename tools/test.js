@@ -1124,15 +1124,17 @@ function playTutorial(prof, seed, hero) {
   m.startRound(); prof.tutorial.onRound(m);
   m.buy(0, 0); place('forge_bulwark', 'f1'); m.buy(0, 2); place('pixel_sniper', 'b1');
   m.resolveCombat(m.createCombat(false).runToEnd());
-  if (!m.isOver) { m.startRound(); prof.tutorial.onRound(m); m.buy(0, 0); m.buy(0, 1); m.buy(0, 2); const merged = m.allUnits(p).some((u) => u.star === 2); m.resolveCombat(m.createCombat(false).runToEnd()); return { m, merged }; }
-  return { m, merged: false };
+  let merged = false;
+  if (!m.isOver) { m.startRound(); prof.tutorial.onRound(m); m.buy(0, 0); m.buy(0, 1); m.buy(0, 2); merged = m.allUnits(p).some((u) => u.star === 2); m.autoFill(0); m.resolveCombat(m.createCombat(false).runToEnd()); }
+  if (!m.isOver) { m.startRound(); prof.tutorial.onRound(m); m.buyXp(0); m.toggleSummon(0); m.autoFill(0); m.resolveCombat(m.createCombat(false).runToEnd()); }   // round 3: level up + send the hero
+  return { m, merged };
 }
 t('tutorial: scripted shops, short rules, a weak scripted enemy; the guided moves win and the merge works', () => {
   const prof = AMB.Profile.boot(MEM());
-  const o = prof.tutorial.matchOptions('orath'); eq(o.rules.maxRounds, 2); eq(o.players[1].lineup.units.length, 2); eq(o.mode, 'tutorial');
+  const o = prof.tutorial.matchOptions('orath'); eq(o.rules.maxRounds, 3); eq(o.players[1].lineup.units.length, 3); eq(o.mode, 'tutorial');
   eq(prof.tutorial.matchOptions('merin').players[1].heroId, 'zerokai', 'enemy hero differs from yours');
   let wins = 0, merges = 0;
-  for (let seed = 1; seed <= 40; seed++) { const r = playTutorial(prof, seed, ['orath', 'kagira', 'merin', 'zerokai'][seed % 4]); ok(r.m.round <= 2); if (r.m.winner === 0) wins++; if (r.merged) merges++; }
+  for (let seed = 1; seed <= 40; seed++) { const r = playTutorial(prof, seed, ['orath', 'kagira', 'merin', 'zerokai'][seed % 4]); ok(r.m.round <= 3); if (r.m.winner === 0) wins++; if (r.merged) merges++; }
   ok(wins >= 38, 'guided play should almost always win: ' + wins + '/40'); eq(merges, 40, 'three copies always merge to a star');
   const m = new AMB.Match(prof.tutorial.matchOptions('orath', 5)); m.startRound(); prof.tutorial.onRound(m);
   eq(m.players[0].shop.join(), AMB.Tutorial(prof.save).SHOP[1].join()); ok(m.players[0].gold >= 12, 'enough gold for the whole round');

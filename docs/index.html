@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="9ef253df1d">
+<meta name="zor-build" content="1bb85ffb74">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -4970,7 +4970,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
       power: { ember: [1.12, 1.34, 0.78], tide: [0.93, 1.09, 0.97], neon: [1.16, 1.17, 0.76], sylvan: [0.96, 1.32, 0.92] },
     },
     // Guided first match: a fixed weak enemy (2 units, the 2nd joins in round 2), a little extra gold/level, a reward once
-    tutorial: { start: { gold: 10, level: 4 }, enemy: [['thorn_fox', 1, 'f1', 1], ['pixel_sniper', 1, 'b1', 2]], reward: { shards: 50 } },
+    tutorial: { start: { gold: 10, level: 4 }, enemy: [['thorn_fox', 1, 'f1', 1], ['pixel_sniper', 1, 'b1', 2], ['moss_warden', 1, 'f2', 3]], reward: { shards: 50 } },   // 3 rounds: 1 buy+place, 2 merge+refresh, 3 level up + send the hero
     // album: own all 5 units of a world -> its reward (once); own all 20 -> the grand reward
     album: {
       worlds: {
@@ -5957,7 +5957,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
 </script>
 <script>
 /*
- * Guided first match ("التدريب"): 2 short rounds against a fixed, weak enemy with a scripted shop, so a new player learns
+ * Guided first match ("التدريب"): 3 short rounds against a fixed, weak enemy with a scripted shop, so a new player learns
  * buy -> place (front/back) -> ready -> merge -> refresh by DOING each move. Mandatory for brand-new players (they get a
  * reward once). The step-by-step guide itself is ui/tutorial-ui.js; this file holds the match, the scripted shop and the reward.
  */
@@ -5968,7 +5968,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
   AMB.Save.register('tutorial', { version: 1, defaults: () => ({ done: false, rewarded: false, plays: 0 }) });
 
   // the shop of each round is fixed (round 2 has three copies of one unit so a merge to a star is guaranteed)
-  const SHOP = { 1: ['forge_bulwark', 'ash_ronin', 'pixel_sniper', 'wave_caller', 'grid_hound'], 2: ['ash_ronin', 'ash_ronin', 'ash_ronin', 'thorn_fox', 'moss_warden'] };
+  const SHOP = { 1: ['forge_bulwark', 'ash_ronin', 'pixel_sniper', 'wave_caller', 'grid_hound'], 2: ['ash_ronin', 'ash_ronin', 'ash_ronin', 'thorn_fox', 'moss_warden'], 3: ['thorn_fox', 'moss_warden', 'pixel_sniper', 'wave_caller', 'grid_hound'] };
 
   function Tutorial(save, deps) {
     deps = deps || {};
@@ -5984,7 +5984,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
         const enemyHero = heroId === 'merin' ? 'zerokai' : 'merin';
         return {
           mode: 'tutorial', seed: seed || 4242, progression: false,
-          rules: { maxRounds: 2, winsNeeded: 2, start: T().start },
+          rules: { maxRounds: 3, winsNeeded: 3, start: T().start },   // always three rounds: the third teaches levelling up and sending the hero
           players: [{ heroId, name: 'أنت' },
             { heroId: enemyHero, name: '', isAI: true, lineup: { units: T().enemy, summon: null, blessings: { atkPct: -0.15, hpPct: -0.15, asPct: 0 }, abilities: [] } }],
         };
@@ -10115,7 +10115,11 @@ AMB.IMAGES = {
     { id: 'ready1', round: 1, bar: [G('sword'), G('check')], target: () => ready(), done: () => UI().S.phase === 'combat' || UI().S.match.round > 1 },
     { id: 'merge', round: 2, bar: ['🃏', '🃏', '🃏', ARR, G('star')], target: () => { for (let i = 0; i < 3; i++) { const el = q(`.shop-cards .tcard[data-idx="${i}"]:not(.empty)`); if (el && P().shop[i]) return el; } return null; }, done: () => UI().S.match.allUnits(P()).some((u) => u.star >= 2) },
     { id: 'reroll', round: 2, bar: [G('gold'), G('refresh')], target: () => reroll(), done: () => P().stats.rerolls >= 1 },
-    { id: 'ready2', round: 2, bar: [G('sword'), G('check')], target: () => ready(), done: () => UI().S.phase === 'combat' },
+    { id: 'ready2', round: 2, bar: [G('sword'), G('check')], target: () => ready(), done: () => UI().S.phase === 'combat' || UI().S.match.round > 2 },
+    // round 3: the two things that decide real matches: spend gold on levels (more units on the board), and send the hero in
+    { id: 'xp', round: 3, bar: [G('gold'), ARR, G('up')], target: () => q('#shopbar [data-act="xp"]') || q('[data-act="xp"]'), done: () => P().xp > 0 || P().level > 4 },
+    { id: 'summon', round: 3, bar: [G('crown'), ARR, G('sword')], target: () => q('[data-act="summon"]'), done: () => P().summoned },
+    { id: 'ready3', round: 3, bar: [G('sword'), G('check')], target: () => ready(), done: () => UI().S.phase === 'combat' },
   ];
 
   // ---------------------------------------------------------------- layers
