@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="e808407a99">
+<meta name="zor-build" content="9cfc379888">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -6909,6 +6909,17 @@ AMB.IMAGES = {
  * world colour, world glyph, role icon and tier ring. No external images.
  */
 (function () {
+  // the built single file carries every portrait as a base64 data URI. Re-parsing those long strings on every re-render is slow, so turn each into a blob: URL once at start-up.
+  try {
+    const IM = globalThis.AMB && globalThis.AMB.IMAGES;
+    if (IM && typeof Blob !== 'undefined' && typeof URL !== 'undefined' && URL.createObjectURL) {
+      Object.keys(IM).forEach((id) => {
+        const m = /^data:([^;,]+);base64,(.*)$/s.exec(IM[id] || ''); if (!m) return;
+        const bin = atob(m[2]), bytes = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        IM[id] = URL.createObjectURL(new Blob([bytes], { type: m[1] }));
+      });
+    }
+  } catch (e) { /* keep the data URIs */ }
   const AMB = (globalThis.AMB = globalThis.AMB || {});
 
   const ICONS = {
@@ -7867,9 +7878,17 @@ AMB.IMAGES = {
       el.className = 'post' + (onBoard && !inCombat ? ' empty-hero' : '') + (exposed && !onBoard ? ' exposed' : '') + (safe ? '' : ' risk');
       const chip = document.querySelectorAll('#topbar .lifechip')[side === viewer ? 0 : 1];   // the phone shows hero life + safety in the top bar (the posts are hidden there)
       if (chip) { const b = chip.querySelector('b'); if (b) b.textContent = lifeStr(life); const ls = chip.querySelector('.lc-st'); if (ls) ls.innerHTML = onBoard && !inCombat ? icon('crown') : safe ? icon('shield') : icon('warn'); chip.classList.toggle('risk', !safe && !(onBoard && !inCombat)); }
-      el.innerHTML = `${portrait(h, { k: 'post' + side })}
+      // rebuilding the post (portrait + icons) every animation frame was the most expensive thing in combat: rebuild it only when something but the life changed
+      const sig = [side, p.heroId, onBoard, inCombat, safe, exposed, front].join('|');
+      if (el.dataset.sig !== sig || !el.querySelector('.lifebar i')) {
+        el.dataset.sig = sig;
+        el.innerHTML = `${portrait(h, { k: 'post' + side })}
         <div class="pl"><div class="lifebar"><i style="width:${Math.max(0, (life / p.maxLife) * 100)}%"></i></div>
         <div class="st">${icon('heart')} <b>${lifeStr(life)}</b></div></div>${st}`;
+      } else {
+        const bar = el.querySelector('.lifebar i'); if (bar) bar.style.width = Math.max(0, (life / p.maxLife) * 100) + '%';
+        const lb = el.querySelector('.pl .st b'); if (lb) lb.textContent = lifeStr(life);
+      }
     });
   }
 

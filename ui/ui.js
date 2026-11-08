@@ -828,9 +828,17 @@
       el.className = 'post' + (onBoard && !inCombat ? ' empty-hero' : '') + (exposed && !onBoard ? ' exposed' : '') + (safe ? '' : ' risk');
       const chip = document.querySelectorAll('#topbar .lifechip')[side === viewer ? 0 : 1];   // the phone shows hero life + safety in the top bar (the posts are hidden there)
       if (chip) { const b = chip.querySelector('b'); if (b) b.textContent = lifeStr(life); const ls = chip.querySelector('.lc-st'); if (ls) ls.innerHTML = onBoard && !inCombat ? icon('crown') : safe ? icon('shield') : icon('warn'); chip.classList.toggle('risk', !safe && !(onBoard && !inCombat)); }
-      el.innerHTML = `${portrait(h, { k: 'post' + side })}
+      // rebuilding the post (portrait + icons) every animation frame was the most expensive thing in combat: rebuild it only when something but the life changed
+      const sig = [side, p.heroId, onBoard, inCombat, safe, exposed, front].join('|');
+      if (el.dataset.sig !== sig || !el.querySelector('.lifebar i')) {
+        el.dataset.sig = sig;
+        el.innerHTML = `${portrait(h, { k: 'post' + side })}
         <div class="pl"><div class="lifebar"><i style="width:${Math.max(0, (life / p.maxLife) * 100)}%"></i></div>
         <div class="st">${icon('heart')} <b>${lifeStr(life)}</b></div></div>${st}`;
+      } else {
+        const bar = el.querySelector('.lifebar i'); if (bar) bar.style.width = Math.max(0, (life / p.maxLife) * 100) + '%';
+        const lb = el.querySelector('.pl .st b'); if (lb) lb.textContent = lifeStr(life);
+      }
     });
   }
 
