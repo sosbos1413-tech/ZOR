@@ -838,6 +838,13 @@ t('front line flag: a summoned hero in front counts (A5); a leaped assassin no l
   m.startRound(); m.players[0].essence = 13; m.resolveCombat(m.createCombat(false).runToEnd()); m.startRound();
   ok(m.players[0].essence >= 13, 'essence above the cap is kept');
 });
+t('desync fingerprint includes each phone\'s own unit pool (online), so a pool drift is detected', () => {
+  const mk = () => new AMB.Match({ mode: 'online', seed: 21, isolated: true, players: [{ heroId: 'orath', name: 'a' }, { heroId: 'merin', name: 'b' }] });
+  const A = mk(), B = mk(); A.startRound(); B.startRound();
+  eq(AMB.NetSync.hash(A), AMB.NetSync.hash(B), 'identical copies, identical hash');
+  B.players[1].pool.ash_ronin -= 1;
+  ok(AMB.NetSync.hash(A) !== AMB.NetSync.hash(B), 'a pool difference changes the fingerprint');
+});
 t('album: world set reward is claimable once, gives shards + title + frame (equippable in the pass)', () => {
   const prof = AMB.Profile.boot(MEM()), A = prof.album;
   const pass = AMB.Pass.create(prof.save.storageFor('pass'), null, null, (type) => A.ownedCosmetics(type));

@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="9cfc379888">
+<meta name="zor-build" content="7855d0863c">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -6067,8 +6067,9 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
       g: p.gold, l: p.life, lv: p.level, xp: p.xp, ess: p.essence, shop: p.shop, bench: p.bench.map((u) => u && [u.uid, u.defId, u.star, u.items]),
       board: Object.keys(p.board).sort().map((k) => [k, p.board[k].uid, p.board[k].defId, p.board[k].star, p.board[k].items]), items: p.items,
       spells: p.armedSpells, ab: p.abilities, sum: p.summoned, hs: p.heroSlot, bl: p.blessings,
+      pool: match.isolated ? p.pool : null,   // each phone's own unit pool (online): a pool drift changes future shops, so it must be part of the fingerprint
     }));
-    const s = JSON.stringify([match.round, snap, match.pool && 0]);
+    const s = JSON.stringify([match.round, snap, match.isolated ? null : match.pool]);
     let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
     return (h >>> 0).toString(36);
   }
@@ -9786,6 +9787,18 @@ AMB.IMAGES = {
     ui().modal(`<h2>اختلفت المباراة بين الجوالين</h2><p class="hint">${text}</p><div class="net-btns"><button class="btn primary" data-act="abandon">للقائمة</button></div>`);
   }
   const buildOf = () => { const m = document.querySelector('meta[name="zor-build"]'); return m ? m.content : 'dev'; };
+  // desync check: after both phones applied everybody's moves they must hold the SAME state; each sends a fingerprint and compares it with the other's
+  function shareHash(key) {
+    const S = ui().S, n = S.net, m = S.match; if (!n || !m) return;
+    n.myHash = n.myHash || {}; n.peerHash = n.peerHash || {};
+    n.myHash[key] = AMB.NetSync.hash(m);
+    try { n.link.send({ t: 'sync', key, h: n.myHash[key] }); } catch (e) { /* ignore */ }
+    checkHash(key);
+  }
+  function checkHash(key) {
+    const n = ui().S.net; if (!n || !n.myHash || !n.peerHash) return;
+    if (n.myHash[key] != null && n.peerHash[key] != null && n.myHash[key] !== n.peerHash[key]) netProblem('حالة اللعبة ما تطابقت بين الجوالين (غالبًا نسختين مختلفتين). حدّثوا الاثنين وابدأوا من جديد.');
+  }
   function pump() {
     try { pumpInner(); } catch (e) { netProblem('صار خطأ في الاتصال. جرّبوا مباراة جديدة وتأكدوا إن الاثنين على آخر نسخة.'); }
   }
@@ -9795,6 +9808,7 @@ AMB.IMAGES = {
     if (n.sentReady && n.peerReady && n.peerReady.round === m.round && S.phase === 'waiting') {
       const bad = AMB.NetSync.replay(m, other, n.peerReady.ops);
       if (bad.length) { console.warn('online: replay problems', bad); netProblem('حركة صاحبك ما انطبقت عندك. غالبًا النسختين مختلفتين، حدّثوا الاثنين.'); return; }
+      shareHash('p' + m.round);
       n.sentReady = false; n.peerReady = null;
       ui().closeOverlay();
       ui().startCombat();
@@ -9802,6 +9816,7 @@ AMB.IMAGES = {
     if (n.iClaimed && n.peerReward && n.peerReward.round === m.round && S.phase === 'result') {
       const bad = AMB.NetSync.replay(m, other, n.peerReward.ops);
       if (bad.length) { console.warn('online: reward replay problems', bad); netProblem('جائزة صاحبك ما انطبقت عندك. حدّثوا الاثنين.'); return; }
+      shareHash('r' + m.round);
       n.iClaimed = false; n.peerReward = null;
       ui().closeOverlay();
       ui().afterReward();
@@ -9816,6 +9831,7 @@ AMB.IMAGES = {
       case 'start': n.theirStart = msg; tryStart(); break;
       case 'ready': n.peerReady = msg; pump(); break;
       case 'reward': n.peerReward = msg; pump(); break;
+      case 'sync': n.peerHash = n.peerHash || {}; n.peerHash[String(msg.key)] = msg.h; checkHash(String(msg.key)); break;
       case 'leave': peerLeft(); break;
       default: break;
     }

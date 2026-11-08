@@ -322,6 +322,18 @@
     ui().modal(`<h2>اختلفت المباراة بين الجوالين</h2><p class="hint">${text}</p><div class="net-btns"><button class="btn primary" data-act="abandon">للقائمة</button></div>`);
   }
   const buildOf = () => { const m = document.querySelector('meta[name="zor-build"]'); return m ? m.content : 'dev'; };
+  // desync check: after both phones applied everybody's moves they must hold the SAME state; each sends a fingerprint and compares it with the other's
+  function shareHash(key) {
+    const S = ui().S, n = S.net, m = S.match; if (!n || !m) return;
+    n.myHash = n.myHash || {}; n.peerHash = n.peerHash || {};
+    n.myHash[key] = AMB.NetSync.hash(m);
+    try { n.link.send({ t: 'sync', key, h: n.myHash[key] }); } catch (e) { /* ignore */ }
+    checkHash(key);
+  }
+  function checkHash(key) {
+    const n = ui().S.net; if (!n || !n.myHash || !n.peerHash) return;
+    if (n.myHash[key] != null && n.peerHash[key] != null && n.myHash[key] !== n.peerHash[key]) netProblem('حالة اللعبة ما تطابقت بين الجوالين (غالبًا نسختين مختلفتين). حدّثوا الاثنين وابدأوا من جديد.');
+  }
   function pump() {
     try { pumpInner(); } catch (e) { netProblem('صار خطأ في الاتصال. جرّبوا مباراة جديدة وتأكدوا إن الاثنين على آخر نسخة.'); }
   }
@@ -331,6 +343,7 @@
     if (n.sentReady && n.peerReady && n.peerReady.round === m.round && S.phase === 'waiting') {
       const bad = AMB.NetSync.replay(m, other, n.peerReady.ops);
       if (bad.length) { console.warn('online: replay problems', bad); netProblem('حركة صاحبك ما انطبقت عندك. غالبًا النسختين مختلفتين، حدّثوا الاثنين.'); return; }
+      shareHash('p' + m.round);
       n.sentReady = false; n.peerReady = null;
       ui().closeOverlay();
       ui().startCombat();
@@ -338,6 +351,7 @@
     if (n.iClaimed && n.peerReward && n.peerReward.round === m.round && S.phase === 'result') {
       const bad = AMB.NetSync.replay(m, other, n.peerReward.ops);
       if (bad.length) { console.warn('online: reward replay problems', bad); netProblem('جائزة صاحبك ما انطبقت عندك. حدّثوا الاثنين.'); return; }
+      shareHash('r' + m.round);
       n.iClaimed = false; n.peerReward = null;
       ui().closeOverlay();
       ui().afterReward();
@@ -352,6 +366,7 @@
       case 'start': n.theirStart = msg; tryStart(); break;
       case 'ready': n.peerReady = msg; pump(); break;
       case 'reward': n.peerReward = msg; pump(); break;
+      case 'sync': n.peerHash = n.peerHash || {}; n.peerHash[String(msg.key)] = msg.h; checkHash(String(msg.key)); break;
       case 'leave': peerLeft(); break;
       default: break;
     }
