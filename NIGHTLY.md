@@ -10,7 +10,7 @@
 
 ## المراحل
 - [x] ١. (تم يدويًا: action جديد rules يفتح نص القواعد فقط، مجرّب بـ Playwright: الوضع والجولة والذهب ما تغيرت، والإغلاق يكمل المباراة) «كل القواعد» داخل المباراة تبدأ الشرح وتلغي المباراة (ui/ui.js: action جديد يفتح howto فقط)
-- [ ] ٢. الاستسلام الفوري يعطي خبرة باتل باس/بطل/مهام (pass.recordMatch و awardHeroXp: شرط جولة قتال وحدة على الأقل، واستثناء online/friendly؛ peerLeft)
+- [x] ٢. (تم: fought(m)=history≥1 يشترط قتالًا واحدًا على الأقل لخبرة الباتل باس والبطل والمهام، وawardHeroXp يستثني online وfriendly؛ مجرّب: استسلام فوري = 0/0، بعد جولة قتال = 30 خبرة ممر + 25 خبرة بطل) الاستسلام الفوري يعطي خبرة باتل باس/بطل/مهام (pass.recordMatch و awardHeroXp: شرط جولة قتال وحدة على الأقل، واستثناء online/friendly؛ peerLeft)
 - [ ] ٣. تبويبين يكتبون فوق بعض (core/save.js: قفل كاتب واحد BroadcastChannel/storage + رسالة؛ انتبه لنسخة pass.js المخزنة)
 - [ ] ٤. المنيو في طور «resources» يتخطى التحضير + إيقاف التحضير أونلاين (matchMenu/resumeMenu/beginPrep)
 - [ ] ٥. حماية الأونلاين: تحقق من move/moveHero/toggleSummon، try/catch لكل op في netsync، تحقق hero id، رسالة عدم تطابق، رقم إصدار في المصافحة

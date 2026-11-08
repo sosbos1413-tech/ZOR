@@ -1121,8 +1121,10 @@
   }
 
   // hero experience: every finished match (except the guided tutorial and same-device play) levels up the hero you played
+  // a match counts for progression only if at least one combat was actually fought (an instant surrender pays nothing)
+  const fought = (m) => m.history.length >= 1;
   function awardHeroXp(m) {
-    if (!AMB.heroes || m._heroXp || S.mode === 'tutorial' || S.mode === 'hotseat') return;
+    if (!AMB.heroes || m._heroXp || S.mode === 'tutorial' || S.mode === 'hotseat' || S.mode === 'friendly' || S.mode === 'online' || !fought(m)) return;
     m._heroXp = true;
     const seat = mySeat(), p = m.players[seat], won = m.winner === seat;
     const roundsWon = m.history.filter((r) => r.winner === seat).length;
@@ -1161,7 +1163,7 @@
     if (S.mode === 'tutorial') return AMB.TutorialUI.showResult(m, secs);
     if (S.mode !== 'friendly' && S.mode !== 'online' && !m._recorded) { AMB.telemetry.recordMatch(m, { seconds: secs }); m._recorded = true; }
     if (!m._counted) { m._counted = true; try { localStorage.setItem('amb_played', String(+(localStorage.getItem('amb_played') || 0) + 1)); } catch (e) { /* ignore */ } }
-    if (!m._passDone && S.mode !== 'online') { m._passDone = true; try { S.passResult = AMB.pass.recordMatch(m.summary(0)); } catch (e) { S.passResult = null; } }
+    if (!m._passDone && S.mode !== 'online' && fought(m)) { m._passDone = true; try { S.passResult = AMB.pass.recordMatch(m.summary(0)); } catch (e) { S.passResult = null; } }
     let title;
     if (m.winner === null || m.winner === undefined) title = 'تعادل';
     else if (S.mode === 'hotseat') title = `فاز ${esc(m.players[m.winner].name)}!`;
