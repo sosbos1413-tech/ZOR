@@ -10,6 +10,7 @@
   // character rewards also give the card (unlock or +1 copy) — see core/collection.js
   const pass = (AMB.pass = AMB.Pass.create(store, null, (r) => {
     if (r.type === 'shards') { if (AMB.wallet) AMB.wallet.add('shards', r.n, 'mission'); return; }   // daily-mission shards
+    if (r.shards && AMB.wallet) AMB.wallet.add('shards', r.shards, 'pass');   // some free-track levels also pay shards
     if (AMB.collection) AMB.collection.grantPassReward(r);
   }, (type) => (AMB.album ? AMB.album.ownedCosmetics(type) : [])));
   if (AMB.events) AMB.Pass.wire(pass, AMB.events);   // missions also count campaign fights, upgrades, packs and stars

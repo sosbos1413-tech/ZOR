@@ -206,8 +206,9 @@ t('pass: both tracks have 30 valid rewards with no duplicate cosmetic across tra
     if (r.type === 'avatar') ok(AMB.DATA.UNITS[r.id] || AMB.DATA.HEROES[r.id], 'unknown avatar ' + r.id); else ok(P.COSMETICS[r.type][r.id], 'unknown ' + r.type + ' ' + r.id);
   }));
 });
-t('pass: xp -> level (100 per level, max 30)', () => {
-  const p = mkPass(); eq(p.level(), 1); p.addXp(99); eq(p.level(), 1); p.addXp(1); eq(p.level(), 2); p.addXp(100000); eq(p.level(), 30); ok(p.maxed());
+t('pass: xp -> level (xpPerLevel per level, max 30)', () => {
+  const XPL = AMB.Pass.SEASON.xpPerLevel;
+  const p = mkPass(); eq(p.level(), 1); p.addXp(XPL - 1); eq(p.level(), 1); p.addXp(1); eq(p.level(), 2); p.addXp(100000); eq(p.level(), 30); ok(p.maxed());
 });
 t('pass: match xp = played + rounds + win (+ first win of the day once), scaled by mode, friendly = 0', () => {
   const p = mkPass();
@@ -238,23 +239,23 @@ t('pass: missions reset on a new day (claims too)', () => {
 t('pass: claiming needs the level, premium needs premium, no double claim, claimAll', () => {
   const p = mkPass();
   ok(!p.canClaim(2, 'free'), 'level 2 not reached'); ok(p.canClaim(1, 'free')); ok(p.claim(1, 'free')); ok(!p.claim(1, 'free'), 'no double claim');
-  ok(!p.canClaim(1, 'premium'), 'premium locked'); p.addXp(500); ok(p.level() === 6);
+  ok(!p.canClaim(1, 'premium'), 'premium locked'); p.addXp(5 * AMB.Pass.SEASON.xpPerLevel); ok(p.level() === 6);
   const got = p.claimAll(); eq(got.filter((g) => g.track === 'premium').length, 0, 'premium stays locked'); eq(got.length, 5, 'free levels 2-6');
   p.setPremium(true); ok(p.claimAll().length === 6, 'premium levels 1-6 after unlocking');
 });
 t('pass: equip only what you own; perks add prep time', () => {
-  const p = mkPass(); p.addXp(1400);
+  const p = mkPass(); p.addXp(14 * AMB.Pass.SEASON.xpPerLevel);
   ok(!p.equip('frame', 'gold'), 'not owned yet'); eq(p.prepBonus(), 0);
   p.claimAll(); ok(p.equip('frame', 'bronze')); ok(p.equip('avatar', 'yuta')); ok(!p.equip('avatar', 'kagira'), 'premium avatar locked');
   eq(p.prepBonus(), 10, 'perk levels 5 and 15 give +5s each'); ok(p.owned('title').includes('t_recruit'));
 });
 t('pass: season end freezes xp but rewards you already earned stay claimable', () => {
-  const st = memStore(); const p = mkPass(st); p.addXp(300);
-  const late = mkPass(st, T0 + 50 * 86400000); ok(late.ended()); eq(late.addXp(500), 0); eq(late.state().xp, 300); ok(late.claim(3, 'free'));
+  const st = memStore(), XPL = AMB.Pass.SEASON.xpPerLevel; const p = mkPass(st); p.addXp(3 * XPL);
+  const late = mkPass(st, T0 + 50 * 86400000); ok(late.ended()); eq(late.addXp(500), 0); eq(late.state().xp, 3 * XPL); ok(late.claim(3, 'free'));
   eq(late.recordMatch(sm({ won: true, roundsWon: 7 })).xp, 0);
 });
 t('pass: progress persists through storage; corrupt data is ignored', () => {
-  const st = memStore(); mkPass(st).addXp(250); eq(mkPass(st).level(), 3);
+  const st = memStore(); mkPass(st).addXp(2 * AMB.Pass.SEASON.xpPerLevel + 50); eq(mkPass(st).level(), 3);
   const bad = memStore(); bad.setItem(AMB.Pass.KEY, '{not json'); eq(mkPass(bad).level(), 1);
 });
 t('match.summary() reports the facts the pass needs', () => {
@@ -398,7 +399,7 @@ t('save: importing keeps the previous save recoverable', () => {
 t('save: old battle-pass progress is carried into the unified save', () => {
   const mem = MEM();
   const old = AMB.Pass.create(mem);       // old builds used their own key
-  old.addXp(250);
+  old.addXp(2 * AMB.Pass.SEASON.xpPerLevel + 50);
   const sv = AMB.Save.create(mem);
   const p = AMB.Pass.create(sv.storageFor('pass'));
   eq(p.level(), old.level()); ok(p.level() >= 3);

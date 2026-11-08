@@ -11,7 +11,7 @@
   const DAY = 86400000;
 
   const SEASON = {
-    id: 's1', name: 'موسم الصدع الأول', days: 42, levels: 30, xpPerLevel: 100,
+    id: 's1', name: 'موسم الصدع الأول', days: 42, levels: 30, xpPerLevel: 500,   // 15,000 XP in all: about a month at 3 matches a day plus the missions (it was 3,000 = a week)
     xp: { played: 30, won: 40, perRoundWon: 6, finaleWon: 15, firstWinOfDay: 40 },
     modeMult: { easy: 0.6, normal: 1, hard: 1.25, hotseat: 0.8, friendly: 0, campaign: 0 },   // friendly games give nothing (no farming)
   };
@@ -72,14 +72,14 @@
   // ------------------------------------------------------------- reward tracks (30 levels each)
   const mk = (type, id, extra) => Object.assign({ type, id }, extra || {});
   const FREE = {
-    1: mk('title', 't_recruit'), 2: mk('frame', 'bronze'), 3: mk('avatar', 'yuta'), 4: mk('arena', 'tavern'),
-    5: mk('perk', 'prep5', { sec: 5 }), 6: mk('arena', 'gambler'), 7: mk('avatar', 'mitsuki'), 8: mk('title', 't_junior'),
-    9: mk('frame', 'silver'), 10: mk('arena', 'temple'), 11: mk('avatar', 'kinoko'), 12: mk('fx', 'petals'),
-    13: mk('arena', 'stardust'), 14: mk('avatar', 'mizuki'), 15: mk('perk', 'prep10', { sec: 5 }), 16: mk('frame', 'forest'),
-    17: mk('arena', 'dungeon'), 18: mk('title', 't_stars'), 19: mk('avatar', 'akane'), 20: mk('fx', 'goldrain'),
-    21: mk('frame', 'ember'), 22: mk('title', 't_stages'), 23: mk('avatar', 'miyuki'), 24: mk('arena', 'forge'),
-    25: mk('fx', 'lightning'), 26: mk('fx', 'inferno'), 27: mk('frame', 'gold'), 28: mk('arena', 'warmap'),
-    29: mk('arena', 'riftgold'), 30: mk('avatar', 'rika', { big: true }),
+    1: mk('title', 't_recruit'), 2: mk('frame', 'bronze'), 3: mk('avatar', 'yuta', { shards: 30 }), 4: mk('arena', 'tavern'),
+    5: mk('perk', 'prep5', { sec: 5 }), 6: mk('arena', 'gambler', { shards: 40 }), 7: mk('avatar', 'mitsuki'), 8: mk('title', 't_junior'),
+    9: mk('frame', 'silver', { shards: 40 }), 10: mk('arena', 'temple'), 11: mk('avatar', 'kinoko'), 12: mk('fx', 'petals', { shards: 50 }),
+    13: mk('arena', 'stardust'), 14: mk('avatar', 'mizuki'), 15: mk('perk', 'prep10', { sec: 5 , shards: 50}), 16: mk('frame', 'forest'),
+    17: mk('arena', 'dungeon'), 18: mk('title', 't_stars', { shards: 60 }), 19: mk('avatar', 'akane'), 20: mk('fx', 'goldrain'),
+    21: mk('frame', 'ember', { shards: 60 }), 22: mk('title', 't_stages'), 23: mk('avatar', 'miyuki'), 24: mk('arena', 'forge', { shards: 70 }),
+    25: mk('fx', 'lightning'), 26: mk('fx', 'inferno'), 27: mk('frame', 'gold', { shards: 70 }), 28: mk('arena', 'warmap'),
+    29: mk('arena', 'riftgold'), 30: mk('avatar', 'rika', { big: true , shards: 80}),
   };
   const PREMIUM = {
     1: mk('avatar', 'kagira'), 2: mk('frame', 'crimson'), 3: mk('title', 't_elite'), 4: mk('arena', 'inkwash'), 5: mk('fx', 'emerald'),
@@ -92,6 +92,10 @@
 
   function rewardName(r) {
     if (!r) return '';
+    const sh = r.shards ? ` · +${r.shards} شظية` : '';
+    return rewardBase(r) + sh;
+  }
+  function rewardBase(r) {
     if (r.type === 'perk') return `مؤقت التجهيز +${r.sec} ث`;
     if (r.type === 'avatar') return AMB.DATA ? ((AMB.DATA.UNITS[r.id] || AMB.DATA.HEROES[r.id] || {}).name || r.id) : r.id;
     return (COSMETICS[r.type] && COSMETICS[r.type][r.id] ? COSMETICS[r.type][r.id].name : r.id);

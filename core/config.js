@@ -77,8 +77,8 @@
     combat: {
       dt: 0.05,                 // simulation tick (seconds)
       timeCap: 30,              // seconds before the round is a draw
-      furyStart: 18,            // after this, all damage ramps up (anti-stall)
-      furyPerSec: 0.12,
+      furyStart: 14,            // after this, all damage ramps up (anti-stall)
+      furyPerSec: 0.18,
       assaultWindow: 4,         // seconds survivors get to hit an exposed command post
       heroHpScale: 10,          // 1 hero life = 10 battlefield HP
       commandPostFortify: 0.25, // damage multiplier vs a hero NOT summoned
