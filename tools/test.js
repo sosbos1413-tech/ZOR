@@ -1315,6 +1315,14 @@ t('difficulties: separate progress, scaled enemies and prizes, hard needs medium
   const old = AMB.Profile.boot(mem).campaign;
   eq(old.diff(), 'normal'); ok(old.isCleared('l1f1', 'normal') && !old.isCleared('l1f1', 'easy')); eq(old.stars('l1f1', 'normal'), 3);
   ok(old.chests('normal').find((c) => c.id === 'ch10').state === 'claimed', 'claimed chest kept');
+  // A4: an old boss win was already paid (= star 1): not paid again, and the stars are not re-rated down by the migration
+  const mem2 = MEM(), sv2 = AMB.Save.create(mem2);
+  sv2.set('campaign', { cleared: { l1boss: true }, levelsDone: {}, stats: { l1boss: { attempts: 1, wins: 1, best: { lifeLeft: 60, roundsLost: 1 } } }, stars: { l1boss: 3 }, chests: [] });
+  const raw2 = JSON.parse(mem2.getItem(AMB.Save.KEY)); raw2.sysV.campaign = 2; mem2.setItem(AMB.Save.KEY, JSON.stringify(raw2));
+  const prof2 = AMB.Profile.boot(mem2), c2 = prof2.campaign;
+  eq(c2.stars('l1boss', 'normal'), 3, 'stars kept, not re-rated'); eq(c2.bossPaid('l1boss', 'normal'), 1, 'star-1 prize counts as already paid');
+  const r2 = c2.recordResult('l1boss', { won: true, roundsLost: 0, lifeLeft: 100, maxLife: 100 }, 'normal');
+  eq(r2.prizes.map((p) => p.star).join(), '2,3', 'only the stars not paid before pay now');
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

@@ -68,6 +68,8 @@
       if (this.rewardPending && AMB.AI && AMB.AI.claimRewards) AMB.AI.claimRewards(this);   // never leave a draft open
       this.round++;
       this.phase = 'resources';
+      // short-match start gold/level go in BEFORE the first shop is rolled (the first shop used to be rolled at level 3 whatever the start level was)
+      if (this.rules && this.round === 1) this.players.forEach((p) => { const st = this.rules.start; if (!p.lineup && st) { p.gold += st.gold || 0; p.level = Math.max(p.level, st.level || 0); } });
       this.players.forEach((p) => {
         const interest = Math.min(E.interestMax, Math.floor(p.gold / E.interestPer));
         const streak = Math.max(p.winStreak, p.lossStreak);
@@ -86,7 +88,6 @@
         p.shopLocked = false;
         this._validateAbilities(p);
       });
-      if (this.rules && this.round === 1) this.players.forEach((p) => { const st = this.rules.start; if (!p.lineup && st) { p.gold += st.gold || 0; p.level = Math.max(p.level, st.level || 0); } });
       this.players.forEach((p, i) => { if (p.lineup) this.applyLineup(i); });
       this.phase = 'prep';
     }

@@ -38,7 +38,9 @@
     migrate: (s, from) => {
       if (s.cleared) {   // saves from before difficulties: everything played so far was the medium campaign
         if (from < 2) { s.stars = s.stars || {}; Object.keys(s.cleared).forEach((id) => { const b = (s.stats[id] || {}).best; s.stars[id] = Math.max(1, b ? rate(Object.assign({ won: true }, b)) : 1); }); }
-        s.d = { easy: blank(), hard: blank(), normal: { cleared: s.cleared, levelsDone: s.levelsDone || {}, stats: s.stats || {}, stars: s.stars || {}, chests: s.chests || [], bossPaid: s.bossPaid || {} } };
+        // a boss already beaten under the old rules was paid its first-win prize (= star 1): never pay it again (stars are NOT re-rated here; only the v1 saves above are)
+        const bp = Object.assign({}, s.bossPaid || {}); Object.keys(s.cleared).forEach((id) => { if (/boss$/.test(id)) bp[id] = Math.max(bp[id] || 0, 1); });
+        s.d = { easy: blank(), hard: blank(), normal: { cleared: s.cleared, levelsDone: s.levelsDone || {}, stats: s.stats || {}, stars: s.stars || {}, chests: s.chests || [], bossPaid: bp } };
         ['cleared', 'levelsDone', 'stats', 'stars', 'chests', 'bossPaid'].forEach((k) => delete s[k]);
         s.diff = 'normal';
       }
