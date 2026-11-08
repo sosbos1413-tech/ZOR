@@ -30,7 +30,7 @@
   const uid = (p) => (p || 'u') + (uidCounter++).toString(36);
 
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  const dist = (a, b) => Math.sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
 
   AMB.util = { RNG, uid, clamp, dist };
 })();

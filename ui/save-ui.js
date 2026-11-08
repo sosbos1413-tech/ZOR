@@ -62,10 +62,7 @@
     });
   }
 
-  // flush on leaving the page (every change is already written; this is just a safety net)
-  const flush = () => { try { AMB.save.write(); } catch (e) { /* ignore */ } };
-  window.addEventListener('pagehide', flush);
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
+  // (no flush on pagehide/hidden: a write with nothing new made the reloading page think another tab had written, and it showed the lock overlay)
   document.addEventListener('pointerdown', function once() { askPersist(); document.removeEventListener('pointerdown', once); }, { once: true });
 
   if (AMB.save && AMB.save.onWriteFail) AMB.save.onWriteFail(() => { try { UI().toast('⚠ التقدم ما ينحفظ في هالمتصفح. نزّل نسخة احتياطية من «الحفظ»', 'err'); } catch (e) { /* ignore */ } });

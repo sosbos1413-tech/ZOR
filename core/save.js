@@ -127,9 +127,10 @@
       const r = JSON.parse(text);
       if (!isObj(r) || !isObj(r.systems)) throw new Error('ملف الحفظ مو صحيح');
       try { storage.setItem(KEY + '_preimport', JSON.stringify(root)); } catch (e) { /* ignore */ }   // the previous save stays recoverable
-      root = r; root.sysV = root.sysV || {}; root.bakDay = dayOf(now());
+      const old = root; root = r; root.sysV = root.sysV || {}; root.bakDay = dayOf(now());
       Object.keys(checked).forEach((k) => delete checked[k]);   // re-validate every system against its defaults on next access
-      write(); emit('*'); return true;
+      if (!write()) { root = old; throw new Error('ما قدرت أحفظ: التبويب مقفول أو المتصفح يمنع الحفظ'); }
+      emit('*'); return true;
     }
     /** the previous saves we keep: 'preimport' (before the last import), 'bak' (daily), 'corrupt' (the unreadable one) */
     function hasBackup(kind) { try { const r = JSON.parse(storage.getItem(KEY + '_' + kind)); return isObj(r) && isObj(r.systems); } catch (e) { return false; } }
@@ -139,7 +140,8 @@
       try { storage.setItem(KEY + '_prerestore', JSON.stringify(root)); } catch (e) { /* ignore */ }
       root = r; root.sysV = root.sysV || {}; root.bakDay = dayOf(now());
       Object.keys(checked).forEach((k) => delete checked[k]);
-      write(); emit('*'); return true;
+      if (!write()) throw new Error('ما قدرت أحفظ: التبويب مقفول أو المتصفح يمنع الحفظ');
+      emit('*'); return true;
     }
 
     return { get, set, update, reset, write, storageFor, hasBackup, restore, writeFailed: () => failed, onWriteFail: (f) => { failListeners.push(f); if (failed) f(); }, isLocked: () => locked, onLock: (f) => { lockListeners.push(f); if (locked) f(); }, onChange, exportJSON, importJSON, wasCorrupt: corrupt, recovered, updated: () => root.updated || 0, systems: () => Object.keys(root.systems), now };

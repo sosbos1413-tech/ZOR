@@ -70,7 +70,7 @@
   window.addEventListener('unhandledrejection', (ev) => reportErr(ev.reason));
   function modal(html) { $('modal').innerHTML = `<button class="btn small ghost x" data-act="closeModal">✕</button>` + html; $('modal-back').classList.add('on');
     // opening any details window stops the prep timer so you can read in peace
-    if (S.phase === 'prep' && !S.paused) { S.paused = true; S.pausedLeft = S.deadline - Date.now(); S._mp = true; renderTop(); }
+    if (S.phase === 'prep' && !S.paused && S.mode !== 'online') { S.paused = true; S.pausedLeft = S.deadline - Date.now(); S._mp = true; renderTop(); }
   }
   function closeModal() {
     $('modal-back').classList.remove('on');

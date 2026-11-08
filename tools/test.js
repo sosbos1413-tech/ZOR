@@ -816,6 +816,16 @@ t('save: a second tab becomes the only writer, the stale tab locks and can never
   eq(tabA.write(), false, 'locked tabs never write');
   eq(AMB.Save.create(mem).get('lockt').n, 600, 'the newer progress is untouched');
 });
+t('save: importing into a locked tab fails loudly and keeps the old data; netsync refuses huge op lists', () => {
+  const mem = AMB.Save.memoryStorage(); let fire = null;
+  AMB.Save.register('lockt2', { defaults: () => ({ n: 0 }) });
+  const tab = AMB.Save.create(mem, null, { onForeignWrite: (cb) => { fire = cb; } });
+  tab.update('lockt2', (s) => { s.n = 7; }); const text = tab.exportJSON(); fire();
+  let threw = false; try { tab.importJSON(text); } catch (e) { threw = true; }
+  eq(threw, true, 'a locked tab cannot claim the import worked');
+  const m = new AMB.Match({ mode: 'online', seed: 5, isolated: true, players: [{ heroId: 'orath', name: 'a' }, { heroId: 'merin', name: 'b' }] });
+  eq(AMB.NetSync.replay(m, 1, new Array(201).fill(['sell', 'x'])).join(), 'ops', 'an op list over the cap is refused whole');
+});
 t('online safety: a friend cannot send an impossible slot/index or a malformed op (nothing throws, nothing is duplicated)', () => {
   const m = new AMB.Match({ mode: 'online', seed: 5, isolated: true, players: [{ heroId: 'orath', name: 'a' }, { heroId: 'merin', name: 'b' }] });
   m.startRound(); const p = m.players[1]; p.gold = 50;

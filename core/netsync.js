@@ -41,7 +41,7 @@
 
   function replay(match, pi, ops) {
     const failed = [];
-    if (!Array.isArray(ops)) return ['ops'];
+    if (!Array.isArray(ops) || ops.length > 200) return ['ops'];
     for (const op of ops) {
       if (!Array.isArray(op) || typeof op[0] !== 'string') { failed.push('shape'); continue; }
       const [name, ...args] = op;

@@ -257,8 +257,8 @@
   function heroChosen(hero) {
     const S = ui().S, n = S.net; if (!n) return;
     n.myHero = hero;
-    n.myPower = { cp: AMB.collection ? AMB.collection.powerMap() : null, hl: AMB.heroes ? AMB.heroes.level(hero) : 1 };
-    n.link.send({ t: 'hero', hero, ver: buildOf(), cp: n.myPower.cp, hl: n.myPower.hl });
+    // online matches are always equal: card power and hero level are never sent or applied (progress is for the campaign/tower/events only)
+    n.link.send({ t: 'hero', hero, ver: buildOf() });
     waiting('ينتظر صاحبك يختار بطله…');
     tryStart();
   }
@@ -276,17 +276,10 @@
     ui().closeOverlay();
     ui().startMatch();
   }
-  // what a friend sends about his card levels: only known ids and sane numbers (a bad message must not break the match)
-  function cleanPower(cp) {
-    if (!cp || typeof cp !== 'object') return null;
-    const out = {}; Object.keys(cp).forEach((id) => { const v = +cp[id]; if ((AMB.DATA.UNITS[id] || AMB.DATA.HEROES[id]) && v >= 1 && v <= 3) out[id] = Math.round(v * 1000) / 1000; });
-    return out;
-  }
   /** called by ui.js startMatch() when S.mode === 'online' */
   function makeMatch() {
     const S = ui().S, n = S.net, i = n.idx;
-    const pw = (k) => (k === i ? n.myPower : n.theirPower) || { cp: null, hl: 1 };
-    const players = n.heroes.map((h, k) => ({ heroId: h, name: k === i ? 'أنت' : 'صاحبك', cardPower: pw(k).cp, heroLevel: pw(k).hl }));
+    const players = n.heroes.map((h, k) => ({ heroId: h, name: k === i ? 'أنت' : 'صاحبك', cardPower: null, heroLevel: 1 }));
     const m = new AMB.Match({ mode: 'online', seed: n.seed, isolated: true, players });
     n.rec = AMB.NetSync.record(m, i);
     n.sentReady = false; n.peerReady = null; n.iClaimed = false; n.peerReward = null; n.over = false;
@@ -294,7 +287,10 @@
   }
 
   // ------------------------------------------------------------------ in the match
-  function waiting(text) {
+  function waiting(text, ms) {
+    const n0 = ui().S.net; if (n0) { clearTimeout(n0.waitT); n0.waitT = null; }
+    // a friend who never answers (closed the app, frozen) must not hold the match forever
+    if (n0 && ms) n0.waitT = setTimeout(() => { const n1 = ui().S.net; if (n1 === n0 && !n1.over && document.querySelector('.net-wait')) netProblem('صاحبك ما رد من فترة طويلة. ممكن انقطع. ارجعوا للقائمة وجرّبوا من جديد.'); }, ms);
     ui().overlay(`<div class="ov-card net-wait"><h2>${esc(text)}</h2><div class="net-dots"><i></i><i></i><i></i></div>
       <div class="net-btns"><button class="btn ghost" data-act="netLeave">اخرج</button></div></div>`);
   }
@@ -305,14 +301,14 @@
     n.link.send({ t: 'ready', round: m.round, ops });
     S.phase = 'waiting';
     ui().renderMatch(true);
-    if (!n.peerReady || n.peerReady.round !== m.round) waiting('جاهز! ينتظر صاحبك…');
+    if (!n.peerReady || n.peerReady.round !== m.round) waiting('جاهز! ينتظر صاحبك…', 150000);
     pump();
   }
   function rewardClaimed() {
     const S = ui().S, n = S.net, m = S.match;
     n.iClaimed = true;
     n.link.send({ t: 'reward', round: m.round, ops: n.rec.take() });
-    if (!n.peerReward || n.peerReward.round !== m.round) waiting('ينتظر صاحبك يختار مكافأته…');
+    if (!n.peerReward || n.peerReward.round !== m.round) waiting('ينتظر صاحبك يختار مكافأته…', 150000);
     pump();
   }
   // the two phones disagree (bad message, different versions): end the match cleanly instead of hanging on "waiting for your friend"
@@ -363,7 +359,7 @@
     switch (msg.t) {
       case 'hero': if (!AMB.DATA.HEROES[msg.hero]) { netProblem('البطل اللي وصلنا من صاحبك مو معروف عندي. حدّثوا الاثنين.'); break; }
         if (msg.ver && buildOf() !== 'dev' && msg.ver !== 'dev' && msg.ver !== buildOf()) { netProblem('نسخة اللعبة عندك مختلفة عن صاحبك. حدّثوا الصفحة عند الاثنين وجرّبوا من جديد.'); break; }
-        n.theirHero = msg.hero; n.theirPower = { cp: cleanPower(msg.cp), hl: Math.max(1, Math.min(20, +msg.hl || 1)) }; tryStart(); break;
+        n.theirHero = msg.hero; tryStart(); break;
       case 'start': n.theirStart = msg; tryStart(); break;
       case 'ready': n.peerReady = msg; pump(); break;
       case 'reward': n.peerReward = msg; pump(); break;
