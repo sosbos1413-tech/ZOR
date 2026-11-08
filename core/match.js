@@ -40,10 +40,10 @@
       this.mode = opts.mode || 'ai';
       this.seed = opts.seed || Math.floor(Math.random() * 2 ** 31);
       this.rng = AMB.util.RNG(this.seed);
-      // card levels/rarity power exist only in progression fights (campaign, tower, events); quick and same-device matches stay even
+      // card levels/rarity and hero level count in every mode that passes them (campaign, tower, events, quick vs AI, online); same-device (hotseat) passes none, so it stays even. The deck limit is progression-only.
       this.progression = !!opts.progression;
       this.rules = opts.rules || null;   // short-match rules (campaign): { maxRounds, winsNeeded, start: { gold, level } }
-      this.players = opts.players.map((p, i) => newPlayer(i, this.progression ? p : Object.assign({}, p, { cardPower: null, allowedUnits: null, heroLevel: 1 })));
+      this.players = opts.players.map((p, i) => newPlayer(i, this.progression ? p : Object.assign({}, p, { allowedUnits: null })));
       // online play: each player has their OWN random stream, unit pool and unit ids, so both phones can replay each other's moves and stay identical
       this.isolated = !!opts.isolated;
       this.round = 0;

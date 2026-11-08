@@ -37,7 +37,7 @@
   AMB.TIPS = AMB.TIPS || {};
   AMB.TIPS.colinfo = () => ({ title: 'تطوير البطاقات', html: `<p>كل مستوى +${Math.round(AMB.ECONOMY.cards.levelBonus * 100)}% صحة وهجوم، والندرة الأعلى أقوى بس تحتاج نسخ أكثر.</p>
     <p>النسخ المطلوبة للمستويات 2 إلى 5:</p>${Object.entries(RAR).map(([k, r]) => `<div class="hint">• <b style="color:${r.color}">${r.name}</b>: ${r.copies.join(' / ')}</div>`).join('')}
-    <p><b>المستويات والندرة تنحسب في الحملة والبرج والأحداث بس</b>، أما المباراة السريعة وعلى نفس الجهاز فالكل متساوي.</p>` });
+    <p><b>المستويات والندرة تنحسب في كل الأطوار</b> (الحملة والبرج والأحداث والمباراة السريعة وضد صاحبك)، إلا «على نفس الجهاز» فالاثنين متساويين.</p>` });
   // the deck strip: your 12 slots, role counts, auto-build. Progression fights shop only from this deck.
   function deckBar() {
     const L = C.deckLimits(), deck = C.deck(), rc = C.roleCounts(deck), ROLE = AMB.DATA.ROLES, ui = UI();
@@ -98,7 +98,7 @@
         const nx = C.isMax(id) ? 'وصلت المستوى الأقصى ✓' : `للمستوى التالي: ${C.copies(id)}/${C.needed(id)} نسخ`;
         ui.modal(`<h2>تطوّرت ${d0.name}!</h2><div class="up-card">${ui.cardHTML(d0, { k: 'up' + id, lvl: lv, pow: C.power(id) })}</div>
           <div class="up-lv">المستوى ${before} ← <b>${lv}</b></div><div class="up-rows">${rows}</div>
-          <p class="hint">كل مستوى يزيد الصحة والهجوم +${Math.round(c * 100)}%. السرعة والمدى ما تتغير. ينحسب في الحملة والبرج والأحداث بس.</p><p class="hint">${nx}</p>`);
+          <p class="hint">كل مستوى يزيد الصحة والهجوم +${Math.round(c * 100)}%. السرعة والمدى ما تتغير. ينحسب في كل الأطوار ما عدا «على نفس الجهاز».</p><p class="hint">${nx}</p>`);
         render();
         const el = document.querySelector('#modal .tcard');
         if (el && ui.burst) [RAR[C.rarity(id)].color, '#ffffff', '#ffd24a'].forEach((cc) => ui.burst(el, cc, 14, { r: 100, s: 6 }));

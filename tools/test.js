@@ -453,15 +453,16 @@ t('collection: power = rarity × level bonus', () => {
   ok(Math.abs(C.power('caldera_seer') - RAR().epic.power * (1 + AMB.ECONOMY.cards.levelBonus)) < 1e-9);
   eq(C.powerMap().caldera_seer, Math.round(C.power('caldera_seer') * 1000) / 1000);
 });
-t('card power never touches quick matches (identical to a match without it)', () => {
+t('card power now counts in quick matches too (and hotseat passes none, so it stays even)', () => {
   const big = {}; Object.keys(AMB.DATA.UNITS).concat(Object.keys(AMB.DATA.HEROES)).forEach((id) => (big[id] = 3));
   const run = (cp, prog) => {
     const m = new AMB.Match({ seed: 77, progression: prog, players: [{ heroId: 'orath', isAI: true, cardPower: cp }, { heroId: 'merin', isAI: true }] });
     while (!m.isOver) { m.startRound(); AMB.AI.prep(m, 0); AMB.AI.prep(m, 1); m.resolveCombat(m.createCombat(false).runToEnd()); }
     return m.players.map((p) => p.life).join() + '|' + m.round + '|' + m.winner;
   };
-  eq(run(big, false), run(null, false), 'quick match must ignore card power');
+  ok(run(big, false) !== run(null, false), 'a quick match with card power should feel it');
   ok(run(big, true) !== run(null, true), 'progression match should feel the power');
+  eq(run(null, false), run(undefined, false), 'no card power = even match');
 });
 t('progression power scales unit stats after synergies; synergies unchanged', () => {
   const sp = (pw) => [side([Object.assign(U('moss_warden', 'f1'), { power: pw }), Object.assign(U('thorn_fox', 'f2'), { power: pw })]), side([U('grid_hound', 'f1')])];
@@ -1140,11 +1141,12 @@ t('hero levels: xp from matches, growing cost per level, power only in progressi
   H.addXp('kagira', 100000); eq(H.level('kagira'), H.MAX, 'capped');
   ok(H.power('kagira').atk > H.power('merin').atk, 'a higher hero is stronger');
   eq(AMB.Profile.boot(mem).heroes.level('kagira'), H.MAX, 'saved');
-  // used in a campaign fight, ignored in a quick match
+  // used in a campaign fight, and in a quick match that passes it (hotseat passes none)
   const camp = new AMB.Match(prof.campaign.matchOptions('l1f1', 'kagira', 5));
   eq(camp.players[0].heroLevel, H.MAX);
   const quick = new AMB.Match({ mode: 'ai', players: [{ heroId: 'kagira', name: 'a', heroLevel: 20 }, { heroId: 'merin', name: 'b' }] });
-  eq(quick.players[0].heroLevel, 1, 'quick matches stay even');
+  eq(quick.players[0].heroLevel, 20, 'quick matches count the hero level');
+  eq(new AMB.Match({ mode: 'hotseat', players: [{ heroId: 'kagira', name: 'a' }, { heroId: 'merin', name: 'b' }] }).players[0].heroLevel, 1, 'hotseat stays even');
   // a higher level really fights better: same fight, level 1 vs level 20 summoned hero
   const run = (lv) => { const m = new AMB.Match({ mode: 'campaign', progression: true, seed: 9, players: [{ heroId: 'kagira', name: 'a', heroLevel: lv }, { heroId: 'merin', name: 'b' }] });
     m.startRound(); m.players[0].summoned = true; const c = m.createCombat(false); return c.fighters.find((f) => f.isHero && f.side === 0).atk; };

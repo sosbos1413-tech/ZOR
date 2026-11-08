@@ -34,8 +34,8 @@
         const v = (s) => Math.round(base * (isHero ? 1 : m[s]));
         return { ic: k === 'atk' ? 'sword' : 'heart', title: lab, html: isHero ? `<div class="tp-l">${k === 'atk' ? 'هجومه لما تنزّله الساحة (ويزيد كل جولة).' : 'حياة البطل = حياتك في المباراة.'}</div>` : `<div class="tp-l"><span class="tp-v">★ ${v(1)}</span> <span class="tp-v">★★ ${v(2)}</span> <span class="tp-v">★★★ ${v(3)}</span></div><div class="tp-s">كل نجمة ترفع القوة. ٣ نسخ متطابقة = نجمة.</div>` };
       }
-      case 'rar': { const R = AMB.ECONOMY.rarities[d.rarity]; return { ic: 'gem', title: R.name, color: R.color, html: `<div class="tp-l">قوة إضافية <b>+${Math.round((R.power - 1) * 100)}%</b> في الحملة والبرج والأحداث.</div><div class="tp-s">نسخ التطوير للمستويات 2–5: ${R.copies.join(' / ')}</div>` }; }
-      case 'lvl': return { ic: 'up', title: 'مستوى ' + x, html: `<div class="tp-l">كل مستوى <b>+${Math.round(AMB.ECONOMY.cards.levelBonus * 100)}%</b> صحة وهجوم، في الحملة والبرج والأحداث فقط.</div><div class="tp-s">تطوّره بالنسخ المكررة من «مجموعتي».</div>` };
+      case 'rar': { const R = AMB.ECONOMY.rarities[d.rarity]; return { ic: 'gem', title: R.name, color: R.color, html: `<div class="tp-l">قوة إضافية <b>+${Math.round((R.power - 1) * 100)}%</b> في كل الأطوار (ما عدا «على نفس الجهاز»).</div><div class="tp-s">نسخ التطوير للمستويات 2–5: ${R.copies.join(' / ')}</div>` }; }
+      case 'lvl': return { ic: 'up', title: 'مستوى ' + x, html: `<div class="tp-l">كل مستوى <b>+${Math.round(AMB.ECONOMY.cards.levelBonus * 100)}%</b> صحة وهجوم، في كل الأطوار ما عدا «على نفس الجهاز».</div><div class="tp-s">تطوّره بالنسخ المكررة من «مجموعتي».</div>` };
       case 'cost': return { ic: 'gold', title: d.cost + ' ذهب', html: `<div class="tp-l">سعر الشراء (فئة ${d.tier}).</div><div class="tp-s">البيع يرجّع نفس السعر.</div>` };
       case 'own': return { ic: 'star', title: x === 'up' ? '↑' : '×' + x, html: x === 'up' ? '<div class="tp-l">عندك نسختين: لو اشتريتها تتطور لنجمة أقوى!</div>' : `<div class="tp-l">عندك ${x} نسخة منها. ٣ نسخ متطابقة تندمج لنجمة.</div>` };
     }

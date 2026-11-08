@@ -256,7 +256,8 @@
   function heroChosen(hero) {
     const S = ui().S, n = S.net; if (!n) return;
     n.myHero = hero;
-    n.link.send({ t: 'hero', hero });
+    n.myPower = { cp: AMB.collection ? AMB.collection.powerMap() : null, hl: AMB.heroes ? AMB.heroes.level(hero) : 1 };
+    n.link.send({ t: 'hero', hero, cp: n.myPower.cp, hl: n.myPower.hl });
     waiting('ينتظر صاحبك يختار بطله…');
     tryStart();
   }
@@ -274,10 +275,17 @@
     ui().closeOverlay();
     ui().startMatch();
   }
+  // what a friend sends about his card levels: only known ids and sane numbers (a bad message must not break the match)
+  function cleanPower(cp) {
+    if (!cp || typeof cp !== 'object') return null;
+    const out = {}; Object.keys(cp).forEach((id) => { const v = +cp[id]; if ((AMB.DATA.UNITS[id] || AMB.DATA.HEROES[id]) && v >= 1 && v <= 3) out[id] = Math.round(v * 1000) / 1000; });
+    return out;
+  }
   /** called by ui.js startMatch() when S.mode === 'online' */
   function makeMatch() {
     const S = ui().S, n = S.net, i = n.idx;
-    const players = n.heroes.map((h, k) => ({ heroId: h, name: k === i ? 'أنت' : 'صاحبك' }));
+    const pw = (k) => (k === i ? n.myPower : n.theirPower) || { cp: null, hl: 1 };
+    const players = n.heroes.map((h, k) => ({ heroId: h, name: k === i ? 'أنت' : 'صاحبك', cardPower: pw(k).cp, heroLevel: pw(k).hl }));
     const m = new AMB.Match({ mode: 'online', seed: n.seed, isolated: true, players });
     n.rec = AMB.NetSync.record(m, i);
     n.sentReady = false; n.peerReady = null; n.iClaimed = false; n.peerReward = null; n.over = false;
@@ -327,7 +335,7 @@
   function onMessage(msg) {
     const S = ui().S, n = S.net; if (!n || !msg) return;
     switch (msg.t) {
-      case 'hero': n.theirHero = msg.hero; tryStart(); break;
+      case 'hero': n.theirHero = msg.hero; n.theirPower = { cp: cleanPower(msg.cp), hl: Math.max(1, Math.min(20, +msg.hl || 1)) }; tryStart(); break;
       case 'start': n.theirStart = msg; tryStart(); break;
       case 'ready': n.peerReady = msg; pump(); break;
       case 'reward': n.peerReward = msg; pump(); break;

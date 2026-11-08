@@ -140,7 +140,7 @@
       const aiHero = heroIds[Math.floor(Math.random() * heroIds.length)];
       const styles = ['mono', 'mixed', 'balanced'];
       players = [
-        { heroId: S.picks[0], name: 'أنت' },
+        { heroId: S.picks[0], name: 'أنت', cardPower: AMB.collection ? AMB.collection.powerMap() : null, heroLevel: AMB.heroes ? AMB.heroes.level(S.picks[0]) : 1 },
         { heroId: aiHero, name: 'الكمبيوتر', isAI: true, aiStyle: styles[Math.floor(Math.random() * 3)], difficulty: S.mode === 'friendly' ? 'easy' : S.difficulty },
       ];
     }
@@ -1059,7 +1059,7 @@
     const h = HEROES[id], W = WORLDS[h.world];
     modal(`<div class="detail-head">${portrait(h, { k: 'mh' })}<div><h2>${h.name}</h2><div class="hint">${h.title}</div>
       <span class="pill" style="--pc:${W.color}">${W.name}</span><div class="hint">${h.style}</div></div></div>
-      ${heroLevelHTML(id)}<div class="hint" style="margin:-2px 0 6px">كل مباراة تلعبها بالبطل تعطيه خبرة. قوته من المستوى تنحسب في الحملة والبرج والأحداث.</div>
+      ${heroLevelHTML(id)}<div class="hint" style="margin:-2px 0 6px">كل مباراة تلعبها بالبطل تعطيه خبرة. قوته من المستوى تنحسب في كل الأطوار ما عدا «على نفس الجهاز».</div>
       <div class="skillbox"><b>سلبية: ${h.passive.name}</b> — ${h.passive.text}</div>
       ${h.abilities.map((a) => `<div class="skillbox"><b>${a.name}</b> — <span style="color:var(--ess)">${a.cost} جوهر</span><br>${a.text}</div>`).join('')}
       ${h.vanguard ? `<div class="skillbox vg"><b>👑 ${h.vanguard.name}</b> (لما ينزل الساحة)<br>${h.vanguard.text}</div>` : ''}
@@ -1126,7 +1126,7 @@
     const r = AMB.heroes.addXp(p.heroId, AMB.heroes.matchXp({ won, roundsWon, short: !!m.rules }));
     const h = HEROES[p.heroId];
     setTimeout(() => {
-      if (r.levelsUp > 0) { sfx('win'); toast(`⬆ ${h.name} صار مستوى ${r.level}! أقوى في الحملة والبرج والأحداث`, 'good'); }
+      if (r.levelsUp > 0) { sfx('win'); toast(`⬆ ${h.name} صار مستوى ${r.level}! أقوى في كل الأطوار`, 'good'); }
       else toast(`+${r.gained} خبرة لـ${h.name}`, 'good');
     }, 900);
   }

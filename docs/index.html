@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="017b2e14c4">
+<meta name="zor-build" content="ec62d98329">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -3842,10 +3842,10 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
       this.mode = opts.mode || 'ai';
       this.seed = opts.seed || Math.floor(Math.random() * 2 ** 31);
       this.rng = AMB.util.RNG(this.seed);
-      // card levels/rarity power exist only in progression fights (campaign, tower, events); quick and same-device matches stay even
+      // card levels/rarity and hero level count in every mode that passes them (campaign, tower, events, quick vs AI, online); same-device (hotseat) passes none, so it stays even. The deck limit is progression-only.
       this.progression = !!opts.progression;
       this.rules = opts.rules || null;   // short-match rules (campaign): { maxRounds, winsNeeded, start: { gold, level } }
-      this.players = opts.players.map((p, i) => newPlayer(i, this.progression ? p : Object.assign({}, p, { cardPower: null, allowedUnits: null, heroLevel: 1 })));
+      this.players = opts.players.map((p, i) => newPlayer(i, this.progression ? p : Object.assign({}, p, { allowedUnits: null })));
       // online play: each player has their OWN random stream, unit pool and unit ids, so both phones can replay each other's moves and stay identical
       this.isolated = !!opts.isolated;
       this.round = 0;
@@ -7072,7 +7072,7 @@ AMB.IMAGES = {
       const aiHero = heroIds[Math.floor(Math.random() * heroIds.length)];
       const styles = ['mono', 'mixed', 'balanced'];
       players = [
-        { heroId: S.picks[0], name: 'أنت' },
+        { heroId: S.picks[0], name: 'أنت', cardPower: AMB.collection ? AMB.collection.powerMap() : null, heroLevel: AMB.heroes ? AMB.heroes.level(S.picks[0]) : 1 },
         { heroId: aiHero, name: 'الكمبيوتر', isAI: true, aiStyle: styles[Math.floor(Math.random() * 3)], difficulty: S.mode === 'friendly' ? 'easy' : S.difficulty },
       ];
     }
@@ -7991,7 +7991,7 @@ AMB.IMAGES = {
     const h = HEROES[id], W = WORLDS[h.world];
     modal(`<div class="detail-head">${portrait(h, { k: 'mh' })}<div><h2>${h.name}</h2><div class="hint">${h.title}</div>
       <span class="pill" style="--pc:${W.color}">${W.name}</span><div class="hint">${h.style}</div></div></div>
-      ${heroLevelHTML(id)}<div class="hint" style="margin:-2px 0 6px">كل مباراة تلعبها بالبطل تعطيه خبرة. قوته من المستوى تنحسب في الحملة والبرج والأحداث.</div>
+      ${heroLevelHTML(id)}<div class="hint" style="margin:-2px 0 6px">كل مباراة تلعبها بالبطل تعطيه خبرة. قوته من المستوى تنحسب في كل الأطوار ما عدا «على نفس الجهاز».</div>
       <div class="skillbox"><b>سلبية: ${h.passive.name}</b> — ${h.passive.text}</div>
       ${h.abilities.map((a) => `<div class="skillbox"><b>${a.name}</b> — <span style="color:var(--ess)">${a.cost} جوهر</span><br>${a.text}</div>`).join('')}
       ${h.vanguard ? `<div class="skillbox vg"><b>👑 ${h.vanguard.name}</b> (لما ينزل الساحة)<br>${h.vanguard.text}</div>` : ''}
@@ -8058,7 +8058,7 @@ AMB.IMAGES = {
     const r = AMB.heroes.addXp(p.heroId, AMB.heroes.matchXp({ won, roundsWon, short: !!m.rules }));
     const h = HEROES[p.heroId];
     setTimeout(() => {
-      if (r.levelsUp > 0) { sfx('win'); toast(`⬆ ${h.name} صار مستوى ${r.level}! أقوى في الحملة والبرج والأحداث`, 'good'); }
+      if (r.levelsUp > 0) { sfx('win'); toast(`⬆ ${h.name} صار مستوى ${r.level}! أقوى في كل الأطوار`, 'good'); }
       else toast(`+${r.gained} خبرة لـ${h.name}`, 'good');
     }, 900);
   }
@@ -8754,7 +8754,7 @@ AMB.IMAGES = {
   AMB.TIPS = AMB.TIPS || {};
   AMB.TIPS.colinfo = () => ({ title: 'تطوير البطاقات', html: `<p>كل مستوى +${Math.round(AMB.ECONOMY.cards.levelBonus * 100)}% صحة وهجوم، والندرة الأعلى أقوى بس تحتاج نسخ أكثر.</p>
     <p>النسخ المطلوبة للمستويات 2 إلى 5:</p>${Object.entries(RAR).map(([k, r]) => `<div class="hint">• <b style="color:${r.color}">${r.name}</b>: ${r.copies.join(' / ')}</div>`).join('')}
-    <p><b>المستويات والندرة تنحسب في الحملة والبرج والأحداث بس</b>، أما المباراة السريعة وعلى نفس الجهاز فالكل متساوي.</p>` });
+    <p><b>المستويات والندرة تنحسب في كل الأطوار</b> (الحملة والبرج والأحداث والمباراة السريعة وضد صاحبك)، إلا «على نفس الجهاز» فالاثنين متساويين.</p>` });
   // the deck strip: your 12 slots, role counts, auto-build. Progression fights shop only from this deck.
   function deckBar() {
     const L = C.deckLimits(), deck = C.deck(), rc = C.roleCounts(deck), ROLE = AMB.DATA.ROLES, ui = UI();
@@ -8815,7 +8815,7 @@ AMB.IMAGES = {
         const nx = C.isMax(id) ? 'وصلت المستوى الأقصى ✓' : `للمستوى التالي: ${C.copies(id)}/${C.needed(id)} نسخ`;
         ui.modal(`<h2>تطوّرت ${d0.name}!</h2><div class="up-card">${ui.cardHTML(d0, { k: 'up' + id, lvl: lv, pow: C.power(id) })}</div>
           <div class="up-lv">المستوى ${before} ← <b>${lv}</b></div><div class="up-rows">${rows}</div>
-          <p class="hint">كل مستوى يزيد الصحة والهجوم +${Math.round(c * 100)}%. السرعة والمدى ما تتغير. ينحسب في الحملة والبرج والأحداث بس.</p><p class="hint">${nx}</p>`);
+          <p class="hint">كل مستوى يزيد الصحة والهجوم +${Math.round(c * 100)}%. السرعة والمدى ما تتغير. ينحسب في كل الأطوار ما عدا «على نفس الجهاز».</p><p class="hint">${nx}</p>`);
         render();
         const el = document.querySelector('#modal .tcard');
         if (el && ui.burst) [RAR[C.rarity(id)].color, '#ffffff', '#ffd24a'].forEach((cc) => ui.burst(el, cc, 14, { r: 100, s: 6 }));
@@ -9585,7 +9585,8 @@ AMB.IMAGES = {
   function heroChosen(hero) {
     const S = ui().S, n = S.net; if (!n) return;
     n.myHero = hero;
-    n.link.send({ t: 'hero', hero });
+    n.myPower = { cp: AMB.collection ? AMB.collection.powerMap() : null, hl: AMB.heroes ? AMB.heroes.level(hero) : 1 };
+    n.link.send({ t: 'hero', hero, cp: n.myPower.cp, hl: n.myPower.hl });
     waiting('ينتظر صاحبك يختار بطله…');
     tryStart();
   }
@@ -9603,10 +9604,17 @@ AMB.IMAGES = {
     ui().closeOverlay();
     ui().startMatch();
   }
+  // what a friend sends about his card levels: only known ids and sane numbers (a bad message must not break the match)
+  function cleanPower(cp) {
+    if (!cp || typeof cp !== 'object') return null;
+    const out = {}; Object.keys(cp).forEach((id) => { const v = +cp[id]; if ((AMB.DATA.UNITS[id] || AMB.DATA.HEROES[id]) && v >= 1 && v <= 3) out[id] = Math.round(v * 1000) / 1000; });
+    return out;
+  }
   /** called by ui.js startMatch() when S.mode === 'online' */
   function makeMatch() {
     const S = ui().S, n = S.net, i = n.idx;
-    const players = n.heroes.map((h, k) => ({ heroId: h, name: k === i ? 'أنت' : 'صاحبك' }));
+    const pw = (k) => (k === i ? n.myPower : n.theirPower) || { cp: null, hl: 1 };
+    const players = n.heroes.map((h, k) => ({ heroId: h, name: k === i ? 'أنت' : 'صاحبك', cardPower: pw(k).cp, heroLevel: pw(k).hl }));
     const m = new AMB.Match({ mode: 'online', seed: n.seed, isolated: true, players });
     n.rec = AMB.NetSync.record(m, i);
     n.sentReady = false; n.peerReady = null; n.iClaimed = false; n.peerReward = null; n.over = false;
@@ -9656,7 +9664,7 @@ AMB.IMAGES = {
   function onMessage(msg) {
     const S = ui().S, n = S.net; if (!n || !msg) return;
     switch (msg.t) {
-      case 'hero': n.theirHero = msg.hero; tryStart(); break;
+      case 'hero': n.theirHero = msg.hero; n.theirPower = { cp: cleanPower(msg.cp), hl: Math.max(1, Math.min(20, +msg.hl || 1)) }; tryStart(); break;
       case 'start': n.theirStart = msg; tryStart(); break;
       case 'ready': n.peerReady = msg; pump(); break;
       case 'reward': n.peerReward = msg; pump(); break;
@@ -9753,8 +9761,8 @@ AMB.IMAGES = {
         const v = (s) => Math.round(base * (isHero ? 1 : m[s]));
         return { ic: k === 'atk' ? 'sword' : 'heart', title: lab, html: isHero ? `<div class="tp-l">${k === 'atk' ? 'هجومه لما تنزّله الساحة (ويزيد كل جولة).' : 'حياة البطل = حياتك في المباراة.'}</div>` : `<div class="tp-l"><span class="tp-v">★ ${v(1)}</span> <span class="tp-v">★★ ${v(2)}</span> <span class="tp-v">★★★ ${v(3)}</span></div><div class="tp-s">كل نجمة ترفع القوة. ٣ نسخ متطابقة = نجمة.</div>` };
       }
-      case 'rar': { const R = AMB.ECONOMY.rarities[d.rarity]; return { ic: 'gem', title: R.name, color: R.color, html: `<div class="tp-l">قوة إضافية <b>+${Math.round((R.power - 1) * 100)}%</b> في الحملة والبرج والأحداث.</div><div class="tp-s">نسخ التطوير للمستويات 2–5: ${R.copies.join(' / ')}</div>` }; }
-      case 'lvl': return { ic: 'up', title: 'مستوى ' + x, html: `<div class="tp-l">كل مستوى <b>+${Math.round(AMB.ECONOMY.cards.levelBonus * 100)}%</b> صحة وهجوم، في الحملة والبرج والأحداث فقط.</div><div class="tp-s">تطوّره بالنسخ المكررة من «مجموعتي».</div>` };
+      case 'rar': { const R = AMB.ECONOMY.rarities[d.rarity]; return { ic: 'gem', title: R.name, color: R.color, html: `<div class="tp-l">قوة إضافية <b>+${Math.round((R.power - 1) * 100)}%</b> في كل الأطوار (ما عدا «على نفس الجهاز»).</div><div class="tp-s">نسخ التطوير للمستويات 2–5: ${R.copies.join(' / ')}</div>` }; }
+      case 'lvl': return { ic: 'up', title: 'مستوى ' + x, html: `<div class="tp-l">كل مستوى <b>+${Math.round(AMB.ECONOMY.cards.levelBonus * 100)}%</b> صحة وهجوم، في كل الأطوار ما عدا «على نفس الجهاز».</div><div class="tp-s">تطوّره بالنسخ المكررة من «مجموعتي».</div>` };
       case 'cost': return { ic: 'gold', title: d.cost + ' ذهب', html: `<div class="tp-l">سعر الشراء (فئة ${d.tier}).</div><div class="tp-s">البيع يرجّع نفس السعر.</div>` };
       case 'own': return { ic: 'star', title: x === 'up' ? '↑' : '×' + x, html: x === 'up' ? '<div class="tp-l">عندك نسختين: لو اشتريتها تتطور لنجمة أقوى!</div>' : `<div class="tp-l">عندك ${x} نسخة منها. ٣ نسخ متطابقة تندمج لنجمة.</div>` };
     }
