@@ -29,6 +29,8 @@
       <div class="save-btns">
         <button class="btn primary" data-act="saveExport">⬇ نزّل نسخة احتياطية</button>
         <button class="btn" data-act="saveImport">⬆ استرجع من ملف</button>
+        ${sv.hasBackup('preimport') ? '<button class="btn ghost" data-act="saveRestore" data-k="preimport">↩ ارجع للنسخة قبل آخر استيراد</button>' : ''}
+        ${sv.hasBackup('bak') ? '<button class="btn ghost" data-act="saveRestore" data-k="bak">↩ ارجع للنسخة اليومية التلقائية</button>' : ''}
         <input type="file" id="save-file" accept="application/json,.json" hidden>
       </div>`);
     const f = $('save-file');
@@ -56,6 +58,7 @@
         ui.toast('نزلت النسخة الاحتياطية', 'good');
       },
       saveImport: () => { const f = $('save-file'); if (f) f.click(); },
+      saveRestore: (d) => { try { AMB.save.restore(d.k); ui.toast('رجعت النسخة ✓ جاري إعادة التحميل', 'good'); setTimeout(() => location.reload(), 900); } catch (e) { ui.toast('ما قدرت أرجّع النسخة', 'err'); } },
     });
   }
 

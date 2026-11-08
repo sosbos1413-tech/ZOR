@@ -40,6 +40,19 @@
   }
 
   // hooks.onForeignWrite(cb): called when ANOTHER tab/window wrote our key. Default: the browser 'storage' event (it never fires in the tab that wrote).
+  // a field whose saved type differs from its default's type (null where an object is expected, "x" where a number is expected, array vs object) is replaced by the default.
+  // Unknown keys (from a newer game version) are kept; a default of null or an empty {} map accepts anything of an object kind.
+  const kindOf = (v) => (v === null ? 'null' : Array.isArray(v) ? 'array' : typeof v);
+  function repair(dst, def) {
+    for (const k of Object.keys(def)) {
+      const d = def[k], v = dst[k];
+      if (d === null || d === undefined) continue;
+      if (kindOf(v) !== kindOf(d)) { dst[k] = clone(d); continue; }
+      if (isObj(d) && Object.keys(d).length) repair(v, d);
+    }
+    return dst;
+  }
+
   function create(storage, nowFn, hooks) {
     const realStorage = !storage;
     storage = storage || browserStorage();
@@ -70,6 +83,7 @@
 
     // every change is written to storage at once (nothing to "save" by hand); `updated` shows in the save screen
     // single writer: when another tab writes the save, this tab's copy is stale. It stops writing (so it can never overwrite the newer progress) and asks the player to reload.
+    const checked = {};
     let locked = false, lockListeners = [];
     const lock = () => { if (locked) return; locked = true; lockListeners.forEach((f) => { try { f(); } catch (e) { /* ignore */ } }); };
     const hook = (hooks && hooks.onForeignWrite) || (realStorage && typeof window !== 'undefined' && window.addEventListener ? ((cb) => window.addEventListener('storage', (e) => { if (e.key === KEY || e.key === null) cb(); })) : null);
@@ -87,6 +101,7 @@
         if (reg.migrate && from < reg.version) { root.systems[name] = s = reg.migrate(s, from) || s; root.sysV[name] = reg.version; write(); }
         root.sysV[name] = reg.version;
         fill(s, reg.defaults(now()));
+        if (!checked[name]) { checked[name] = true; repair(s, reg.defaults(now())); }
       }
       return s;
     }
@@ -110,10 +125,22 @@
       const r = JSON.parse(text);
       if (!isObj(r) || !isObj(r.systems)) throw new Error('ملف الحفظ مو صحيح');
       try { storage.setItem(KEY + '_preimport', JSON.stringify(root)); } catch (e) { /* ignore */ }   // the previous save stays recoverable
-      root = r; root.sysV = root.sysV || {}; root.bakDay = dayOf(now()); write(); emit('*'); return true;
+      root = r; root.sysV = root.sysV || {}; root.bakDay = dayOf(now());
+      Object.keys(checked).forEach((k) => delete checked[k]);   // re-validate every system against its defaults on next access
+      write(); emit('*'); return true;
+    }
+    /** the previous saves we keep: 'preimport' (before the last import), 'bak' (daily), 'corrupt' (the unreadable one) */
+    function hasBackup(kind) { try { const r = JSON.parse(storage.getItem(KEY + '_' + kind)); return isObj(r) && isObj(r.systems); } catch (e) { return false; } }
+    function restore(kind) {
+      const r = JSON.parse(storage.getItem(KEY + '_' + kind));
+      if (!isObj(r) || !isObj(r.systems)) throw new Error('ما فيه نسخة صالحة');
+      try { storage.setItem(KEY + '_prerestore', JSON.stringify(root)); } catch (e) { /* ignore */ }
+      root = r; root.sysV = root.sysV || {}; root.bakDay = dayOf(now());
+      Object.keys(checked).forEach((k) => delete checked[k]);
+      write(); emit('*'); return true;
     }
 
-    return { get, set, update, reset, write, storageFor, isLocked: () => locked, onLock: (f) => { lockListeners.push(f); if (locked) f(); }, onChange, exportJSON, importJSON, wasCorrupt: corrupt, recovered, updated: () => root.updated || 0, systems: () => Object.keys(root.systems), now };
+    return { get, set, update, reset, write, storageFor, hasBackup, restore, isLocked: () => locked, onLock: (f) => { lockListeners.push(f); if (locked) f(); }, onChange, exportJSON, importJSON, wasCorrupt: corrupt, recovered, updated: () => root.updated || 0, systems: () => Object.keys(root.systems), now };
   }
 
   AMB.Save = { create, register, KEY, VERSION, LEGACY, REGISTRY, memoryStorage, browserStorage };

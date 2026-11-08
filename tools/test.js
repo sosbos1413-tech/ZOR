@@ -816,6 +816,19 @@ t('online safety: a friend cannot send an impossible slot/index or a malformed o
   const bad = AMB.NetSync.replay(m, 1, [['move', u.uid], ['bogus', 1], 'nope', [], ['sell', 'nobody'], ['move', u.uid, { zone: 'board', slot: 'f9' }]]);
   ok(bad.length >= 4, 'every bad op is reported, none throws'); eq(AMB.NetSync.replay(m, 1, 'not-an-array').length, 1);
 });
+t('save: wrong-typed data is repaired per system (never throws later), unknown keys survive, and the previous save can be restored', () => {
+  const mem = AMB.Save.memoryStorage();
+  mem.setItem(AMB.Save.KEY, JSON.stringify({ v: 1, systems: { wallet: { balances: null }, collection: { cards: 'x', starterHero: 5 }, future: { keep: 1 } }, sysV: {} }));
+  const prof = AMB.Profile.boot(mem);
+  eq(typeof prof.wallet.balance('shards'), 'number', 'wallet.balances null -> default'); ok(prof.collection.ownedUnits().length >= 0, 'collection.cards "x" -> default');
+  eq(prof.save.get('future').keep, 1, 'unknown systems and keys are kept');
+  // import: a bad file is repaired, the previous save stays restorable
+  const good = prof.save.exportJSON();
+  prof.save.importJSON(JSON.stringify({ systems: { wallet: { balances: 'x' }, collection: { cards: null } } }));
+  eq(typeof AMB.Profile.boot(mem).wallet.balance('shards'), 'number', 'imported junk is repaired');
+  ok(prof.save.hasBackup('preimport')); prof.save.restore('preimport');
+  eq(prof.save.exportJSON() === good || JSON.parse(prof.save.exportJSON()).systems.future.keep === 1, true, 'restored the previous save');
+});
 t('album: world set reward is claimable once, gives shards + title + frame (equippable in the pass)', () => {
   const prof = AMB.Profile.boot(MEM()), A = prof.album;
   const pass = AMB.Pass.create(prof.save.storageFor('pass'), null, null, (type) => A.ownedCosmetics(type));
