@@ -1,0 +1,2049 @@
+{
+ "summary": [
+  {
+   "persona": "kid",
+   "label": "طفل 8–12",
+   "knobs": {
+    "mistakes": 0.35,
+    "rerollGreed": 0.9,
+    "levelAggro": 0.5,
+    "maxLevel": 6,
+    "noSummon": true
+   },
+   "style": "mixed",
+   "matches": 51,
+   "winRate": 25.5,
+   "avgRounds": 7,
+   "avgLifeEnd": 25.3,
+   "avgRoundsWithHeroSummoned": 0,
+   "avgFinalLevel": 5.98,
+   "avgGoldBankedPerRound": 8.6,
+   "threeStarUnitsPerMatch": 0.04,
+   "vs": {
+    "teen": "3/17",
+    "adult": "7/17",
+    "senior": "3/17"
+   },
+   "heroes": {
+    "zerokai": "0/6",
+    "merin": "2/6",
+    "nayako": "2/7",
+    "kagira": "1/7",
+    "thora": "2/7",
+    "kairyu": "1/3",
+    "rika": "3/9",
+    "orath": "2/6"
+   }
+  },
+  {
+   "persona": "teen",
+   "label": "مراهق 13–17",
+   "knobs": {
+    "mistakes": 0.12,
+    "rerollGreed": 1,
+    "levelAggro": 2.2,
+    "reserveCap": 4,
+    "summonFrom": 2,
+    "summonMinLife": 25
+   },
+   "style": "mono",
+   "matches": 50,
+   "winRate": 72,
+   "avgRounds": 7,
+   "avgLifeEnd": 55.5,
+   "avgRoundsWithHeroSummoned": 5.3,
+   "avgFinalLevel": 6.82,
+   "avgGoldBankedPerRound": 1.9,
+   "threeStarUnitsPerMatch": 0.12,
+   "vs": {
+    "kid": "14/17",
+    "adult": "12/17",
+    "senior": "10/16"
+   },
+   "heroes": {
+    "kairyu": "5/8",
+    "rika": "4/7",
+    "kagira": "6/8",
+    "merin": "7/7",
+    "zerokai": "4/7",
+    "nayako": "5/5",
+    "thora": "2/5",
+    "orath": "3/3"
+   }
+  },
+  {
+   "persona": "adult",
+   "label": "بالغ 18–35",
+   "knobs": {
+    "mistakes": 0,
+    "rerollGreed": 0.8,
+    "levelAggro": 1.4,
+    "reserveCap": 12,
+    "summonFrom": 3,
+    "summonMinLife": 45
+   },
+   "style": "balanced",
+   "matches": 50,
+   "winRate": 48,
+   "avgRounds": 7,
+   "avgLifeEnd": 44.5,
+   "avgRoundsWithHeroSummoned": 4.28,
+   "avgFinalLevel": 6.5,
+   "avgGoldBankedPerRound": 4.5,
+   "threeStarUnitsPerMatch": 0.08,
+   "vs": {
+    "kid": "10/17",
+    "teen": "5/17",
+    "senior": "9/16"
+   },
+   "heroes": {
+    "merin": "4/9",
+    "kagira": "4/7",
+    "thora": "7/10",
+    "nayako": "1/4",
+    "orath": "1/4",
+    "rika": "5/12",
+    "zerokai": "1/3",
+    "kairyu": "1/1"
+   }
+  },
+  {
+   "persona": "senior",
+   "label": "كبير 36+",
+   "knobs": {
+    "mistakes": 0.08,
+    "rerollGreed": 0.4,
+    "levelAggro": 0.8,
+    "reserveCap": 20,
+    "summonFrom": 5,
+    "summonMinLife": 60
+   },
+   "style": "mono",
+   "matches": 49,
+   "winRate": 55.1,
+   "avgRounds": 7,
+   "avgLifeEnd": 42.7,
+   "avgRoundsWithHeroSummoned": 1.84,
+   "avgFinalLevel": 6.12,
+   "avgGoldBankedPerRound": 6.6,
+   "threeStarUnitsPerMatch": 0.12,
+   "vs": {
+    "kid": "14/17",
+    "teen": "6/16",
+    "adult": "7/16"
+   },
+   "heroes": {
+    "zerokai": "4/6",
+    "merin": "2/9",
+    "orath": "3/5",
+    "kagira": "6/8",
+    "thora": "3/8",
+    "kairyu": "2/4",
+    "nayako": "1/3",
+    "rika": "6/6"
+   }
+  }
+ ],
+ "matches": [
+  {
+   "g": 0,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "zerokai",
+     "life": 5,
+     "level": 6
+    },
+    {
+     "persona": "teen",
+     "hero": "kairyu",
+     "life": 90,
+     "level": 7
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 1,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "merin",
+     "life": 90.6,
+     "level": 6
+    },
+    {
+     "persona": "kid",
+     "hero": "merin",
+     "life": 0,
+     "level": 6
+    }
+   ],
+   "winner": "adult",
+   "rounds": 7
+  },
+  {
+   "g": 2,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "nayako",
+     "life": 0,
+     "level": 6
+    },
+    {
+     "persona": "senior",
+     "hero": "zerokai",
+     "life": 100,
+     "level": 6
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 3,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "kagira",
+     "life": 69,
+     "level": 7
+    },
+    {
+     "persona": "teen",
+     "hero": "rika",
+     "life": 4,
+     "level": 7
+    }
+   ],
+   "winner": "adult",
+   "rounds": 7
+  },
+  {
+   "g": 4,
+   "players": [
+    {
+     "persona": "teen",
+     "hero": "kagira",
+     "life": 82,
+     "level": 7
+    },
+    {
+     "persona": "senior",
+     "hero": "merin",
+     "life": 0,
+     "level": 6
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 5,
+   "players": [
+    {
+     "persona": "senior",
+     "hero": "orath",
+     "life": 0,
+     "level": 6
+    },
+    {
+     "persona": "adult",
+     "hero": "thora",
+     "life": 91.96282223377804,
+     "level": 7
+    }
+   ],
+   "winner": "adult",
+   "rounds": 7
+  },
+  {
+   "g": 6,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "kagira",
+     "life": 12,
+     "level": 6
+    },
+    {
+     "persona": "teen",
+     "hero": "merin",
+     "life": 59.79050000000002,
+     "level": 7
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 7,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "nayako",
+     "life": 33,
+     "level": 6
+    },
+    {
+     "persona": "kid",
+     "hero": "thora",
+     "life": 44,
+     "level": 6
+    }
+   ],
+   "winner": "kid",
+   "rounds": 7
+  },
+  {
+   "g": 8,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "nayako",
+     "life": 28,
+     "level": 6
+    },
+    {
+     "persona": "senior",
+     "hero": "zerokai",
+     "life": 49,
+     "level": 6
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 9,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "orath",
+     "life": 0,
+     "level": 7
+    },
+    {
+     "persona": "teen",
+     "hero": "zerokai",
+     "life": 90.24775947405622,
+     "level": 6
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 10,
+   "players": [
+    {
+     "persona": "teen",
+     "hero": "nayako",
+     "life": 90.34757186764502,
+     "level": 7
+    },
+    {
+     "persona": "senior",
+     "hero": "zerokai",
+     "life": 1,
+     "level": 6
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 11,
+   "players": [
+    {
+     "persona": "senior",
+     "hero": "kagira",
+     "life": 20,
+     "level": 6
+    },
+    {
+     "persona": "adult",
+     "hero": "kagira",
+     "life": 36.73152,
+     "level": 7
+    }
+   ],
+   "winner": "adult",
+   "rounds": 7
+  },
+  {
+   "g": 12,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "nayako",
+     "life": 16,
+     "level": 6
+    },
+    {
+     "persona": "teen",
+     "hero": "kairyu",
+     "life": 59,
+     "level": 7
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 13,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "thora",
+     "life": 60.6,
+     "level": 6
+    },
+    {
+     "persona": "kid",
+     "hero": "kairyu",
+     "life": 4,
+     "level": 6
+    }
+   ],
+   "winner": "adult",
+   "rounds": 7
+  },
+  {
+   "g": 14,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "zerokai",
+     "life": 2,
+     "level": 6
+    },
+    {
+     "persona": "senior",
+     "hero": "kagira",
+     "life": 76.36361216,
+     "level": 6
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 15,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "merin",
+     "life": 20.799999999999997,
+     "level": 6
+    },
+    {
+     "persona": "teen",
+     "hero": "thora",
+     "life": 57.680340957013456,
+     "level": 6
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 16,
+   "players": [
+    {
+     "persona": "teen",
+     "hero": "zerokai",
+     "life": 7,
+     "level": 7
+    },
+    {
+     "persona": "senior",
+     "hero": "orath",
+     "life": 62.05,
+     "level": 6
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 17,
+   "players": [
+    {
+     "persona": "senior",
+     "hero": "thora",
+     "life": 3,
+     "level": 6
+    },
+    {
+     "persona": "adult",
+     "hero": "rika",
+     "life": 97,
+     "level": 6
+    }
+   ],
+   "winner": "adult",
+   "rounds": 7
+  },
+  {
+   "g": 18,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "nayako",
+     "life": 42,
+     "level": 6
+    },
+    {
+     "persona": "teen",
+     "hero": "rika",
+     "life": 46,
+     "level": 7
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 19,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "rika",
+     "life": 35,
+     "level": 6
+    },
+    {
+     "persona": "kid",
+     "hero": "nayako",
+     "life": 45,
+     "level": 6
+    }
+   ],
+   "winner": "kid",
+   "rounds": 7
+  },
+  {
+   "g": 20,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "rika",
+     "life": 53,
+     "level": 6
+    },
+    {
+     "persona": "senior",
+     "hero": "kairyu",
+     "life": 48,
+     "level": 6
+    }
+   ],
+   "winner": "kid",
+   "rounds": 7
+  },
+  {
+   "g": 21,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "zerokai",
+     "life": 46,
+     "level": 6
+    },
+    {
+     "persona": "teen",
+     "hero": "kagira",
+     "life": 29.434299200000012,
+     "level": 7
+    }
+   ],
+   "winner": "adult",
+   "rounds": 7
+  },
+  {
+   "g": 22,
+   "players": [
+    {
+     "persona": "teen",
+     "hero": "kagira",
+     "life": 90.94973078000001,
+     "level": 7
+    },
+    {
+     "persona": "senior",
+     "hero": "thora",
+     "life": 2.1999999999999993,
+     "level": 7
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 23,
+   "players": [
+    {
+     "persona": "senior",
+     "hero": "merin",
+     "life": 37,
+     "level": 6
+    },
+    {
+     "persona": "adult",
+     "hero": "merin",
+     "life": 89,
+     "level": 6
+    }
+   ],
+   "winner": "adult",
+   "rounds": 7
+  },
+  {
+   "g": 24,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "rika",
+     "life": 24,
+     "level": 6
+    },
+    {
+     "persona": "teen",
+     "hero": "zerokai",
+     "life": 54.61186225,
+     "level": 7
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 25,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "thora",
+     "life": 54.48052429367628,
+     "level": 6
+    },
+    {
+     "persona": "kid",
+     "hero": "kagira",
+     "life": 34,
+     "level": 6
+    }
+   ],
+   "winner": "adult",
+   "rounds": 7
+  },
+  {
+   "g": 26,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "rika",
+     "life": 76,
+     "level": 6
+    },
+    {
+     "persona": "senior",
+     "hero": "thora",
+     "life": 0,
+     "level": 7
+    }
+   ],
+   "winner": "kid",
+   "rounds": 7
+  },
+  {
+   "g": 27,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "rika",
+     "life": 0,
+     "level": 7
+    },
+    {
+     "persona": "teen",
+     "hero": "rika",
+     "life": 98.9590479556784,
+     "level": 7
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 28,
+   "players": [
+    {
+     "persona": "teen",
+     "hero": "thora",
+     "life": 46.400000000000006,
+     "level": 7
+    },
+    {
+     "persona": "senior",
+     "hero": "nayako",
+     "life": 28,
+     "level": 7
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 29,
+   "players": [
+    {
+     "persona": "senior",
+     "hero": "nayako",
+     "life": 0,
+     "level": 6
+    },
+    {
+     "persona": "adult",
+     "hero": "kagira",
+     "life": 81,
+     "level": 7
+    }
+   ],
+   "winner": "adult",
+   "rounds": 7
+  },
+  {
+   "g": 30,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "thora",
+     "life": 3,
+     "level": 6
+    },
+    {
+     "persona": "teen",
+     "hero": "orath",
+     "life": 92,
+     "level": 6
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 31,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "kagira",
+     "life": 100,
+     "level": 7
+    },
+    {
+     "persona": "kid",
+     "hero": "merin",
+     "life": 0,
+     "level": 6
+    }
+   ],
+   "winner": "adult",
+   "rounds": 7
+  },
+  {
+   "g": 32,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "thora",
+     "life": 0,
+     "level": 6
+    },
+    {
+     "persona": "senior",
+     "hero": "rika",
+     "life": 86,
+     "level": 6
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 33,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "kagira",
+     "life": 35,
+     "level": 6
+    },
+    {
+     "persona": "teen",
+     "hero": "orath",
+     "life": 47,
+     "level": 7
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 34,
+   "players": [
+    {
+     "persona": "teen",
+     "hero": "nayako",
+     "life": 47.9093679999999,
+     "level": 7
+    },
+    {
+     "persona": "senior",
+     "hero": "merin",
+     "life": 45.599999999999994,
+     "level": 6
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 35,
+   "players": [
+    {
+     "persona": "senior",
+     "hero": "kairyu",
+     "life": 16,
+     "level": 6
+    },
+    {
+     "persona": "adult",
+     "hero": "nayako",
+     "life": 73,
+     "level": 7
+    }
+   ],
+   "winner": "adult",
+   "rounds": 7
+  },
+  {
+   "g": 36,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "rika",
+     "life": 61,
+     "level": 6
+    },
+    {
+     "persona": "teen",
+     "hero": "thora",
+     "life": 39.85,
+     "level": 7
+    }
+   ],
+   "winner": "kid",
+   "rounds": 7
+  },
+  {
+   "g": 37,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "rika",
+     "life": 84,
+     "level": 6
+    },
+    {
+     "persona": "kid",
+     "hero": "merin",
+     "life": 11,
+     "level": 5
+    }
+   ],
+   "winner": "adult",
+   "rounds": 7
+  },
+  {
+   "g": 38,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "rika",
+     "life": 1,
+     "level": 6
+    },
+    {
+     "persona": "senior",
+     "hero": "merin",
+     "life": 80,
+     "level": 6
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 39,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "zerokai",
+     "life": 0,
+     "level": 7
+    },
+    {
+     "persona": "teen",
+     "hero": "merin",
+     "life": 87,
+     "level": 6
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 40,
+   "players": [
+    {
+     "persona": "teen",
+     "hero": "zerokai",
+     "life": 25,
+     "level": 7
+    },
+    {
+     "persona": "senior",
+     "hero": "kagira",
+     "life": 28,
+     "level": 7
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 41,
+   "players": [
+    {
+     "persona": "senior",
+     "hero": "zerokai",
+     "life": 0,
+     "level": 7
+    },
+    {
+     "persona": "adult",
+     "hero": "thora",
+     "life": 100,
+     "level": 7
+    }
+   ],
+   "winner": "adult",
+   "rounds": 7
+  },
+  {
+   "g": 42,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "kairyu",
+     "life": 19,
+     "level": 6
+    },
+    {
+     "persona": "teen",
+     "hero": "kairyu",
+     "life": 61,
+     "level": 7
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 43,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "merin",
+     "life": 2.799999999999997,
+     "level": 7
+    },
+    {
+     "persona": "kid",
+     "hero": "orath",
+     "life": 86.21989399999993,
+     "level": 6
+    }
+   ],
+   "winner": "kid",
+   "rounds": 7
+  },
+  {
+   "g": 44,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "kagira",
+     "life": 18,
+     "level": 6
+    },
+    {
+     "persona": "senior",
+     "hero": "kagira",
+     "life": 61,
+     "level": 6
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 45,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "merin",
+     "life": 0,
+     "level": 7
+    },
+    {
+     "persona": "teen",
+     "hero": "nayako",
+     "life": 99.6871303,
+     "level": 6
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 46,
+   "players": [
+    {
+     "persona": "teen",
+     "hero": "kagira",
+     "life": 57,
+     "level": 7
+    },
+    {
+     "persona": "senior",
+     "hero": "merin",
+     "life": 25.6,
+     "level": 5
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 47,
+   "players": [
+    {
+     "persona": "senior",
+     "hero": "zerokai",
+     "life": 59.3926647,
+     "level": 6
+    },
+    {
+     "persona": "adult",
+     "hero": "thora",
+     "life": 0,
+     "level": 7
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 48,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "zerokai",
+     "life": 2,
+     "level": 6
+    },
+    {
+     "persona": "teen",
+     "hero": "kagira",
+     "life": 57.48711999999999,
+     "level": 7
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 49,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "rika",
+     "life": 77,
+     "level": 7
+    },
+    {
+     "persona": "kid",
+     "hero": "thora",
+     "life": 19,
+     "level": 6
+    }
+   ],
+   "winner": "adult",
+   "rounds": 7
+  },
+  {
+   "g": 50,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "rika",
+     "life": 0,
+     "level": 6
+    },
+    {
+     "persona": "senior",
+     "hero": "rika",
+     "life": 91,
+     "level": 6
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 51,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "thora",
+     "life": 26.4,
+     "level": 6
+    },
+    {
+     "persona": "teen",
+     "hero": "rika",
+     "life": 42,
+     "level": 7
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 52,
+   "players": [
+    {
+     "persona": "teen",
+     "hero": "kairyu",
+     "life": 1,
+     "level": 7
+    },
+    {
+     "persona": "senior",
+     "hero": "kairyu",
+     "life": 70,
+     "level": 6
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 53,
+   "players": [
+    {
+     "persona": "senior",
+     "hero": "zerokai",
+     "life": 57,
+     "level": 6
+    },
+    {
+     "persona": "adult",
+     "hero": "orath",
+     "life": 23.15,
+     "level": 6
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 54,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "kagira",
+     "life": 0,
+     "level": 6
+    },
+    {
+     "persona": "teen",
+     "hero": "merin",
+     "life": 79.2,
+     "level": 7
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 55,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "kagira",
+     "life": 14,
+     "level": 7
+    },
+    {
+     "persona": "kid",
+     "hero": "orath",
+     "life": 72,
+     "level": 6
+    }
+   ],
+   "winner": "kid",
+   "rounds": 7
+  },
+  {
+   "g": 56,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "merin",
+     "life": 26,
+     "level": 6
+    },
+    {
+     "persona": "senior",
+     "hero": "merin",
+     "life": 57.6,
+     "level": 6
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 57,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "kairyu",
+     "life": 95.9727926266356,
+     "level": 6
+    },
+    {
+     "persona": "teen",
+     "hero": "kairyu",
+     "life": 0,
+     "level": 7
+    }
+   ],
+   "winner": "adult",
+   "rounds": 7
+  },
+  {
+   "g": 58,
+   "players": [
+    {
+     "persona": "teen",
+     "hero": "kagira",
+     "life": 100,
+     "level": 7
+    },
+    {
+     "persona": "senior",
+     "hero": "merin",
+     "life": 0,
+     "level": 7
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 59,
+   "players": [
+    {
+     "persona": "senior",
+     "hero": "thora",
+     "life": 6.399999999999999,
+     "level": 6
+    },
+    {
+     "persona": "adult",
+     "hero": "thora",
+     "life": 65.2,
+     "level": 6
+    }
+   ],
+   "winner": "adult",
+   "rounds": 7
+  },
+  {
+   "g": 60,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "merin",
+     "life": 40,
+     "level": 6
+    },
+    {
+     "persona": "teen",
+     "hero": "zerokai",
+     "life": 20,
+     "level": 7
+    }
+   ],
+   "winner": "kid",
+   "rounds": 7
+  },
+  {
+   "g": 61,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "thora",
+     "life": 62.83632165093759,
+     "level": 6
+    },
+    {
+     "persona": "kid",
+     "hero": "rika",
+     "life": 23,
+     "level": 6
+    }
+   ],
+   "winner": "adult",
+   "rounds": 7
+  },
+  {
+   "g": 62,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "thora",
+     "life": 14,
+     "level": 6
+    },
+    {
+     "persona": "senior",
+     "hero": "orath",
+     "life": 81,
+     "level": 6
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 63,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "rika",
+     "life": 38,
+     "level": 7
+    },
+    {
+     "persona": "teen",
+     "hero": "nayako",
+     "life": 79,
+     "level": 7
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 64,
+   "players": [
+    {
+     "persona": "teen",
+     "hero": "merin",
+     "life": 52.63404999999996,
+     "level": 7
+    },
+    {
+     "persona": "senior",
+     "hero": "thora",
+     "life": 14,
+     "level": 7
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 65,
+   "players": [
+    {
+     "persona": "senior",
+     "hero": "kagira",
+     "life": 73,
+     "level": 5
+    },
+    {
+     "persona": "adult",
+     "hero": "zerokai",
+     "life": 3,
+     "level": 7
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 66,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "merin",
+     "life": 46,
+     "level": 6
+    },
+    {
+     "persona": "teen",
+     "hero": "kagira",
+     "life": 33,
+     "level": 6
+    }
+   ],
+   "winner": "kid",
+   "rounds": 7
+  },
+  {
+   "g": 67,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "kagira",
+     "life": 40,
+     "level": 6
+    },
+    {
+     "persona": "kid",
+     "hero": "kairyu",
+     "life": 50,
+     "level": 6
+    }
+   ],
+   "winner": "kid",
+   "rounds": 7
+  },
+  {
+   "g": 68,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "kagira",
+     "life": 43,
+     "level": 6
+    },
+    {
+     "persona": "senior",
+     "hero": "rika",
+     "life": 46.05,
+     "level": 6
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 69,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "orath",
+     "life": 25,
+     "level": 7
+    },
+    {
+     "persona": "teen",
+     "hero": "kagira",
+     "life": 38,
+     "level": 7
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 70,
+   "players": [
+    {
+     "persona": "teen",
+     "hero": "zerokai",
+     "life": 82,
+     "level": 6
+    },
+    {
+     "persona": "senior",
+     "hero": "orath",
+     "life": 0,
+     "level": 7
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 71,
+   "players": [
+    {
+     "persona": "senior",
+     "hero": "rika",
+     "life": 78,
+     "level": 6
+    },
+    {
+     "persona": "adult",
+     "hero": "nayako",
+     "life": 0,
+     "level": 7
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 72,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "orath",
+     "life": 35,
+     "level": 6
+    },
+    {
+     "persona": "teen",
+     "hero": "merin",
+     "life": 49.8,
+     "level": 6
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 73,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "nayako",
+     "life": 33,
+     "level": 7
+    },
+    {
+     "persona": "kid",
+     "hero": "nayako",
+     "life": 47,
+     "level": 6
+    }
+   ],
+   "winner": "kid",
+   "rounds": 7
+  },
+  {
+   "g": 74,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "zerokai",
+     "life": 27,
+     "level": 6
+    },
+    {
+     "persona": "senior",
+     "hero": "kairyu",
+     "life": 60,
+     "level": 6
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 75,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "merin",
+     "life": 82.6,
+     "level": 6
+    },
+    {
+     "persona": "teen",
+     "hero": "kairyu",
+     "life": 0,
+     "level": 7
+    }
+   ],
+   "winner": "adult",
+   "rounds": 7
+  },
+  {
+   "g": 76,
+   "players": [
+    {
+     "persona": "teen",
+     "hero": "rika",
+     "life": 24,
+     "level": 7
+    },
+    {
+     "persona": "senior",
+     "hero": "kagira",
+     "life": 65,
+     "level": 6
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 77,
+   "players": [
+    {
+     "persona": "senior",
+     "hero": "rika",
+     "life": 47,
+     "level": 6
+    },
+    {
+     "persona": "adult",
+     "hero": "rika",
+     "life": 41,
+     "level": 6
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 78,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "rika",
+     "life": 0,
+     "level": 6
+    },
+    {
+     "persona": "teen",
+     "hero": "kairyu",
+     "life": 100,
+     "level": 7
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 79,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "orath",
+     "life": 88.5098532,
+     "level": 6
+    },
+    {
+     "persona": "kid",
+     "hero": "orath",
+     "life": 1,
+     "level": 6
+    }
+   ],
+   "winner": "adult",
+   "rounds": 7
+  },
+  {
+   "g": 80,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "thora",
+     "life": 87,
+     "level": 6
+    },
+    {
+     "persona": "senior",
+     "hero": "kagira",
+     "life": 0,
+     "level": 6
+    }
+   ],
+   "winner": "kid",
+   "rounds": 7
+  },
+  {
+   "g": 81,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "rika",
+     "life": 3,
+     "level": 7
+    },
+    {
+     "persona": "teen",
+     "hero": "merin",
+     "life": 66.2,
+     "level": 7
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 82,
+   "players": [
+    {
+     "persona": "teen",
+     "hero": "thora",
+     "life": 30.928697364999564,
+     "level": 7
+    },
+    {
+     "persona": "senior",
+     "hero": "rika",
+     "life": 67,
+     "level": 6
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 83,
+   "players": [
+    {
+     "persona": "senior",
+     "hero": "thora",
+     "life": 68,
+     "level": 6
+    },
+    {
+     "persona": "adult",
+     "hero": "thora",
+     "life": 4.600000000000001,
+     "level": 6
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 84,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "zerokai",
+     "life": 11,
+     "level": 6
+    },
+    {
+     "persona": "teen",
+     "hero": "zerokai",
+     "life": 66,
+     "level": 7
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 85,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "merin",
+     "life": 84.6,
+     "level": 6
+    },
+    {
+     "persona": "kid",
+     "hero": "zerokai",
+     "life": 0,
+     "level": 6
+    }
+   ],
+   "winner": "adult",
+   "rounds": 7
+  },
+  {
+   "g": 86,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "orath",
+     "life": 14,
+     "level": 6
+    },
+    {
+     "persona": "senior",
+     "hero": "nayako",
+     "life": 72,
+     "level": 6
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 87,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "merin",
+     "life": 28.2,
+     "level": 7
+    },
+    {
+     "persona": "teen",
+     "hero": "kairyu",
+     "life": 37,
+     "level": 6
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 88,
+   "players": [
+    {
+     "persona": "teen",
+     "hero": "nayako",
+     "life": 82.80730527480483,
+     "level": 7
+    },
+    {
+     "persona": "senior",
+     "hero": "merin",
+     "life": 0,
+     "level": 6
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 89,
+   "players": [
+    {
+     "persona": "senior",
+     "hero": "kagira",
+     "life": 61,
+     "level": 6
+    },
+    {
+     "persona": "adult",
+     "hero": "rika",
+     "life": 0,
+     "level": 6
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 90,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "nayako",
+     "life": 18,
+     "level": 6
+    },
+    {
+     "persona": "teen",
+     "hero": "rika",
+     "life": 84,
+     "level": 7
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 91,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "rika",
+     "life": 90,
+     "level": 6
+    },
+    {
+     "persona": "kid",
+     "hero": "thora",
+     "life": 0,
+     "level": 6
+    }
+   ],
+   "winner": "adult",
+   "rounds": 7
+  },
+  {
+   "g": 92,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "orath",
+     "life": 33.24065779999997,
+     "level": 6
+    },
+    {
+     "persona": "senior",
+     "hero": "thora",
+     "life": 66.77135143,
+     "level": 6
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 93,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "thora",
+     "life": 39,
+     "level": 7
+    },
+    {
+     "persona": "teen",
+     "hero": "rika",
+     "life": 39,
+     "level": 7
+    }
+   ],
+   "winner": "adult",
+   "rounds": 7
+  },
+  {
+   "g": 94,
+   "players": [
+    {
+     "persona": "teen",
+     "hero": "thora",
+     "life": 0,
+     "level": 7
+    },
+    {
+     "persona": "senior",
+     "hero": "thora",
+     "life": 77.57861629228816,
+     "level": 6
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 95,
+   "players": [
+    {
+     "persona": "senior",
+     "hero": "merin",
+     "life": 18.200000000000003,
+     "level": 6
+    },
+    {
+     "persona": "adult",
+     "hero": "rika",
+     "life": 56,
+     "level": 6
+    }
+   ],
+   "winner": "adult",
+   "rounds": 7
+  },
+  {
+   "g": 96,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "kagira",
+     "life": 1,
+     "level": 6
+    },
+    {
+     "persona": "teen",
+     "hero": "orath",
+     "life": 88,
+     "level": 7
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  },
+  {
+   "g": 97,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "rika",
+     "life": 0,
+     "level": 7
+    },
+    {
+     "persona": "kid",
+     "hero": "kagira",
+     "life": 90,
+     "level": 6
+    }
+   ],
+   "winner": "kid",
+   "rounds": 7
+  },
+  {
+   "g": 98,
+   "players": [
+    {
+     "persona": "kid",
+     "hero": "rika",
+     "life": 9,
+     "level": 6
+    },
+    {
+     "persona": "senior",
+     "hero": "orath",
+     "life": 86,
+     "level": 6
+    }
+   ],
+   "winner": "senior",
+   "rounds": 7
+  },
+  {
+   "g": 99,
+   "players": [
+    {
+     "persona": "adult",
+     "hero": "merin",
+     "life": 5.800000000000001,
+     "level": 7
+    },
+    {
+     "persona": "teen",
+     "hero": "merin",
+     "life": 58.6,
+     "level": 7
+    }
+   ],
+   "winner": "teen",
+   "rounds": 7
+  }
+ ]
+}

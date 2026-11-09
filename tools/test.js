@@ -14,6 +14,13 @@ const side = (units, extra) => Object.assign({ heroId: 'orath', life: 100, maxLi
 const U = (defId, slot, star) => ({ uid: defId + slot, defId, star: star || 1, items: [], slot });
 
 console.log('combat');
+t('rift net (teen #11): your assassin hunts a summoned enemy hero first; without it the hero is protected', () => {
+  const mk = (net) => new AMB.Combat([side([U('moss_warden', 'f2')], { summoned: true, heroSlot: 'f1' }), side([U('grid_hound', 'f1')], { spells: net ? ['rift_net'] : [] })], { seed: 4, round: 1 });
+  const a = mk(true), b = mk(false);
+  const hunter = (c) => c.fighters.find((f) => f.side === 1 && f.role === 'assassin'), hero0 = (c) => c.fighters.find((f) => f.side === 0 && f.isHero);
+  eq(a.findTarget(hunter(a)), hero0(a), 'with the net the assassin goes for the summoned hero');
+  ok(b.findTarget(hunter(b)) !== hero0(b), 'without it the hero is not a target while its side stands');
+});
 t('hero is untargetable while a front-row ally lives', () => {
   const c = new AMB.Combat([side([U('moss_warden', 'f1')]), side([U('grid_hound', 'f1')])], { seed: 1, round: 1 });
   const hero0 = c.sides[0].hero;
@@ -829,6 +836,48 @@ t('save: importing into a locked tab fails loudly and keeps the old data; netsyn
 t('kid-friendly words: rarity names are plain Arabic (no English loanwords)', () => {
   const R = AMB.ECONOMY.rarities;
   eq([R.common.name, R.rare.name, R.epic.name, R.legendary.name].join(','), 'عادي,نادر,ملحمي,أسطوري');
+});
+t('teen #12/#15/#19/#13: invest pays at the finale, wager only in the finale, weekly late hero, assassin hunt setting', () => {
+  const m = new AMB.Match({ mode: 'ai', seed: 9, weekly: 'lateHero', players: [{ heroId: 'orath', name: 'a' }, { heroId: 'merin', name: 'b', isAI: true }] });
+  m.startRound(); const p = m.players[0];
+  eq(m.toggleSummon(0).ok, false, 'late hero: no summon before round 4');
+  eq(m.setWager(0, true).ok, false, 'no wager before the finale');
+  p.invest = 15; const g0 = p.gold;
+  eq(m.setHunt(0, 'weak').ok, true); eq(m.buildCombatSpec(0).hunt, 'weak'); eq(m.setHunt(0, 'nope').ok, false);
+  while (m.round < 6) { m.resolveCombat(m.createCombat(false).runToEnd()); if (!m.isOver) m.startRound(); }
+  ok(p.invest === 15, 'not paid before the finale');
+  m.resolveCombat(m.createCombat(false).runToEnd()); if (!m.isOver) m.startRound();
+  ok(m.isFinale(m.round) && p.invest === 0, 'paid at the start of the finale');
+  eq(m.setWager(0, true).ok, true, 'wager allowed in the finale prep');
+  ok(AMB.Match.WEEKLY[AMB.Match.weeklyNow()], 'a rule of the week exists');
+});
+t('adult #21: a quick match rebuilt from its recorded moves is identical (continue after a reload)', () => {
+  const opts = { mode: 'ai', seed: 4242, weekly: 'freeReroll', players: [{ heroId: 'kagira', name: 'a', isAI: true, aiStyle: 'mono', difficulty: 'hard' }, { heroId: 'thora', name: 'b', isAI: true, aiStyle: 'balanced', difficulty: 'hard' }] };
+  const m = new AMB.Match(opts), rec = AMB.NetSync.record(m, 0), rounds = [];
+  for (let r = 0; r < 4; r++) {
+    m.startRound(); const aiFirst = m.round % 2 === 0;
+    if (aiFirst) AMB.AI.prep(m, 1);
+    // a human only acts through the match's own moves (the UI never edits the state directly): buy what fits, arrange, send the hero in from round 3
+    for (let i = 0; i < 5; i++) if (m.canBuy(0, i).ok) m.buy(0, i);
+    m.autoArrange(0); if (m.round >= 3 && !m.players[0].summoned) m.toggleSummon(0);
+    const prep = rec.take(); m.autoFill(0);
+    if (!aiFirst) AMB.AI.prep(m, 1);
+    m.resolveCombat(m.createCombat(false).runToEnd());
+    if (m.players[0].rewardOffer && !m.players[0].rewardOffer.claimed) AMB.AI.claimReward(m, 0);
+    const reward = rec.take();
+    if (m.players[1].rewardOffer && !m.players[1].rewardOffer.claimed) AMB.AI.claimReward(m, 1);
+    rounds.push({ aiFirst, prep, reward });
+  }
+  const b = new AMB.Match(JSON.parse(JSON.stringify(opts)));
+  for (const r of rounds) {
+    b.startRound(); if (r.aiFirst) AMB.AI.prep(b, 1);
+    eq(AMB.NetSync.replay(b, 0, r.prep).length, 0); b.autoFill(0);
+    if (!r.aiFirst) AMB.AI.prep(b, 1);
+    b.resolveCombat(b.createCombat(false).runToEnd());
+    eq(AMB.NetSync.replay(b, 0, r.reward).length, 0);
+    if (b.players[1].rewardOffer && !b.players[1].rewardOffer.claimed) AMB.AI.claimReward(b, 1);
+  }
+  eq(AMB.NetSync.hash(b), AMB.NetSync.hash(m), 'same state after the replay');
 });
 t('online safety: a friend cannot send an impossible slot/index or a malformed op (nothing throws, nothing is duplicated)', () => {
   const m = new AMB.Match({ mode: 'online', seed: 5, isolated: true, players: [{ heroId: 'orath', name: 'a' }, { heroId: 'merin', name: 'b' }] });

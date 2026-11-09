@@ -28,7 +28,8 @@
       ],
       catchUpGap: 20,           // trailing by this much life (or more) at a reward draft => a 4th option
       catchUpExtraGold: 0,
-      finaleLossMult: 1.5,      // life lost by the loser of the final round is multiplied
+      finaleLossMult: 1.5,
+      wagerMult: 1.6,           // teen #15: when either player wagers on the finale, its loser loses this much more again      // life lost by the loser of the final round is multiplied
     },
 
     economy: {
@@ -127,6 +128,8 @@
       easy: { mistakes: 0.35, rerollGreed: 0.4, levelAggro: 0.6, maxLevel: 5, noSummon: true },
       normal: { mistakes: 0.12, rerollGreed: 0.7, levelAggro: 1.0 },
       hard: { mistakes: 0.0, rerollGreed: 1.0, levelAggro: 1.6, reserveCap: 10, summonFrom: 2, summonMinLife: 40 },
+      // teen #14: expert plays the strongest known plan (fast levels, early hero, its world) and adapts: it levels harder against a greedy opponent
+      expert: { mistakes: 0.0, rerollGreed: 1.0, levelAggro: 2.2, reserveCap: 4, summonFrom: 2, summonMinLife: 25, adaptive: true },
     },
   };
 })();

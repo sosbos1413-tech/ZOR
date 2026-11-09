@@ -512,6 +512,9 @@
       spell: { type: 'hitBack', dmg: 240, at: 3 }, text: 'القتال الجاي: بعد 3 ثواني يضرب الصف الخلفي للعدو بـ 240 ضرر.' },
     time_wind: { id: 'time_wind', kind: 'spell', name: 'ريح الزمن', cost: 2, icon: 'wind',
       spell: { type: 'hasteAll', asPct: 0.25, dur: 8 }, text: 'القتال الجاي: +25% سرعة هجوم أول 8 ثواني.' },
+    // teen #11: the counter to sending the hero in early: your assassins hunt a summoned enemy hero first, and it takes more damage
+    rift_net: { id: 'rift_net', kind: 'spell', name: 'شبكة الصدع', cost: 2, icon: 'eye',
+      spell: { type: 'heroNet', dmgPct: 0.5 }, text: 'القتال الجاي: لو الخصم نزّل بطله الساحة، كل فريقك يقدر يضربه (والقتلة يصطادونه أول) وياخذ ضرر +50%.' },
   };
 
   /*
@@ -570,12 +573,14 @@
     bless_atk:{ id: 'bless_atk', icon: 'sword', name: 'بركة الغضب', pct: [0.12, 0.15, 0.18], text: (v, st) => `الفريق كله +${Math.round(v.pct[st] * 100)}% هجوم لبقية المباراة` },
     bless_hp: { id: 'bless_hp', icon: 'heart', name: 'بركة الحجر', pct: [0.15, 0.18, 0.22], text: (v, st) => `الفريق كله +${Math.round(v.pct[st] * 100)}% صحة لبقية المباراة` },
     bless_as: { id: 'bless_as', icon: 'wind', name: 'بركة الريح', pct: [0.14, 0.17, 0.2], text: (v, st) => `الفريق كله +${Math.round(v.pct[st] * 100)}% سرعة هجوم لبقية المباراة` },
+    // teen #12: the slow plan that pays: gold now locked, paid back bigger at the start of the finale (round 7)
+    invest:   { id: 'invest', icon: 'coin', name: 'استثمار الصدع', n: [12, 15, 0], text: (v, st) => `+${v.n[st]} ذهب يوصلك في جولة الحسم (الجولة 7)` },
     heal:     { id: 'heal', icon: 'cross', name: 'ماء الحياة', n: [10, 12, 15], text: (v, st) => `يستعيد بطلك ${v.n[st]} حياة` },
   };
   // which rewards can appear in each stage (one "unit" is always offered)
   const REWARD_POOLS = [
-    ['gold', 'xp', 'item', 'bless_hp'],
-    ['item', 'essence', 'bless_atk', 'bless_hp', 'xp'],
+    ['gold', 'xp', 'item', 'bless_hp', 'invest'],
+    ['item', 'essence', 'bless_atk', 'bless_hp', 'xp', 'invest'],
     ['bless_atk', 'bless_hp', 'bless_as', 'heal', 'xp', 'essence'],
   ];
 

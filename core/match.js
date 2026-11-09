@@ -43,6 +43,7 @@
       // card levels/rarity and hero level count in every mode that passes them (campaign, tower, events, quick vs AI); online and same-device (hotseat) pass none, so they stay even. The deck limit is progression-only.
       this.progression = !!opts.progression;
       this.rules = opts.rules || null;   // short-match rules (campaign): { maxRounds, winsNeeded, start: { gold, level } }
+      this.weekly = opts.weekly && Match.WEEKLY[opts.weekly] ? opts.weekly : null;   // teen #19: the rule of the week (quick match, online, same device)
       this.players = opts.players.map((p, i) => newPlayer(i, this.progression ? p : Object.assign({}, p, { allowedUnits: null })));
       // online play: each player has their OWN random stream, unit pool and unit ids, so both phones can replay each other's moves and stay identical
       this.isolated = !!opts.isolated;
@@ -60,7 +61,7 @@
 
     _rng(p) { return this.isolated ? p.rng : this.rng; }
     _pool(p) { return this.isolated ? p.pool : this.pool; }
-    _uid(p) { return this.isolated ? 'u' + p.index + '_' + (++p.uidN) : AMB.util.uid('u'); }
+    _uid(p) { return this.isolated ? 'u' + p.index + '_' + (++p.uidN) : 'u' + (this._uidN = (this._uidN || 0) + 1); }   // per-match ids: a match rebuilt from its moves (continue after reload) gets the same ids
 
     // ================================================================ round flow
     startRound() {
@@ -71,7 +72,9 @@
       // short-match start gold/level go in BEFORE the first shop is rolled (the first shop used to be rolled at level 3 whatever the start level was)
       if (this.rules && this.round === 1) this.players.forEach((p) => { const st = this.rules.start; if (!p.lineup && st) { p.gold += st.gold || 0; p.level = Math.max(p.level, st.level || 0); } });
       this.players.forEach((p) => {
-        const interest = Math.min(E.interestMax, Math.floor(p.gold / E.interestPer));
+        if (p.invest && this.isFinale(this.round)) { p.gold += p.invest; p.invest = 0; }   // the investment pays out at the start of the finale
+        const rich = this.weekly === 'richInterest';
+        const interest = Math.min(rich ? E.interestMax + 2 : E.interestMax, Math.floor(p.gold / (rich ? E.interestPer - 2 : E.interestPer)));
         const streak = Math.max(p.winStreak, p.lossStreak);
         let streakBonus = 0;
         E.streakBonus.forEach(([n, b]) => { if (streak >= n) streakBonus = b; });
@@ -86,7 +89,7 @@
         if (this.round > 1) this._gainXp(p, E.xpPerRound);
         const essGain = E.essencePerRound + (AMB.DATA.HEROES[p.heroId].passive.id === 'deep_reserve' ? 2 : 0);
         if (this.round > 1) p.essence = Math.max(p.essence, Math.min(E.essenceMax, p.essence + essGain));   // a 'pure essence' reward above the cap is kept (never clamped away)
-        p.freeRerolls = AMB.DATA.HEROES[p.heroId].passive.id === 'free_reroll' ? 1 : 0;
+        p.freeRerolls = (AMB.DATA.HEROES[p.heroId].passive.id === 'free_reroll' ? 1 : 0) + (this.weekly === 'freeReroll' ? 1 : 0);
         if (!p.shopLocked || !p.shop.length) this._rollShop(p, true);
         p.shopLocked = false;
         this._validateAbilities(p);
@@ -249,6 +252,13 @@
     findUnit(p, uid) { return this.allUnits(p).find((u) => u.uid === uid) || null; }
 
     /** units of star-1 that merge into one unit of `star` (3 for ★★; ★★★ may need fewer, see CONFIG.stars.copiesTo) */
+    /** teen #19: the rule of the week. Same for everyone; it changes every Monday-ish (week index since the epoch). */
+    static get WEEKLY() { return {
+      lateHero: { name: 'الأبطال يتأخرون', text: 'البطل ما ينزل الساحة قبل الجولة 4' },
+      richInterest: { name: 'موسم الفوائد', text: 'الفايدة على الذهب أكبر: +1 لكل 8، لين 5' },
+      freeReroll: { name: 'متجر كريم', text: 'أول تحديث للمتجر في كل جولة مجاني للكل' },
+    }; }
+    static weeklyNow(t) { const ids = Object.keys(Match.WEEKLY); return ids[Math.floor((t || Date.now()) / 604800000) % ids.length]; }
     static copiesFor(star) { const S = AMB.CONFIG.stars; return (S.copiesTo && S.copiesTo[star]) || S.copiesPerStar; }
     /** how many 1★ copies a unit is made of (sell value and pool refund) */
     copiesOf(u) { let n = 1; for (let s = 2; s <= u.star; s++) n *= Match.copiesFor(s); return n; }
@@ -384,9 +394,17 @@
       }
     }
 
+    /** teen #15: "رهان الحسم": in the finale's prep a player may raise the stakes: the loser of the final round loses ×wagerMult more life (for both sides) */
+    setWager(pi, on) {
+      const p = this.players[pi];
+      if (!this.isFinale(this.round) || this.phase !== 'prep') return this._fail('الرهان بس في جولة الحسم');
+      p.wager = !!on; return { ok: true };
+    }
+
     toggleSummon(pi, slot) {
       if (slot != null && !SLOTS.includes(slot)) return this._fail('خانة غلط');
       const p = this.players[pi];
+      if (this.weekly === 'lateHero' && !p.summoned && this.round < 4) return this._fail('قاعدة الأسبوع: البطل ينزل من الجولة 4');
       if (p.summoned) { p.summoned = false; this._validateAbilities(p); return { ok: true }; }
       const s = slot || p.heroSlot;
       const target = !p.board[s] ? s : SLOTS.slice().reverse().find((x) => !p.board[x]);
@@ -476,7 +494,14 @@
         spells: p.armedSpells.slice(),
         blessings: Object.assign({}, p.blessings),
         abilities: Object.entries(p.abilities).map(([id, trigger]) => ({ id, trigger })),
+        hunt: p.hunt || 'back',
       };
+    }
+
+    /** teen #13: what your assassins go for: 'back' (the back line, default) or 'weak' (the lowest-health enemy) */
+    setHunt(pi, mode) {
+      if (mode !== 'back' && mode !== 'weak') return this._fail('اختيار غلط');
+      this.players[pi].hunt = mode; return { ok: true };
     }
 
     createCombat(record) {
@@ -502,7 +527,7 @@
         const opp = result.sides[1 - i];
         if (result.winner === 1 - i && !sr.heroKilled) {
           backlash = D.lossBase + Math.floor(this.round * D.lossPerRound) + Math.min(D.survivorCap, opp.survivors.reduce((s, u) => s + u.star * D.perSurvivor, 0));
-          if (this.isFinale()) backlash = Math.round(backlash * M.finaleLossMult);
+          if (this.isFinale()) backlash = Math.round(backlash * M.finaleLossMult * (this.players.some((x) => x.wager) ? M.wagerMult : 1));   // teen #15: a finale wager raises the stakes for both
         } else if (result.winner === null) backlash = D.drawBase + Math.floor(this.round / 3);
         let collapse = 0;
         if (this.round >= M.collapseStartRound) {
@@ -523,6 +548,8 @@
         else if (result.winner === 1 - i) { p.lossStreak++; p.winStreak = 0; p.stats.losses++; }
         else { p.stats.draws++; }
         const dmg = Object.values(p.board).reduce((s, u) => s + (result.unitDamage[u.uid] || 0), 0);
+        p.stats.byUnit = p.stats.byUnit || {};   // teen #18: damage per unit type over the match (for the after-match analysis)
+        Object.values(p.board).forEach((u) => { const d0 = result.unitDamage[u.uid] || 0; if (d0) p.stats.byUnit[u.defId] = Math.round((p.stats.byUnit[u.defId] || 0) + d0); });
         p.stats.damageDealt += dmg;
         report.players.push({ direct: Math.round(direct * 10) / 10, backlash, collapse, lifeAfter: p.life, heroKilled: sr.heroKilled,
           survivors: sr.survivors.length, essenceSpent: spent, abilities: sr.abilitiesFired, exposed: sr.exposed,
@@ -592,6 +619,7 @@
       const R = AMB.DATA.REWARDS[id], st = o.stage, out = { ok: true, id, text: R.name + ' — ' + this.rewardText(id, st) };
       switch (id) {
         case 'gold': p.gold += R.n[st]; break;
+        case 'invest': p.invest = (p.invest || 0) + R.n[st]; break;
         case 'xp': this._gainXp(p, R.n[st]); break;
         case 'essence': p.essence = Math.min(AMB.CONFIG.economy.essenceMax + 3, p.essence + R.n[st]); break;
         case 'heal': p.life = Math.min(p.maxLife, p.life + R.n[st]); break;

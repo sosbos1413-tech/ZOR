@@ -275,9 +275,10 @@
     const S = ui().S, n = S.net; if (!n || !n.myHero || !n.theirHero) return;
     if (n.idx === 0) {   // the host decides the seed
       const seed = 1 + Math.floor(Math.random() * 2 ** 30);
-      n.link.send({ t: 'start', seed, heroes: [n.myHero, n.theirHero] });
-      begin(seed, [n.myHero, n.theirHero]);
-    } else if (n.theirStart) begin(n.theirStart.seed, n.theirStart.heroes);
+      const weekly = AMB.Match.weeklyNow();   // the host's rule of the week, so both phones play the same rule
+      n.link.send({ t: 'start', seed, heroes: [n.myHero, n.theirHero], weekly });
+      n.weekly = weekly; begin(seed, [n.myHero, n.theirHero]);
+    } else if (n.theirStart) { n.weekly = AMB.Match.WEEKLY[n.theirStart.weekly] ? n.theirStart.weekly : null; begin(n.theirStart.seed, n.theirStart.heroes); }
   }
   function begin(seed, heroes) {
     const S = ui().S, n = S.net;
@@ -289,7 +290,7 @@
   function makeMatch() {
     const S = ui().S, n = S.net, i = n.idx;
     const players = n.heroes.map((h, k) => ({ heroId: h, name: k === i ? 'أنت' : 'صاحبك', cardPower: null, heroLevel: 1 }));
-    const m = new AMB.Match({ mode: 'online', seed: n.seed, isolated: true, players });
+    const m = new AMB.Match({ mode: 'online', seed: n.seed, isolated: true, players, weekly: n.weekly || null });
     n.rec = AMB.NetSync.record(m, i);
     n.sentReady = false; n.peerReady = null; n.iClaimed = false; n.peerReward = null; n.over = false;
     // B7: after every fight both phones compare who won, both lives and the fight length (same channel as the state hash)
@@ -376,7 +377,10 @@
   const isHero = (h) => typeof h === 'string' && Object.prototype.hasOwnProperty.call(AMB.DATA.HEROES, h);
   function onMessage(msg) {
     const S = ui().S, n = S.net; if (!n || !msg) return;
+    // teen #17: the friend already started the next game of the series while I am still on the results screen: keep its messages for later
+    if (n.done && (msg.t === 'hero' || msg.t === 'start' || msg.t === 'again')) { (n.later = n.later || []).push(msg); return; }
     switch (msg.t) {
+      case 'again': break;
       case 'hero': if (!isHero(msg.hero)) { netProblem('البطل اللي وصلنا من صاحبك مو معروف عندي. حدّثوا الاثنين.'); break; }
         if (msg.ver && buildOf() !== 'dev' && msg.ver !== 'dev' && msg.ver !== buildOf()) { netProblem('نسخة اللعبة عندك مختلفة عن صاحبك. حدّثوا الصفحة عند الاثنين وجرّبوا من جديد.'); break; }
         n.theirHero = msg.hero; tryStart(); break;
@@ -426,6 +430,7 @@
     const u = ui(); if (!u || u.ACT.netHost) return;
     Object.assign(u.ACT, {
       netMenu: () => openMenu(),
+      netAgain: () => rematch(),
       netHost: () => host(),
       netJoin: () => joinForm(),
       netJoinGo: () => join(),
@@ -437,6 +442,28 @@
     });
   }
 
-  AMB.NetUI = { installActions, heroChosen, makeMatch, iAmReady, rewardClaimed, pump, leave, openMenu, useLocal };
+  // teen #17: a best-of-3 series with the same friend on the same link: the score carries over, and you cannot pick a hero you already used in it
+  function seriesNote(m) {
+    const S = ui().S, n = S.net; if (!n || !m || !m.isOver) return '';
+    if (!n.done) {
+      n.done = true; n.series = n.series || { me: 0, them: 0, used: [] };
+      if (n.series.me >= 2 || n.series.them >= 2) n.series = { me: 0, them: 0, used: [] };   // a finished series: the next game starts a new one
+      if (m.winner === n.idx) n.series.me++; else if (m.winner === 1 - n.idx) n.series.them++;
+      if (n.myHero && !n.series.used.includes(n.myHero)) n.series.used.push(n.myHero);
+    }
+    const s = n.series, end = s.me >= 2 ? '🏆 فزت بالسلسلة!' : s.them >= 2 ? 'صاحبك فاز بالسلسلة' : 'سلسلة أفضل من 3';
+    return `<div class="series-box"><b>${end}</b> · أنت <b>${s.me}</b> – <b>${s.them}</b> صاحبك${S.net && !n.over ? '<br><button class="btn primary" data-act="netAgain">⚔ المباراة الجاية مع صاحبك</button>' : ''}<small>في السلسلة ما تقدر تعيد نفس البطل</small></div>`;
+  }
+  function rematch() {
+    const S = ui().S, n = S.net; if (!n || n.over) { ui().toast('الاتصال انقطع', 'err'); return; }
+    const nx = fresh(n.idx, n.link); nx.series = n.series; S.net = nx;
+    try { n.link.send({ t: 'again' }); } catch (e) { /* ignore */ }
+    S.mode = 'online'; S.picks = [null, null]; S.pickIdx = 0; S.match = null;
+    ui().renderHeroSelect(); ui().show('hero');
+    (n.later || []).forEach((msg) => onMessage(msg));   // what the friend already sent for this game
+  }
+  const usedInSeries = (id) => { const n = ui().S.net; return !!(n && n.series && !(n.series.me >= 2 || n.series.them >= 2) && n.series.used.includes(id)); };
+
+  AMB.NetUI = { seriesNote, rematch, usedInSeries, installActions, heroChosen, makeMatch, iAmReady, rewardClaimed, pump, leave, openMenu, useLocal };
   if (UI()) installActions();
 })();

@@ -45,12 +45,14 @@
     <header class="scr-head"><button class="btn ghost" data-act="go" data-to="menu">→ رجوع</button><h2>اختر نمط اللعب</h2></header>
     <div class="mode-grid">
       <div class="mode-card">
+        <div class="weekly-rule" id="weekly-rule"></div>
         <h3>ضد الكمبيوتر</h3>
         <p>7 جولات ضد الكمبيوتر</p>
         <div class="seg" id="diff-seg">
           <button data-act="diff" data-v="easy">سهل</button>
           <button data-act="diff" data-v="normal" class="on">عادي</button>
           <button data-act="diff" data-v="hard">صعب</button>
+          <button data-act="diff" data-v="expert">خبير</button>
         </div>
         <button class="btn primary" data-act="mode" data-v="ai">ابدأ</button>
       </div>
@@ -203,6 +205,7 @@
 <script src="core/album.js"></script>
 <script src="core/profile.js"></script>
 <script src="core/pass.js"></script>
+<script src="core/meta.js"></script>
 <script src="assets/characters/manifest.js"></script>
 <script src="ui/characters.js"></script>
 <script src="ui/art.js"></script>

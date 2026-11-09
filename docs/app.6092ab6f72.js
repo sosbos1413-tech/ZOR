@@ -29,7 +29,8 @@
       ],
       catchUpGap: 20,           // trailing by this much life (or more) at a reward draft => a 4th option
       catchUpExtraGold: 0,
-      finaleLossMult: 1.5,      // life lost by the loser of the final round is multiplied
+      finaleLossMult: 1.5,
+      wagerMult: 1.6,           // teen #15: when either player wagers on the finale, its loser loses this much more again      // life lost by the loser of the final round is multiplied
     },
 
     economy: {
@@ -128,6 +129,8 @@
       easy: { mistakes: 0.35, rerollGreed: 0.4, levelAggro: 0.6, maxLevel: 5, noSummon: true },
       normal: { mistakes: 0.12, rerollGreed: 0.7, levelAggro: 1.0 },
       hard: { mistakes: 0.0, rerollGreed: 1.0, levelAggro: 1.6, reserveCap: 10, summonFrom: 2, summonMinLife: 40 },
+      // teen #14: expert plays the strongest known plan (fast levels, early hero, its world) and adapts: it levels harder against a greedy opponent
+      expert: { mistakes: 0.0, rerollGreed: 1.0, levelAggro: 2.2, reserveCap: 4, summonFrom: 2, summonMinLife: 25, adaptive: true },
     },
   };
 })();
@@ -648,6 +651,9 @@
       spell: { type: 'hitBack', dmg: 240, at: 3 }, text: 'القتال الجاي: بعد 3 ثواني يضرب الصف الخلفي للعدو بـ 240 ضرر.' },
     time_wind: { id: 'time_wind', kind: 'spell', name: 'ريح الزمن', cost: 2, icon: 'wind',
       spell: { type: 'hasteAll', asPct: 0.25, dur: 8 }, text: 'القتال الجاي: +25% سرعة هجوم أول 8 ثواني.' },
+    // teen #11: the counter to sending the hero in early: your assassins hunt a summoned enemy hero first, and it takes more damage
+    rift_net: { id: 'rift_net', kind: 'spell', name: 'شبكة الصدع', cost: 2, icon: 'eye',
+      spell: { type: 'heroNet', dmgPct: 0.5 }, text: 'القتال الجاي: لو الخصم نزّل بطله الساحة، كل فريقك يقدر يضربه (والقتلة يصطادونه أول) وياخذ ضرر +50%.' },
   };
 
   /*
@@ -706,12 +712,14 @@
     bless_atk:{ id: 'bless_atk', icon: 'sword', name: 'بركة الغضب', pct: [0.12, 0.15, 0.18], text: (v, st) => `الفريق كله +${Math.round(v.pct[st] * 100)}% هجوم لبقية المباراة` },
     bless_hp: { id: 'bless_hp', icon: 'heart', name: 'بركة الحجر', pct: [0.15, 0.18, 0.22], text: (v, st) => `الفريق كله +${Math.round(v.pct[st] * 100)}% صحة لبقية المباراة` },
     bless_as: { id: 'bless_as', icon: 'wind', name: 'بركة الريح', pct: [0.14, 0.17, 0.2], text: (v, st) => `الفريق كله +${Math.round(v.pct[st] * 100)}% سرعة هجوم لبقية المباراة` },
+    // teen #12: the slow plan that pays: gold now locked, paid back bigger at the start of the finale (round 7)
+    invest:   { id: 'invest', icon: 'coin', name: 'استثمار الصدع', n: [12, 15, 0], text: (v, st) => `+${v.n[st]} ذهب يوصلك في جولة الحسم (الجولة 7)` },
     heal:     { id: 'heal', icon: 'cross', name: 'ماء الحياة', n: [10, 12, 15], text: (v, st) => `يستعيد بطلك ${v.n[st]} حياة` },
   };
   // which rewards can appear in each stage (one "unit" is always offered)
   const REWARD_POOLS = [
-    ['gold', 'xp', 'item', 'bless_hp'],
-    ['item', 'essence', 'bless_atk', 'bless_hp', 'xp'],
+    ['gold', 'xp', 'item', 'bless_hp', 'invest'],
+    ['item', 'essence', 'bless_atk', 'bless_hp', 'xp', 'invest'],
     ['bless_atk', 'bless_hp', 'bless_as', 'heal', 'xp', 'essence'],
   ];
 
@@ -981,6 +989,7 @@
         if (sp.type === 'shieldFront') side.spellsTimed.push({ id, sp, at: 0, fired: false });
         if (sp.type === 'hitBack') side.spellsTimed.push({ id, sp, at: sp.at, fired: false });
         if (sp.type === 'hasteAll') side.spellsTimed.push({ id, sp, at: 0, fired: false });
+        if (sp.type === 'heroNet') side.heroNet = Math.max(side.heroNet || 0, sp.dmgPct);   // rift net: hunt a summoned enemy hero
       });
     }
 
@@ -1010,6 +1019,7 @@
       if (!e.alive) return false;
       if (!e.isHero) return true;
       if (e.sealed) return false;
+      if (e.onBoard && this.sides[1 - e.side].heroNet) return true;   // rift net: a summoned hero can be hit by the whole enemy team
       return this.sides[e.side].exposed;   // the hero is hit last, even when it fights on the board: only after every other unit of its side is dead
     }
 
@@ -1054,7 +1064,14 @@
         if (tb && tb.alive) return tb;
       }
       if (f.role === 'assassin') {
+        if (this.sides[f.side].heroNet) {   // rift net: a summoned enemy hero is hunted first, even while its side still stands
+          const hh = this.enemiesOf(f).find((e) => e.isHero && e.onBoard && e.alive && !e.sealed);
+          if (hh) return hh;
+        }
         if (enemies.length === 1 && enemies[0].isHero) return enemies[0];
+        if (this.sides[f.side].spec && this.sides[f.side].spec.hunt === 'weak') {   // teen #13: hunt the weakest enemy instead of the back line
+          enemies.sort((a, b) => a.hp - b.hp || a.id - b.id); return enemies[0];
+        }
         // back line first: farthest from own side
         const dir = f.side === 0 ? 1 : -1;
         enemies.sort((a, b) => (b.y - a.y) * dir || dist(f, a) - dist(f, b) || a.id - b.id);
@@ -1076,6 +1093,7 @@
       if (opts.skill) def *= this.C.skillDefFactor;
       let dmg = raw * (1 - def) * this.fury();
       if (tgt.isHero && !tgt.onBoard) dmg *= this.C.commandPostFortify;
+      if (tgt.isHero && tgt.onBoard && this.sides[1 - tgt.side].heroNet) dmg *= 1 + this.sides[1 - tgt.side].heroNet;   // rift net
       // legendary 'lifeline' (Otohime): once per fight the first ally that would die survives with 30% health
       if (!tgt.isHero && tgt.hp - Math.max(0, dmg - (tgt.shield || 0)) <= 0) {
         const ll = this.fighters.find((a) => a.side === tgt.side && a.alive && a.sig === 'lifeline' && !a._ll);
@@ -1478,6 +1496,7 @@
       // card levels/rarity and hero level count in every mode that passes them (campaign, tower, events, quick vs AI); online and same-device (hotseat) pass none, so they stay even. The deck limit is progression-only.
       this.progression = !!opts.progression;
       this.rules = opts.rules || null;   // short-match rules (campaign): { maxRounds, winsNeeded, start: { gold, level } }
+      this.weekly = opts.weekly && Match.WEEKLY[opts.weekly] ? opts.weekly : null;   // teen #19: the rule of the week (quick match, online, same device)
       this.players = opts.players.map((p, i) => newPlayer(i, this.progression ? p : Object.assign({}, p, { allowedUnits: null })));
       // online play: each player has their OWN random stream, unit pool and unit ids, so both phones can replay each other's moves and stay identical
       this.isolated = !!opts.isolated;
@@ -1495,7 +1514,7 @@
 
     _rng(p) { return this.isolated ? p.rng : this.rng; }
     _pool(p) { return this.isolated ? p.pool : this.pool; }
-    _uid(p) { return this.isolated ? 'u' + p.index + '_' + (++p.uidN) : AMB.util.uid('u'); }
+    _uid(p) { return this.isolated ? 'u' + p.index + '_' + (++p.uidN) : 'u' + (this._uidN = (this._uidN || 0) + 1); }   // per-match ids: a match rebuilt from its moves (continue after reload) gets the same ids
 
     // ================================================================ round flow
     startRound() {
@@ -1506,7 +1525,9 @@
       // short-match start gold/level go in BEFORE the first shop is rolled (the first shop used to be rolled at level 3 whatever the start level was)
       if (this.rules && this.round === 1) this.players.forEach((p) => { const st = this.rules.start; if (!p.lineup && st) { p.gold += st.gold || 0; p.level = Math.max(p.level, st.level || 0); } });
       this.players.forEach((p) => {
-        const interest = Math.min(E.interestMax, Math.floor(p.gold / E.interestPer));
+        if (p.invest && this.isFinale(this.round)) { p.gold += p.invest; p.invest = 0; }   // the investment pays out at the start of the finale
+        const rich = this.weekly === 'richInterest';
+        const interest = Math.min(rich ? E.interestMax + 2 : E.interestMax, Math.floor(p.gold / (rich ? E.interestPer - 2 : E.interestPer)));
         const streak = Math.max(p.winStreak, p.lossStreak);
         let streakBonus = 0;
         E.streakBonus.forEach(([n, b]) => { if (streak >= n) streakBonus = b; });
@@ -1521,7 +1542,7 @@
         if (this.round > 1) this._gainXp(p, E.xpPerRound);
         const essGain = E.essencePerRound + (AMB.DATA.HEROES[p.heroId].passive.id === 'deep_reserve' ? 2 : 0);
         if (this.round > 1) p.essence = Math.max(p.essence, Math.min(E.essenceMax, p.essence + essGain));   // a 'pure essence' reward above the cap is kept (never clamped away)
-        p.freeRerolls = AMB.DATA.HEROES[p.heroId].passive.id === 'free_reroll' ? 1 : 0;
+        p.freeRerolls = (AMB.DATA.HEROES[p.heroId].passive.id === 'free_reroll' ? 1 : 0) + (this.weekly === 'freeReroll' ? 1 : 0);
         if (!p.shopLocked || !p.shop.length) this._rollShop(p, true);
         p.shopLocked = false;
         this._validateAbilities(p);
@@ -1684,6 +1705,13 @@
     findUnit(p, uid) { return this.allUnits(p).find((u) => u.uid === uid) || null; }
 
     /** units of star-1 that merge into one unit of `star` (3 for ★★; ★★★ may need fewer, see CONFIG.stars.copiesTo) */
+    /** teen #19: the rule of the week. Same for everyone; it changes every Monday-ish (week index since the epoch). */
+    static get WEEKLY() { return {
+      lateHero: { name: 'الأبطال يتأخرون', text: 'البطل ما ينزل الساحة قبل الجولة 4' },
+      richInterest: { name: 'موسم الفوائد', text: 'الفايدة على الذهب أكبر: +1 لكل 8، لين 5' },
+      freeReroll: { name: 'متجر كريم', text: 'أول تحديث للمتجر في كل جولة مجاني للكل' },
+    }; }
+    static weeklyNow(t) { const ids = Object.keys(Match.WEEKLY); return ids[Math.floor((t || Date.now()) / 604800000) % ids.length]; }
     static copiesFor(star) { const S = AMB.CONFIG.stars; return (S.copiesTo && S.copiesTo[star]) || S.copiesPerStar; }
     /** how many 1★ copies a unit is made of (sell value and pool refund) */
     copiesOf(u) { let n = 1; for (let s = 2; s <= u.star; s++) n *= Match.copiesFor(s); return n; }
@@ -1819,9 +1847,17 @@
       }
     }
 
+    /** teen #15: "رهان الحسم": in the finale's prep a player may raise the stakes: the loser of the final round loses ×wagerMult more life (for both sides) */
+    setWager(pi, on) {
+      const p = this.players[pi];
+      if (!this.isFinale(this.round) || this.phase !== 'prep') return this._fail('الرهان بس في جولة الحسم');
+      p.wager = !!on; return { ok: true };
+    }
+
     toggleSummon(pi, slot) {
       if (slot != null && !SLOTS.includes(slot)) return this._fail('خانة غلط');
       const p = this.players[pi];
+      if (this.weekly === 'lateHero' && !p.summoned && this.round < 4) return this._fail('قاعدة الأسبوع: البطل ينزل من الجولة 4');
       if (p.summoned) { p.summoned = false; this._validateAbilities(p); return { ok: true }; }
       const s = slot || p.heroSlot;
       const target = !p.board[s] ? s : SLOTS.slice().reverse().find((x) => !p.board[x]);
@@ -1911,7 +1947,14 @@
         spells: p.armedSpells.slice(),
         blessings: Object.assign({}, p.blessings),
         abilities: Object.entries(p.abilities).map(([id, trigger]) => ({ id, trigger })),
+        hunt: p.hunt || 'back',
       };
+    }
+
+    /** teen #13: what your assassins go for: 'back' (the back line, default) or 'weak' (the lowest-health enemy) */
+    setHunt(pi, mode) {
+      if (mode !== 'back' && mode !== 'weak') return this._fail('اختيار غلط');
+      this.players[pi].hunt = mode; return { ok: true };
     }
 
     createCombat(record) {
@@ -1937,7 +1980,7 @@
         const opp = result.sides[1 - i];
         if (result.winner === 1 - i && !sr.heroKilled) {
           backlash = D.lossBase + Math.floor(this.round * D.lossPerRound) + Math.min(D.survivorCap, opp.survivors.reduce((s, u) => s + u.star * D.perSurvivor, 0));
-          if (this.isFinale()) backlash = Math.round(backlash * M.finaleLossMult);
+          if (this.isFinale()) backlash = Math.round(backlash * M.finaleLossMult * (this.players.some((x) => x.wager) ? M.wagerMult : 1));   // teen #15: a finale wager raises the stakes for both
         } else if (result.winner === null) backlash = D.drawBase + Math.floor(this.round / 3);
         let collapse = 0;
         if (this.round >= M.collapseStartRound) {
@@ -1958,6 +2001,8 @@
         else if (result.winner === 1 - i) { p.lossStreak++; p.winStreak = 0; p.stats.losses++; }
         else { p.stats.draws++; }
         const dmg = Object.values(p.board).reduce((s, u) => s + (result.unitDamage[u.uid] || 0), 0);
+        p.stats.byUnit = p.stats.byUnit || {};   // teen #18: damage per unit type over the match (for the after-match analysis)
+        Object.values(p.board).forEach((u) => { const d0 = result.unitDamage[u.uid] || 0; if (d0) p.stats.byUnit[u.defId] = Math.round((p.stats.byUnit[u.defId] || 0) + d0); });
         p.stats.damageDealt += dmg;
         report.players.push({ direct: Math.round(direct * 10) / 10, backlash, collapse, lifeAfter: p.life, heroKilled: sr.heroKilled,
           survivors: sr.survivors.length, essenceSpent: spent, abilities: sr.abilitiesFired, exposed: sr.exposed,
@@ -2027,6 +2072,7 @@
       const R = AMB.DATA.REWARDS[id], st = o.stage, out = { ok: true, id, text: R.name + ' — ' + this.rewardText(id, st) };
       switch (id) {
         case 'gold': p.gold += R.n[st]; break;
+        case 'invest': p.invest = (p.invest || 0) + R.n[st]; break;
         case 'xp': this._gainXp(p, R.n[st]); break;
         case 'essence': p.essence = Math.min(AMB.CONFIG.economy.essenceMax + 3, p.essence + R.n[st]); break;
         case 'heal': p.life = Math.min(p.maxLife, p.life + R.n[st]); break;
@@ -2210,7 +2256,11 @@
   function prep(match, pi) {
     const p = match.players[pi];
     if (p.lineup) return;   // scripted campaign enemy: its board is set by match.applyLineup
-    const cfg = AMB.CONFIG.ai[p.difficulty] || AMB.CONFIG.ai.normal;
+    let cfg = AMB.CONFIG.ai[p.difficulty] || AMB.CONFIG.ai.normal;
+    if (cfg.adaptive) {   // expert reads the opponent: a greedy opponent (big bank) gets punished with faster levels
+      const foe0 = match.players[1 - pi];
+      if (foe0 && foe0.gold >= 20) cfg = Object.assign({}, cfg, { levelAggro: cfg.levelAggro * 1.3, reserveCap: 2 });
+    }
     const rng = AMB.util.RNG(match.seed + match.round * 7919 + pi * 31);
     const E = AMB.CONFIG.economy;
     const hero = AMB.DATA.HEROES[p.heroId];
@@ -2263,11 +2313,16 @@
     }
 
     // --- items: spells only with spare gold (they last one combat)
+    const foe = match.players[1 - pi], hasAssassin = match.allUnits(p).some((u) => AMB.DATA.UNITS[u.defId].role === 'assassin');
     if (!cfg.noItems) p.itemShop.forEach((id, i) => {
       if (!id || AMB.DATA.ITEMS[id].kind !== 'spell') return;
       const it = AMB.DATA.ITEMS[id];
+      if (id === 'rift_net') { if (foe && foe.summoned && p.gold >= it.cost) match.buyItem(pi, i); return; }   // the counter, only when it makes sense
       if (p.gold - it.cost >= reserve && match.boardCount(p) + p.bench.filter(Boolean).length >= 2 && rng.chance(0.7)) match.buyItem(pi, i);
     });
+
+    // --- finale wager (teen #15): a player who is behind raises the stakes, a leader never does
+    if (match.isFinale(match.round) && match.setWager) { const foe1 = match.players[1 - pi]; if (foe1 && foe1.life - p.life >= 15 && !cfg.noSummon) match.setWager(pi, true); }
 
     // --- hero summon decision (before arranging so a slot is kept)
     const aggressive = hero.id === 'kagira';
@@ -2317,6 +2372,7 @@
         case 'heal': return p.life < 40 ? 9 : p.life < 60 ? 7 : p.life < 80 ? 4 : 1;   // a badly hurt hero heals before it recruits
         case 'xp': return lvlRoom ? 4.4 : 0.5;
         case 'gold': return 3.8;
+        case 'invest': return p.life >= 60 ? 4.2 : 2;   // only a healthy player can afford to wait for the finale
         case 'essence': return 3.2;
         case 'item': return 3.5;
         default: return 0;
@@ -3697,7 +3753,7 @@
 (function () {
   const AMB = (globalThis.AMB = globalThis.AMB || {});
   // every call a player can make during prep or the reward draft
-  const OPS = ['buy', 'reroll', 'buyXp', 'toggleLock', 'sell', 'move', 'buyItem', 'equip', 'unequip', 'sellItem', 'armSpell', 'disarmSpell', 'setAbility', 'toggleSummon', 'moveHero', 'autoArrange', 'claimReward'];
+  const OPS = ['buy', 'reroll', 'buyXp', 'toggleLock', 'sell', 'move', 'buyItem', 'equip', 'unequip', 'sellItem', 'armSpell', 'disarmSpell', 'setAbility', 'toggleSummon', 'moveHero', 'autoArrange', 'claimReward', 'setWager', 'setHunt'];
 
   function record(match, idx) {
     const ops = []; let depth = 0;
@@ -3729,12 +3785,12 @@
   const ARGS = {
     buy: ['int'], reroll: [], buyXp: [], toggleLock: [], sell: ['uid'], move: ['uid', 'dest'], buyItem: ['int'],
     equip: ['int', 'uid'], unequip: ['uid'], sellItem: ['int'], armSpell: ['int'], disarmSpell: ['int'],
-    setAbility: ['id', 'trig?'], toggleSummon: ['slot?'], moveHero: ['slot'], autoArrange: [], claimReward: ['int'],
+    setAbility: ['id', 'trig?'], toggleSummon: ['slot?'], moveHero: ['slot'], autoArrange: [], claimReward: ['int'], setWager: ['bool'], setHunt: ['id'],
   };
   const isInt = (v) => Number.isInteger(v) && v >= -1000 && v <= 1000;
   const isStr = (v, max) => typeof v === 'string' && v.length > 0 && v.length <= max;
   const CHECK = {
-    int: isInt, uid: (v) => isStr(v, 32), id: (v) => isStr(v, 40), slot: (v) => isStr(v, 4),
+    bool: (v) => v === true || v === false, int: isInt, uid: (v) => isStr(v, 32), id: (v) => isStr(v, 40), slot: (v) => isStr(v, 4),
     trig: (v) => isStr(v, 20) && !!(AMB.DATA && Object.prototype.hasOwnProperty.call(AMB.DATA.ABILITY_TRIGGERS, v)),   // an ability trigger must be a known one
     dest: (v) => !!v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 2
       && (v.zone === 'board' ? isStr(v.slot, 4) : v.zone === 'bench' ? isInt(v.idx) : false),
@@ -4082,7 +4138,7 @@
   const SEASON = {
     id: 's1', name: 'موسم الصدع الأول', days: 42, levels: 30, xpPerLevel: 500,   // 15,000 XP in all: about a month at 3 matches a day plus the missions (it was 3,000 = a week)
     xp: { played: 30, won: 40, perRoundWon: 6, finaleWon: 15, firstWinOfDay: 40 },
-    modeMult: { easy: 0.6, normal: 1, hard: 1.25, hotseat: 0.8, friendly: 0, campaign: 0 },   // friendly games give nothing (no farming)
+    modeMult: { easy: 0.6, normal: 1, hard: 1.25, expert: 1.4, hotseat: 0.8, friendly: 0, campaign: 0 },   // friendly games give nothing (no farming)
   };
 
   // ------------------------------------------------------------- cosmetics registry (applied by the UI)
@@ -4336,6 +4392,11 @@
 
   AMB.Pass = { create, wire, KEY, SEASON, COSMETICS, FREE, PREMIUM, DAILY, WEEKLY, dayKey, weekKey, rewardName };
 })();
+
+;
+/* core/meta.js */
+/* generated by tools/meta-snapshot.js on 2026-11-09: AI-vs-AI win rates (hero: 1000 games x2 seeds; synergy: 1500 games x2 seeds) */
+(function () { globalThis.AMB = globalThis.AMB || {}; AMB.META = {"date":"2026-11-09","heroes":{"nayako":52,"kairyu":52.8,"kagira":49.9,"thora":50.7,"orath":50.7,"zerokai":49.3,"merin":49,"rika":48.4},"synergies":{"marksman":54.7,"guardian":51,"neon":51.1,"mage":51.9,"assassin":50.6,"convergence":49.8,"tide":50.2,"sylvan":48.6,"support":46.4,"ember":46.9,"fighter":46.4}}; })();
 
 ;
 /* assets/characters/manifest.js */
@@ -4916,6 +4977,7 @@ AMB.IMAGES = {
     document.body.classList.remove('more-open');
     document.querySelectorAll('#bnav button').forEach((b) => b.classList.toggle('on', b.dataset.n === screen));
     if (screen === 'menu') { try { fillMenu(); } catch (err) { reportErr(err); } }   // page scroll is locked only during a match
+    if (screen === 'mode') { const wr = $('weekly-rule'); if (wr) { const W0 = AMB.Match.WEEKLY[AMB.Match.weeklyNow()]; wr.innerHTML = `📅 <b>قاعدة الأسبوع: ${W0.name}</b> · ${W0.text}`; } }
     window.scrollTo(0, 0);
     // every screen refreshes on its own: one that fails must never stop the others (or leave the player stuck)
     const T = (f) => { try { f(); } catch (err) { reportErr(err); } };
@@ -4958,7 +5020,8 @@ AMB.IMAGES = {
   // hero ownership (core/collection.js): player 1 picks among owned heroes; a brand-new player first picks a starter.
   // Player 2 on the same device is a guest and may use any hero.
   const starterPick = () => S.pickIdx === 0 && AMB.collection && AMB.collection.needsStarter();
-  const heroLocked = (id) => S.pickIdx === 0 && AMB.collection && (starterPick() ? !AMB.DATA.HERO_STARTERS.includes(id) : !AMB.collection.owned(id));
+  // teen #16: against a friend (online) and on the same device every hero is open: those matches are pure skill (no card power, no hero ownership)
+  const heroLocked = (id) => (S.mode === 'online' && AMB.NetUI && AMB.NetUI.usedInSeries(id)) || S.mode !== 'online' && S.mode !== 'hotseat' && S.pickIdx === 0 && AMB.collection && (starterPick() ? !AMB.DATA.HERO_STARTERS.includes(id) : !AMB.collection.owned(id));
   // one compact hero card, shared by the quick-match picker and the campaign's first-hero picker (same look in both)
   function heroPickHTML(h, o) {
     o = o || {};
@@ -5042,7 +5105,7 @@ AMB.IMAGES = {
       const styles = ['mono', 'mixed', 'balanced'];
       players = [
         { heroId: S.picks[0], name: 'أنت', cardPower: AMB.collection ? AMB.collection.powerMap() : null, heroLevel: AMB.heroes ? AMB.heroes.level(S.picks[0]) : 1 },
-        { heroId: aiHero, name: 'الكمبيوتر', isAI: true, aiStyle: styles[Math.floor(Math.random() * 3)], difficulty: S.mode === 'friendly' ? 'easy' : S.difficulty },
+        { heroId: aiHero, name: 'الكمبيوتر', isAI: true, aiStyle: S.difficulty === 'hard' || S.difficulty === 'expert' ? 'mono' : styles[Math.floor(Math.random() * 3)], difficulty: S.mode === 'friendly' ? 'easy' : S.difficulty },   // hard/expert always use the strongest style (their hero's world)
       ];
     }
     // campaign fight (ui/campaign-ui.js): fixed enemy line-up, short best-of-3 rules, your card levels count
@@ -5052,11 +5115,13 @@ AMB.IMAGES = {
       : S.mode === 'tutorial' ? new AMB.Match(AMB.tutorial.matchOptions(S.picks[0]))
       : S.mode === 'practice' ? new AMB.Match(AMB.Tutorial.practiceOptions(S.picks[0]))
       : S.mode === 'online' ? AMB.NetUI.makeMatch()
-      : new AMB.Match({ mode: S.mode, players });
+      : new AMB.Match({ mode: S.mode, players, weekly: S.mode === 'ai' || S.mode === 'hotseat' ? AMB.Match.weeklyNow() : null });
     // same hero on both sides (e.g. your Kiro vs the Ember boss Kiro): the enemy becomes its "shadow"
     const mirror = S.match.players[0].heroId === S.match.players[1].heroId;
     document.body.classList.toggle('mirror-foe', mirror);
     if (mirror && S.mode === 'campaign') { const hn = HEROES[S.match.players[1].heroId].name, e = S.match.players[1]; if (e.name.includes(hn)) e.name = e.name.replace(hn, 'ظلّ ' + hn); }
+    resumeStart(players);
+    if (S.match.weekly) { const W0 = AMB.Match.WEEKLY[S.match.weekly]; setTimeout(() => toast(`📅 قاعدة الأسبوع: ${W0.name} · ${W0.text}`, 'good'), 900); }
     S.startTs = Date.now();
     S.speed = AMB.settings ? AMB.settings.speed() : 1;   // the last speed the player picked (1x for a new player)
     show('match');
@@ -5078,6 +5143,7 @@ AMB.IMAGES = {
 
   function nextRound() {
     const m = S.match;
+    resumeSaveRound();
     m.startRound();
     if (S.mode === 'tutorial') AMB.tutorial.onRound(m);   // fixed shop for the guided match
     S.combat = null;
@@ -5192,8 +5258,50 @@ AMB.IMAGES = {
     S.sel = null;
     if (S.mode === 'online') { AMB.NetUI.iAmReady(); return; }
     if (S.mode === 'hotseat' && S.queue.length) { handoff(S.queue.shift()); return; }
+    if (S.rs) S.rs.cur = { aiFirst: !!S.aiFirst, prep: S.rs.rec.take() };   // adult #21: this round's moves, for "continue your match"
     if (S.mode !== 'hotseat' && !S.aiFirst) AMB.AI.prep(m, 1);
     startCombat();
+  }
+
+  // ---- adult #21: continue an unfinished quick match after a reload (the match is rebuilt by replaying the recorded moves; it is deterministic)
+  const RS_KEY = 'zor_resume_v1';
+  function resumeStart(players) {
+    S.rs = null;
+    if (S.mode !== 'ai') return;
+    S.rs = { opts: { mode: 'ai', seed: S.match.seed, players, weekly: S.match.weekly }, rounds: [], cur: null, rec: AMB.NetSync.record(S.match, 0), diff: S.difficulty, picks: S.picks.slice() };
+  }
+  function resumeSaveRound() {
+    if (!S.rs || !S.rs.cur) return;
+    S.rs.cur.reward = S.rs.rec.take(); S.rs.rounds.push(S.rs.cur); S.rs.cur = null;
+    try { localStorage.setItem(RS_KEY, JSON.stringify({ opts: S.rs.opts, rounds: S.rs.rounds, hash: AMB.NetSync.hash(S.match), diff: S.rs.diff, picks: S.rs.picks, at: Date.now() })); } catch (e) { /* ignore */ }
+  }
+  function resumeClear() { if (S.rs) S.rs = null; try { localStorage.removeItem(RS_KEY); } catch (e) { /* ignore */ } }
+  function resumeSaved() { try { const v = JSON.parse(localStorage.getItem(RS_KEY)); return v && v.opts && Array.isArray(v.rounds) && v.rounds.length ? v : null; } catch (e) { return null; } }
+  function resumeRebuild(sv) {
+    const m = new AMB.Match(sv.opts);
+    for (const r of sv.rounds) {
+      m.startRound();
+      if (r.aiFirst) AMB.AI.prep(m, 1);
+      if (AMB.NetSync.replay(m, 0, r.prep).length) return null;
+      m.autoFill(0);
+      if (!r.aiFirst) AMB.AI.prep(m, 1);
+      m.resolveCombat(m.createCombat(false).runToEnd());
+      if (AMB.NetSync.replay(m, 0, r.reward || []).length) return null;
+      if (m.players[1].rewardOffer && !m.players[1].rewardOffer.claimed) AMB.AI.claimReward(m, 1);
+      if (m.isOver) return null;
+    }
+    return AMB.NetSync.hash(m) === sv.hash ? m : null;
+  }
+  function resumeMatch() {
+    const sv = resumeSaved(); if (!sv) return;
+    let m = null; try { m = resumeRebuild(sv); } catch (e) { m = null; }
+    if (!m) { resumeClear(); toast('ما قدرت أرجّع المباراة، نبدأ من جديد', 'err'); fillMenu(); return; }
+    S.mode = 'ai'; S.difficulty = sv.diff || S.difficulty; S.picks = sv.picks || [m.players[0].heroId, null]; S.match = m; S.v = 0; S.sel = null; S.combat = null;
+    S.rs = { opts: sv.opts, rounds: sv.rounds, cur: null, rec: AMB.NetSync.record(m, 0), diff: sv.diff, picks: S.picks };
+    document.body.classList.toggle('mirror-foe', m.players[0].heroId === m.players[1].heroId);
+    S.startTs = Date.now(); S.speed = AMB.settings ? AMB.settings.speed() : 1;
+    show('match'); toast(`كمّلنا مباراتك: الجولة ${m.round + 1} من ${CFG.match.maxRounds}`, 'good');
+    nextRound();
   }
 
   setInterval(() => {
@@ -5702,7 +5810,7 @@ AMB.IMAGES = {
     el.style.setProperty('--ow', WORLDS[h.world].color);
     el.innerHTML = `${portrait(h, { k: 'opp' })}<span class="op-n">${esc(o.name)}</span>
       <span class="op-lv" title="المستوى">${icon('crown')}<b>${o.level}</b></span>
-      <span class="op-life"><span class="op-bar"><i></i></span>${icon('heart')}<b>${lifeStr(o.life)}</b></span>`;
+      <span class="op-life"><span class="op-bar"><i></i></span>${icon('heart')}<b>${lifeStr(o.life)}</b></span>${S.phase === 'prep' && S.mode !== 'hotseat' ? '<button class="op-scout" data-act="scout" aria-label="استكشاف الخصم">🔍</button>' : ''}`;
     S.oppUi = { bar: el.querySelector('.op-bar i'), num: el.querySelector('.op-life b'), txt: '', pct: -1 };
     oppLife(o.life, o.maxLife);
   }
@@ -6010,7 +6118,7 @@ AMB.IMAGES = {
     const sev = AMB.synergy.evaluate(Object.values(p.board), p.heroId), dups = dupCount(p);
     const synStrip = sev.list.length || dups ? `<span class="pb-syn">${synergyHTML(sev.list.slice(0, 4), dups)}</span>` : '';
     return `<div class="pb"><span class="pb-count">${icon('shield')} ${cnt}${p.summoned ? ' +' + icon('crown') : ''}</span>${synStrip}${bag ? `<span class="pb-bag">${bag}</span>` : ''}
-      <span class="pb-btns"><button class="btn small ib ${p.summoned ? 'on' : ''} ${!p.summoned && S.match.round >= 2 && p.life >= 30 && S.mode !== 'online' ? 'can-summon' : ''}" data-act="summon">${p.summoned ? '👑 رجّع البطل' : '👑 نزّل البطل'}</button><button class="btn small ib" data-act="autoArrange">تلقائي</button></span></div>`;
+      <span class="pb-btns"><button class="btn small ib ${p.summoned ? 'on' : ''} ${!p.summoned && S.match.round >= 2 && p.life >= 30 && S.mode !== 'online' ? 'can-summon' : ''}" data-act="summon">${p.summoned ? '👑 رجّع البطل' : '👑 نزّل البطل'}</button><button class="btn small ib" data-act="autoArrange">تلقائي</button>${S.match.isFinale(S.match.round) && S.mode !== 'hotseat' ? `<button class="btn small ib ${p.wager ? 'on' : ''}" data-act="wager" title="الخاسر في الجولة الأخيرة يخسر حياة أكثر (للطرفين)">🎲 ${p.wager ? 'راهنت' : 'رهان'}</button>` : ''}</span></div>`;
   }
 
   // the synergy chips stay visible during the fight, so you can see WHY your board is strong (same chips as the prep bar; no new panels)
@@ -6020,6 +6128,24 @@ AMB.IMAGES = {
       const sev = AMB.synergy.evaluate(Object.values(pl.board).filter(Boolean), pl.heroId);
       return sev.list.length ? `<span class="pb-syn cc-syn">${synergyHTML(sev.list.slice(0, 4), 0)}</span>` : '';
     } catch (e) { return ''; }
+  }
+  // teen #18: after-match analysis: the life of both sides round by round, the turning point, your best unit, and a share button
+  function analysisHTML(m) {
+    const mi = mySeat(), H = m.history; if (!H.length) return '';
+    const pts = (i) => [m.players[i].maxLife].concat(H.map((r) => r.players[i].lifeAfter));
+    const a = pts(mi), b = pts(1 - mi), max = Math.max(...a, ...b, 1), W = 300, Ht = 90, n = a.length - 1 || 1;
+    const line = (arr) => arr.map((v, k) => `${Math.round((k / n) * W)},${Math.round(Ht - (Math.max(0, v) / max) * Ht)}`).join(' ');
+    let swing = null, sw = 0;
+    H.forEach((r, k) => { const d = Math.abs((r.players[mi].lifeAfter - r.players[1 - mi].lifeAfter) - ((k ? H[k - 1].players[mi].lifeAfter - H[k - 1].players[1 - mi].lifeAfter : 0))); if (d > sw) { sw = d; swing = r.round; } });
+    const bu = Object.entries(m.players[mi].stats.byUnit || {}).sort((x, y) => y[1] - x[1])[0];
+    const share = `ZOR · ${m.winner === mi ? 'فزت' : m.winner == null ? 'تعادلت' : 'خسرت'} ${H.filter((r) => r.winner === mi).length}–${H.filter((r) => r.winner === 1 - mi).length}${bu ? ` · نجمي: ${UNITS[bu[0]].name}` : ''}`;
+    S.shareText = share;
+    return `<div class="res-analysis"><h3>📈 تحليل المباراة</h3>
+      <svg viewBox="-4 -4 ${W + 8} ${Ht + 8}" class="ra-graph" role="img" aria-label="حياة الطرفين جولة بجولة"><polyline points="${line(b)}" class="ra-foe"/><polyline points="${line(a)}" class="ra-me"/></svg>
+      <div class="ra-legend"><span class="me">— أنت</span><span class="foe">— الخصم</span></div>
+      ${swing ? `<p>🔄 نقطة التحول: <b>الجولة ${swing}</b> (تغيّر الفرق ${Math.round(sw)} حياة)</p>` : ''}
+      ${bu ? `<p>⭐ أقوى وحدة عندك: <b>${UNITS[bu[0]].name}</b> · ${fmt(bu[1])} ضرر</p>` : ''}
+      <button class="btn small" data-act="shareRes">📤 شارك النتيجة</button></div>`;
   }
   // kid #9: one friendly tip after a lost match, picked from what actually happened
   function lossTip(m) {
@@ -6182,6 +6308,7 @@ AMB.IMAGES = {
     const secs = Math.round((Date.now() - S.startTs) / 1000);
     if (S.mode === 'practice') return practiceResult(m, secs);   // hero trial: no XP, rewards, stats, pass or play count
     awardHeroXp(m);
+    if (S.mode === 'ai') resumeClear();   // the match is over: nothing to continue
     if (S.mode === 'campaign') return AMB.CampaignUI.showResult(m, secs);   // campaign and tower have their own results screens
     if (S.mode === 'tower') return AMB.TowerUI.showResult(m, secs);
     if (S.mode === 'event') return AMB.EventUI.showResult(m, secs);
@@ -6221,6 +6348,7 @@ AMB.IMAGES = {
       <div class="timeline">${tl}</div>${S.mode !== 'hotseat' && m.winner != null && !myWin ? `<p class="res-tip">💡 ${lossTip(m)}</p>` : ''}</div>
       ${AMB.PassUI ? AMB.PassUI.resultPanel(S.passResult) : ''}
       <div class="res-quick">${m.players.map((p, i) => `<div class="rq ${m.winner === i ? 'won' : ''}"><b>${esc(p.name)}</b><span>${icon('heart')} ${lifeStr(p.life)}</span><span>${icon('sword')} ${p.stats.wins}–${p.stats.losses}</span><span>${fmt(p.stats.damageDealt)} ضرر</span></div>`).join('')}</div>
+      ${S.mode === 'online' && AMB.NetUI ? AMB.NetUI.seriesNote(m) : ''}${S.mode !== 'hotseat' ? analysisHTML(m) : ''}
       <details class="res-details"><summary>تفاصيل المباراة</summary><div class="res-cols">${cols}</div></details>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:30px">
         <button class="btn primary big" data-act="again">مباراة جديدة</button>
@@ -6231,6 +6359,14 @@ AMB.IMAGES = {
     if (myWin) setTimeout(() => { const h = document.querySelector('.res-hero'); if (h) (own && AMB.PassUI ? AMB.PassUI.fxColors() : ['#ffd24a', '#ff4f8b', '#5fe3ff', '#7bd46a', '#ffffff']).forEach((c) => burst(h, c, 14, { r: 150, s: 8 })); }, 250);
   }
 
+  // teen #20: the meta, in plain Arabic: which heroes and synergies win most right now (simulation, refreshed with tools/meta-snapshot.js)
+  function metaHTML() {
+    const M = AMB.META; if (!M) return '';
+    const rows = (o, nameOf) => Object.entries(o).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${nameOf(k)}</td><td>${v}%</td><td><div class="bar"><i style="width:${v}%"></i></div></td></tr>`).join('');
+    return `<div class="box" style="grid-column:1/-1"><h3>📊 الميتا الحين</h3><p class="hint">نسبة الفوز من آلاف المباريات بين الكمبيوتر (${M.date}). 50% = متوازن.</p>
+      <div class="meta-cols"><table><tr><th>البطل</th><th>فوز</th><th></th></tr>${rows(M.heroes, (k) => (HEROES[k] ? HEROES[k].name : k))}</table>
+      <table><tr><th>التآزر</th><th>فوز</th><th></th></tr>${rows(M.synergies, (k) => (SYNERGIES[k] ? SYNERGIES[k].name : k))}</table></div></div>`;
+  }
   function renderStats() {
     const d = AMB.telemetry.load();
     const pct = (w, p) => (p ? Math.round(((w || 0) / p) * 100) : 0);
@@ -6248,10 +6384,11 @@ AMB.IMAGES = {
           <div><div class="big-num">${d.matches ? fmt(d.totalRounds / d.matches, 1) : 0}</div><div class="hint">متوسط الجولات</div></div>
           <div><div class="big-num">${d.matches ? fmt(d.totalSeconds / d.matches / 60, 1) : 0}</div><div class="hint">متوسط الدقائق</div></div></div>
         <p class="hint">تعادلات: ${d.draws} · استدعاء البطل: ${d.summons.used} لاعب، فوز ${pct(d.summons.wins, d.summons.used)}%</p>
-        <p class="hint">لاختبار التوازن على نطاق واسع شغّل محاكي الكمبيوتر: <code>node tools/simulate.js 800</code></p>
+
         <div style="display:flex;gap:8px"><button class="btn small" data-act="statsExport">تصدير JSON</button><button class="btn small danger" data-act="statsReset">مسح البيانات</button></div></div>
       <div class="box"><h3>الأبطال</h3>${tbl(d.heroes, (k) => HEROES[k] ? HEROES[k].name : k)}</div>
-      <div class="box"><h3>أنماط اللاعبين</h3>${tbl(d.styles, (k) => k === 'human' ? 'بشري' : k.replace('ai:', 'ذكاء اصطناعي: '))}</div>
+      ${metaHTML()}
+      <div class="box"><h3>أنماط اللاعبين</h3>${tbl(d.styles, (k) => k === 'human' ? 'بشري' : k.replace('ai:mono', 'كمبيوتر: عالم واحد').replace('ai:mixed', 'كمبيوتر: متنوّع').replace('ai:balanced', 'كمبيوتر: متوازن').replace('ai:', 'كمبيوتر: '))}</div>
       <div class="box"><h3>التآزر</h3>${tbl(d.synergies, (k) => SYNERGIES[k] ? SYNERGIES[k].name : k)}</div>
       <div class="box" style="grid-column:1/-1"><h3>الوحدات (استخدام ونسبة فوز)</h3>${tbl(d.units, (k) => UNITS[k] ? UNITS[k].name : k, true)}</div>
       <div class="box" style="grid-column:1/-1"><h3>آخر المباريات</h3>${recent ? `<table><tr><th>الوقت</th><th>النمط</th><th>الأبطال</th><th>الفائز</th><th>جولات</th><th>المدة</th></tr>${recent}</table>` : '<p class="hint">—</p>'}</div>`;
@@ -6319,6 +6456,7 @@ AMB.IMAGES = {
     mode: (d) => { S.mode = d.v; S.picks = [null, null]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
     pickHero: (d, el, e) => {
       if (e.target.closest('[data-act="heroInfo"], [data-act="heroTry"]')) return;
+      if (S.mode === 'online' && AMB.NetUI && AMB.NetUI.usedInSeries(d.id)) { toast('لعبت بهالبطل في السلسلة، اختر غيره', 'err'); return; }
       if (heroLocked(d.id)) { toast('هذا البطل مقفل: تفتحه من الباكجات (أسطوري) أو الباتل باس', 'err'); return; }
       S.picks[S.pickIdx] = d.id; renderHeroSelect();
     },
@@ -6409,6 +6547,27 @@ AMB.IMAGES = {
     arm: () => { if (S.sel && S.sel.kind === 'item' && res(S.match.armSpell(S.v, S.sel.idx))) { S.sel = null; toast('التعويذة جاهزة للقتال الجاي', 'good'); renderMatch(); } },
     disarm: (d) => { if (prepActive() && res(S.match.disarmSpell(S.v, +d.idx))) renderMatch(); },
     sellItem: () => { if (S.sel && S.sel.kind === 'item' && res(S.match.sellItem(S.v, S.sel.idx))) { S.sel = null; renderMatch(); } },
+    // teen #13: scout the opponent before pressing ready, and choose what your assassins hunt
+    scout: () => {
+      const m = S.match, v = S.v, o = m.players[1 - v], me0 = m.players[v], last = m.history[m.history.length - 1];
+      const lp = last ? last.players[1 - v] : null;
+      const syn = lp && lp.synergies.length ? lp.synergies.map((id) => SYNERGIES[id].name).join('، ') : '—';
+      const hunt = me0.hunt || 'back';
+      modal(`<h2>🔍 ${esc(o.name)}</h2>
+        <div class="kv"><span>المستوى (وحداته في الساحة)</span><b>${o.level}</b></div>
+        <div class="kv"><span>ذهبه الحين</span><b>${o.gold}</b></div>
+        <div class="kv"><span>تآزره الجولة اللي فاتت</span><b>${syn}</b></div>
+        <div class="kv"><span>بطله الجولة اللي فاتت</span><b>${lp ? (lp.summoned ? '👑 نزل الساحة' : 'ما نزل') : '—'}</b></div>
+        ${o.wager ? '<div class="kv"><span>رهان الحسم</span><b>🎲 راهن</b></div>' : ''}
+        <h3 style="margin-top:12px">قتلتك يصطادون</h3>
+        <div class="seg"><button class="${hunt === 'back' ? 'on' : ''}" data-act="hunt" data-v="back">الصف الخلفي</button><button class="${hunt === 'weak' ? 'on' : ''}" data-act="hunt" data-v="weak">الأضعف</button></div>
+        <p class="hint">💡 لو بطله ينزل بدري، «شبكة الصدع» من متجر المعدات تخلي فريقك كله يضربه.</p>`);
+    },
+    hunt: (d) => { if (!prepActive()) return; if (res(S.match.setHunt(S.v, d.v))) { toast(d.v === 'weak' ? 'القتلة يصطادون الأضعف' : 'القتلة يصطادون الصف الخلفي', 'good'); ACT.scout(); } },
+    shareRes: () => { const t = S.shareText || 'ZOR'; try { if (navigator.share) { navigator.share({ text: t }).catch(() => {}); return; } } catch (e) { /* ignore */ } try { navigator.clipboard.writeText(t); toast('انسخ النص 📋', 'good'); } catch (e) { toast(t); } },
+    resumeMatch: () => resumeMatch(),
+    resumeDrop: () => { resumeClear(); fillMenu(); },
+    wager: () => { if (!prepActive()) return; const p = me(); if (res(S.match.setWager(S.v, !p.wager))) { toast(p.wager ? '🎲 راهنت: الخاسر في الحسم يخسر أكثر' : 'لغيت الرهان', p.wager ? 'good' : ''); renderMatch(); } },
     summon: () => { if (prepActive() && res(S.match.toggleSummon(S.v))) { S.sel = null; toast(me().summoned ? 'البطل نزل الساحة' : 'البطل رجع لمركزه', 'good'); renderMatch();
       // kid #5: the very first summon gets a short entrance line
       const ST = AMB.settings; if (me().summoned && ST && !ST.seen('firstSummon')) { ST.markSeen('firstSummon'); try { abilityBurst('أنا جاهز! 👑', S.v, WORLDS[HEROES[me().heroId].world].color); } catch (e) { /* ignore */ } } } },
@@ -6443,7 +6602,7 @@ AMB.IMAGES = {
       me().life = 0;
       showResults();
     },
-    abandon: () => { if (S.mode === 'practice') { endPractice(); return; } if (S.net) AMB.NetUI.leave(); closeModal(); closeOverlay(); S._resumeAfterMenu = false; S.paused = false; cancelAnimationFrame(S.raf); S.phase = 'idle'; S.match = null; show('menu'); },
+    abandon: () => { if (S.mode === 'practice') { endPractice(); return; } if (S.mode === 'ai') resumeClear(); if (S.net) AMB.NetUI.leave(); closeModal(); closeOverlay(); S._resumeAfterMenu = false; S.paused = false; cancelAnimationFrame(S.raf); S.phase = 'idle'; S.match = null; show('menu'); },
     speed: (d) => { S.speed = +d.v; if (AMB.settings) AMB.settings.setSpeed(S.speed); renderCombatCtrl(); },
     skip: () => skipCombat(),
     nextRound: () => { closeOverlay(); if (S.match.isOver) showResults(); else nextRound(); },
@@ -6606,8 +6765,17 @@ AMB.IMAGES = {
       if (bg) { bg.className = 'mv2-bg' + (h.world === 'tide' ? ' tide' : ''); bg.style.setProperty('--wc', W.color); }
     }
     const ms = $('menu-sound'); if (ms) ms.querySelector('.mt-ic').textContent = SND.on ? '🔊' : '🔇';
+    // adult #21: an unfinished quick match waits on the menu
+    let rb = $('resume-card'); const sv = resumeSaved();
+    if (sv && !rb) { rb = document.createElement('div'); rb.id = 'resume-card'; const host = document.querySelector('#scr-menu .mv2') || document.querySelector('#scr-menu'); if (host) host.appendChild(rb); }
+    if (rb) rb.innerHTML = sv ? `<button class="btn primary" data-act="resumeMatch">▶ كمّل مباراتك (الجولة ${sv.rounds.length + 1} من ${CFG.match.maxRounds})</button><button class="btn ghost small" data-act="resumeDrop" aria-label="انسَ المباراة">✕</button>` : '';
   }
   fillMenu();
+  // adult #21: leaving the app (call, notification) pauses the prep timer in every mode except online (the friend is waiting)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden' && S.screen === 'match' && S.phase === 'prep' && !S.paused && S.mode !== 'online') { S.paused = true; S.pausedLeft = S.deadline - Date.now(); S._hidPause = true; }
+    else if (document.visibilityState === 'visible' && S._hidPause) { S._hidPause = false; if (S.paused && S.phase === 'prep') { S.paused = false; S.deadline = Date.now() + S.pausedLeft; renderTop(); } }
+  });
 
   // phone back button: step back inside the game instead of leaving it
   (function backNav() {
@@ -7763,9 +7931,10 @@ AMB.IMAGES = {
     const S = ui().S, n = S.net; if (!n || !n.myHero || !n.theirHero) return;
     if (n.idx === 0) {   // the host decides the seed
       const seed = 1 + Math.floor(Math.random() * 2 ** 30);
-      n.link.send({ t: 'start', seed, heroes: [n.myHero, n.theirHero] });
-      begin(seed, [n.myHero, n.theirHero]);
-    } else if (n.theirStart) begin(n.theirStart.seed, n.theirStart.heroes);
+      const weekly = AMB.Match.weeklyNow();   // the host's rule of the week, so both phones play the same rule
+      n.link.send({ t: 'start', seed, heroes: [n.myHero, n.theirHero], weekly });
+      n.weekly = weekly; begin(seed, [n.myHero, n.theirHero]);
+    } else if (n.theirStart) { n.weekly = AMB.Match.WEEKLY[n.theirStart.weekly] ? n.theirStart.weekly : null; begin(n.theirStart.seed, n.theirStart.heroes); }
   }
   function begin(seed, heroes) {
     const S = ui().S, n = S.net;
@@ -7777,7 +7946,7 @@ AMB.IMAGES = {
   function makeMatch() {
     const S = ui().S, n = S.net, i = n.idx;
     const players = n.heroes.map((h, k) => ({ heroId: h, name: k === i ? 'أنت' : 'صاحبك', cardPower: null, heroLevel: 1 }));
-    const m = new AMB.Match({ mode: 'online', seed: n.seed, isolated: true, players });
+    const m = new AMB.Match({ mode: 'online', seed: n.seed, isolated: true, players, weekly: n.weekly || null });
     n.rec = AMB.NetSync.record(m, i);
     n.sentReady = false; n.peerReady = null; n.iClaimed = false; n.peerReward = null; n.over = false;
     // B7: after every fight both phones compare who won, both lives and the fight length (same channel as the state hash)
@@ -7864,7 +8033,10 @@ AMB.IMAGES = {
   const isHero = (h) => typeof h === 'string' && Object.prototype.hasOwnProperty.call(AMB.DATA.HEROES, h);
   function onMessage(msg) {
     const S = ui().S, n = S.net; if (!n || !msg) return;
+    // teen #17: the friend already started the next game of the series while I am still on the results screen: keep its messages for later
+    if (n.done && (msg.t === 'hero' || msg.t === 'start' || msg.t === 'again')) { (n.later = n.later || []).push(msg); return; }
     switch (msg.t) {
+      case 'again': break;
       case 'hero': if (!isHero(msg.hero)) { netProblem('البطل اللي وصلنا من صاحبك مو معروف عندي. حدّثوا الاثنين.'); break; }
         if (msg.ver && buildOf() !== 'dev' && msg.ver !== 'dev' && msg.ver !== buildOf()) { netProblem('نسخة اللعبة عندك مختلفة عن صاحبك. حدّثوا الصفحة عند الاثنين وجرّبوا من جديد.'); break; }
         n.theirHero = msg.hero; tryStart(); break;
@@ -7914,6 +8086,7 @@ AMB.IMAGES = {
     const u = ui(); if (!u || u.ACT.netHost) return;
     Object.assign(u.ACT, {
       netMenu: () => openMenu(),
+      netAgain: () => rematch(),
       netHost: () => host(),
       netJoin: () => joinForm(),
       netJoinGo: () => join(),
@@ -7925,7 +8098,29 @@ AMB.IMAGES = {
     });
   }
 
-  AMB.NetUI = { installActions, heroChosen, makeMatch, iAmReady, rewardClaimed, pump, leave, openMenu, useLocal };
+  // teen #17: a best-of-3 series with the same friend on the same link: the score carries over, and you cannot pick a hero you already used in it
+  function seriesNote(m) {
+    const S = ui().S, n = S.net; if (!n || !m || !m.isOver) return '';
+    if (!n.done) {
+      n.done = true; n.series = n.series || { me: 0, them: 0, used: [] };
+      if (n.series.me >= 2 || n.series.them >= 2) n.series = { me: 0, them: 0, used: [] };   // a finished series: the next game starts a new one
+      if (m.winner === n.idx) n.series.me++; else if (m.winner === 1 - n.idx) n.series.them++;
+      if (n.myHero && !n.series.used.includes(n.myHero)) n.series.used.push(n.myHero);
+    }
+    const s = n.series, end = s.me >= 2 ? '🏆 فزت بالسلسلة!' : s.them >= 2 ? 'صاحبك فاز بالسلسلة' : 'سلسلة أفضل من 3';
+    return `<div class="series-box"><b>${end}</b> · أنت <b>${s.me}</b> – <b>${s.them}</b> صاحبك${S.net && !n.over ? '<br><button class="btn primary" data-act="netAgain">⚔ المباراة الجاية مع صاحبك</button>' : ''}<small>في السلسلة ما تقدر تعيد نفس البطل</small></div>`;
+  }
+  function rematch() {
+    const S = ui().S, n = S.net; if (!n || n.over) { ui().toast('الاتصال انقطع', 'err'); return; }
+    const nx = fresh(n.idx, n.link); nx.series = n.series; S.net = nx;
+    try { n.link.send({ t: 'again' }); } catch (e) { /* ignore */ }
+    S.mode = 'online'; S.picks = [null, null]; S.pickIdx = 0; S.match = null;
+    ui().renderHeroSelect(); ui().show('hero');
+    (n.later || []).forEach((msg) => onMessage(msg));   // what the friend already sent for this game
+  }
+  const usedInSeries = (id) => { const n = ui().S.net; return !!(n && n.series && !(n.series.me >= 2 || n.series.them >= 2) && n.series.used.includes(id)); };
+
+  AMB.NetUI = { seriesNote, rematch, usedInSeries, installActions, heroChosen, makeMatch, iAmReady, rewardClaimed, pump, leave, openMenu, useLocal };
   if (UI()) installActions();
 })();
 

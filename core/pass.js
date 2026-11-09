@@ -13,7 +13,7 @@
   const SEASON = {
     id: 's1', name: 'موسم الصدع الأول', days: 42, levels: 30, xpPerLevel: 500,   // 15,000 XP in all: about a month at 3 matches a day plus the missions (it was 3,000 = a week)
     xp: { played: 30, won: 40, perRoundWon: 6, finaleWon: 15, firstWinOfDay: 40 },
-    modeMult: { easy: 0.6, normal: 1, hard: 1.25, hotseat: 0.8, friendly: 0, campaign: 0 },   // friendly games give nothing (no farming)
+    modeMult: { easy: 0.6, normal: 1, hard: 1.25, expert: 1.4, hotseat: 0.8, friendly: 0, campaign: 0 },   // friendly games give nothing (no farming)
   };
 
   // ------------------------------------------------------------- cosmetics registry (applied by the UI)

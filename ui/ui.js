@@ -45,6 +45,7 @@
     document.body.classList.remove('more-open');
     document.querySelectorAll('#bnav button').forEach((b) => b.classList.toggle('on', b.dataset.n === screen));
     if (screen === 'menu') { try { fillMenu(); } catch (err) { reportErr(err); } }   // page scroll is locked only during a match
+    if (screen === 'mode') { const wr = $('weekly-rule'); if (wr) { const W0 = AMB.Match.WEEKLY[AMB.Match.weeklyNow()]; wr.innerHTML = `📅 <b>قاعدة الأسبوع: ${W0.name}</b> · ${W0.text}`; } }
     window.scrollTo(0, 0);
     // every screen refreshes on its own: one that fails must never stop the others (or leave the player stuck)
     const T = (f) => { try { f(); } catch (err) { reportErr(err); } };
@@ -87,7 +88,8 @@
   // hero ownership (core/collection.js): player 1 picks among owned heroes; a brand-new player first picks a starter.
   // Player 2 on the same device is a guest and may use any hero.
   const starterPick = () => S.pickIdx === 0 && AMB.collection && AMB.collection.needsStarter();
-  const heroLocked = (id) => S.pickIdx === 0 && AMB.collection && (starterPick() ? !AMB.DATA.HERO_STARTERS.includes(id) : !AMB.collection.owned(id));
+  // teen #16: against a friend (online) and on the same device every hero is open: those matches are pure skill (no card power, no hero ownership)
+  const heroLocked = (id) => (S.mode === 'online' && AMB.NetUI && AMB.NetUI.usedInSeries(id)) || S.mode !== 'online' && S.mode !== 'hotseat' && S.pickIdx === 0 && AMB.collection && (starterPick() ? !AMB.DATA.HERO_STARTERS.includes(id) : !AMB.collection.owned(id));
   // one compact hero card, shared by the quick-match picker and the campaign's first-hero picker (same look in both)
   function heroPickHTML(h, o) {
     o = o || {};
@@ -171,7 +173,7 @@
       const styles = ['mono', 'mixed', 'balanced'];
       players = [
         { heroId: S.picks[0], name: 'أنت', cardPower: AMB.collection ? AMB.collection.powerMap() : null, heroLevel: AMB.heroes ? AMB.heroes.level(S.picks[0]) : 1 },
-        { heroId: aiHero, name: 'الكمبيوتر', isAI: true, aiStyle: styles[Math.floor(Math.random() * 3)], difficulty: S.mode === 'friendly' ? 'easy' : S.difficulty },
+        { heroId: aiHero, name: 'الكمبيوتر', isAI: true, aiStyle: S.difficulty === 'hard' || S.difficulty === 'expert' ? 'mono' : styles[Math.floor(Math.random() * 3)], difficulty: S.mode === 'friendly' ? 'easy' : S.difficulty },   // hard/expert always use the strongest style (their hero's world)
       ];
     }
     // campaign fight (ui/campaign-ui.js): fixed enemy line-up, short best-of-3 rules, your card levels count
@@ -181,11 +183,13 @@
       : S.mode === 'tutorial' ? new AMB.Match(AMB.tutorial.matchOptions(S.picks[0]))
       : S.mode === 'practice' ? new AMB.Match(AMB.Tutorial.practiceOptions(S.picks[0]))
       : S.mode === 'online' ? AMB.NetUI.makeMatch()
-      : new AMB.Match({ mode: S.mode, players });
+      : new AMB.Match({ mode: S.mode, players, weekly: S.mode === 'ai' || S.mode === 'hotseat' ? AMB.Match.weeklyNow() : null });
     // same hero on both sides (e.g. your Kiro vs the Ember boss Kiro): the enemy becomes its "shadow"
     const mirror = S.match.players[0].heroId === S.match.players[1].heroId;
     document.body.classList.toggle('mirror-foe', mirror);
     if (mirror && S.mode === 'campaign') { const hn = HEROES[S.match.players[1].heroId].name, e = S.match.players[1]; if (e.name.includes(hn)) e.name = e.name.replace(hn, 'ظلّ ' + hn); }
+    resumeStart(players);
+    if (S.match.weekly) { const W0 = AMB.Match.WEEKLY[S.match.weekly]; setTimeout(() => toast(`📅 قاعدة الأسبوع: ${W0.name} · ${W0.text}`, 'good'), 900); }
     S.startTs = Date.now();
     S.speed = AMB.settings ? AMB.settings.speed() : 1;   // the last speed the player picked (1x for a new player)
     show('match');
@@ -207,6 +211,7 @@
 
   function nextRound() {
     const m = S.match;
+    resumeSaveRound();
     m.startRound();
     if (S.mode === 'tutorial') AMB.tutorial.onRound(m);   // fixed shop for the guided match
     S.combat = null;
@@ -321,8 +326,50 @@
     S.sel = null;
     if (S.mode === 'online') { AMB.NetUI.iAmReady(); return; }
     if (S.mode === 'hotseat' && S.queue.length) { handoff(S.queue.shift()); return; }
+    if (S.rs) S.rs.cur = { aiFirst: !!S.aiFirst, prep: S.rs.rec.take() };   // adult #21: this round's moves, for "continue your match"
     if (S.mode !== 'hotseat' && !S.aiFirst) AMB.AI.prep(m, 1);
     startCombat();
+  }
+
+  // ---- adult #21: continue an unfinished quick match after a reload (the match is rebuilt by replaying the recorded moves; it is deterministic)
+  const RS_KEY = 'zor_resume_v1';
+  function resumeStart(players) {
+    S.rs = null;
+    if (S.mode !== 'ai') return;
+    S.rs = { opts: { mode: 'ai', seed: S.match.seed, players, weekly: S.match.weekly }, rounds: [], cur: null, rec: AMB.NetSync.record(S.match, 0), diff: S.difficulty, picks: S.picks.slice() };
+  }
+  function resumeSaveRound() {
+    if (!S.rs || !S.rs.cur) return;
+    S.rs.cur.reward = S.rs.rec.take(); S.rs.rounds.push(S.rs.cur); S.rs.cur = null;
+    try { localStorage.setItem(RS_KEY, JSON.stringify({ opts: S.rs.opts, rounds: S.rs.rounds, hash: AMB.NetSync.hash(S.match), diff: S.rs.diff, picks: S.rs.picks, at: Date.now() })); } catch (e) { /* ignore */ }
+  }
+  function resumeClear() { if (S.rs) S.rs = null; try { localStorage.removeItem(RS_KEY); } catch (e) { /* ignore */ } }
+  function resumeSaved() { try { const v = JSON.parse(localStorage.getItem(RS_KEY)); return v && v.opts && Array.isArray(v.rounds) && v.rounds.length ? v : null; } catch (e) { return null; } }
+  function resumeRebuild(sv) {
+    const m = new AMB.Match(sv.opts);
+    for (const r of sv.rounds) {
+      m.startRound();
+      if (r.aiFirst) AMB.AI.prep(m, 1);
+      if (AMB.NetSync.replay(m, 0, r.prep).length) return null;
+      m.autoFill(0);
+      if (!r.aiFirst) AMB.AI.prep(m, 1);
+      m.resolveCombat(m.createCombat(false).runToEnd());
+      if (AMB.NetSync.replay(m, 0, r.reward || []).length) return null;
+      if (m.players[1].rewardOffer && !m.players[1].rewardOffer.claimed) AMB.AI.claimReward(m, 1);
+      if (m.isOver) return null;
+    }
+    return AMB.NetSync.hash(m) === sv.hash ? m : null;
+  }
+  function resumeMatch() {
+    const sv = resumeSaved(); if (!sv) return;
+    let m = null; try { m = resumeRebuild(sv); } catch (e) { m = null; }
+    if (!m) { resumeClear(); toast('ما قدرت أرجّع المباراة، نبدأ من جديد', 'err'); fillMenu(); return; }
+    S.mode = 'ai'; S.difficulty = sv.diff || S.difficulty; S.picks = sv.picks || [m.players[0].heroId, null]; S.match = m; S.v = 0; S.sel = null; S.combat = null;
+    S.rs = { opts: sv.opts, rounds: sv.rounds, cur: null, rec: AMB.NetSync.record(m, 0), diff: sv.diff, picks: S.picks };
+    document.body.classList.toggle('mirror-foe', m.players[0].heroId === m.players[1].heroId);
+    S.startTs = Date.now(); S.speed = AMB.settings ? AMB.settings.speed() : 1;
+    show('match'); toast(`كمّلنا مباراتك: الجولة ${m.round + 1} من ${CFG.match.maxRounds}`, 'good');
+    nextRound();
   }
 
   setInterval(() => {
@@ -831,7 +878,7 @@
     el.style.setProperty('--ow', WORLDS[h.world].color);
     el.innerHTML = `${portrait(h, { k: 'opp' })}<span class="op-n">${esc(o.name)}</span>
       <span class="op-lv" title="المستوى">${icon('crown')}<b>${o.level}</b></span>
-      <span class="op-life"><span class="op-bar"><i></i></span>${icon('heart')}<b>${lifeStr(o.life)}</b></span>`;
+      <span class="op-life"><span class="op-bar"><i></i></span>${icon('heart')}<b>${lifeStr(o.life)}</b></span>${S.phase === 'prep' && S.mode !== 'hotseat' ? '<button class="op-scout" data-act="scout" aria-label="استكشاف الخصم">🔍</button>' : ''}`;
     S.oppUi = { bar: el.querySelector('.op-bar i'), num: el.querySelector('.op-life b'), txt: '', pct: -1 };
     oppLife(o.life, o.maxLife);
   }
@@ -1139,7 +1186,7 @@
     const sev = AMB.synergy.evaluate(Object.values(p.board), p.heroId), dups = dupCount(p);
     const synStrip = sev.list.length || dups ? `<span class="pb-syn">${synergyHTML(sev.list.slice(0, 4), dups)}</span>` : '';
     return `<div class="pb"><span class="pb-count">${icon('shield')} ${cnt}${p.summoned ? ' +' + icon('crown') : ''}</span>${synStrip}${bag ? `<span class="pb-bag">${bag}</span>` : ''}
-      <span class="pb-btns"><button class="btn small ib ${p.summoned ? 'on' : ''} ${!p.summoned && S.match.round >= 2 && p.life >= 30 && S.mode !== 'online' ? 'can-summon' : ''}" data-act="summon">${p.summoned ? '👑 رجّع البطل' : '👑 نزّل البطل'}</button><button class="btn small ib" data-act="autoArrange">تلقائي</button></span></div>`;
+      <span class="pb-btns"><button class="btn small ib ${p.summoned ? 'on' : ''} ${!p.summoned && S.match.round >= 2 && p.life >= 30 && S.mode !== 'online' ? 'can-summon' : ''}" data-act="summon">${p.summoned ? '👑 رجّع البطل' : '👑 نزّل البطل'}</button><button class="btn small ib" data-act="autoArrange">تلقائي</button>${S.match.isFinale(S.match.round) && S.mode !== 'hotseat' ? `<button class="btn small ib ${p.wager ? 'on' : ''}" data-act="wager" title="الخاسر في الجولة الأخيرة يخسر حياة أكثر (للطرفين)">🎲 ${p.wager ? 'راهنت' : 'رهان'}</button>` : ''}</span></div>`;
   }
 
   // the synergy chips stay visible during the fight, so you can see WHY your board is strong (same chips as the prep bar; no new panels)
@@ -1149,6 +1196,24 @@
       const sev = AMB.synergy.evaluate(Object.values(pl.board).filter(Boolean), pl.heroId);
       return sev.list.length ? `<span class="pb-syn cc-syn">${synergyHTML(sev.list.slice(0, 4), 0)}</span>` : '';
     } catch (e) { return ''; }
+  }
+  // teen #18: after-match analysis: the life of both sides round by round, the turning point, your best unit, and a share button
+  function analysisHTML(m) {
+    const mi = mySeat(), H = m.history; if (!H.length) return '';
+    const pts = (i) => [m.players[i].maxLife].concat(H.map((r) => r.players[i].lifeAfter));
+    const a = pts(mi), b = pts(1 - mi), max = Math.max(...a, ...b, 1), W = 300, Ht = 90, n = a.length - 1 || 1;
+    const line = (arr) => arr.map((v, k) => `${Math.round((k / n) * W)},${Math.round(Ht - (Math.max(0, v) / max) * Ht)}`).join(' ');
+    let swing = null, sw = 0;
+    H.forEach((r, k) => { const d = Math.abs((r.players[mi].lifeAfter - r.players[1 - mi].lifeAfter) - ((k ? H[k - 1].players[mi].lifeAfter - H[k - 1].players[1 - mi].lifeAfter : 0))); if (d > sw) { sw = d; swing = r.round; } });
+    const bu = Object.entries(m.players[mi].stats.byUnit || {}).sort((x, y) => y[1] - x[1])[0];
+    const share = `ZOR · ${m.winner === mi ? 'فزت' : m.winner == null ? 'تعادلت' : 'خسرت'} ${H.filter((r) => r.winner === mi).length}–${H.filter((r) => r.winner === 1 - mi).length}${bu ? ` · نجمي: ${UNITS[bu[0]].name}` : ''}`;
+    S.shareText = share;
+    return `<div class="res-analysis"><h3>📈 تحليل المباراة</h3>
+      <svg viewBox="-4 -4 ${W + 8} ${Ht + 8}" class="ra-graph" role="img" aria-label="حياة الطرفين جولة بجولة"><polyline points="${line(b)}" class="ra-foe"/><polyline points="${line(a)}" class="ra-me"/></svg>
+      <div class="ra-legend"><span class="me">— أنت</span><span class="foe">— الخصم</span></div>
+      ${swing ? `<p>🔄 نقطة التحول: <b>الجولة ${swing}</b> (تغيّر الفرق ${Math.round(sw)} حياة)</p>` : ''}
+      ${bu ? `<p>⭐ أقوى وحدة عندك: <b>${UNITS[bu[0]].name}</b> · ${fmt(bu[1])} ضرر</p>` : ''}
+      <button class="btn small" data-act="shareRes">📤 شارك النتيجة</button></div>`;
   }
   // kid #9: one friendly tip after a lost match, picked from what actually happened
   function lossTip(m) {
@@ -1311,6 +1376,7 @@
     const secs = Math.round((Date.now() - S.startTs) / 1000);
     if (S.mode === 'practice') return practiceResult(m, secs);   // hero trial: no XP, rewards, stats, pass or play count
     awardHeroXp(m);
+    if (S.mode === 'ai') resumeClear();   // the match is over: nothing to continue
     if (S.mode === 'campaign') return AMB.CampaignUI.showResult(m, secs);   // campaign and tower have their own results screens
     if (S.mode === 'tower') return AMB.TowerUI.showResult(m, secs);
     if (S.mode === 'event') return AMB.EventUI.showResult(m, secs);
@@ -1350,6 +1416,7 @@
       <div class="timeline">${tl}</div>${S.mode !== 'hotseat' && m.winner != null && !myWin ? `<p class="res-tip">💡 ${lossTip(m)}</p>` : ''}</div>
       ${AMB.PassUI ? AMB.PassUI.resultPanel(S.passResult) : ''}
       <div class="res-quick">${m.players.map((p, i) => `<div class="rq ${m.winner === i ? 'won' : ''}"><b>${esc(p.name)}</b><span>${icon('heart')} ${lifeStr(p.life)}</span><span>${icon('sword')} ${p.stats.wins}–${p.stats.losses}</span><span>${fmt(p.stats.damageDealt)} ضرر</span></div>`).join('')}</div>
+      ${S.mode === 'online' && AMB.NetUI ? AMB.NetUI.seriesNote(m) : ''}${S.mode !== 'hotseat' ? analysisHTML(m) : ''}
       <details class="res-details"><summary>تفاصيل المباراة</summary><div class="res-cols">${cols}</div></details>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:30px">
         <button class="btn primary big" data-act="again">مباراة جديدة</button>
@@ -1360,6 +1427,14 @@
     if (myWin) setTimeout(() => { const h = document.querySelector('.res-hero'); if (h) (own && AMB.PassUI ? AMB.PassUI.fxColors() : ['#ffd24a', '#ff4f8b', '#5fe3ff', '#7bd46a', '#ffffff']).forEach((c) => burst(h, c, 14, { r: 150, s: 8 })); }, 250);
   }
 
+  // teen #20: the meta, in plain Arabic: which heroes and synergies win most right now (simulation, refreshed with tools/meta-snapshot.js)
+  function metaHTML() {
+    const M = AMB.META; if (!M) return '';
+    const rows = (o, nameOf) => Object.entries(o).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${nameOf(k)}</td><td>${v}%</td><td><div class="bar"><i style="width:${v}%"></i></div></td></tr>`).join('');
+    return `<div class="box" style="grid-column:1/-1"><h3>📊 الميتا الحين</h3><p class="hint">نسبة الفوز من آلاف المباريات بين الكمبيوتر (${M.date}). 50% = متوازن.</p>
+      <div class="meta-cols"><table><tr><th>البطل</th><th>فوز</th><th></th></tr>${rows(M.heroes, (k) => (HEROES[k] ? HEROES[k].name : k))}</table>
+      <table><tr><th>التآزر</th><th>فوز</th><th></th></tr>${rows(M.synergies, (k) => (SYNERGIES[k] ? SYNERGIES[k].name : k))}</table></div></div>`;
+  }
   function renderStats() {
     const d = AMB.telemetry.load();
     const pct = (w, p) => (p ? Math.round(((w || 0) / p) * 100) : 0);
@@ -1377,10 +1452,11 @@
           <div><div class="big-num">${d.matches ? fmt(d.totalRounds / d.matches, 1) : 0}</div><div class="hint">متوسط الجولات</div></div>
           <div><div class="big-num">${d.matches ? fmt(d.totalSeconds / d.matches / 60, 1) : 0}</div><div class="hint">متوسط الدقائق</div></div></div>
         <p class="hint">تعادلات: ${d.draws} · استدعاء البطل: ${d.summons.used} لاعب، فوز ${pct(d.summons.wins, d.summons.used)}%</p>
-        <p class="hint">لاختبار التوازن على نطاق واسع شغّل محاكي الكمبيوتر: <code>node tools/simulate.js 800</code></p>
+
         <div style="display:flex;gap:8px"><button class="btn small" data-act="statsExport">تصدير JSON</button><button class="btn small danger" data-act="statsReset">مسح البيانات</button></div></div>
       <div class="box"><h3>الأبطال</h3>${tbl(d.heroes, (k) => HEROES[k] ? HEROES[k].name : k)}</div>
-      <div class="box"><h3>أنماط اللاعبين</h3>${tbl(d.styles, (k) => k === 'human' ? 'بشري' : k.replace('ai:', 'ذكاء اصطناعي: '))}</div>
+      ${metaHTML()}
+      <div class="box"><h3>أنماط اللاعبين</h3>${tbl(d.styles, (k) => k === 'human' ? 'بشري' : k.replace('ai:mono', 'كمبيوتر: عالم واحد').replace('ai:mixed', 'كمبيوتر: متنوّع').replace('ai:balanced', 'كمبيوتر: متوازن').replace('ai:', 'كمبيوتر: '))}</div>
       <div class="box"><h3>التآزر</h3>${tbl(d.synergies, (k) => SYNERGIES[k] ? SYNERGIES[k].name : k)}</div>
       <div class="box" style="grid-column:1/-1"><h3>الوحدات (استخدام ونسبة فوز)</h3>${tbl(d.units, (k) => UNITS[k] ? UNITS[k].name : k, true)}</div>
       <div class="box" style="grid-column:1/-1"><h3>آخر المباريات</h3>${recent ? `<table><tr><th>الوقت</th><th>النمط</th><th>الأبطال</th><th>الفائز</th><th>جولات</th><th>المدة</th></tr>${recent}</table>` : '<p class="hint">—</p>'}</div>`;
@@ -1448,6 +1524,7 @@
     mode: (d) => { S.mode = d.v; S.picks = [null, null]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
     pickHero: (d, el, e) => {
       if (e.target.closest('[data-act="heroInfo"], [data-act="heroTry"]')) return;
+      if (S.mode === 'online' && AMB.NetUI && AMB.NetUI.usedInSeries(d.id)) { toast('لعبت بهالبطل في السلسلة، اختر غيره', 'err'); return; }
       if (heroLocked(d.id)) { toast('هذا البطل مقفل: تفتحه من الباكجات (أسطوري) أو الباتل باس', 'err'); return; }
       S.picks[S.pickIdx] = d.id; renderHeroSelect();
     },
@@ -1538,6 +1615,27 @@
     arm: () => { if (S.sel && S.sel.kind === 'item' && res(S.match.armSpell(S.v, S.sel.idx))) { S.sel = null; toast('التعويذة جاهزة للقتال الجاي', 'good'); renderMatch(); } },
     disarm: (d) => { if (prepActive() && res(S.match.disarmSpell(S.v, +d.idx))) renderMatch(); },
     sellItem: () => { if (S.sel && S.sel.kind === 'item' && res(S.match.sellItem(S.v, S.sel.idx))) { S.sel = null; renderMatch(); } },
+    // teen #13: scout the opponent before pressing ready, and choose what your assassins hunt
+    scout: () => {
+      const m = S.match, v = S.v, o = m.players[1 - v], me0 = m.players[v], last = m.history[m.history.length - 1];
+      const lp = last ? last.players[1 - v] : null;
+      const syn = lp && lp.synergies.length ? lp.synergies.map((id) => SYNERGIES[id].name).join('، ') : '—';
+      const hunt = me0.hunt || 'back';
+      modal(`<h2>🔍 ${esc(o.name)}</h2>
+        <div class="kv"><span>المستوى (وحداته في الساحة)</span><b>${o.level}</b></div>
+        <div class="kv"><span>ذهبه الحين</span><b>${o.gold}</b></div>
+        <div class="kv"><span>تآزره الجولة اللي فاتت</span><b>${syn}</b></div>
+        <div class="kv"><span>بطله الجولة اللي فاتت</span><b>${lp ? (lp.summoned ? '👑 نزل الساحة' : 'ما نزل') : '—'}</b></div>
+        ${o.wager ? '<div class="kv"><span>رهان الحسم</span><b>🎲 راهن</b></div>' : ''}
+        <h3 style="margin-top:12px">قتلتك يصطادون</h3>
+        <div class="seg"><button class="${hunt === 'back' ? 'on' : ''}" data-act="hunt" data-v="back">الصف الخلفي</button><button class="${hunt === 'weak' ? 'on' : ''}" data-act="hunt" data-v="weak">الأضعف</button></div>
+        <p class="hint">💡 لو بطله ينزل بدري، «شبكة الصدع» من متجر المعدات تخلي فريقك كله يضربه.</p>`);
+    },
+    hunt: (d) => { if (!prepActive()) return; if (res(S.match.setHunt(S.v, d.v))) { toast(d.v === 'weak' ? 'القتلة يصطادون الأضعف' : 'القتلة يصطادون الصف الخلفي', 'good'); ACT.scout(); } },
+    shareRes: () => { const t = S.shareText || 'ZOR'; try { if (navigator.share) { navigator.share({ text: t }).catch(() => {}); return; } } catch (e) { /* ignore */ } try { navigator.clipboard.writeText(t); toast('انسخ النص 📋', 'good'); } catch (e) { toast(t); } },
+    resumeMatch: () => resumeMatch(),
+    resumeDrop: () => { resumeClear(); fillMenu(); },
+    wager: () => { if (!prepActive()) return; const p = me(); if (res(S.match.setWager(S.v, !p.wager))) { toast(p.wager ? '🎲 راهنت: الخاسر في الحسم يخسر أكثر' : 'لغيت الرهان', p.wager ? 'good' : ''); renderMatch(); } },
     summon: () => { if (prepActive() && res(S.match.toggleSummon(S.v))) { S.sel = null; toast(me().summoned ? 'البطل نزل الساحة' : 'البطل رجع لمركزه', 'good'); renderMatch();
       // kid #5: the very first summon gets a short entrance line
       const ST = AMB.settings; if (me().summoned && ST && !ST.seen('firstSummon')) { ST.markSeen('firstSummon'); try { abilityBurst('أنا جاهز! 👑', S.v, WORLDS[HEROES[me().heroId].world].color); } catch (e) { /* ignore */ } } } },
@@ -1572,7 +1670,7 @@
       me().life = 0;
       showResults();
     },
-    abandon: () => { if (S.mode === 'practice') { endPractice(); return; } if (S.net) AMB.NetUI.leave(); closeModal(); closeOverlay(); S._resumeAfterMenu = false; S.paused = false; cancelAnimationFrame(S.raf); S.phase = 'idle'; S.match = null; show('menu'); },
+    abandon: () => { if (S.mode === 'practice') { endPractice(); return; } if (S.mode === 'ai') resumeClear(); if (S.net) AMB.NetUI.leave(); closeModal(); closeOverlay(); S._resumeAfterMenu = false; S.paused = false; cancelAnimationFrame(S.raf); S.phase = 'idle'; S.match = null; show('menu'); },
     speed: (d) => { S.speed = +d.v; if (AMB.settings) AMB.settings.setSpeed(S.speed); renderCombatCtrl(); },
     skip: () => skipCombat(),
     nextRound: () => { closeOverlay(); if (S.match.isOver) showResults(); else nextRound(); },
@@ -1735,8 +1833,17 @@
       if (bg) { bg.className = 'mv2-bg' + (h.world === 'tide' ? ' tide' : ''); bg.style.setProperty('--wc', W.color); }
     }
     const ms = $('menu-sound'); if (ms) ms.querySelector('.mt-ic').textContent = SND.on ? '🔊' : '🔇';
+    // adult #21: an unfinished quick match waits on the menu
+    let rb = $('resume-card'); const sv = resumeSaved();
+    if (sv && !rb) { rb = document.createElement('div'); rb.id = 'resume-card'; const host = document.querySelector('#scr-menu .mv2') || document.querySelector('#scr-menu'); if (host) host.appendChild(rb); }
+    if (rb) rb.innerHTML = sv ? `<button class="btn primary" data-act="resumeMatch">▶ كمّل مباراتك (الجولة ${sv.rounds.length + 1} من ${CFG.match.maxRounds})</button><button class="btn ghost small" data-act="resumeDrop" aria-label="انسَ المباراة">✕</button>` : '';
   }
   fillMenu();
+  // adult #21: leaving the app (call, notification) pauses the prep timer in every mode except online (the friend is waiting)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden' && S.screen === 'match' && S.phase === 'prep' && !S.paused && S.mode !== 'online') { S.paused = true; S.pausedLeft = S.deadline - Date.now(); S._hidPause = true; }
+    else if (document.visibilityState === 'visible' && S._hidPause) { S._hidPause = false; if (S.paused && S.phase === 'prep') { S.paused = false; S.deadline = Date.now() + S.pausedLeft; renderTop(); } }
+  });
 
   // phone back button: step back inside the game instead of leaving it
   (function backNav() {

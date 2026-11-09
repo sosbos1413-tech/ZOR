@@ -159,6 +159,7 @@
         if (sp.type === 'shieldFront') side.spellsTimed.push({ id, sp, at: 0, fired: false });
         if (sp.type === 'hitBack') side.spellsTimed.push({ id, sp, at: sp.at, fired: false });
         if (sp.type === 'hasteAll') side.spellsTimed.push({ id, sp, at: 0, fired: false });
+        if (sp.type === 'heroNet') side.heroNet = Math.max(side.heroNet || 0, sp.dmgPct);   // rift net: hunt a summoned enemy hero
       });
     }
 
@@ -188,6 +189,7 @@
       if (!e.alive) return false;
       if (!e.isHero) return true;
       if (e.sealed) return false;
+      if (e.onBoard && this.sides[1 - e.side].heroNet) return true;   // rift net: a summoned hero can be hit by the whole enemy team
       return this.sides[e.side].exposed;   // the hero is hit last, even when it fights on the board: only after every other unit of its side is dead
     }
 
@@ -232,7 +234,14 @@
         if (tb && tb.alive) return tb;
       }
       if (f.role === 'assassin') {
+        if (this.sides[f.side].heroNet) {   // rift net: a summoned enemy hero is hunted first, even while its side still stands
+          const hh = this.enemiesOf(f).find((e) => e.isHero && e.onBoard && e.alive && !e.sealed);
+          if (hh) return hh;
+        }
         if (enemies.length === 1 && enemies[0].isHero) return enemies[0];
+        if (this.sides[f.side].spec && this.sides[f.side].spec.hunt === 'weak') {   // teen #13: hunt the weakest enemy instead of the back line
+          enemies.sort((a, b) => a.hp - b.hp || a.id - b.id); return enemies[0];
+        }
         // back line first: farthest from own side
         const dir = f.side === 0 ? 1 : -1;
         enemies.sort((a, b) => (b.y - a.y) * dir || dist(f, a) - dist(f, b) || a.id - b.id);
@@ -254,6 +263,7 @@
       if (opts.skill) def *= this.C.skillDefFactor;
       let dmg = raw * (1 - def) * this.fury();
       if (tgt.isHero && !tgt.onBoard) dmg *= this.C.commandPostFortify;
+      if (tgt.isHero && tgt.onBoard && this.sides[1 - tgt.side].heroNet) dmg *= 1 + this.sides[1 - tgt.side].heroNet;   // rift net
       // legendary 'lifeline' (Otohime): once per fight the first ally that would die survives with 30% health
       if (!tgt.isHero && tgt.hp - Math.max(0, dmg - (tgt.shield || 0)) <= 0) {
         const ll = this.fighters.find((a) => a.side === tgt.side && a.alive && a.sig === 'lifeline' && !a._ll);

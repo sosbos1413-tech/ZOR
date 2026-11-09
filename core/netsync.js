@@ -16,7 +16,7 @@
 (function () {
   const AMB = (globalThis.AMB = globalThis.AMB || {});
   // every call a player can make during prep or the reward draft
-  const OPS = ['buy', 'reroll', 'buyXp', 'toggleLock', 'sell', 'move', 'buyItem', 'equip', 'unequip', 'sellItem', 'armSpell', 'disarmSpell', 'setAbility', 'toggleSummon', 'moveHero', 'autoArrange', 'claimReward'];
+  const OPS = ['buy', 'reroll', 'buyXp', 'toggleLock', 'sell', 'move', 'buyItem', 'equip', 'unequip', 'sellItem', 'armSpell', 'disarmSpell', 'setAbility', 'toggleSummon', 'moveHero', 'autoArrange', 'claimReward', 'setWager', 'setHunt'];
 
   function record(match, idx) {
     const ops = []; let depth = 0;
@@ -48,12 +48,12 @@
   const ARGS = {
     buy: ['int'], reroll: [], buyXp: [], toggleLock: [], sell: ['uid'], move: ['uid', 'dest'], buyItem: ['int'],
     equip: ['int', 'uid'], unequip: ['uid'], sellItem: ['int'], armSpell: ['int'], disarmSpell: ['int'],
-    setAbility: ['id', 'trig?'], toggleSummon: ['slot?'], moveHero: ['slot'], autoArrange: [], claimReward: ['int'],
+    setAbility: ['id', 'trig?'], toggleSummon: ['slot?'], moveHero: ['slot'], autoArrange: [], claimReward: ['int'], setWager: ['bool'], setHunt: ['id'],
   };
   const isInt = (v) => Number.isInteger(v) && v >= -1000 && v <= 1000;
   const isStr = (v, max) => typeof v === 'string' && v.length > 0 && v.length <= max;
   const CHECK = {
-    int: isInt, uid: (v) => isStr(v, 32), id: (v) => isStr(v, 40), slot: (v) => isStr(v, 4),
+    bool: (v) => v === true || v === false, int: isInt, uid: (v) => isStr(v, 32), id: (v) => isStr(v, 40), slot: (v) => isStr(v, 4),
     trig: (v) => isStr(v, 20) && !!(AMB.DATA && Object.prototype.hasOwnProperty.call(AMB.DATA.ABILITY_TRIGGERS, v)),   // an ability trigger must be a known one
     dest: (v) => !!v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 2
       && (v.zone === 'board' ? isStr(v.slot, 4) : v.zone === 'bench' ? isInt(v.idx) : false),

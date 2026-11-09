@@ -108,7 +108,11 @@
   function prep(match, pi) {
     const p = match.players[pi];
     if (p.lineup) return;   // scripted campaign enemy: its board is set by match.applyLineup
-    const cfg = AMB.CONFIG.ai[p.difficulty] || AMB.CONFIG.ai.normal;
+    let cfg = AMB.CONFIG.ai[p.difficulty] || AMB.CONFIG.ai.normal;
+    if (cfg.adaptive) {   // expert reads the opponent: a greedy opponent (big bank) gets punished with faster levels
+      const foe0 = match.players[1 - pi];
+      if (foe0 && foe0.gold >= 20) cfg = Object.assign({}, cfg, { levelAggro: cfg.levelAggro * 1.3, reserveCap: 2 });
+    }
     const rng = AMB.util.RNG(match.seed + match.round * 7919 + pi * 31);
     const E = AMB.CONFIG.economy;
     const hero = AMB.DATA.HEROES[p.heroId];
@@ -161,11 +165,16 @@
     }
 
     // --- items: spells only with spare gold (they last one combat)
+    const foe = match.players[1 - pi], hasAssassin = match.allUnits(p).some((u) => AMB.DATA.UNITS[u.defId].role === 'assassin');
     if (!cfg.noItems) p.itemShop.forEach((id, i) => {
       if (!id || AMB.DATA.ITEMS[id].kind !== 'spell') return;
       const it = AMB.DATA.ITEMS[id];
+      if (id === 'rift_net') { if (foe && foe.summoned && p.gold >= it.cost) match.buyItem(pi, i); return; }   // the counter, only when it makes sense
       if (p.gold - it.cost >= reserve && match.boardCount(p) + p.bench.filter(Boolean).length >= 2 && rng.chance(0.7)) match.buyItem(pi, i);
     });
+
+    // --- finale wager (teen #15): a player who is behind raises the stakes, a leader never does
+    if (match.isFinale(match.round) && match.setWager) { const foe1 = match.players[1 - pi]; if (foe1 && foe1.life - p.life >= 15 && !cfg.noSummon) match.setWager(pi, true); }
 
     // --- hero summon decision (before arranging so a slot is kept)
     const aggressive = hero.id === 'kagira';
@@ -215,6 +224,7 @@
         case 'heal': return p.life < 40 ? 9 : p.life < 60 ? 7 : p.life < 80 ? 4 : 1;   // a badly hurt hero heals before it recruits
         case 'xp': return lvlRoom ? 4.4 : 0.5;
         case 'gold': return 3.8;
+        case 'invest': return p.life >= 60 ? 4.2 : 2;   // only a healthy player can afford to wait for the finale
         case 'essence': return 3.2;
         case 'item': return 3.5;
         default: return 0;
