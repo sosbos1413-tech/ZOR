@@ -77,8 +77,11 @@
         E.streakBonus.forEach(([n, b]) => { if (streak >= n) streakBonus = b; });
         const win = this.round > 1 && p.lastWon ? E.winBonus : 0;   // the win bonus is for WINNING the last round (a drawn round does not pay it)
         const dataStream = AMB.DATA.HEROES[p.heroId].passive.id === 'data_stream' ? 1 : 0;   // Nayako: +1 gold every round
-        const income = (this.round === 1 ? E.baseIncome : E.baseIncome + interest + streakBonus + win) + dataStream;
-        p.lastIncome = { base: E.baseIncome, interest: this.round === 1 ? 0 : interest, streak: this.round === 1 ? 0 : streakBonus, win, total: income };
+        // catch-up (PvP-style modes only; campaign/tower/events are tuned separately): far behind on life -> a little extra gold, so a bad start is not a lost game
+        const foe = this.players[1 - this.players.indexOf(p)], cu = E.catchUp;
+        const help = cu && foe && ['ai', 'hotseat', 'online', 'sim'].includes(this.mode) && this.round > 2 && foe.life - p.life >= cu.gap ? cu.gold : 0;
+        const income = (this.round === 1 ? E.baseIncome : E.baseIncome + interest + streakBonus + win + help) + dataStream;
+        p.lastIncome = { base: E.baseIncome, interest: this.round === 1 ? 0 : interest, streak: this.round === 1 ? 0 : streakBonus, win, help, total: income };
         p.gold += income;
         if (this.round > 1) this._gainXp(p, E.xpPerRound);
         const essGain = E.essencePerRound + (AMB.DATA.HEROES[p.heroId].passive.id === 'deep_reserve' ? 2 : 0);

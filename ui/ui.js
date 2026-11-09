@@ -970,7 +970,7 @@
     const armed = p.armedSpells.map((id, i) => `<span class="chip" data-act="disarm" data-idx="${i}">${icon(ITEMS[id].icon)} ✕</span>`).join('');
     AMB.TIPS.summon = () => ({ title: 'استدعاء البطل', html: `<p>${p.summoned ? 'بطلك الحين يقاتل في الساحة (اسحبه عشان تغيّر مكانه).' : 'بطلك الحين واقف خلف صفوفك.'}</p>
       ${h.vanguard ? `<p><b>👑 ${h.vanguard.name}:</b> ${h.vanguard.text}</p>` : ''}
-      <p><b>الفايدة:</b> يهجم بقوة ${h.board.atk + CFG.hero.boardAtkPerRound * m.round}، والحلفاء +${CFG.hero.summonAuraAtk * 100}% هجوم، وقدراته أرخص بـ${CFG.hero.summonAbilityDiscount}.</p>
+      <p><b>الفايدة:</b> يهجم بقوة ${h.board.atk + CFG.hero.boardAtkPerRound * m.round}، ${CFG.hero.summonAuraAtk ? `والحلفاء +${CFG.hero.summonAuraAtk * 100}% هجوم، ` : ''}${CFG.hero.summonAbilityDiscount ? `وقدراته أرخص بـ${CFG.hero.summonAbilityDiscount}.` : 'وتأثير القيادة الخاص بالبطل (انظر تفاصيله).'}</p>
       <p><b>المخاطرة:</b> ياخذ الضرر كامل (حتى ضرر المنطقة)، وينسحب بعد ما تخسر ${CFG.combat.summonKnockout} حياة، وإذا وصلت حياته صفر تخسر المباراة على طول.</p>` });
     $('panel-right').innerHTML = `
       <section class="hero-card-mini">${portrait(h, { k: 'rh' })}

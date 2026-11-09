@@ -36,6 +36,7 @@
       interestPer: 10,          // +1 gold per 10 banked
       interestMax: 3,
       winBonus: 1,
+      catchUp: { gap: 10, gold: 3 },   // behind by this much life (round 3+, PvP-style modes): +gold per round
       streakBonus: [[2, 1], [4, 2]], // [minStreak, bonus] win OR loss streak
       rerollCost: 1,
       xpCost: 4,
@@ -108,11 +109,11 @@
 
     hero: {
       resonancePerAlly: 0.06,   // +6% hp/atk to every ally from the hero's world
-      summonAuraAtk: 0.05,      // summoned hero inspires allies
+      summonAuraAtk: 0,         // summoned hero inspires allies
       summonAbilityDiscount: 1, // abilities cost less while the hero fights
       boardAtkPerRound: 5,      // summoned hero attack scales with the round
       boardPower: 0.22,            // overall strength of the summoned hero's own fighting (tuned so summoning is a real choice, not always best)
-      vanguardScale: 1,         // strength of each hero's summoned-form bonuses
+      vanguardScale: 0.5,        // strength of each hero's summoned-form bonuses
     },
 
     ai: {
