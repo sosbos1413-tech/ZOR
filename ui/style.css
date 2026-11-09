@@ -2879,3 +2879,13 @@ body.tut-on .tut-bar .tg-dots { order: 3; width: 100%; justify-content: center; 
 @media (max-width: 380px) { #combat-ctrl .btn { padding-inline: 7px; font-size: 13px; } #combat-ctrl .fury { display: none; } }
 
 .al-side { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 10px 0; } .al-top { margin: 8px 0; }
+
+/* QA: the prep action bar never overflows (it scrolls sideways instead), armed spells show, drawer item names */
+.pb { max-width: 100%; overflow-x: auto; scrollbar-width: none; flex-wrap: nowrap; }
+.pb::-webkit-scrollbar { display: none; } .pb > * { flex: none; }
+.pb-btns { flex-wrap: nowrap; }
+.pb-armed { display: inline-flex; gap: 4px; } .pb-armed .chip { min-height: 36px; border-radius: 999px; background: #ffd24a; color: #2a1a00; border: 2px solid #a87a12; padding: 2px 8px; }
+@media (max-width: 860px) and (orientation: portrait) {
+  .sd-eq { width: 54px; height: 54px; } .sd-eq small { position: absolute; bottom: -13px; left: -6px; right: -6px; font-size: 9px; color: #f3ead6; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sd-items { margin-bottom: 14px; }
+}

@@ -5450,18 +5450,19 @@ AMB.IMAGES = {
     renderMatch(true);
     const mi = mySeat();
     if (rep.winner != null) sfx(S.mode === 'hotseat' || rep.winner === mi ? 'win' : 'lose');
-    let cls;
-    if (rep.winner === null) cls = 'draw';
-    else if (S.mode === 'hotseat') cls = 'win';
-    else cls = rep.winner === mi ? 'win' : 'lose';
     const over = m.isOver;
+    const decider = over && m.winner != null ? m.winner : rep.winner;   // the last round can be lost by the player who still wins the match on total life
+    let cls;
+    if (decider === null || decider === undefined) cls = 'draw';
+    else if (S.mode === 'hotseat') cls = 'win';
+    else cls = decider === mi ? 'win' : 'lose';
     const side = (i) => { const r = rep.players[i], pl = m.players[i]; return `<div class="rr-side ${rep.winner === i ? 'won' : ''}">${portrait(r.heroKilled ? HEROES[pl.heroId] : HEROES[pl.heroId], { k: 'rr' + i })}
         <small class="rr-who">${S.mode === 'hotseat' ? esc(pl.name) : i === mi ? 'أنت' : esc(pl.name)}</small><div class="rr-life">${icon(r.heroKilled ? 'skull' : 'heart')} <b>${lifeStr(r.lifeAfter)}</b></div>${(r.backlash + r.direct) > 0 ? `<div class="rr-dmg"><bdi dir="ltr">−${Math.round(r.backlash + r.direct)}</bdi></div>` : '<div class="rr-dmg">&nbsp;</div>'}</div>`; };
     const me0 = rep.players[mi];
     const why = S.mode !== 'hotseat' && rep.winner === 1 - mi ? (me0.exposed ? `<div class="rr-why">${icon('shield')}<i>✗</i> ➜ ${icon('warn')}</div>` : `<div class="rr-why">${icon('star')} ➜ ${icon('sword')}</div>`) : '';
     const title = rep.winner === null ? `الجولة ${m.round}: تعادل`
       : S.mode === 'hotseat' ? `الجولة ${m.round}: فاز ${esc(m.players[rep.winner].name)}`
-      : over ? (rep.winner === mi ? 'فزت بالمباراة! 🎉' : 'خسرت المباراة')
+      : over ? (decider === mi ? 'فزت بالمباراة! 🎉' : 'خسرت المباراة')
       : `الجولة ${m.round}: ${rep.winner === mi ? 'فزت' : 'خسرت'}`;
     const whyTxt = S.mode !== 'hotseat' && rep.winner === 1 - mi ? (me0.exposed ? 'سقط خط الدفاع عندك' : 'العدو كان أقوى هالجولة') : '';
     let whyNums = '';
@@ -5469,7 +5470,7 @@ AMB.IMAGES = {
       const sd = S.combat.sides, mine = (sd[mi].spec.units || []).length, theirs = (sd[1 - mi].spec.units || []).length, fd = sd[mi].frontDownAt, gold = m.players[mi].gold;
       whyNums = `<div class="rr-nums"><span>${icon('shield')} <b>${mine}</b> ضد <b>${theirs}</b></span>${mine ? `<span>${icon('warn')} ${fd != null ? `سقط الصف الأمامي <b>${fd.toFixed(1)}ث</b>` : 'الصف الأمامي صمد'}</span>` : ''}${gold > 0 ? `<span>${icon('gold')} <b>${gold}</b> ذهب ما صرفته</span>` : ''}</div>`;
     }
-    overlay(`<div class="ov-card rr ${cls}"><div class="rr-title">${title}</div><div class="rr-big">${icon(rep.winner === null ? 'swap' : cls === 'lose' ? 'shield' : 'crown')}</div>
+    overlay(`<div class="ov-card rr ${cls}"><div class="rr-title">${title}</div><div class="rr-big">${icon(cls === 'draw' ? 'swap' : cls === 'lose' ? 'shield' : 'crown')}</div>
       <div class="rr-row">${side(0)}<div class="rr-vs">${icon('sword')}</div>${side(1)}</div>${why}${whyTxt ? `<div class="rr-note">${whyTxt}</div>` : ''}${whyNums}${rep.finale ? `<div class="rr-why">${icon('flame')} ×${CFG.match.finaleLossMult}</div>` : ''}
       <button class="btn primary big rr-go" data-act="${over ? 'toResults' : m.rewardPending ? 'rewards' : 'nextRound'}">${over ? 'النتيجة' : m.rewardPending ? 'اختر مكافأتك' : 'الجولة الجاية'}</button></div>`);
   }
@@ -6112,7 +6113,7 @@ AMB.IMAGES = {
       <div class="shop-drawer ${S.shopOpen ? 'open' : ''}">
         <button class="sd-handle" data-act="shopToggle" aria-label="سكّر المتجر"><i></i></button>
         <div class="sd-cards">${bigCards}</div>
-        <div class="sd-row"><div class="sd-items">${p.itemShop.map((id, i) => id ? `<button class="sd-eq ${p.gold >= ITEMS[id].cost ? '' : 'cant'}" data-act="buyItem" data-idx="${i}" title="${esc(ITEMS[id].name)}: ${esc(ITEMS[id].text)}">${icon(ITEMS[id].icon)}<b>${ITEMS[id].cost}</b></button>` : '<span class="sd-eq empty"></span>').join('')}</div>
+        <div class="sd-row"><div class="sd-items">${p.itemShop.map((id, i) => id ? `<button class="sd-eq ${p.gold >= ITEMS[id].cost ? '' : 'cant'}" data-act="buyItem" data-idx="${i}" title="${esc(ITEMS[id].name)}: ${esc(ITEMS[id].text)}">${icon(ITEMS[id].icon)}<b>${ITEMS[id].cost}</b><small>${esc(ITEMS[id].name)}</small></button>` : '<span class="sd-eq empty"></span>').join('')}</div>
           <button class="sd-btn" data-act="reroll" aria-label="تحديث المتجر">${icon('refresh')}<b>${rCost}</b><small>تحديث</small></button>
           <button class="sd-btn ${p.shopLocked ? 'on' : ''}" data-act="lock" aria-label="تثبيت المتجر">${icon(p.shopLocked ? 'lock' : 'unlock')}<small>تثبيت</small></button>
           <button class="sd-btn" data-act="xp" ${maxed ? 'disabled' : ''} aria-label="اشتر خبرة">${icon('up')}${maxed ? '' : `<b>${E.xpCost}</b>`}<small>خبرة</small></button>
@@ -6245,7 +6246,8 @@ AMB.IMAGES = {
     const bag = p.items.map((id, i) => `<button class="bagchip" data-act="bagSel" data-idx="${i}">${icon(ITEMS[id].icon)}</button>`).join('');
     const sev = AMB.synergy.evaluate(Object.values(p.board), p.heroId), dups = dupCount(p);
     const synStrip = sev.list.length || dups ? `<span class="pb-syn">${synergyHTML(sev.list.slice(0, 4), dups)}</span>` : '';
-    return `<div class="pb"><span class="pb-count">${icon('shield')} ${cnt}${p.summoned ? ' +' + icon('crown') : ''}</span>${synStrip}${bag ? `<span class="pb-bag">${bag}</span>` : ''}
+    const armedChips = p.armedSpells.length ? `<span class="pb-armed">${p.armedSpells.map((id, i) => `<button class="chip" data-act="disarm" data-idx="${i}" title="${esc(ITEMS[id].name)}: ${esc(ITEMS[id].text)}. اضغط لإلغاء التفعيل">${icon(ITEMS[id].icon)} ✕</button>`).join('')}</span>` : '';
+    return `<div class="pb"><span class="pb-count">${icon('shield')} ${cnt}${p.summoned ? ' +' + icon('crown') : ''}</span>${armedChips}${synStrip}${bag ? `<span class="pb-bag">${bag}</span>` : ''}
       <span class="pb-btns"><button class="btn small ib ${p.summoned ? 'on' : ''} ${!p.summoned && S.match.round >= 2 && p.life >= 30 && S.mode !== 'online' ? 'can-summon' : ''}" data-act="summon">${p.summoned ? '👑 رجّع البطل' : '👑 نزّل البطل'}</button><button class="btn small ib" data-act="autoArrange">تلقائي</button>${S.undo && S.undo.length ? '<button class="btn small ib" data-act="undo" aria-label="تراجع">↶</button>' : ''}${S.match.isFinale(S.match.round) && S.mode !== 'hotseat' ? `<button class="btn small ib ${p.wager ? 'on' : ''}" data-act="wager" title="الخاسر في الجولة الأخيرة يخسر حياة أكثر (للطرفين)">🎲 ${p.wager ? 'راهنت' : 'رهان'}</button>` : ''}</span></div>`;
   }
 
@@ -6814,7 +6816,7 @@ AMB.IMAGES = {
       if (!r.ok) { toast(r.reason, 'err'); return; }
       sfx('merge');
       let msg = 'استلمت: ' + r.text; if (r.item) msg += ' — ' + AMB.DATA.ITEMS[r.item].name;
-      toast(S.mode === 'hotseat' ? m.players[pi].name + ': ' + msg : msg, 'good');
+      if (S.mode !== 'hotseat') toast(msg, 'good');   // same-device: the other player must not see this choice
       if (S.mode === 'online') { AMB.NetUI.rewardClaimed(); return; }
       if (S.mode !== 'hotseat') { const a = AMB.AI.claimReward(m, 1); if (a && a.ok) setTimeout(() => toast('الخصم اختار: ' + AMB.DATA.REWARDS[a.id].name, ''), 700); }
       afterReward();
