@@ -2844,3 +2844,10 @@ body.big-text .mv2 { height: calc((var(--app-h, 100vh) - 76px) / var(--z, 1)); m
   #scr-match .pb-syn { overflow-x: auto; scrollbar-width: none; }
   .sd-cards { row-gap: 20px; }
 }
+
+/* drawer fits any phone height: never over the dock, cards sized to the space left (set by renderShop) */
+@media (max-width: 860px) and (orientation: portrait) {
+  #scr-match.prep-focus .shop-drawer { height: var(--drawerH, min(60vh, 520px)); bottom: var(--dockH, 70px); }
+  .sc { width: var(--scw, calc((100vw - 52px) / 3)); max-width: 150px; }
+  .sd-cards { gap: 18px 8px; }
+}

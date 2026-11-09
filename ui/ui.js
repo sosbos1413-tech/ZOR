@@ -1127,7 +1127,17 @@
           <button class="sd-btn" data-act="upgrades" aria-label="شاشة التطوير">${icon('star')}<small>تطوير</small></button></div>
       </div>`;
     // the drawer sits right above the dock (its height depends on the phone)
-    requestAnimationFrame(() => { const dk = document.querySelector('#shopbar .shop-dock'), sm = $('scr-match'); if (dk && sm && dk.getBoundingClientRect().height > 0) sm.style.setProperty('--dockH', Math.max(0, Math.round(innerHeight - dk.getBoundingClientRect().top + 4)) + 'px'); });
+    requestAnimationFrame(() => {
+      const dk = document.querySelector('#shopbar .shop-dock'), sm = $('scr-match'), dr = document.querySelector('.shop-drawer'); if (!dk || !sm || dk.getBoundingClientRect().height <= 0) return;
+      const vh = (globalThis.visualViewport && visualViewport.height) || innerHeight, dockH = Math.max(0, Math.round(vh - dk.getBoundingClientRect().top + 4));
+      sm.style.setProperty('--dockH', dockH + 'px');
+      // the drawer never covers the dock and leaves a strip of the arena visible; the cards shrink to fit two rows in whatever height is left
+      const drawerH = Math.max(260, Math.min(Math.round(vh * 0.62), vh - dockH - 110));
+      sm.style.setProperty('--drawerH', drawerH + 'px');
+      const cardH = (drawerH - 30 - 78 - 40) / 2, cardW = Math.min((innerWidth - 52) / 3, 150, cardH * 507 / 793);
+      sm.style.setProperty('--scw', Math.max(64, Math.floor(cardW)) + 'px');
+      if (dr) dr.dataset.fit = '1';
+    });
   }
 
   const SYN_ICON = (s) => (s.kind === 'world' ? ART.WORLD_ICON[s.id] : s.kind === 'special' ? 'star' : ART.ROLE_ICON[s.id]);
