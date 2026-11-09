@@ -61,6 +61,15 @@
 
     _rng(p) { return this.isolated ? p.rng : this.rng; }
     _pool(p) { return this.isolated ? p.pool : this.pool; }
+
+    /** senior #39: undo. snapshot() before a move, restore() to take it back. Only for moves that use no randomness (a reroll clears the history). */
+    snapshot(pi) { const p = this.players[pi]; return JSON.stringify({ p, pool: this._pool(p), uidN: this._uidN || 0 }); }
+    restore(pi, snap) {
+      const o = JSON.parse(snap), p = this.players[pi];
+      Object.keys(p).forEach((k) => { if (!(k in o.p)) delete p[k]; }); Object.assign(p, o.p);
+      const pool = this._pool(p); Object.keys(pool).forEach((k) => delete pool[k]); Object.assign(pool, o.pool);
+      this._uidN = o.uidN; return true;
+    }
     _uid(p) { return this.isolated ? 'u' + p.index + '_' + (++p.uidN) : 'u' + (this._uidN = (this._uidN || 0) + 1); }   // per-match ids: a match rebuilt from its moves (continue after reload) gets the same ids
 
     // ================================================================ round flow
@@ -660,7 +669,7 @@
       const board = last ? last.players[pi].board : [];
       const worlds = new Set(board.map((u) => AMB.DATA.UNITS[u.defId].world));
       const opp = this.players[1 - pi];
-      const mode = this.rules ? 'campaign' : this.mode === 'friendly' ? 'friendly' : this.mode === 'hotseat' ? 'hotseat' : (opp.difficulty || 'normal');
+      const mode = this.mode === 'short' ? 'short' : this.rules ? 'campaign' : this.mode === 'friendly' ? 'friendly' : this.mode === 'hotseat' ? 'hotseat' : (opp.difficulty || 'normal');
       return { mode, won: this.winner === pi, roundsPlayed: this.round, roundsWon: p.stats.wins,
         finaleWon: !!(last && last.round >= AMB.CONFIG.match.maxRounds && last.winner === pi),
         buys: p.stats.unitsBought, rerolls: p.stats.rerolls, merges: p.stats.merges, summoned: this.history.some((r) => r.players[pi].summoned),

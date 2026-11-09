@@ -12,13 +12,13 @@
   const AMB = (globalThis.AMB = globalThis.AMB || {});
 
   const WORLDS = {
-    ember: { id: 'ember', name: 'مملكة الجمر', en: 'Emberreach', color: '#ff7a45', glyph: '火',
+    ember: { id: 'ember', name: 'مملكة الجمر', en: 'Emberreach', color: '#ff7a45', glyph: '🔥',
       lore: 'مملكة حدادين وساموراي، سيوفهم تشتعل من قلب بركان حي.' },
-    tide: { id: 'tide', name: 'المدّ القمري', en: 'Moontide', color: '#3ec9ff', glyph: '水',
+    tide: { id: 'tide', name: 'المدّ القمري', en: 'Moontide', color: '#3ec9ff', glyph: '🌊',
       lore: 'جزر يحكمها القمر، وأرواح الموج تحمي وتعالج.' },
-    neon: { id: 'neon', name: 'نيون-٩', en: 'Neon-9', color: '#c45cff', glyph: '電',
+    neon: { id: 'neon', name: 'نيون-٩', en: 'Neon-9', color: '#c45cff', glyph: '⚡',
       lore: 'مدينة إلكترونية ما تنام، والسرعة فيها هي العملة.' },
-    sylvan: { id: 'sylvan', name: 'الغابة الأزلية', en: 'Elder Grove', color: '#52d67c', glyph: '森',
+    sylvan: { id: 'sylvan', name: 'الغابة الأزلية', en: 'Elder Grove', color: '#52d67c', glyph: '🌿',
       lore: 'غابة أقدم من الزمن، جذورها جدران وأشجارها حراس.' },
   };
 

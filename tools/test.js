@@ -879,6 +879,32 @@ t('adult #21: a quick match rebuilt from its recorded moves is identical (contin
   }
   eq(AMB.NetSync.hash(b), AMB.NetSync.hash(m), 'same state after the replay');
 });
+t('adult #22-#28, senior #39: short match mode, daily quick-match shards cap, wish hero from the guarantee, mission swap, undo snapshot', () => {
+  // short match: 4 rounds, its own pass mode
+  const sh = new AMB.Match({ mode: 'short', players: [{ heroId: 'orath', name: 'a', isAI: true, difficulty: 'normal' }, { heroId: 'merin', name: 'b', isAI: true, difficulty: 'normal' }], rules: { maxRounds: 4, winsNeeded: 3, start: { gold: 8, level: 4 } } });
+  while (!sh.isOver) { sh.startRound(); AMB.AI.prep(sh, 0); AMB.AI.prep(sh, 1); sh.resolveCombat(sh.createCombat(false).runToEnd()); }
+  ok(sh.round <= 4, 'over within 4 rounds'); eq(sh.summary(0).mode, 'short');
+  // quick-match shards: +10/+5, 60 a day
+  const prof = AMB.Profile.boot(AMB.Save.memoryStorage()), dp = prof.dayPay;
+  let paid = 0; for (let i = 0; i < 10; i++) paid += dp.quickMatch(true);
+  eq(paid, 60, 'daily cap'); eq(dp.quickLeft(), 0);
+  ok(dp.onlineCounts() && dp.onlineCounts() && dp.onlineCounts() && !dp.onlineCounts(), 'first 3 friend matches a day count');
+  // wish: the guarantee brings the wished hero
+  const P = prof.packs, wish = Object.keys(AMB.DATA.HEROES).find((h) => !prof.collection.owned(h));
+  eq(P.setWish(wish), true); eq(P.wish(), wish);
+  prof.wallet.add('shards', 100000, 'test'); let got = false;
+  for (let i = 0; i < 40 && !got; i++) { const r = P.open(); if (r && r.forced && r.cards.some((c) => c.id === wish)) got = true; if (prof.collection.owned(wish)) got = true; }
+  ok(got, 'the wished hero arrives at the latest with the guarantee');
+  // mission swap: once a day
+  const pass = mkPass(); const d0 = pass.dailyMissions(); const sw = pass.swapMission(d0[0].id);
+  ok(sw && sw.id !== d0[0].id, 'swapped'); ok(!pass.canSwap() && pass.swapMission(d0[1].id) === null, 'once a day');
+  eq(pass.dailyMissions()[0].id, sw.id, 'the swapped mission is today\'s');
+  // undo: snapshot / restore brings back gold, bench and pool
+  const m = new AMB.Match({ mode: 'ai', seed: 3, players: [{ heroId: 'orath', name: 'a' }, { heroId: 'merin', name: 'b', isAI: true }] });
+  m.startRound(); const p0 = m.players[0], g0 = p0.gold, snap = m.snapshot(0), id0 = p0.shop[0], pool0 = m._pool(p0)[id0];
+  ok(m.buy(0, 0).ok); ok(p0.gold < g0);
+  m.restore(0, snap); eq(p0.gold, g0); eq(p0.shop[0], id0); eq(m._pool(p0)[id0], pool0); ok(!p0.bench.some(Boolean), 'bench back to empty');
+});
 t('online safety: a friend cannot send an impossible slot/index or a malformed op (nothing throws, nothing is duplicated)', () => {
   const m = new AMB.Match({ mode: 'online', seed: 5, isolated: true, players: [{ heroId: 'orath', name: 'a' }, { heroId: 'merin', name: 'b' }] });
   m.startRound(); const p = m.players[1]; p.gold = 50;
@@ -1585,5 +1611,9 @@ t('settings: big text off and 1x speed for a new player; speed choice and one-ti
   ok(p2.bigText()); eq(p2.speed(), 4); ok(p2.seen('quickTips')); ok(!p2.folded('deck', true), 'a toggled section keeps its state');
 });
 
+t('every ui/*.js file parses (a syntax error there would break the whole game in the browser)', () => {
+  const fs = require('fs'), path = require('path'), dir = path.join(__dirname, '..', 'ui');
+  fs.readdirSync(dir).filter((f) => f.endsWith('.js')).forEach((f) => { try { new Function(fs.readFileSync(path.join(dir, f), 'utf8')); } catch (e) { throw new Error(f + ': ' + e.message); } });
+});
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

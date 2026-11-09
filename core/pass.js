@@ -4,7 +4,8 @@
  *
  * Fairness: every reward is cosmetic except the small "prep time" perk (+5s / +10s on the
  * planning timer). Nothing changes card or hero strength.
- * The premium track is UI only: it stays locked (`premium=false`) until real payments exist.
+ * The premium track is UI only: it stays locked (`premium=false`) until real payments exist. It is COSMETIC ONLY: its characters
+ * are avatars (a portrait to show), never the card itself, so paying can never buy strength (ui/pass-ui.js grants cards for the free track only).
  */
 (function () {
   const AMB = (globalThis.AMB = globalThis.AMB || {});
@@ -13,7 +14,7 @@
   const SEASON = {
     id: 's1', name: 'موسم الصدع الأول', days: 42, levels: 30, xpPerLevel: 500,   // 15,000 XP in all: about a month at 3 matches a day plus the missions (it was 3,000 = a week)
     xp: { played: 30, won: 40, perRoundWon: 6, finaleWon: 15, firstWinOfDay: 40 },
-    modeMult: { easy: 0.6, normal: 1, hard: 1.25, expert: 1.4, hotseat: 0.8, friendly: 0, campaign: 0 },   // friendly games give nothing (no farming)
+    modeMult: { easy: 0.6, normal: 1, hard: 1.25, expert: 1.4, short: 0.6, hotseat: 0.8, friendly: 0, campaign: 0 },   // friendly games give nothing (no farming)
   };
 
   // ------------------------------------------------------------- cosmetics registry (applied by the UI)
@@ -160,7 +161,12 @@
     const save = () => { try { storage.setItem(KEY, JSON.stringify(st)); } catch (e) { /* storage blocked */ } };
     const roll = () => {   // new day / new week -> fresh mission progress
       const dk = dayKey(now()), wk = weekKey(now());
-      if (st.daily.key !== dk) { st.daily = { key: dk, p: {} }; st.claimedMissions = st.claimedMissions.filter((id) => !id.startsWith('d_')); }
+      if (st.daily.key !== dk) {
+        // adult #28: yesterday's finished-but-unclaimed daily missions stay claimable for one more day (missing a day does not lose them)
+        let carry = [];
+        try { if (st.daily.key) carry = pick3(DAILY, 'd' + st.daily.key).map((m) => (st.daily.swap && st.daily.swap[m.id] ? DAILY.find((x) => x.id === st.daily.swap[m.id]) || m : m)).filter((m) => Math.min(m.target, st.daily.p[m.stat] || 0) >= m.target && !st.claimedMissions.includes(m.id)).map((m) => m.id); } catch (e) { carry = []; }
+        st.daily = { key: dk, p: {}, carry, swap: {} }; st.claimedMissions = st.claimedMissions.filter((id) => !id.startsWith('d_') && !id.startsWith('c_'));
+      }
       if (st.weekly.key !== wk) { st.weekly = { key: wk, p: {} }; st.claimedMissions = st.claimedMissions.filter((id) => !id.startsWith('w_')); }
     };
     roll();
@@ -178,6 +184,8 @@
       SEASON, COSMETICS, FREE, PREMIUM, TYPE_NAME, rewardName,
       state: () => st,
       level: () => Math.min(SEASON.levels, 1 + Math.floor(st.xp / SEASON.xpPerLevel)),
+      /** adult #23: at the pace so far, in how many days the last level is reached (null = not enough data yet) */
+      etaDays() { const days = Math.max(1, (now() - st.start) / DAY), rate = st.xp / days, left = (SEASON.levels - 1) * SEASON.xpPerLevel - st.xp; if (left <= 0) return 0; if (rate < 1 || days < 0.5) return null; return Math.ceil(left / rate); },
       xpInLevel: () => (api.level() >= SEASON.levels ? SEASON.xpPerLevel : st.xp % SEASON.xpPerLevel),
       maxed: () => api.level() >= SEASON.levels,
       daysLeft: () => Math.max(0, Math.ceil((st.start + SEASON.days * DAY - now()) / DAY)),
@@ -186,11 +194,23 @@
       setPremium: (v) => { st.premium = !!v; save(); },        // dev / future payment hook only
       addXp(n) { if (api.ended() || n <= 0) return 0; const b = api.level(); st.xp += Math.round(n); save(); return api.level() - b; },
 
-      dailyMissions() { roll(); return pick3(DAILY, 'd' + st.daily.key).map((m) => api._m(m, st.daily.p)); },
+      dailyMissions() { roll(); return pick3(DAILY, 'd' + st.daily.key).map((m) => (st.daily.swap && st.daily.swap[m.id] ? DAILY.find((x) => x.id === st.daily.swap[m.id]) || m : m)).map((m) => api._m(m, st.daily.p)); },
+      /** adult #28: missions carried over from yesterday (finished, not claimed yet) */
+      carriedMissions() { roll(); return (st.daily.carry || []).map((id) => DAILY.find((x) => x.id === id)).filter(Boolean).map((m) => Object.assign({}, m, { progress: m.target, done: true, claimed: st.claimedMissions.includes('c_' + m.id), carry: true, id: 'c_' + m.id })); },
+      /** adult #28: swap one of today's daily missions for another, once a day, free */
+      canSwap() { roll(); return !st.daily.swap || !Object.keys(st.daily.swap).length; },
+      swapMission(id) {
+        if (!api.canSwap()) return null;
+        const today = api.dailyMissions(), cur = today.find((m) => m.id === id); if (!cur || cur.claimed) return null;
+        const used = today.map((m) => m.id), alt = DAILY.filter((x) => !used.includes(x.id));
+        if (!alt.length) return null;
+        const pickAlt = alt[hash(st.daily.key + ':swap:' + id) % alt.length];
+        st.daily.swap = st.daily.swap || {}; st.daily.swap[id] = pickAlt.id; save(); return pickAlt;
+      },
       weeklyMissions() { roll(); return pick3(WEEKLY, 'w' + st.weekly.key).map((m) => api._m(m, st.weekly.p)); },
       _m(m, prog) { const v = Math.min(m.target, prog[m.stat] || 0); return Object.assign({}, m, { progress: v, done: v >= m.target, claimed: st.claimedMissions.includes(m.id) }); },
       claimMission(id) {
-        const m = api.dailyMissions().concat(api.weeklyMissions()).find((x) => x.id === id);
+        const m = api.dailyMissions().concat(api.weeklyMissions(), api.carriedMissions()).find((x) => x.id === id);
         if (!m || !m.done || m.claimed) return null;
         st.claimedMissions.push(id); const before = api.level(); if (!api.ended()) st.xp += m.xp; save();   // no XP after the season closed (the shards still pay)
         if (m.shards && onReward) { try { onReward({ type: 'shards', n: m.shards, mission: id }); } catch (e) { /* never blocks claiming */ } }

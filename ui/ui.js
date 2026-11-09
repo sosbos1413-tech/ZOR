@@ -25,6 +25,8 @@
   const ibtn = (k, extra) => `<button class="ibtn" data-act="info" data-k="${k}" ${extra || ''} title="شرح">ⓘ</button>`;
   // beginners (fewer than 2 finished matches) get the extra hints, then they disappear
   const coach = () => { try { return +(localStorage.getItem('amb_played') || 0) < 2; } catch (e) { return false; } };
+  // senior #34: signed numbers and fractions keep left-to-right order inside Arabic text («+5», «−9», «1/7» never flip to «5+» or «7/ 1»)
+  function bidiNums(html) { return String(html).split(/(<[^>]+>)/).map((part) => (part[0] === '<' ? part : part.replace(/([+\-−]\s?\d[\d.,]*%?|\d+\s?\/\s?\d+)/g, '<bdi dir="ltr">$1</bdi>'))).join(''); }
   function toast(msg, kind, html) {
     const box = $('toasts');
     // never pile up: the same message just restarts its timer, and at most 2 toasts show at once
@@ -33,7 +35,7 @@
     while (box.children.length >= 2) box.firstChild.remove();
     const el = document.createElement('div');
     el.className = 'toast ' + (kind || '');
-    el._m = msg; if (html) el.innerHTML = msg; else el.textContent = msg;
+    el._m = msg; if (html) el.innerHTML = bidiNums(msg); else el.innerHTML = bidiNums(esc(msg));
     box.appendChild(el);
     el._t = setTimeout(() => el.remove(), kind === 'err' ? 4200 : 2500);
   }
@@ -169,11 +171,14 @@
     if (S.mode === 'hotseat') {
       players = [{ heroId: S.picks[0], name: 'لاعب 1' }, { heroId: S.picks[1], name: 'لاعب 2' }];
     } else {
-      const aiHero = heroIds[Math.floor(Math.random() * heroIds.length)];
+      const ch = S.mode === 'ai' ? S.challenge : null;   // adult #29: a friend's challenge replays the exact same match (same seed, same computer), with no card power for either side
+      const aiHero = ch ? ch.a : heroIds[Math.floor(Math.random() * heroIds.length)];
       const styles = ['mono', 'mixed', 'balanced'];
+      const aiStyle = ch ? ch.st : S.difficulty === 'hard' || S.difficulty === 'expert' ? 'mono' : styles[Math.floor(Math.random() * 3)];
+      if (ch) { S.picks = [ch.h, null]; S.difficulty = ch.d; }
       players = [
-        { heroId: S.picks[0], name: 'أنت', cardPower: AMB.collection ? AMB.collection.powerMap() : null, heroLevel: AMB.heroes ? AMB.heroes.level(S.picks[0]) : 1 },
-        { heroId: aiHero, name: 'الكمبيوتر', isAI: true, aiStyle: S.difficulty === 'hard' || S.difficulty === 'expert' ? 'mono' : styles[Math.floor(Math.random() * 3)], difficulty: S.mode === 'friendly' ? 'easy' : S.difficulty },   // hard/expert always use the strongest style (their hero's world)
+        { heroId: S.picks[0], name: 'أنت', cardPower: !ch && AMB.collection ? AMB.collection.powerMap() : null, heroLevel: !ch && AMB.heroes ? AMB.heroes.level(S.picks[0]) : 1 },
+        { heroId: aiHero, name: 'الكمبيوتر', isAI: true, aiStyle, difficulty: S.mode === 'friendly' ? 'easy' : S.difficulty },   // hard/expert always use the strongest style (their hero's world)
       ];
     }
     // campaign fight (ui/campaign-ui.js): fixed enemy line-up, short best-of-3 rules, your card levels count
@@ -183,12 +188,15 @@
       : S.mode === 'tutorial' ? new AMB.Match(AMB.tutorial.matchOptions(S.picks[0]))
       : S.mode === 'practice' ? new AMB.Match(AMB.Tutorial.practiceOptions(S.picks[0]))
       : S.mode === 'online' ? AMB.NetUI.makeMatch()
-      : new AMB.Match({ mode: S.mode, players, weekly: S.mode === 'ai' || S.mode === 'hotseat' ? AMB.Match.weeklyNow() : null });
+      // adult #22: a short match: 4 rounds, first to 3 round wins, starts at level 4 with more gold (about 3 minutes)
+      : S.mode === 'short' ? new AMB.Match({ mode: 'short', players, rules: { maxRounds: 4, winsNeeded: 3, start: { gold: 8, level: 4 } } })
+      : new AMB.Match({ mode: S.mode, players, seed: S.mode === 'ai' && S.challenge ? S.challenge.s : undefined, weekly: S.mode === 'ai' && S.challenge ? (AMB.Match.WEEKLY[S.challenge.w] ? S.challenge.w : null) : S.mode === 'ai' || S.mode === 'hotseat' ? AMB.Match.weeklyNow() : null });
     // same hero on both sides (e.g. your Kiro vs the Ember boss Kiro): the enemy becomes its "shadow"
     const mirror = S.match.players[0].heroId === S.match.players[1].heroId;
     document.body.classList.toggle('mirror-foe', mirror);
     if (mirror && S.mode === 'campaign') { const hn = HEROES[S.match.players[1].heroId].name, e = S.match.players[1]; if (e.name.includes(hn)) e.name = e.name.replace(hn, 'ظلّ ' + hn); }
     resumeStart(players);
+    undoInstall();
     if (S.match.weekly) { const W0 = AMB.Match.WEEKLY[S.match.weekly]; setTimeout(() => toast(`📅 قاعدة الأسبوع: ${W0.name} · ${W0.text}`, 'good'), 900); }
     S.startTs = Date.now();
     S.speed = AMB.settings ? AMB.settings.speed() : 1;   // the last speed the player picked (1x for a new player)
@@ -200,7 +208,10 @@
   function prepSeconds() {
     if (S.mode === 'tutorial') return 9999;   // no clock while you learn
     const bonus = AMB.pass ? AMB.pass.prepBonus() : 0;   // battle-pass perk (+ a few seconds, never stats)
-    return prepBase() + bonus;
+    // senior #33: "on your own pace" against the computer: double time or no clock (online and same-device keep the normal clock)
+    const tm = AMB.settings && S.mode !== 'online' && S.mode !== 'hotseat' ? AMB.settings.get('timer') : 'normal';
+    if (tm === 'off') return 9999;
+    return (prepBase() + bonus) * (tm === 'x2' ? 2 : 1);
   }
   function prepBase() {
     const learn = S.match && S.match.round <= 2 ? 20 : 0;   // first two rounds: +20s to learn the screen
@@ -300,9 +311,9 @@
     // the first-run guide opens in a moment: skip the round banner and income toast so nothing stacks on it
     const tutNext = false;
     if (!tutNext) { const st = S.match.stageInfo(), first = st.rounds[0] === S.match.round;
-      if (S.match.rules) banner(`${icon('flag')} ${S.match.round}<small>/${maxR()}</small>`, S.match.round === 1 ? '' : 'fight');
-      else if (st.id === 'finale') banner(`${icon('sword')}${icon('sword')} ${S.match.round}<small>/${CFG.match.maxRounds}</small>`, 'fight');
-      else banner(`${icon('flag')} ${S.match.round}<small>/${CFG.match.maxRounds}</small>`); }
+      if (S.match.rules) banner(`${icon('flag')} <bdi dir="ltr">${S.match.round}<small>/${maxR()}</small></bdi>`, S.match.round === 1 ? '' : 'fight');
+      else if (st.id === 'finale') banner(`${icon('sword')}${icon('sword')} <bdi dir="ltr">${S.match.round}<small>/${CFG.match.maxRounds}</small></bdi>`, 'fight');
+      else banner(`${icon('flag')} <bdi dir="ltr">${S.match.round}<small>/${CFG.match.maxRounds}</small></bdi>`); }
     const p = me();
     const inc = p.lastIncome;
     if (inc && !tutNext) {
@@ -331,6 +342,24 @@
     startCombat();
   }
 
+  // ---- senior #39: "↶ تراجع": take back the last move of this prep (buy, sell, move, items, XP, hero). Not online, not same-device, never across a reroll.
+  const UNDOABLE = ['buy', 'sell', 'move', 'buyItem', 'equip', 'unequip', 'sellItem', 'buyXp', 'toggleSummon', 'moveHero', 'autoArrange', 'armSpell', 'disarmSpell'];
+  function undoInstall() {
+    S.undo = [];
+    const m = S.match; if (!m || S.mode === 'online' || S.mode === 'hotseat' || S.mode === 'tutorial') return;
+    UNDOABLE.forEach((name) => {
+      const fn = m[name]; if (typeof fn !== 'function') return;
+      m[name] = function (pi, ...args) {
+        if (pi !== 0 || S._undoDepth || S.phase !== 'prep' && S.phase !== 'resources') return fn.call(this, pi, ...args);
+        const snap = this.snapshot(0); S._undoDepth = (S._undoDepth || 0) + 1;
+        let r; try { r = fn.call(this, pi, ...args); } finally { S._undoDepth--; }
+        if (!r || r.ok !== false) { S.undo.push(snap); if (S.undo.length > 20) S.undo.shift(); }
+        return r;
+      };
+    });
+    const rr = m.reroll; m.reroll = function (...a) { const r = rr.apply(this, a); if (r && r.ok !== false) S.undo = []; return r; };   // randomness: no going back past a reroll
+    const sr = m.startRound; m.startRound = function (...a) { S.undo = []; return sr.apply(this, a); };
+  }
   // ---- adult #21: continue an unfinished quick match after a reload (the match is rebuilt by replaying the recorded moves; it is deterministic)
   const RS_KEY = 'zor_resume_v1';
   function resumeStart(players) {
@@ -377,7 +406,7 @@
     const el = document.querySelector('.timer');
     if (S.paused) return;
     const left = Math.max(0, S.deadline - Date.now());
-    if (el) { el.textContent = S.mode === 'tutorial' ? '∞' : Math.ceil(left / 1000) + 's'; el.classList.toggle('warn', left < 6000 && S.mode !== 'tutorial'); }
+    if (el) { el.textContent = S.mode === 'tutorial' || left > 3600000 ? '∞' : Math.ceil(left / 1000) + 'ث'; el.classList.toggle('warn', left < 6000 && S.mode !== 'tutorial'); }
     if (left <= 0) endPrep();
   }, 200);
 
@@ -502,7 +531,7 @@
       : disc('world', ART.WORLD_ICON[def.world], W.name, ['world', def.id]) + rolePill + disc('skill', ART.SKILL_ICON[def.skill.type] || 'star', def.skill.name, ['skill', def.id, star]);
     const RA = AMB.ECONOMY && AMB.ECONOMY.rarities[def.rarity];
     const rar = RA ? `<span class="hc-rar" data-act="tip" data-k="rar" data-id="${def.id}">${RA.name}</span>` : '';
-    const lvl = o.lvl ? `<span class="hc-lvl" data-act="tip" data-k="lvl" data-id="${def.id}" data-x="${o.lvl}">Lv ${o.lvl}</span>` : '';
+    const lvl = o.lvl ? `<span class="hc-lvl" data-act="tip" data-k="lvl" data-id="${def.id}" data-x="${o.lvl}">مستوى ${o.lvl}</span>` : '';
     const gemN = RA ? RA.order : 1;
     return `<div class="tcard hc cv3 full fr-${def.world} ${tier}${sc} r-${def.rarity || 'common'} ${o.cls || ''}" style="--wc:${W.color}" ${attrs}>
       <div class="hc-frame"><i class="sheen"></i></div>${rar}${lvl}
@@ -587,14 +616,15 @@
     const t0 = c.currentTime + (o.at || 0), osc = c.createOscillator(), g = c.createGain();
     osc.type = o.type || 'sine'; osc.frequency.setValueAtTime(o.f, t0);
     if (o.to) osc.frequency.exponentialRampToValueAtTime(o.to, t0 + o.d);
-    g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(o.v || 0.15, t0 + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t0 + o.d);
+    const vol = AMB.settings ? Math.max(0.05, +AMB.settings.get('sfx') || 0) : 1;   // senior #38: effects volume
+    g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime((o.v || 0.15) * vol, t0 + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t0 + o.d);
     osc.connect(g); g.connect(c.destination); osc.start(t0); osc.stop(t0 + o.d + 0.02);
   }
   function noise(c, d, v, hp) {
     const n = Math.floor(c.sampleRate * d), buf = c.createBuffer(1, n, c.sampleRate), ch = buf.getChannelData(0);
     for (let i = 0; i < n; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / n);
     const src = c.createBufferSource(), g = c.createGain(), f = c.createBiquadFilter();
-    f.type = 'highpass'; f.frequency.value = hp || 800; g.gain.value = v;
+    f.type = 'highpass'; f.frequency.value = hp || 800; g.gain.value = v * (AMB.settings ? Math.max(0.05, +AMB.settings.get('sfx') || 0) : 1);
     src.buffer = buf; src.connect(f); f.connect(g); g.connect(c.destination); src.start();
   }
 
@@ -717,7 +747,7 @@
     }
     renderPosts();
     // clock + fury: written only when the text changes (this runs every frame)
-    const clock = document.querySelector('.combat-ctrl .clock'), ct = fmt(c.t, 1) + 's';
+    const clock = document.querySelector('.combat-ctrl .clock'), ct = fmt(c.t, 1) + 'ث';
     if (clock && clock._t !== ct) { clock._t = ct; clock.textContent = ct; }
     const fury = document.querySelector('.combat-ctrl .fury');
     const fh = c.t > CFG.combat.furyStart ? `${icon('flame')}×${fmt(c.fury(), 2)}` : (c.assault ? icon('warn') : '');
@@ -851,17 +881,17 @@
     const m = S.match, p = me(), o = opp();
     const ph = S.phase;
     const need = m.xpNeeded(p);
-    const left = ph === 'prep' ? (S.mode === 'tutorial' ? '∞' : Math.ceil(Math.max(0, S.deadline - Date.now()) / 1000) + 's') : '—';
+    const left = ph === 'prep' ? (S.mode === 'tutorial' ? '∞' : Math.ceil(Math.max(0, S.deadline - Date.now()) / 1000) + 'ث') : '—';
     const avail = p.essence - m.reservedEssence(p);
     const lc = (pl, hid, k, me) => `<span class="lifechip ${me ? 'me' : ''}">${portrait(hid, { k })}${icon('heart')} <b>${lifeStr(pl.life)}</b><i class="lc-st"></i></span>`;
     $('topbar').innerHTML = `
-      <span class="tb-round" title="${icon('flag').replace(/<[^>]+>/g, '')}">${icon('flag')} ${m.round}<small>/${maxR()}</small></span>
+      <span class="tb-round" title="${icon('flag').replace(/<[^>]+>/g, '')}">${icon('flag')} <bdi dir="ltr">${m.round}<small>/${maxR()}</small></bdi></span>
       ${m.rules ? `<span class="stagechip"><b>${p.stats.wins} – ${o.stats.wins}</b><span class="pips">${Array.from({ length: m.rules.winsNeeded || 2 }, (_, k) => k).map((k) => `<i class="pip ${k < p.stats.wins ? 'done' : ''}"></i>`).join('')}</span></span>`
         : `<span class="stagechip"><span class="pips">${[1, 2, 3, 4, 5, 6, 7].map((r) => `<i class="pip ${r < m.round ? 'done' : r === m.round ? 'now' : ''} ${CFG.match.stages.some((st) => st.rounds[1] === r && r < 7) ? 'gap' : ''}"></i>`).join('')}</span></span>`}
       <span class="timer">${S.paused ? icon('pause') : left}</span>
       <span class="tb-spacer"></span>
       ${lc(p, myAvatar(p, 0), 'tb0', true)}${lc(o, HEROES[o.heroId], 'tb1', false)}
-      <span class="res gold">${icon('gold')} ${p.gold}</span>
+      <span class="res gold" data-act="info" data-k="interest" title="الفايدة">${icon('gold')} ${p.gold}${m.rules ? '' : (() => { const E0 = CFG.economy, rich = m.weekly === 'richInterest', n = Math.min(rich ? E0.interestMax + 2 : E0.interestMax, Math.floor(p.gold / (rich ? E0.interestPer - 2 : E0.interestPer))); return n ? `<small class="int-n">+${n}</small>` : ''; })()}</span>
       <span class="res ess">${icon('essence')} ${avail}/${p.essence}</span>
       <span class="lvl">${icon('crown')} <b>${p.level}</b> <span class="xpbar"><i style="width:${need ? (p.xp / need) * 100 : 100}%"></i></span></span>
       <button class="btn small mob-only ibtn2" data-act="panels">${S.panels ? '✕' : icon('crown')}</button>
@@ -1063,10 +1093,10 @@
         <button class="btn primary ready-btn" data-act="ready" title="Enter"><span class="lb">جاهز</span></button>
         <button class="dock-hero" data-act="heroDock" title="قدرات البطل" aria-label="قدرات البطل" style="--wc:${WORLDS[HEROES[p.heroId].world].color}">${portrait(myAvatar(p, 0), { k: 'dock' })}<span class="dh-lv">${icon('crown')}${p.level}</span></button>
         <span class="dock-sp"></span>
-        <button class="sb-ic" data-act="reroll" title="تحديث المتجر (D)" aria-label="تحديث المتجر">${icon('refresh')}${price(rCost, p.gold >= rCost)}</button>
-        <button class="sb-ic ${p.shopLocked ? 'on' : ''}" data-act="lock" title="${p.shopLocked ? 'المتجر مثبّت' : 'ثبّت المتجر للجولة الجاية'}" aria-label="تثبيت المتجر">${icon(p.shopLocked ? 'lock' : 'unlock')}</button>
-        <button class="sb-ic xp" data-act="xp" ${maxed ? 'disabled' : ''} title="اشتر خبرة (F)" aria-label="اشتر خبرة">${icon('up')}${maxed ? '' : price(E.xpCost, p.gold >= E.xpCost)}<i class="xpm"><i style="transform:scaleX(${need ? Math.min(1, p.xp / need) : 1})"></i></i></button>
-        <button class="sb-ic" data-act="upgrades" title="شاشة التطوير" aria-label="شاشة التطوير">${icon('star')}</button>
+        <button class="sb-ic" data-act="reroll" title="تحديث المتجر (D)" aria-label="تحديث المتجر">${icon('refresh')}${price(rCost, p.gold >= rCost)}<span class="sb-lb">تحديث</span></button>
+        <button class="sb-ic ${p.shopLocked ? 'on' : ''}" data-act="lock" title="${p.shopLocked ? 'المتجر مثبّت' : 'ثبّت المتجر للجولة الجاية'}" aria-label="تثبيت المتجر">${icon(p.shopLocked ? 'lock' : 'unlock')}<span class="sb-lb">تثبيت</span></button>
+        <button class="sb-ic xp" data-act="xp" ${maxed ? 'disabled' : ''} title="اشتر خبرة (F)" aria-label="اشتر خبرة">${icon('up')}${maxed ? '' : price(E.xpCost, p.gold >= E.xpCost)}<i class="xpm"><i style="transform:scaleX(${need ? Math.min(1, p.xp / need) : 1})"></i></i><span class="sb-lb">خبرة</span></button>
+        <button class="sb-ic" data-act="upgrades" title="شاشة التطوير" aria-label="شاشة التطوير">${icon('star')}<span class="sb-lb">تطوير</span></button>
       </div>
       <div class="shop-row"><div class="shop-cards">${cards}</div>
       <div class="item-cards">${items}</div></div>`;
@@ -1186,7 +1216,7 @@
     const sev = AMB.synergy.evaluate(Object.values(p.board), p.heroId), dups = dupCount(p);
     const synStrip = sev.list.length || dups ? `<span class="pb-syn">${synergyHTML(sev.list.slice(0, 4), dups)}</span>` : '';
     return `<div class="pb"><span class="pb-count">${icon('shield')} ${cnt}${p.summoned ? ' +' + icon('crown') : ''}</span>${synStrip}${bag ? `<span class="pb-bag">${bag}</span>` : ''}
-      <span class="pb-btns"><button class="btn small ib ${p.summoned ? 'on' : ''} ${!p.summoned && S.match.round >= 2 && p.life >= 30 && S.mode !== 'online' ? 'can-summon' : ''}" data-act="summon">${p.summoned ? '👑 رجّع البطل' : '👑 نزّل البطل'}</button><button class="btn small ib" data-act="autoArrange">تلقائي</button>${S.match.isFinale(S.match.round) && S.mode !== 'hotseat' ? `<button class="btn small ib ${p.wager ? 'on' : ''}" data-act="wager" title="الخاسر في الجولة الأخيرة يخسر حياة أكثر (للطرفين)">🎲 ${p.wager ? 'راهنت' : 'رهان'}</button>` : ''}</span></div>`;
+      <span class="pb-btns"><button class="btn small ib ${p.summoned ? 'on' : ''} ${!p.summoned && S.match.round >= 2 && p.life >= 30 && S.mode !== 'online' ? 'can-summon' : ''}" data-act="summon">${p.summoned ? '👑 رجّع البطل' : '👑 نزّل البطل'}</button><button class="btn small ib" data-act="autoArrange">تلقائي</button>${S.undo && S.undo.length ? '<button class="btn small ib" data-act="undo" aria-label="تراجع">↶</button>' : ''}${S.match.isFinale(S.match.round) && S.mode !== 'hotseat' ? `<button class="btn small ib ${p.wager ? 'on' : ''}" data-act="wager" title="الخاسر في الجولة الأخيرة يخسر حياة أكثر (للطرفين)">🎲 ${p.wager ? 'راهنت' : 'رهان'}</button>` : ''}</span></div>`;
   }
 
   // the synergy chips stay visible during the fight, so you can see WHY your board is strong (same chips as the prep bar; no new panels)
@@ -1208,12 +1238,38 @@
     const bu = Object.entries(m.players[mi].stats.byUnit || {}).sort((x, y) => y[1] - x[1])[0];
     const share = `ZOR · ${m.winner === mi ? 'فزت' : m.winner == null ? 'تعادلت' : 'خسرت'} ${H.filter((r) => r.winner === mi).length}–${H.filter((r) => r.winner === 1 - mi).length}${bu ? ` · نجمي: ${UNITS[bu[0]].name}` : ''}`;
     S.shareText = share;
+    if (S.mode === 'ai') {   // adult #29: a link that lets a friend play the very same match
+      const p0 = m.players[mi], p1 = m.players[1 - mi];
+      const ch = { s: m.seed, h: p0.heroId, a: p1.heroId, st: p1.aiStyle, d: p1.difficulty, w: m.weekly, r: [H.filter((r) => r.winner === mi).length, H.filter((r) => r.winner === 1 - mi).length], l: Math.max(0, Math.round(p0.life)) };
+      try { S.shareText = share + '\nتقدر تغلبني؟ نفس المباراة بالضبط: ' + location.origin + location.pathname + '?ch=' + btoa(unescape(encodeURIComponent(JSON.stringify(ch)))); } catch (e) { /* ignore */ }
+    }
     return `<div class="res-analysis"><h3>📈 تحليل المباراة</h3>
       <svg viewBox="-4 -4 ${W + 8} ${Ht + 8}" class="ra-graph" role="img" aria-label="حياة الطرفين جولة بجولة"><polyline points="${line(b)}" class="ra-foe"/><polyline points="${line(a)}" class="ra-me"/></svg>
       <div class="ra-legend"><span class="me">— أنت</span><span class="foe">— الخصم</span></div>
       ${swing ? `<p>🔄 نقطة التحول: <b>الجولة ${swing}</b> (تغيّر الفرق ${Math.round(sw)} حياة)</p>` : ''}
       ${bu ? `<p>⭐ أقوى وحدة عندك: <b>${UNITS[bu[0]].name}</b> · ${fmt(bu[1])} ضرر</p>` : ''}
       <button class="btn small" data-act="shareRes">📤 شارك النتيجة</button></div>`;
+  }
+  // senior #31/#32/#38: one place for comfort; text size zooms the WHOLE game (cards, buttons, numbers), not just paragraphs
+  function applyComfort() {
+    const ST = AMB.settings; if (!ST) return;
+    const z = [1, 1.12, 1.25][ST.textSize()] || 1;
+    document.documentElement.style.zoom = z === 1 ? '' : String(z);
+    document.body.classList.toggle('big-text', ST.textSize() > 0);
+    document.body.classList.toggle('reduce-motion', ST.get('motion') === false);
+    document.body.classList.toggle('no-vibe', ST.get('vibe') === false);
+    try { requestAnimationFrame(() => { if (typeof fitMatch === 'function') fitMatch(); }); } catch (e) { /* ignore */ }
+  }
+  function settingsModal() {
+    const ST = AMB.settings; if (!ST) return;
+    const seg = (k, opts, cur) => `<div class="seg">${opts.map(([v, n]) => `<button class="${String(cur) === String(v) ? 'on' : ''}" data-act="setOpt" data-k="${k}" data-v="${v}">${n}</button>`).join('')}</div>`;
+    modal(`<h2>⚙️ الإعدادات والراحة</h2>
+      <h3>حجم الخط</h3>${seg('textSize', [[0, 'عادي'], [1, 'كبير'], [2, 'كبير جدًا']], ST.textSize())}
+      <h3>العدّاد ضد الكمبيوتر</h3>${seg('timer', [['normal', 'عادي'], ['x2', 'وقت ×2'], ['off', 'بدون']], ST.get('timer') || 'normal')}
+      <p class="hint">ضد صاحبك يبقى العدّاد عادي.</p>
+      <h3>الحركة</h3>${seg('motion', [[true, 'كاملة'], [false, 'أقل']], ST.get('motion') !== false)}
+      <h3>الاهتزاز</h3>${seg('vibe', [[true, 'شغّال'], [false, 'طافي']], ST.get('vibe') !== false)}
+      <h3>صوت المؤثرات</h3>${seg('sfx', [[0.3, 'واطي'], [0.65, 'وسط'], [1, 'عالي']], ST.get('sfx') == null ? 1 : ST.get('sfx'))}`);
   }
   // kid #9: one friendly tip after a lost match, picked from what actually happened
   function lossTip(m) {
@@ -1232,7 +1288,7 @@
       const p = me(), h = HEROES[p.heroId];
       el.innerHTML = `<div class="cc-dock"><span class="cc-hero" style="--wc:${WORLDS[h.world].color}">${portrait(myAvatar(p, 0), { k: 'ccd' })}<span class="cc-life"><span class="op-bar"><i></i></span>${icon('heart')}<b>${lifeStr(p.life)}</b></span></span>
         <span class="cc-sp"></span>
-        ${S.phase === 'combat' ? `<span class="clock">0.0s</span><span class="fury"></span><button class="btn small cc-speed" data-act="speed" data-v="${S.speed >= 4 ? 1 : S.speed * 2}" title="السرعة" aria-label="السرعة">${icon('play')}<b>${S.speed}x</b></button>
+        ${S.phase === 'combat' ? `<span class="clock">0.0ث</span><span class="fury"></span><button class="btn small cc-speed" data-act="speed" data-v="${S.speed >= 4 ? 1 : S.speed * 2}" title="السرعة" aria-label="السرعة">${icon('play')}<b>${S.speed}x</b></button>
         <button class="btn small ib cc-skip" data-act="skip">${icon('skip')}تخطي</button>` : ''}</div>${combatSynHTML()}`;
       S.dockUi = { bar: el.querySelector('.cc-life .op-bar i'), num: el.querySelector('.cc-life b'), txt: '', pct: -1 };
       dockLife(p.life, p.maxLife);
@@ -1313,8 +1369,16 @@
       المخزون مشترك بين اللاعبين، فإذا خصمك جمع نفس الوحدة تصير أصعب عليك.</p>${rows || '<p class="hint">ما عندك وحدات للحين.</p>'}`);
   }
 
-  function howto() {
-    modal(`<h2>كيف ألعب؟</h2>
+  // senior #40: plain words for the game's terms, and the interest explained with the player's own numbers
+  AMB.TIPS = AMB.TIPS || {};
+  AMB.TIPS.interest = () => { const E0 = CFG.economy, p = S.match && me(); const n = p ? Math.min(E0.interestMax, Math.floor(p.gold / E0.interestPer)) : 0;
+    return { title: 'الفايدة على الذهب', html: `<p>كل ${E0.interestPer} ذهب تخليها معك = +1 ذهب زيادة في الجولة الجاية، لين ${E0.interestMax}.</p>${p ? `<p>معك <b>${p.gold}</b> ذهب، يعني فايدتك الجاية <b>+${n}</b>.</p>` : ''}` }; };
+  const GLOSSARY = [['ذهب', 'تشتري فيه الوحدات والخبرة. يجيك كل جولة.'], ['جوهر', 'تشغّل فيه قدرات بطلك وقت القتال.'], ['شظايا 💎', 'عملة برا المباراة: تفتح فيها الباكجات.'],
+    ['مستوى', 'كم وحدة تقدر تحط في الساحة. ترفعه بالخبرة.'], ['تآزر', 'وحدات من نفس العالم أو نفس الدور مع بعض = قوة زيادة.'], ['رنين', 'وحدات من عالم بطلك تاخذ قوة زيادة.'],
+    ['نجمة ★', 'نسخ متطابقة تندمج وتصير الوحدة أقوى.'], ['الغضب', 'بعد وقت من القتال الكل يضرب أقوى، عشان القتال يخلص.'], ['إنزال البطل 👑', 'بطلك يقاتل في الساحة ويقوّي فريقك، بس ممكن يخسر حياة.']];
+  function howto(fromMenu) {
+    modal(`<h2>كيف ألعب؟</h2>${fromMenu && AMB.TutorialUI ? '<p><button class="btn primary" data-act="tutReplay">🎓 جرّب الدرس</button></p>' : ''}
+      <details class="glossary"><summary>📖 قاموس الكلمات</summary>${GLOSSARY.map(([w, d]) => `<p><b>${w}:</b> ${d}</p>`).join('')}</details>
       <div class="skillbox"><b>الهدف:</b> نزّل حياة بطل الخصم لين تصير صفر. كل جولة: موارد ← شراء وتطوير ← ترتيب وقدرات ← قتال تلقائي ← نتيجة.</div>
       <div class="skillbox"><b>المتجر:</b> اشتر الوحدات بالذهب، وحدّث العروض (${CFG.economy.rerollCost} ذهب)، واشتر خبرة عشان ترفع المستوى (المستوى = عدد الوحدات اللي تحطها في الساحة). والفايدة: +1 عن كل ${CFG.economy.interestPer} ذهب موفّر (لين ${CFG.economy.interestMax}). وسلسلة الفوز أو الخسارة تعطيك ذهب زيادة.</div>
       <div class="skillbox"><b>التطوير:</b> ${CFG.stars.copiesPerStar} نسخ متطابقة = نجمة زيادة، وتنحسب لحالها.</div>
@@ -1383,7 +1447,9 @@
     if (S.mode === 'tutorial') return AMB.TutorialUI.showResult(m, secs);
     if (S.mode !== 'friendly' && S.mode !== 'online' && !m._recorded) { try { AMB.telemetry.recordMatch(m, { seconds: secs }); } catch (e) { reportErr(e); } m._recorded = true; /* analytics must never block the results screen */ }
     if (!m._counted) { m._counted = true; try { localStorage.setItem('amb_played', String(+(localStorage.getItem('amb_played') || 0) + 1)); } catch (e) { /* ignore */ } }
-    if (!m._passDone && S.mode !== 'online' && fought(m)) { m._passDone = true; try { S.passResult = AMB.pass.recordMatch(m.summary(0)); } catch (e) { S.passResult = null; } }
+    // adult #24: a quick match vs the computer pays a few shards (daily cap); adult #30: the first 3 friend matches a day give pass XP (never shards)
+    if (!m._dayPaid && AMB.dayPay && fought(m)) { m._dayPaid = true; if (S.mode === 'ai' || S.mode === 'short') S.qmShards = AMB.dayPay.quickMatch(m.winner === mySeat()); else S.qmShards = 0; S.onlineXp = S.mode === 'online' && AMB.dayPay.onlineCounts(); }
+    if (!m._passDone && (S.mode !== 'online' || S.onlineXp) && fought(m)) { m._passDone = true; try { S.passResult = AMB.pass.recordMatch(m.summary(0)); } catch (e) { S.passResult = null; } }
     let title;
     if (m.winner === null || m.winner === undefined) title = 'تعادل';
     else if (S.mode === 'hotseat') title = `فاز ${esc(m.players[m.winner].name)}!`;
@@ -1404,7 +1470,7 @@
         <div class="hint">المكافآت: ${p.rewardLog.length ? p.rewardLog.map((r) => AMB.DATA.REWARDS[r.id].name).join('، ') : '—'}</div>
         <div class="mini-board">${b.map((u, k) => `<div class="mini">${portrait(UNITS[u.defId], { k: 'rb' + i + k })}<div>${stars(u.star)}</div></div>`).join('')}</div></div>`;
     }).join('');
-    const tl = m.history.map((r) => `<span class="${r.winner === null ? 'wd' : r.winner === 0 ? 'w0' : 'w1'}">${r.round}</span>`).join('');
+    const tl = m.history.map((r) => `<span class="${r.winner === null ? 'wd' : r.winner === 0 ? 'w0' : 'w1'}" title="الجولة ${r.round}">${r.round}<i>${r.winner === null ? '=' : r.winner === mySeat() ? '✓' : '✗'}</i></span>`).join('');   // senior #37: ✓/✗ too, not only colour
     const myWin = S.mode === 'hotseat' ? m.winner != null : m.winner === 0;
     const wi = S.mode === 'hotseat' && m.winner != null ? m.winner : 0;   // vs AI: always show your own hero
     const heroDef = HEROES[m.players[wi].heroId];
@@ -1413,9 +1479,10 @@
     const ptitle = own && AMB.PassUI ? AMB.PassUI.titleName() : '';
     const stage = `<div class="res-stage ${m.winner == null ? 'draw' : myWin ? 'victory' : 'defeat'}" style="--wc:${WORLDS[heroDef.world].color}"><div class="res-rays"></div><div class="res-hero">${portrait(avDef, { bare: true, k: 'resh' })}<i class="sheen"></i></div><div class="res-hname">${avDef.name}</div>${ptitle ? `<div class="res-title">${ptitle}</div>` : ''}</div>`;
     $('results').innerHTML = `${stage}<div class="res-banner"><h1>${title}</h1><p class="hint">${m.round} جولات · ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')} دقيقة ${S.mode === 'friendly' ? '· مباراة ودية (ما تنحسب)' : ''}</p>
-      <div class="timeline">${tl}</div>${S.mode !== 'hotseat' && m.winner != null && !myWin ? `<p class="res-tip">💡 ${lossTip(m)}</p>` : ''}</div>
+      <div class="timeline">${tl}</div>${(S.mode === 'ai' || S.mode === 'short') && S.qmShards ? `<p class="hint">${icon('gem')} +${S.qmShards} شظية من المباراة</p>` : ''}${S.mode === 'online' ? `<p class="hint">${S.onlineXp ? 'انحسبت في ممر الصدع ✓' : `أول ${AMB.dayPay ? AMB.dayPay.ONLINE_XP_GAMES : 3} مباريات مع الأصحاب كل يوم تنحسب في الممر`}</p>` : ''}${S.mode !== 'hotseat' && m.winner != null && !myWin ? `<p class="res-tip">💡 ${lossTip(m)}</p>` : ''}</div>
       ${AMB.PassUI ? AMB.PassUI.resultPanel(S.passResult) : ''}
       <div class="res-quick">${m.players.map((p, i) => `<div class="rq ${m.winner === i ? 'won' : ''}"><b>${esc(p.name)}</b><span>${icon('heart')} ${lifeStr(p.life)}</span><span>${icon('sword')} ${p.stats.wins}–${p.stats.losses}</span><span>${fmt(p.stats.damageDealt)} ضرر</span></div>`).join('')}</div>
+      ${S.mode === 'ai' && S.challenge ? (() => { const ch = S.challenge, mi0 = mySeat(), me0 = m.history.filter((r) => r.winner === mi0).length, them0 = m.history.filter((r) => r.winner === 1 - mi0).length, mine = me0 * 1000 + Math.max(0, m.players[mi0].life), his = ch.r[0] * 1000 + ch.l; return `<div class="series-box"><b>⚔ تحدي صاحبك</b><br>صاحبك: ${ch.r[0]}–${ch.r[1]} (حياة ${ch.l}) · أنت: ${me0}–${them0} (حياة ${Math.max(0, Math.round(m.players[mi0].life))})<br><b>${mine > his ? '🏆 غلبته!' : mine === his ? 'تعادلتوا' : 'هو أحسن هالمرة'}</b></div>`; })() : ''}
       ${S.mode === 'online' && AMB.NetUI ? AMB.NetUI.seriesNote(m) : ''}${S.mode !== 'hotseat' ? analysisHTML(m) : ''}
       <details class="res-details"><summary>تفاصيل المباراة</summary><div class="res-cols">${cols}</div></details>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:30px">
@@ -1517,11 +1584,12 @@
 
   const ACT = {
     go: (d) => { if (S.net && S.screen === 'hero') AMB.NetUI.leave(); show(d.to); if (d.to === 'stats') renderStats(); if (d.to === 'codex') renderCodex(); },
-    howto: () => (AMB.TutorialUI ? AMB.TutorialUI.start({ replay: true }) : howto()),
+    howto: () => howto(true),   // senior #36: the written rules first; the guided match is one button inside
+    tutReplay: () => { closeModal(); if (AMB.TutorialUI) AMB.TutorialUI.start({ replay: true }); },
     rules: () => howto(),   // inside a match: just the rules text (never restarts the tutorial / throws the match away)
     tutorial: () => showTutorial(),
     diff: (d) => { S.difficulty = d.v; document.querySelectorAll('#diff-seg button').forEach((b) => b.classList.toggle('on', b.dataset.v === d.v)); },
-    mode: (d) => { S.mode = d.v; S.picks = [null, null]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
+    mode: (d) => { S.mode = d.v; S.challenge = null; S.picks = [null, null]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
     pickHero: (d, el, e) => {
       if (e.target.closest('[data-act="heroInfo"], [data-act="heroTry"]')) return;
       if (S.mode === 'online' && AMB.NetUI && AMB.NetUI.usedInSeries(d.id)) { toast('لعبت بهالبطل في السلسلة، اختر غيره', 'err'); return; }
@@ -1633,6 +1701,34 @@
     },
     hunt: (d) => { if (!prepActive()) return; if (res(S.match.setHunt(S.v, d.v))) { toast(d.v === 'weak' ? 'القتلة يصطادون الأضعف' : 'القتلة يصطادون الصف الخلفي', 'good'); ACT.scout(); } },
     shareRes: () => { const t = S.shareText || 'ZOR'; try { if (navigator.share) { navigator.share({ text: t }).catch(() => {}); return; } } catch (e) { /* ignore */ } try { navigator.clipboard.writeText(t); toast('انسخ النص 📋', 'good'); } catch (e) { toast(t); } },
+    settings: () => settingsModal(),
+    // adult #27: one gift box: claim every ready reward (login, pass levels, missions, album, campaign star chests) in one tap
+    dayGoals: () => {
+      const PS = AMB.pass; if (!PS) return;
+      const list = PS.carriedMissions().filter((x) => !x.claimed).concat(PS.dailyMissions());
+      modal(`<h2>🎯 أهداف اليوم</h2>${list.map((x) => `<div class="dg-m ${x.done ? 'done' : ''} ${x.claimed ? 'claimed' : ''}"><span>${x.carry ? '⏳ من أمس: ' : ''}${esc(x.name)}<small> · +${x.xp} خبرة${x.shards ? ` · ${x.shards}💎` : ''}</small></span><b><bdi dir="ltr">${x.claimed ? '✓' : `${x.progress}/${x.target}`}</bdi></b>${x.done && !x.claimed ? `<button class="btn small primary" data-act="dgClaim" data-id="${x.id}">استلم</button>` : !x.done && !x.carry && PS.canSwap() ? `<button class="dg-sw" data-act="dgSwap" data-id="${x.id}" aria-label="بدّل المهمة">↻ بدّل</button>` : ''}</div>`).join('')}
+        <p class="hint">تقدر تبدّل مهمة وحدة كل يوم. والمهام اللي خلصتها وما استلمتها تنتظرك يوم زيادة.</p>`);
+    },
+    dgClaim: (d) => { const r = AMB.pass && AMB.pass.claimMission(d.id); if (r) { sfx('merge'); toast(`+${r.xp} خبرة${r.shards ? ` · +${r.shards} 💎` : ''}`, 'good'); fillMenu(); if (AMB.PassUI && AMB.PassUI.refreshMenu) AMB.PassUI.refreshMenu(); ACT.dayGoals(); } },
+    dgSwap: (d) => { const r = AMB.pass && AMB.pass.swapMission(d.id); if (r) { toast(`↻ مهمة جديدة: ${r.name}`, 'good'); fillMenu(); ACT.dayGoals(); } else toast('التبديل مرة وحدة باليوم', 'err'); },
+    takeChallenge: () => { const ch = S.pendingChallenge; if (!ch) return; closeModal(); S.mode = 'ai'; S.challenge = ch; S.pickIdx = 0; startMatch(); },
+    undo: () => {
+      if (!prepActive() || !S.undo || !S.undo.length) { toast('ما فيه حركة ترجع لها', ''); return; }
+      S.match.restore(0, S.undo.pop()); if (S.rs && S.rs.rec) S.rs.rec.pop();
+      S.sel = null; sfx('click'); toast('↶ رجعت آخر حركة', ''); renderMatch();
+    },
+    inboxAll: () => {
+      const got = []; let shards = 0;
+      try { if (AMB.login && AMB.login.canClaim()) { const r = AMB.login.claim(); if (r) got.push('الدخول اليومي'); } } catch (e) { /* ignore */ }
+      try { if (AMB.pass) { const l = AMB.pass.claimAll(); if (l.length) got.push(`${l.length} من الممر`); AMB.pass.dailyMissions().concat(AMB.pass.weeklyMissions()).forEach((m) => { if (m.done && !m.claimed) { const r = AMB.pass.claimMission(m.id); if (r) { shards += r.shards; got.push('مهمة'); } } }); } } catch (e) { /* ignore */ }
+      try { if (AMB.album) AMB.album.worlds().concat(['heroes', 'exclusive']).forEach((k) => { const r = AMB.album.claimPage(k); if (r) { shards += r.shards; got.push('الألبوم'); } }); } catch (e) { /* ignore */ }
+      try { if (AMB.campaign) ['easy', 'normal', 'hard'].forEach((d) => AMB.campaign.chests(d).filter((c) => c.state === 'ready').forEach((c) => { const r = AMB.campaign.claimChest(c.id, d); if (r) got.push('صندوق نجوم'); })); } catch (e) { /* ignore */ }
+      if (!got.length) { toast('ما فيه جوائز جاهزة الحين', ''); return; }
+      sfx('merge'); toast(`🎁 استلمت: ${[...new Set(got)].join('، ')}${shards ? ` · +${shards} 💎` : ''}`, 'good');
+      ['PacksUI', 'PassUI', 'CampaignUI', 'CollectionUI', 'AlbumUI', 'DailyUI'].forEach((k) => AMB[k] && AMB[k].refreshMenu && AMB[k].refreshMenu()); fillMenu();
+    },
+    setOpt: (d) => { const ST = AMB.settings; if (!ST) return; if (d.k === 'textSize') ST.setTextSize(+d.v); else ST.set(d.k, d.v === 'true' ? true : d.v === 'false' ? false : isNaN(+d.v) ? d.v : +d.v); applyComfort(); sfx('click'); settingsModal(); },
+    bigAsk: (d) => { const ST = AMB.settings; if (ST) { ST.markSeen('askBig'); if (d.v === '1') ST.setTextSize(1); applyComfort(); } closeModal(); },
     resumeMatch: () => resumeMatch(),
     resumeDrop: () => { resumeClear(); fillMenu(); },
     wager: () => { if (!prepActive()) return; const p = me(); if (res(S.match.setWager(S.v, !p.wager))) { toast(p.wager ? '🎲 راهنت: الخاسر في الحسم يخسر أكثر' : 'لغيت الرهان', p.wager ? 'good' : ''); renderMatch(); } },
@@ -1833,12 +1929,38 @@
       if (bg) { bg.className = 'mv2-bg' + (h.world === 'tide' ? ' tide' : ''); bg.style.setProperty('--wc', W.color); }
     }
     const ms = $('menu-sound'); if (ms) ms.querySelector('.mt-ic').textContent = SND.on ? '🔊' : '🔇';
+    // adult #28: today's goals on the home screen (progress at a glance, one free swap a day)
+    let dg = $('day-goals');
+    if (!dg) { dg = document.createElement('div'); dg.id = 'day-goals'; const host1 = document.querySelector('#scr-menu .mv2') || document.querySelector('#scr-menu'); if (host1) host1.appendChild(dg); }
+    try {
+      const PS = AMB.pass; const list = PS ? PS.carriedMissions().filter((x) => !x.claimed).concat(PS.dailyMissions()) : [];
+      const done = list.filter((x) => x.claimed || x.done).length, claim = list.some((x) => x.done && !x.claimed);
+      dg.innerHTML = list.length ? `<button class="dg-pill ${claim ? 'has' : ''}" data-act="dayGoals" aria-label="أهداف اليوم">🎯 <bdi dir="ltr">${done}/${list.length}</bdi></button>` : '';
+    } catch (e) { dg.innerHTML = ''; }
+    // adult #27: the gift box on the menu
+    let ib = $('inbox-btn');
+    if (!ib) { ib = document.createElement('button'); ib.id = 'inbox-btn'; ib.dataset.act = 'inboxAll'; ib.setAttribute('aria-label', 'استلم كل الجوائز'); const host0 = document.querySelector('#scr-menu .mv2') || document.querySelector('#scr-menu'); if (host0) host0.appendChild(ib); }
+    let ready = 0; try { ready = (AMB.login && AMB.login.canClaim() ? 1 : 0) + (AMB.pass ? AMB.pass.unclaimedCount() : 0) + (AMB.album ? AMB.album.readyCount() : 0) + (AMB.campaign ? ['easy', 'normal', 'hard'].reduce((n, d) => n + AMB.campaign.readyChests(d), 0) : 0); } catch (e) { ready = 0; }
+    ib.innerHTML = `🎁${ready ? '<i></i>' : ''}`; ib.classList.toggle('has', !!ready);
     // adult #21: an unfinished quick match waits on the menu
     let rb = $('resume-card'); const sv = resumeSaved();
     if (sv && !rb) { rb = document.createElement('div'); rb.id = 'resume-card'; const host = document.querySelector('#scr-menu .mv2') || document.querySelector('#scr-menu'); if (host) host.appendChild(rb); }
     if (rb) rb.innerHTML = sv ? `<button class="btn primary" data-act="resumeMatch">▶ كمّل مباراتك (الجولة ${sv.rounds.length + 1} من ${CFG.match.maxRounds})</button><button class="btn ghost small" data-act="resumeDrop" aria-label="انسَ المباراة">✕</button>` : '';
   }
   fillMenu();
+  setTimeout(() => { if (S.screen === 'menu') fillMenu(); }, 400);   // the pass/album load after this file: refresh the menu once they exist
+  applyComfort();
+  // adult #29: opened from a friend's challenge link: offer the same match
+  (function challengeFromUrl() {
+    let ch = null;
+    try { const q = new URLSearchParams(location.search).get('ch'); if (q) ch = JSON.parse(decodeURIComponent(escape(atob(q)))); } catch (e) { ch = null; }
+    if (!ch || !Number.isInteger(ch.s) || !HEROES[ch.h] || !HEROES[ch.a] || !CFG.ai[ch.d] || !Array.isArray(ch.r)) return;
+    try { history.replaceState(history.state, '', location.pathname); } catch (e) { /* ignore */ }
+    S.pendingChallenge = ch;
+    setTimeout(() => modal(`<h2>⚔ تحدي من صاحبك</h2><p>صاحبك لعب بـ<b>${HEROES[ch.h].name}</b> ضد الكمبيوتر (${ch.d === 'expert' ? 'خبير' : ch.d === 'hard' ? 'صعب' : ch.d === 'easy' ? 'سهل' : 'عادي'}) وخلّص ${ch.r[0]}–${ch.r[1]}.</p><p class="hint">نفس المباراة بالضبط، بدون قوة بطاقات للطرفين. تقدر تغلبه؟</p><div class="net-btns"><button class="btn primary" data-act="takeChallenge">⚔ اقبل التحدي</button><button class="btn ghost" data-act="closeModal">بعدين</button></div>`), 900);
+  })();
+  setTimeout(() => { const ST = AMB.settings; if (ST && !ST.seen('askBig') && S.screen === 'menu' && !$('modal-back').classList.contains('on')) { ST.markSeen('askBig');
+    modal(`<h2>🔠 تبي الخط أكبر؟</h2><p class="hint">تقدر تغيّره بعدين من «المزيد» ← «الإعدادات».</p><div class="net-btns"><button class="btn primary" data-act="bigAsk" data-v="1">إيه، كبّره</button><button class="btn ghost" data-act="bigAsk" data-v="0">لا، كذا زين</button></div>`); } }, 1500);
   // adult #21: leaving the app (call, notification) pauses the prep timer in every mode except online (the friend is waiting)
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden' && S.screen === 'match' && S.phase === 'prep' && !S.paused && S.mode !== 'online') { S.paused = true; S.pausedLeft = S.deadline - Date.now(); S._hidPause = true; }

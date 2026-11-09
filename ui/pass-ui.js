@@ -8,14 +8,15 @@
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const store = AMB.save.storageFor('pass');   // battle pass lives inside the unified save (core/save.js)
   // character rewards also give the card (unlock or +1 copy) — see core/collection.js
-  const pass = (AMB.pass = AMB.Pass.create(store, null, (r) => {
+  const pass = (AMB.pass = AMB.Pass.create(store, null, (r, level, track) => {
     if (r.type === 'shards') { if (AMB.wallet) AMB.wallet.add('shards', r.n, 'mission'); return; }   // daily-mission shards
     if (r.shards && AMB.wallet) AMB.wallet.add('shards', r.shards, 'pass');   // some free-track levels also pay shards
-    if (AMB.collection) AMB.collection.grantPassReward(r);
+    // adult #26: the premium track is cosmetic only: its characters are portraits (avatars) to show, never the card itself (no power for money)
+    if (AMB.collection && track !== 'premium') AMB.collection.grantPassReward(r);
   }, (type) => (AMB.album ? AMB.album.ownedCosmetics(type) : [])));
   if (AMB.events) AMB.Pass.wire(pass, AMB.events);   // missions also count campaign fights, upgrades, packs and stars
   // rewards claimed before characters could be unlocked: make sure those characters are owned
-  if (AMB.collection) ['free', 'premium'].forEach((t) => (pass.state().claimed[t] || []).forEach((l) => { const r = pass.reward(l, t); if (r && r.type === 'avatar' && !AMB.collection.owned(r.id)) AMB.collection.grantPassReward(r); }));
+  if (AMB.collection) ['free'].forEach((t) => (pass.state().claimed[t] || []).forEach((l) => { const r = pass.reward(l, t); if (r && r.type === 'avatar' && !AMB.collection.owned(r.id)) AMB.collection.grantPassReward(r); }));
   const P = AMB.Pass, C = P.COSMETICS, TYPE = pass.TYPE_NAME;
   const { icon, portrait } = AMB.art;
   const UI = () => globalThis.AMB_UI;
@@ -87,7 +88,7 @@
     const premLock = track === 'premium' && !pass.isPremium();
     const cls = claimed ? 'claimed' : can ? 'can' : premLock ? 'premlock' : reached ? '' : 'locked';
     const act = can ? 'passClaim' : claimed && r.type !== 'perk' ? 'passEquipReward' : premLock && reached ? 'passPremium' : '';
-    return `<div class="pcell ${cls} ${r.big ? 'big' : ''}" ${act ? `data-act="${act}"` : ''} data-level="${level}" data-track="${track}" title="${esc(TYPE[r.type] + ': ' + pass.rewardName(r))}">
+    return `<div class="pcell ${cls} ${r.big ? 'big' : ''}" ${act ? `data-act="${act}"` : ''} data-level="${level}" data-track="${track}" title="${esc((track === 'premium' && r.type === 'avatar' ? 'صورة رمزية (شكل بس)' : TYPE[r.type]) + ': ' + pass.rewardName(r))}">
       ${preview(r.type, r.id, r)}<span class="pc-name">${esc(pass.rewardName(r))}</span>
       <span class="pc-state">${claimed ? '✓' : can ? 'استلم' : premLock ? '🔒' : ''}</span></div>`;
   }
@@ -148,7 +149,7 @@
     const fresh = !(AMB.campaign && AMB.campaign.isCleared('l1boss'));
     root.innerHTML = `<div class="pass-head"><div class="ph-lv"><small>المستوى</small><b>${lv}</b></div>
       <div class="ph-mid"><div class="ph-name">${P.SEASON.name}</div><div class="xp-bar big"><i style="width:${pct}%"></i></div>
-        <div class="ph-sub">${pass.maxed() ? 'وصلت لأعلى مستوى 🎉' : `${pass.xpInLevel()} / ${P.SEASON.xpPerLevel} خبرة للمستوى ${lv + 1}`} ${fresh ? '' : ` · ${pass.ended() ? '<b style="color:var(--red)">انتهى الموسم</b>' : `باقي ${days} يوم`}`}</div></div>
+        <div class="ph-sub">${pass.maxed() ? 'وصلت لأعلى مستوى 🎉' : `${pass.xpInLevel()} / ${P.SEASON.xpPerLevel} خبرة للمستوى ${lv + 1}`} ${fresh ? '' : ` · ${pass.ended() ? '<b style="color:var(--red)">انتهى الموسم</b>' : `باقي ${days} يوم`}`}</div>${(() => { const e = pass.etaDays && pass.etaDays(); return e == null || pass.maxed() || fresh ? '' : `<div class="ph-eta">⏱ بوتيرتك توصل المستوى ${P.SEASON.levels} بعد <b>${e}</b> يوم${e > days ? ' · العب شوي أكثر عشان تلحق الموسم' : ' ✓ تلحق قبل نهاية الموسم'}</div>`; })()}</div>
       ${fresh ? '' : `<button class="btn ph-prem" data-act="passPremium" title="مو متاح للحين">${pass.isPremium() ? '✓ بريميوم' : '👑 بريميوم · قريب'}</button>`}</div>
       <div class="ptabs">${[['track', 'المسار'], ['missions', 'المهام'], ['profile', 'ملفي']].map(([k, n]) => `<button class="${tab === k ? 'on' : ''}" data-act="passTab" data-v="${k}">${n}${k === 'missions' && pass.dailyMissions().concat(pass.weeklyMissions()).some((m) => m.done && !m.claimed) ? ' <span class="dot sm"></span>' : ''}</button>`).join('')}</div>
       <div class="pbody">${tab === 'track' ? trackHTML() : tab === 'missions' ? missionsHTML() : profileHTML()}</div>`;

@@ -9,7 +9,7 @@
   const UI = () => globalThis.AMB_UI;
   const RAR = () => AMB.ECONOMY.rarities;
   const calm = () => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
-  const buzz = (p) => { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { /* ignore */ } };
+  const buzz = (p) => { try { if (document.body.classList.contains('no-vibe')) return; if (navigator.vibrate) navigator.vibrate(p); } catch (e) { /* ignore */ } };   // senior #38: vibration can be turned off
   const ord = (r) => (RAR()[r] ? RAR()[r].order : 1);
   const col = (r) => (RAR()[r] ? RAR()[r].color : '#fff');
 

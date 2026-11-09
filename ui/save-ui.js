@@ -25,7 +25,7 @@
       <div class="save-kv"><span>نسخة احتياطية يومية</span><b>تلقائية ✓</b></div>
       ${sv.recovered ? '<div class="save-box warn">رجّعنا تقدمك من النسخة الاحتياطية بعد ما صار خلل في الحفظ.</div>' : ''}
       <h3>العرض</h3>
-      <div class="save-btns"><button class="btn ${AMB.settings && AMB.settings.bigText() ? 'primary' : 'ghost'}" data-act="bigText">🔠 نص كبير: ${AMB.settings && AMB.settings.bigText() ? 'شغّال' : 'طافي'}</button></div>
+      <div class="save-btns"><button class="btn ${AMB.settings && AMB.settings.bigText() ? 'primary' : 'ghost'}" data-act="bigText">⚙️ حجم الخط وباقي الإعدادات</button></div>
       <h3>نقل التقدّم</h3>
       <p class="hint">الحفظ مربوط بهالمتصفح وهالرابط. لو فتحت اللعبة من رابط أو جهاز ثاني ما يطلع تقدمك، انقله بملف.</p>
       <div class="save-btns">
@@ -50,7 +50,7 @@
   function installActions() {
     const ui = UI(); if (!ui || ui.ACT.saveOpen) return;
     Object.assign(ui.ACT, {
-      bigText: () => { if (!AMB.settings) return; const on = AMB.settings.setBigText(!AMB.settings.bigText()); document.body.classList.toggle('big-text', on); ui.sfx('click'); if (AMB.SaveUI) AMB.SaveUI.open(); },
+      bigText: () => { if (!AMB.settings) return; ui.closeModal(); if (ui.ACT.settings) ui.ACT.settings(); },   // the text size now lives in «الإعدادات»
       saveOpen: () => open(),
       saveExport: () => {
         const blob = new Blob([AMB.save.exportJSON()], { type: 'application/json' });

@@ -26,7 +26,7 @@
     const tot = CAM.totalStars(), max = CAM.maxStars();
     const items = CAM.chests().map((c) => `<button class="chest ${c.state}" style="--at:${(100 * c.need) / max}%" ${c.state === 'ready' ? `data-act="camChest" data-id="${c.id}"` : 'disabled'} title="${esc(c.name)}: ${rewardText(c.reward)}">
         <span class="ch-ic">${c.state === 'claimed' ? '✓' : '🎁'}</span><b>${c.need}★</b></button>`).join('');
-    return `<div class="cam-chests"><div class="cc-top"><span class="cc-total">★ ${tot}<small>/${max}</small></span>
+    return `<div class="cam-chests"><div class="cc-top"><span class="cc-total">★ <bdi dir="ltr">${tot}<small>/${max}</small></bdi></span>
         <span class="hint">${LV.CAMPAIGN.stars.rules.map((r) => '★'.repeat(r.n)).join(' · ')} <button class="ibtn" data-act="info" data-k="caminfo" title="شرح">ⓘ</button></span></div>
       <div class="cc-track"><i style="width:${(100 * tot) / max}%"></i>${items}</div></div>`;
   }

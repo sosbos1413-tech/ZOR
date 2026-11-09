@@ -182,7 +182,7 @@
   function openMenu() {
     ui().modal(`<h2>العب ضد صاحبك</h2><p class="hint">كل واحد من جواله. واحد يسوّي غرفة ويعطي صاحبه الرمز، والثاني يدخلها.</p>
       <div class="net-btns"><button class="btn primary big" data-act="netHost">سوّ غرفة</button><button class="btn big" data-act="netJoin">ادخل غرفة</button></div>
-      <p class="hint">تحتاج نت للاثنين. ما تنحسب هالمباريات في الممر ولا تعطي جوائز.</p>`);
+      <p class="hint">تحتاج نت للاثنين. أول 3 مباريات مع أصحابك كل يوم تنحسب في ممر الصدع (بدون شظايا)، والأبطال كلهم مفتوحين.</p>`);
   }
   async function host() {
     ui().modal(`<h2>جاري تجهيز الغرفة…</h2><p class="hint">لحظة</p>`);

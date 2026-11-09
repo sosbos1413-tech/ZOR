@@ -12,7 +12,7 @@
 
   AMB.Save.register('packs', {
     version: 1,
-    defaults: () => ({ opened: 0, since: {}, found: { common: 0, rare: 0, epic: 0, legendary: 0 }, last: [] }),   // since[packId] = packs since the pity rarity
+    defaults: () => ({ opened: 0, since: {}, found: { common: 0, rare: 0, epic: 0, legendary: 0 }, last: [], wish: null }),   // wish = the hero the guarantee brings (adult #25)   // since[packId] = packs since the pity rarity
   });
 
   function poolByRarity() {
@@ -43,6 +43,9 @@
       canOpen(id) { return wallet.canAfford(def(id).cost); },
       oddsTable(id) { const p = def(id), total = Object.values(p.weights).reduce((a, b) => a + b, 0); return Object.entries(p.weights).map(([r, w]) => ({ rarity: r, pct: (100 * w) / total })); },
       stats: () => st(),
+      /** adult #25: a wished hero: when the legendary guarantee fires and you don't own it yet, the guarantee gives THIS hero (a known ceiling instead of pure luck) */
+      wish: () => { const w = st().wish; return w && AMB.DATA.HEROES[w] && !collection.owned(w) ? w : null; },
+      setWish(id) { if (id && (!AMB.DATA.HEROES[id] || AMB.DATA.HEROES[id].exclusive)) return false; save.update('packs', (s) => { s.wish = id || null; }); return true; },
 
       /** Pay and open a pack. Returns { cards:[{id,rarity,isNew,refund,level,copies}], pity, shards } or null when unaffordable. */
       open(id, opts) {
@@ -53,10 +56,12 @@
         const rar = [];
         for (let i = 0; i < p.cards; i++) rar.push(rollRarity(p));
         if (forced && !rar.includes(p.pity.rarity)) rar[rar.length - 1] = p.pity.rarity;   // the guarantee
-        let refund = 0;
+        let refund = 0, wishUsed = false;
+        const wish = forced ? api.wish() : null;
         const cards = rar.map((r) => {
           const list = pool[r] && pool[r].length ? pool[r] : pool.common;
-          const cid = list[rng.int(list.length)];
+          let cid = list[rng.int(list.length)];
+          if (wish && !wishUsed && r === p.pity.rarity) { cid = wish; wishUsed = true; }   // the guarantee brings the wished hero
           const rarity = AMB.DATA.UNITS[cid] ? AMB.DATA.UNITS[cid].rarity : AMB.DATA.HEROES[cid].rarity;
           if (collection.owned(cid) && collection.isMax(cid)) {
             const n = EC().maxedRefund[rarity] || 0; refund += n;
