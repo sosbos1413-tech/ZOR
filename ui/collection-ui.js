@@ -9,6 +9,7 @@
   const { icon } = AMB.art;
   const UI = () => globalThis.AMB_UI;
   let firstVisit = null;   // null until the screen is first drawn in this session
+  let worldF = '';   // collection world map: '' = the four-arm hub, otherwise one world's cards
   let justUp = '', filter = '', roleF = '', deckOnly = false, upOnly = false;   // rarity filter ('' = all), role filter, show only the deck
 
   const pct = (a, b) => (b ? Math.min(100, Math.round((a / b) * 100)) : 100);
@@ -52,9 +53,23 @@
   }
   AMB.TIPS.deckinfo = () => ({ title: 'الديك', html: `<p>الديك هو <b>الوحدات اللي تطلع لك في المتجر</b> أثناء الحملة والبرج والأحداث (حتى ${C.deckLimits().size} وحدة، والحد الأدنى ${C.deckLimits().min}). اختر الأدوار والعوالم اللي تكمّل بعض عشان التآزر.</p>
     <p>المباراة السريعة وعلى نفس الجهاز ما تستخدم الديك: الكل يلعب بكل الوحدات. والأبطال خارج الديك.</p><p>«ترتيب تلقائي» يختار لك ديك متوازن من أقوى بطاقاتك.</p>` });
+  const WORLDS = AMB.DATA.WORLDS;
+  // collection world map: four arms; each shows how many of that world's cards you own
+  function worldHub() {
+    const arm = (w, pos) => {
+      const all = C.ids().filter((id) => C.def(id).world === w), own = all.filter((id) => C.owned(id)).length, up = all.filter((id) => C.canUpgrade(id)).length, wd = WORLDS[w];
+      return `<button class="wm-arm wm-${pos} ${own ? '' : 'locked'}" style="--wc:${wd.color}" data-act="colWorld" data-w="${w}" aria-label="${wd.name}">
+        <span class="wm-ic">${icon(AMB.art.WORLD_ICON[w])}</span><b>${wd.name}</b><small><bdi dir="ltr">${own}/${all.length}</bdi> بطاقة</small>${up ? `<i class="wm-go">⬆ ${up}</i>` : ''}</button>`;
+    };
+    const ids = C.ids(), own = ids.filter((id) => C.owned(id)).length;
+    return `<div class="wm wm-col"><div class="wm-lines"><i></i><i></i></div>${arm('sylvan', 'top')}${arm('ember', 'left')}${arm('neon', 'right')}${arm('tide', 'bottom')}
+      <div class="wm-core"><svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,4 58,34 90,24 66,46 96,60 62,62 70,94 50,70 30,94 38,62 4,60 34,46 10,24 42,34" fill="#f2c94c" stroke="#a87a12" stroke-width="1.5"/></svg><b><bdi dir="ltr">${own}/${ids.length}</bdi></b></div></div>`;
+  }
+
   function render() {
     const root = $('collection'); if (!root) return;
-    const ids = C.ids().filter((id) => (!filter || C.rarity(id) === filter) && (!roleF || C.def(id).role === roleF) && (!deckOnly || C.inDeck(id)) && (!upOnly || C.canUpgrade(id) || id === justUp))
+    const hub = !worldF && !deckOnly && !upOnly && !filter && !roleF;
+    const ids = C.ids().filter((id) => (!worldF || C.def(id).world === worldF) && (!filter || C.rarity(id) === filter) && (!roleF || C.def(id).role === roleF) && (!deckOnly || C.inDeck(id)) && (!upOnly || C.canUpgrade(id) || id === justUp))
       .sort((a, b) => RAR[C.rarity(b)].order - RAR[C.rarity(a)].order || (C.def(a).role ? 1 : 0) - (C.def(b).role ? 1 : 0));
     const ready = C.ids().filter((id) => C.canUpgrade(id)).length;
     const fb = (v, n, col) => `<button class="btn small ${filter === v ? 'on' : ''}" data-act="colFilter" data-v="${v}" ${col ? `style="--rc:${col}"` : ''}>${n}</button>`;
@@ -72,10 +87,11 @@
           ${ready ? `<button class="btn small primary" data-act="colRole" data-v="up">⬆ ${ready} جاهزة الحين</button>` : '<span class="hint">ما فيه بطاقة جاهزة الحين، افتح باكجات.</span>'} <button class="ibtn" data-act="info" data-k="colinfo" title="شرح">ⓘ</button></div>
         <div class="rar-legend">${Object.entries(RAR).map(([k, r]) => `<span class="rl r-${k}"><i></i>${r.name} <small>+${Math.round((r.power - 1) * 100)}%</small></span>`).join('')}</div>
         <button class="btn primary small" data-act="go" data-to="packs">افتح باكجات للحصول على نسخ</button></details>
-        <div class="filters">${fb('', 'الكل')}${Object.entries(RAR).map(([k, r]) => fb(k, r.name, r.color)).join('')}</div>
+        ${hub ? '' : `<div class="filters">${fb('', 'الكل')}${Object.entries(RAR).map(([k, r]) => fb(k, r.name, r.color)).join('')}</div>
         <div class="filters"><button class="btn small ${roleF === '' && !deckOnly && !upOnly ? 'on' : ''}" data-act="colRole" data-v="">كل الأدوار</button><button class="btn small ${upOnly ? 'on' : ''}" data-act="colRole" data-v="up">⬆ جاهزة للتطوير</button><button class="btn small ${deckOnly ? 'on' : ''}" data-act="colRole" data-v="deck">الديك فقط</button>${Object.entries(AMB.DATA.ROLES).map(([k, r]) => `<button class="btn small ${roleF === k ? 'on' : ''}" data-act="colRole" data-v="${k}">${r.name}</button>`).join('')}</div>
+`}
       </div>
-      <div class="col-grid">${ids.map(tile).join('')}</div>`;
+      ${hub ? worldHub() : `<div class="wm-back"><button class="btn small ghost" data-act="colWorld" data-w="">‹ خريطة العوالم</button><b style="color:${worldF ? WORLDS[worldF].color : 'inherit'}">${worldF ? `${AMB.art.icon(AMB.art.WORLD_ICON[worldF])} ${WORLDS[worldF].name}` : deckOnly ? '🃏 الديك' : upOnly ? '⬆ جاهزة للتطوير' : 'البطاقات'}</b></div><div class="col-grid">${ids.map(tile).join('')}</div>`}`;
     refreshMenu();
   }
 
@@ -88,6 +104,7 @@
   function installActions() {
     const ui = UI(); if (!ui || ui.ACT.colUpgrade) return;
     Object.assign(ui.ACT, {
+      colWorld: (d) => { justUp = ''; worldF = d.w || ''; filter = ''; roleF = ''; deckOnly = false; upOnly = false; ui.sfx('click'); render(); window.scrollTo(0, 0); },
       colFilter: (d) => { justUp = ''; filter = d.v || ''; render(); },
       colRole: (d) => { justUp = ''; deckOnly = d.v === 'deck'; upOnly = d.v === 'up'; roleF = deckOnly || upOnly ? '' : (d.v || ''); render(); },
       colDeck: (d) => { const r = C.toggleDeck(d.id); if (!r.ok) { ui.toast(r.reason, 'err'); return; } ui.sfx('click'); const y = window.scrollY; render(); window.scrollTo(0, y); },
