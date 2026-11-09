@@ -1,16 +1,21 @@
 /*
  * Play against a friend, each on their own phone (ui side of core/netsync.js).
- *   host: "سوّ غرفة" -> a short room code -> the friend types it in "ادخل غرفة" -> both pick a hero -> same match, same seed.
- * The two phones talk directly (WebRTC through the free PeerJS broker, loaded only when you open a room).
+ *   host: "سوّ غرفة" -> a room code (XXXXX-XXXXX, 50 random bits) -> the friend types it in "ادخل غرفة" -> both pick a hero -> same match, same seed.
+ * The two phones talk directly (WebRTC through the free PeerJS broker, loaded only when you open a room); when that fails,
+ * through the ntfy.sh relay (topic and HMAC key derived from the code: strangers can neither find the room nor inject messages).
  * Only the moves of each prep round are sent; both phones replay them and get the identical fight.
  */
 (function () {
   const AMB = globalThis.AMB;
   const UI = () => globalThis.AMB_UI;
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  const randCode = () => Array.from({ length: 5 }, () => CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]).join('');
+  const N = AMB.NetSync;
+  // room codes: 10 characters (50 bits, crypto random) from an alphabet without I/O/0/1, shown as XXXXX-XXXXX. See core/netsync.js
+  const randCode = () => N.newCode();
   const PEER_SRC = 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
+  // Subresource Integrity of that exact file: sha384 of dist/peerjs.min.js inside the npm tarball peerjs-1.5.4.tgz (tarball checked
+  // against the registry's sha512 integrity; unpkg serves the tarball's files byte for byte). If it ever fails to load, play falls back to the relay.
+  const PEER_SRI = 'sha384-nlUQ8ZqCbvStErob+biJNzSgltf6urV3VGqhfIfzhmg9RXmpeRm76ELw0pYnKlTR';
   const useLocal = () => /[?&]nettest=1/.test(location.search);   // two tabs of the same browser (for testing without internet)
 
   // ------------------------------------------------------------------ transports: both give a "link" { send(obj), onmessage, onclose, close() }
@@ -18,7 +23,7 @@
   function loadPeerJS() {
     return new Promise((res, rej) => {
       if (globalThis.Peer) return res();
-      const s = document.createElement('script'); s.src = PEER_SRC; s.onload = () => res(); s.onerror = () => rej(Object.assign(new Error('load'), { type: 'load' }));
+      const s = document.createElement('script'); s.src = PEER_SRC; s.integrity = PEER_SRI; s.crossOrigin = 'anonymous'; s.onload = () => res(); s.onerror = () => rej(Object.assign(new Error('load'), { type: 'load' }));
       document.head.appendChild(s); setTimeout(() => rej(Object.assign(new Error('load'), { type: 'load' })), 15000);
     });
   }
@@ -51,7 +56,7 @@
       for (let i = 0; i < 6; i++) {
         const code = randCode();
         try {
-          const peer = await openPeer('zor-' + code);
+          const peer = await openPeer(N.room(code).peerId);   // a one-way hash of the code: the broker never sees the code itself
           const linked = new Promise((res) => peer.on('connection', (c) => { c.on('open', () => res(wrapConn(c))); }));
           return { code, linked, close: () => { try { peer.destroy(); } catch (e) { /* ignore */ } } };
         } catch (e) { if (!e || e.type !== 'unavailable-id') throw e; }
@@ -63,7 +68,7 @@
       await loadPeerJS(); step('٢/٣ الاتصال بخدمة الغرف…');
       const peer = await openPeer(); step('٣/٣ أبحث عن الغرفة وأربط الجوالين… (قد تاخذ نص دقيقة)');
       return new Promise((res, rej) => {
-        const conn = peer.connect('zor-' + code, { reliable: true });
+        const conn = peer.connect(N.room(code).peerId, { reliable: true });
         const to = setTimeout(() => rej(Object.assign(new Error('connect'), { type: 'connect' })), ms || 25000);   // found the room but cannot link the two phones
         peer.on('error', (e) => { clearTimeout(to); rej(e); });
         conn.on('error', () => { clearTimeout(to); rej(Object.assign(new Error('connect'), { type: 'connect' })); });
@@ -97,52 +102,56 @@
   // that can open a web page (mobile carriers often block direct phone-to-phone links). Messages are tiny: only each player's moves.
   // the relay may be changed from the link only to ntfy itself or a local test server (a shared link must not be able to redirect every game message to a stranger's server)
   const RELAY = (() => { const m = /[?&]relay=([^&]+)/.exec(location.search); if (!m) return 'https://ntfy.sh'; try { const u = new URL(decodeURIComponent(m[1])); return (/(^|\.)ntfy\.sh$/.test(u.hostname) && u.protocol === 'https:') || /^(localhost|127\.0\.0\.1)$/.test(u.hostname) ? u.origin : 'https://ntfy.sh'; } catch (e) { return 'https://ntfy.sh'; } })();
-  function relayTopic(code) { return 'zor-room-' + code.toLowerCase(); }
+  // Security (4.3): the topic is a one-way hash of the room code (unguessable, does not reveal the code), and every message is
+  // signed with HMAC-SHA256 under a key also derived from the code. A message that fails the check (a stranger, an old build,
+  // a tampered relay) is dropped without a word. Both phones run the same build anyway (version handshake on the hero step).
+  const relayGet = (R, ev) => { try { return N.open(R.key, JSON.parse(ev.data).message); } catch (e) { return null; } };
+  const relayPost = (R, obj) => fetch(`${RELAY}/${R.topic}`, { method: 'POST', body: N.seal(R.key, obj) });
   function relayLink(code, me, other) {
-    const topic = relayTopic(code), link = makeLink(null), seen = new Set(), pending = []; let seq = 0, sending = false, closed = false, es = null;
+    const R = N.room(code), link = makeLink(null), seen = new Set(), pending = []; let seq = 0, sending = false, closed = false, es = null;
     const open = () => {
-      es = new EventSource(`${RELAY}/${topic}/sse?since=10m`);
+      es = new EventSource(`${RELAY}/${R.topic}/sse?since=10m`);
       es.onmessage = (ev) => {
-        let m; try { m = JSON.parse(JSON.parse(ev.data).message); } catch (e) { return; }
+        const m = relayGet(R, ev);
         if (!m || m.to !== me || m.from !== other || (m.t !== 'msg' && m.t !== 'bye') || seen.has(m.seq)) return;   // only my friend's messages, each once (a reconnect replays recent ones)
         seen.add(m.seq); if (m.t === 'bye') { link.onclose && link.onclose(); return; }
-        link.onmessage && link.onmessage(JSON.parse(m.d));
+        link.onmessage && link.onmessage(m.o);
       };
     };
     const flush = async () => {
       if (sending) return; sending = true;
-      while (pending.length && !closed) { const body = pending[0]; try { const r = await fetch(`${RELAY}/${topic}`, { method: 'POST', body }); if (!r.ok) throw new Error('http ' + r.status); pending.shift(); } catch (e) { await new Promise((res) => setTimeout(res, 1500)); } }
+      while (pending.length && !closed) { try { const r = await relayPost(R, pending[0]); if (!r.ok) throw new Error('http ' + r.status); pending.shift(); } catch (e) { await new Promise((res) => setTimeout(res, 1500)); } }
       sending = false;
     };
-    link.send = (o) => { pending.push(JSON.stringify({ t: 'msg', from: me, to: other, seq: ++seq, d: JSON.stringify(o) })); flush(); };
-    link.close = () => { pending.push(JSON.stringify({ t: 'bye', from: me, to: other, seq: ++seq })); flush(); closed = true; setTimeout(() => { try { es && es.close(); } catch (e) { /* ignore */ } }, 1500); };
+    link.send = (o) => { pending.push({ t: 'msg', from: me, to: other, seq: ++seq, o }); flush(); };
+    link.close = () => { pending.push({ t: 'bye', from: me, to: other, seq: ++seq }); flush(); closed = true; setTimeout(() => { try { es && es.close(); } catch (e) { /* ignore */ } }, 1500); };
     link.start = open; link.kind = 'relay';
     return link;
   }
   const Relays = {
     async host(code) {
-      const topic = relayTopic(code), id = 'h' + Math.random().toString(36).slice(2, 8);
+      const R = N.room(code), id = 'h' + N.newCode().slice(0, 8);
       let es; const linked = new Promise((res, rej) => {
-        es = new EventSource(`${RELAY}/${topic}/sse?since=10m`);
+        es = new EventSource(`${RELAY}/${R.topic}/sse?since=10m`);
         es.onmessage = async (ev) => {
-          let m; try { m = JSON.parse(JSON.parse(ev.data).message); } catch (e) { return; }
-          if (!m || m.t !== 'hello') return;
+          const m = relayGet(R, ev);
+          if (!m || m.t !== 'hello' || typeof m.id !== 'string') return;
           es.close(); const link = relayLink(code, id, m.id); link.start();
-          await fetch(`${RELAY}/${topic}`, { method: 'POST', body: JSON.stringify({ t: 'welcome', from: id, to: m.id }) }).catch(() => {});
+          await relayPost(R, { t: 'welcome', from: id, to: m.id }).catch(() => {});
           res(link);
         };
       });
       return { code, linked, close: () => { try { es.close(); } catch (e) { /* ignore */ } } };
     },
     async join(code, step) {
-      const topic = relayTopic(code), id = 'g' + Math.random().toString(36).slice(2, 8);
+      const R = N.room(code), id = 'g' + N.newCode().slice(0, 8);
       step && step('أتصل عن طريق الخدمة الاحتياطية…');
       return new Promise((res, rej) => {
-        const es = new EventSource(`${RELAY}/${topic}/sse?since=1m`); let tries = 0;
-        const hello = () => fetch(`${RELAY}/${topic}`, { method: 'POST', body: JSON.stringify({ t: 'hello', id }) }).catch(() => {});
+        const es = new EventSource(`${RELAY}/${R.topic}/sse?since=1m`); let tries = 0;
+        const hello = () => relayPost(R, { t: 'hello', id }).catch(() => {});
         es.onopen = () => hello();
         const iv = setInterval(() => { if (++tries > 8) { clearInterval(iv); es.close(); rej(Object.assign(new Error('relay'), { type: 'relay' })); } else hello(); }, 5000);
-        es.onmessage = (ev) => { let m; try { m = JSON.parse(JSON.parse(ev.data).message); } catch (e) { return; } if (m && m.t === 'welcome' && m.to === id) { clearInterval(iv); es.close(); const link = relayLink(code, id, m.from); link.start(); res(link); } };
+        es.onmessage = (ev) => { const m = relayGet(R, ev); if (m && m.t === 'welcome' && m.to === id && typeof m.from === 'string') { clearInterval(iv); es.close(); const link = relayLink(code, id, m.from); link.start(); res(link); } };
         es.onerror = () => { /* EventSource retries by itself; the tries counter ends the wait */ };
       });
     },
@@ -182,7 +191,7 @@
     } catch (e) { ui().modal(`<h2>ما قدرت أسوّي الغرفة</h2><p class="hint">${explain(e)}</p><div class="net-btns"><button class="btn" data-act="closeModal">تمام</button></div>`); return; }
     const code = room.code; keepAwake();
     ui().modal(`<h2>غرفتك جاهزة</h2><p class="hint">أعطِ صاحبك هالرمز، وخلّه يضغط «ادخل غرفة»:</p>
-      <div class="net-code" dir="ltr">${code}</div>
+      <div class="net-code" dir="ltr">${N.showCode(code)}</div>
       <div class="net-btns"><button class="btn" data-act="netCopy">نسخ الرمز</button><button class="btn" data-act="netShare">إرسال</button><button class="btn ghost" data-act="netCancel">إلغاء</button></div>
       <div class="net-btns"><button class="btn small" data-act="netDiag">فحص الاتصال</button></div><div class="hint" id="net-diag" dir="rtl" style="text-align:right"></div>
       <p class="hint" id="net-status">ينتظر صاحبك… <b>لا تطفّي الشاشة ولا تطلع من اللعبة</b> لين يدخل</p>`);
@@ -191,15 +200,15 @@
   }
   function joinForm() {
     ui().modal(`<h2>ادخل غرفة</h2><p class="hint">اكتب الرمز اللي عطاك إياه صاحبك:</p>
-      <input id="net-in" class="net-input" dir="ltr" maxlength="5" autocapitalize="characters" autocomplete="off" placeholder="XXXXX">
+      <input id="net-in" class="net-input" dir="ltr" maxlength="16" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="XXXXX-XXXXX">
       <div class="net-btns"><button class="btn primary big" data-act="netJoinGo">دخول</button><button class="btn ghost" data-act="closeModal">إلغاء</button></div><p class="hint" id="net-status"></p>
       <div class="net-btns"><button class="btn small" data-act="netDiag">فحص الاتصال</button></div><div class="hint" id="net-diag" dir="rtl" style="text-align:right"></div>`);
     setTimeout(() => { const i = document.getElementById('net-in'); if (i) i.focus(); }, 100);
   }
   async function join() {
-    const input = document.getElementById('net-in'), code = (input && input.value || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const input = document.getElementById('net-in'), code = N.normCode(input && input.value);
     const st = document.getElementById('net-status');
-    if (code.length < 4) { if (st) st.textContent = 'اكتب الرمز كامل'; return; }
+    if (!code) { if (st) st.textContent = 'الرمز ١٠ حروف وأرقام (مثل ABCDE-23456). تأكد منه واكتبه كامل'; return; }
     const step = (t) => { const e = document.getElementById('net-status'); if (e) e.textContent = t; };
     step('١/٣ تحميل خدمة الاتصال…');
     try { const link = await transport().join(code, step); connected(1, link); }
@@ -283,6 +292,9 @@
     const m = new AMB.Match({ mode: 'online', seed: n.seed, isolated: true, players });
     n.rec = AMB.NetSync.record(m, i);
     n.sentReady = false; n.peerReady = null; n.iClaimed = false; n.peerReward = null; n.over = false;
+    // B7: after every fight both phones compare who won, both lives and the fight length (same channel as the state hash)
+    const resolve = m.resolveCombat;
+    m.resolveCombat = function (result) { const rep = resolve.call(this, result); if (S.net === n) shareValue('c' + rep.round, AMB.NetSync.combatPrint(rep)); return rep; };
     return m;
   }
 
@@ -320,16 +332,23 @@
   }
   const buildOf = () => { const m = document.querySelector('meta[name="zor-build"]'); return m ? m.content : 'dev'; };
   // desync check: after both phones applied everybody's moves they must hold the SAME state; each sends a fingerprint and compares it with the other's
+  // keys: 'p<round>' after prep, 'r<round>' after the reward draft (state hash), 'c<round>' after the fight (combat fingerprint)
   function shareHash(key) {
-    const S = ui().S, n = S.net, m = S.match; if (!n || !m) return;
+    const S = ui().S, m = S.match; if (!S.net || !m) return;
+    shareValue(key, AMB.NetSync.hash(m));
+  }
+  function shareValue(key, h) {
+    const n = ui().S.net; if (!n) return;
     n.myHash = n.myHash || {}; n.peerHash = n.peerHash || {};
-    n.myHash[key] = AMB.NetSync.hash(m);
-    try { n.link.send({ t: 'sync', key, h: n.myHash[key] }); } catch (e) { /* ignore */ }
+    n.myHash[key] = h;
+    try { n.link.send({ t: 'sync', key, h }); } catch (e) { /* ignore */ }
     checkHash(key);
   }
   function checkHash(key) {
     const n = ui().S.net; if (!n || !n.myHash || !n.peerHash) return;
-    if (n.myHash[key] != null && n.peerHash[key] != null && n.myHash[key] !== n.peerHash[key]) netProblem('حالة اللعبة ما تطابقت بين الجوالين (غالبًا نسختين مختلفتين). حدّثوا الاثنين وابدأوا من جديد.');
+    if (n.myHash[key] == null || n.peerHash[key] == null || n.myHash[key] === n.peerHash[key]) return;
+    if (key[0] === 'c') { console.warn('online: fight result differs', n.myHash[key], n.peerHash[key]); netProblem('نتيجة القتال طلعت غير عند صاحبك. غالبًا النسختين مختلفتين، حدّثوا الاثنين وابدأوا من جديد.'); }
+    else netProblem('حالة اللعبة ما تطابقت بين الجوالين (غالبًا نسختين مختلفتين). حدّثوا الاثنين وابدأوا من جديد.');
   }
   function pump() {
     try { pumpInner(); } catch (e) { netProblem('صار خطأ في الاتصال. جرّبوا مباراة جديدة وتأكدوا إن الاثنين على آخر نسخة.'); }
@@ -354,16 +373,19 @@
       ui().afterReward();
     }
   }
+  const isHero = (h) => typeof h === 'string' && Object.prototype.hasOwnProperty.call(AMB.DATA.HEROES, h);
   function onMessage(msg) {
     const S = ui().S, n = S.net; if (!n || !msg) return;
     switch (msg.t) {
-      case 'hero': if (!AMB.DATA.HEROES[msg.hero]) { netProblem('البطل اللي وصلنا من صاحبك مو معروف عندي. حدّثوا الاثنين.'); break; }
+      case 'hero': if (!isHero(msg.hero)) { netProblem('البطل اللي وصلنا من صاحبك مو معروف عندي. حدّثوا الاثنين.'); break; }
         if (msg.ver && buildOf() !== 'dev' && msg.ver !== 'dev' && msg.ver !== buildOf()) { netProblem('نسخة اللعبة عندك مختلفة عن صاحبك. حدّثوا الصفحة عند الاثنين وجرّبوا من جديد.'); break; }
         n.theirHero = msg.hero; tryStart(); break;
-      case 'start': n.theirStart = msg; tryStart(); break;
+      case 'start': if (!Number.isInteger(msg.seed) || !Array.isArray(msg.heroes) || msg.heroes.length !== 2 || !msg.heroes.every(isHero)) { netProblem('بداية المباراة اللي وصلت من صاحبك مو مفهومة. حدّثوا الاثنين.'); break; }
+        n.theirStart = msg; tryStart(); break;
       case 'ready': n.peerReady = msg; pump(); break;
       case 'reward': n.peerReward = msg; pump(); break;
-      case 'sync': n.peerHash = n.peerHash || {}; n.peerHash[String(msg.key)] = msg.h; checkHash(String(msg.key)); break;
+      case 'sync': if (typeof msg.key !== 'string' || !/^[prc]\d{1,3}$/.test(msg.key) || typeof msg.h !== 'string' || msg.h.length > 80) break;
+        n.peerHash = n.peerHash || {}; n.peerHash[msg.key] = msg.h; checkHash(msg.key); break;
       case 'leave': peerLeft(); break;
       default: break;
     }
@@ -409,8 +431,8 @@
       netJoinGo: () => join(),
       netCancel: () => cancelRoom(),
       netDiag: () => { const o = document.getElementById('net-diag'); if (o) { o.textContent = 'جاري الفحص…'; diagnose(o); } },
-      netCopy: () => { const c = room && room.code; if (!c) return; try { navigator.clipboard.writeText(c); u.toast('نسخت الرمز', 'good'); } catch (e) { u.toast('الرمز: ' + c, ''); } },
-      netShare: () => { const c = room && room.code; if (!c) return; const text = `تعال العب ضدي في ZOR! ادخل «ادخل غرفة» واكتب الرمز: ${c}\n${location.href.split('?')[0]}`; if (navigator.share) navigator.share({ text }).catch(() => {}); else { try { navigator.clipboard.writeText(text); u.toast('نسخت الدعوة', 'good'); } catch (e) { u.toast('الرمز: ' + c, ''); } } },
+      netCopy: () => { const c = room && N.showCode(room.code); if (!c) return; try { navigator.clipboard.writeText(c); u.toast('نسخت الرمز', 'good'); } catch (e) { u.toast('الرمز: ' + c, ''); } },
+      netShare: () => { const c = room && N.showCode(room.code); if (!c) return; const text = `تعال العب ضدي في ZOR! ادخل «ادخل غرفة» واكتب الرمز: ${c}\n${location.href.split('?')[0]}`; if (navigator.share) navigator.share({ text }).catch(() => {}); else { try { navigator.clipboard.writeText(text); u.toast('نسخت الدعوة', 'good'); } catch (e) { u.toast('الرمز: ' + c, ''); } } },
       netLeave: () => { leave(); u.ACT.abandon(); },
     });
   }

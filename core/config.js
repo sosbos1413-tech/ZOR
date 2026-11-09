@@ -11,7 +11,7 @@
     version: '0.1.0',
 
     match: {
-      heroLifePerLevel: 1,   // +1 hero life per hero level above 1 (the profile's hero level; online, quick vs AI and progression fights)
+      heroLifePerLevel: 1,   // +1 hero life per hero level above 1 (the profile's hero level; quick vs AI and progression fights, never online/hotseat)
       heroLife: 100,            // life total of every hero
       prepSeconds: 40,          // prep timer (shop + formation) vs AI
       hotseatPrepSeconds: 45,   // prep timer per player in same-device PvP
@@ -109,7 +109,7 @@
 
     hero: {
       resonancePerAlly: 0.06,   // +6% hp/atk to every ally from the hero's world
-      summonAuraAtk: 0,         // summoned hero inspires allies
+      summonAuraAtk: 0,         // global +atk to allies while the hero is summoned (0 since audit phase 2: the per-hero vanguard bonuses do this job)
       summonAbilityDiscount: 1, // abilities cost less while the hero fights
       boardAtkPerRound: 5,      // summoned hero attack scales with the round
       boardPower: 0.22,            // overall strength of the summoned hero's own fighting (tuned so summoning is a real choice, not always best)
