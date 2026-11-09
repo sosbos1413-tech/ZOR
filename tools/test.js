@@ -1265,6 +1265,124 @@ t('online: two phones replay each other\'s moves and stay identical for a whole 
   }
 });
 
+t('online fuzz (1.4): thousands of random garbage ops never throw, every one is reported, and never reach the match', () => {
+  const N = AMB.NetSync;
+  let s = 99; const rnd = (n) => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s % n; };
+  const vals = [0, 1, 2, 5, -1, 1.5, -0.5, 1e9, -1e9, NaN, Infinity, -Infinity, '', '0', 'f1', 'b3', 'u1_1', 'x'.repeat(5000), '__proto__', 'constructor', 'toString',
+    null, undefined, true, false, [], [1], {}, { zone: 'board' }, { zone: 'board', slot: 'f1' }, { zone: 'bench', idx: 1.5 }, { zone: 'bench', idx: 2 }, { zone: 'bench', idx: 1, x: 1 },
+    { __proto__: { zone: 'board' } }, JSON.parse('{"__proto__":{"zone":"board","slot":"f1"}}'), 'start', 'zz', Symbol.iterator];
+  const names = [...N.OPS, 'bogus', '__proto__', 'constructor', 'startRound', 'resolveCombat', 'createCombat', 'hasOwnProperty', ''];
+  const garbage = () => {
+    const k = rnd(10);
+    if (k === 0) return vals[rnd(vals.length)];   // not even an array
+    const op = [rnd(8) ? names[rnd(names.length)] : vals[rnd(vals.length)]];
+    for (let i = rnd(5); i > 0; i--) op.push(vals[rnd(vals.length)]);
+    return op;
+  };
+  for (let g = 0; g < 40; g++) {
+    const m = new AMB.Match({ mode: 'online', seed: 300 + g, isolated: true, players: [{ heroId: 'orath', name: 'a' }, { heroId: 'merin', name: 'b' }] });
+    m.startRound(); m.players[1].gold = 40;
+    const before = JSON.stringify(m.players[0]);
+    for (let b = 0; b < 25; b++) {
+      const ops = Array.from({ length: rnd(12) }, garbage);
+      let out; try { out = N.replay(m, 1, ops); } catch (e) { throw new Error('replay threw on ' + String(e)); }
+      ok(Array.isArray(out), 'always a list');
+      if (ops.length) ok(out.length >= ops.filter((op) => N.checkOp(op)).length, 'every malformed op is reported');
+    }
+    eq(JSON.stringify(m.players[0]), before, 'the friend\'s ops never touch my own player');
+    ok(m.round === 1 && !m.isOver, 'garbage cannot drive the match (no startRound/resolveCombat through replay)');
+  }
+  // the checker itself on edge cases
+  eq(N.checkOp(['buy', 1.5]), 'buy:arg0'); eq(N.checkOp(['buy', '2']), 'buy:arg0'); eq(N.checkOp(['buy', NaN]), 'buy:arg0'); eq(N.checkOp(['buy', 2, 3]), 'buy:args');
+  eq(N.checkOp(['sell', 'x'.repeat(33)]), 'sell:arg0'); eq(N.checkOp(['move', 'u1_1', { zone: 'board', slot: 'f1', more: 1 }]), 'move:arg1');
+  eq(N.checkOp(['setAbility', 'a', 'nonsense']), 'setAbility:arg1'); eq(N.checkOp(['setAbility', 'a', null]), null); eq(N.checkOp(['toggleSummon']), null); eq(N.checkOp(['toggleSummon', null]), null);
+  eq(N.checkOp(['startRound']).slice(0, 8), 'unknown:'); eq(N.checkOp(['__proto__']).slice(0, 8), 'unknown:'); eq(N.checkOp('x'), 'shape');
+});
+t('online fuzz (1.4): two honest phones doing random legal moves stay hash-equal and every recorded op passes the checker', () => {
+  const N = AMB.NetSync, heroes = Object.keys(AMB.DATA.HEROES), TR = Object.keys(AMB.DATA.ABILITY_TRIGGERS), SL = AMB.SLOTS;
+  for (let g = 0; g < 6; g++) {
+    let s = 7 + g * 13; const rnd = (n) => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s % n; };
+    const mk = () => new AMB.Match({ mode: 'online', seed: 900 + g, isolated: true, players: [{ heroId: heroes[g % 4], name: 'a' }, { heroId: heroes[(g + 2) % 4], name: 'b' }] });
+    const A = mk(), B = mk(), recs = [N.record(A, 0), N.record(B, 1)];
+    const randomMove = (m, pi) => {   // any call the UI can make, with UI-shaped arguments (most fail politely, the rest change state)
+      const p = m.players[pi], units = m.allUnits(p), u = units.length ? units[rnd(units.length)] : null, uid = u ? u.uid : 'u9_9';
+      switch (rnd(15)) {
+        case 0: case 1: case 2: return m.buy(pi, rnd(5));
+        case 3: return m.reroll(pi);
+        case 4: return m.buyXp(pi);
+        case 5: return m.sell(pi, uid);
+        case 6: case 7: return m.move(pi, uid, rnd(2) ? { zone: 'board', slot: SL[rnd(8)] } : { zone: 'bench', idx: rnd(6) });
+        case 8: return m.buyItem(pi, rnd(2));
+        case 9: return m.equip(pi, rnd(3), uid);
+        case 10: return rnd(2) ? m.unequip(pi, uid) : m.sellItem(pi, rnd(3));
+        case 11: return rnd(2) ? m.armSpell(pi, rnd(3)) : m.disarmSpell(pi, rnd(2));
+        case 12: { const ab = AMB.DATA.HEROES[p.heroId].abilities; return m.setAbility(pi, ab[rnd(ab.length)].id, rnd(3) ? TR[rnd(TR.length)] : null); }
+        case 13: return rnd(2) ? m.toggleSummon(pi) : m.moveHero(pi, SL[rnd(8)]);
+        default: return rnd(3) ? m.autoArrange(pi) : m.toggleLock(pi);
+      }
+    };
+    let rounds = 0, sent = 0;
+    while (!A.isOver && rounds++ < 14) {
+      A.startRound(); B.startRound();
+      for (let k = 0; k < 30; k++) { randomMove(A, 0); randomMove(B, 1); }
+      const oa = recs[0].take(), ob = recs[1].take(); sent += oa.length + ob.length;
+      [...oa, ...ob].forEach((op) => eq(N.checkOp(op), null, 'an honest op was rejected: ' + JSON.stringify(op)));
+      eq(N.replay(A, 1, ob).join(), '', 'A replays B'); eq(N.replay(B, 0, oa).join(), '', 'B replays A');
+      eq(N.hash(A), N.hash(B), 'prep hash, round ' + A.round);
+      const ra = A.resolveCombat(A.createCombat(false).runToEnd()), rb = B.resolveCombat(B.createCombat(false).runToEnd());
+      eq(N.combatPrint(ra), N.combatPrint(rb), 'combat fingerprint, round ' + ra.round);
+      if (A.rewardPending) {
+        A.claimReward(0, rnd(3)); B.claimReward(1, rnd(3));
+        eq(N.replay(A, 1, recs[1].take()).join(), ''); eq(N.replay(B, 0, recs[0].take()).join(), '');
+        eq(N.hash(A), N.hash(B), 'reward hash');
+      }
+    }
+    ok(rounds > 3 && sent > 50, 'the fuzz really played (' + sent + ' ops)'); eq(A.winner, B.winner);
+  }
+});
+t('online combat fingerprint (B7): equal on two honest phones every round, different when a fight result differs', () => {
+  const N = AMB.NetSync, mk = () => new AMB.Match({ mode: 'online', seed: 77, isolated: true, players: [{ heroId: 'orath', name: 'a' }, { heroId: 'kagira', name: 'b' }] });
+  const A = mk(), B = mk(); let rounds = 0, prints = new Set();
+  while (!A.isOver && rounds++ < 14) {
+    A.startRound(); B.startRound(); AMB.AI.prep(A, 0); AMB.AI.prep(B, 0);   // same AI moves on both copies (isolated rng)
+    AMB.AI.prep(A, 1); AMB.AI.prep(B, 1);
+    const ra = A.resolveCombat(A.createCombat(false).runToEnd()), rb = B.resolveCombat(B.createCombat(true).runToEnd());   // one phone records the fight for playback, the other does not
+    const pa = N.combatPrint(ra); eq(pa, N.combatPrint(rb), 'round ' + ra.round); prints.add(pa);
+    ok(/^\d+\|[01d]\|\d+\/\d+\|\d+$/.test(pa), 'short readable fingerprint: ' + pa);
+    if (A.rewardPending) { A.claimReward(0, 0); B.claimReward(0, 0); A.claimReward(1, 0); B.claimReward(1, 0); }
+  }
+  ok(prints.size === rounds || prints.size > 3, 'fingerprints change from round to round');
+  const r = A.history[A.history.length - 1], alt = JSON.parse(JSON.stringify(r));
+  alt.players[1].lifeAfter += 1; ok(N.combatPrint(alt) !== N.combatPrint(r), 'a life difference shows');
+  const w = JSON.parse(JSON.stringify(r)); w.winner = r.winner === 0 ? 1 : 0; ok(N.combatPrint(w) !== N.combatPrint(r), 'a winner difference shows');
+  const d = JSON.parse(JSON.stringify(r)); d.duration += 0.5; ok(N.combatPrint(d) !== N.combatPrint(r), 'a length difference shows');
+  eq(N.combatPrint(null), ''); eq(N.combatPrint({}), '');
+});
+t('online security (4.3): long unambiguous room codes, hashed broker id/topic, HMAC-signed relay messages', () => {
+  const N = AMB.NetSync, nc = require('crypto');
+  for (let L = 0; L < 200; L += 7) {   // our SHA-256 / HMAC = Node's
+    const d = nc.randomBytes(L), k = nc.randomBytes((L * 3) % 150);
+    eq(N.hex(N.sha256(d)), nc.createHash('sha256').update(d).digest('hex')); eq(N.hex(N.hmac(k, d)), nc.createHmac('sha256', k).update(d).digest('hex'));
+  }
+  eq(N.hex(N.hmac('key', 'The quick brown fox jumps over the lazy dog')), 'f7bc83f430538424b13298e6aa6fb143ef4d59a14946175997479dbc2d1a3cd8');
+  const codes = new Set();
+  for (let i = 0; i < 2000; i++) { const c = N.newCode(); ok(/^[A-HJ-NP-Z2-9]{10}$/.test(c), 'alphabet without I/O/0/1: ' + c); codes.add(c); }
+  eq(codes.size, 2000, 'no repeats'); ok(N.CODE_LEN * 5 >= 40, 'at least 40 bits');
+  const c = N.newCode(); eq(N.normCode(' ' + N.showCode(c).toLowerCase() + ' '), c, 'typed with dash, spaces, lower case'); eq(N.normCode(c.slice(0, 9)), null); eq(N.normCode('ABCDE-O0I1Z'), null, 'confusable characters are never valid');
+  const r = N.room(c), r2 = N.room(N.newCode());
+  ok(!r.topic.includes(c) && !r.peerId.includes(c) && !r.topic.toLowerCase().includes(c.toLowerCase()), 'the code itself never goes on the wire');
+  ok(r.topic !== r2.topic && r.peerId !== r2.peerId && /^zor-[0-9a-f]{40}$/.test(r.topic) && /^zor-[0-9a-f]{32}$/.test(r.peerId), 'per-room, ntfy/peerjs-safe ids');
+  ok(N.hex(r.key) !== r.topic.slice(4) && !N.hex(r.key).startsWith(r.peerId.slice(4)), 'the key is not the topic or the id');
+  const msg = { t: 'msg', from: 'h1', to: 'g1', seq: 1, o: { t: 'ready', round: 2, ops: [['buy', 0]] } };
+  const body = N.seal(r.key, msg);
+  eq(JSON.stringify(N.open(r.key, body)), JSON.stringify(msg), 'the friend with the code reads it');
+  eq(N.open(r2.key, body), null, 'another room\'s key: dropped');
+  eq(N.open(r.key, body.replace('"buy"', '"sell"')), null, 'tampered: dropped');
+  eq(N.open(r.key, JSON.stringify(msg)), null, 'unsigned (old build or a stranger): dropped');
+  eq(N.open(r.key, '0'.repeat(64) + JSON.stringify(msg)), null, 'forged signature: dropped');
+  [null, undefined, 5, '', 'x'.repeat(70), '{"t":"hello"}', N.seal(r.key, 5), N.hex(N.hmac(r.key, 'null')) + 'null'].forEach((b) => eq(N.open(r.key, b), null, 'garbage never throws'));
+});
+
 t('heroes: every hero has its own summoned form and a summoned combat runs', () => {
   const H = AMB.DATA.HEROES, ids = Object.keys(H);
   ids.forEach((id) => { ok(H[id].vanguard && H[id].vanguard.name && /[ء-ي]/.test(H[id].vanguard.text), 'vanguard of ' + id); });

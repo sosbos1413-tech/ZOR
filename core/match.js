@@ -30,7 +30,7 @@
       blessings: { atkPct: 0, hpPct: 0, asPct: 0 }, rewardOffer: null, rewardLog: [],
       lineup: opts.lineup || null,   // scripted enemy (campaign): { units:[[defId,star,slot,fromRound]], summon, blessings, abilities }
       cardPower: opts.cardPower || null,
-      heroLevel: opts.heroLevel || 1,     // hero level from the profile (progression fights only)   // { defId: mult } from the collection — progression fights only
+      heroLevel: opts.heroLevel || 1,     // hero level from the profile (campaign, tower, events, quick vs AI; online and hotseat pass none = level 1)
       allowed: opts.allowedUnits ? new Set(opts.allowedUnits) : null,   // units this player owns — progression fights only
     };
   }
@@ -40,7 +40,7 @@
       this.mode = opts.mode || 'ai';
       this.seed = opts.seed || Math.floor(Math.random() * 2 ** 31);
       this.rng = AMB.util.RNG(this.seed);
-      // card levels/rarity and hero level count in every mode that passes them (campaign, tower, events, quick vs AI, online); same-device (hotseat) passes none, so it stays even. The deck limit is progression-only.
+      // card levels/rarity and hero level count in every mode that passes them (campaign, tower, events, quick vs AI); online and same-device (hotseat) pass none, so they stay even. The deck limit is progression-only.
       this.progression = !!opts.progression;
       this.rules = opts.rules || null;   // short-match rules (campaign): { maxRounds, winsNeeded, start: { gold, level } }
       this.players = opts.players.map((p, i) => newPlayer(i, this.progression ? p : Object.assign({}, p, { allowedUnits: null })));

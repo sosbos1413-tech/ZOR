@@ -970,8 +970,8 @@
     const armed = p.armedSpells.map((id, i) => `<span class="chip" data-act="disarm" data-idx="${i}">${icon(ITEMS[id].icon)} ✕</span>`).join('');
     AMB.TIPS.summon = () => ({ title: 'استدعاء البطل', html: `<p>${p.summoned ? 'بطلك الحين يقاتل في الساحة (اسحبه عشان تغيّر مكانه).' : 'بطلك الحين واقف خلف صفوفك.'}</p>
       ${h.vanguard ? `<p><b>👑 ${h.vanguard.name}:</b> ${h.vanguard.text}</p>` : ''}
-      <p><b>الفايدة:</b> يهجم بقوة ${h.board.atk + CFG.hero.boardAtkPerRound * m.round}، ${CFG.hero.summonAuraAtk ? `والحلفاء +${CFG.hero.summonAuraAtk * 100}% هجوم، ` : ''}${CFG.hero.summonAbilityDiscount ? `وقدراته أرخص بـ${CFG.hero.summonAbilityDiscount}.` : 'وتأثير القيادة الخاص بالبطل (انظر تفاصيله).'}</p>
-      <p><b>المخاطرة:</b> ياخذ الضرر كامل (حتى ضرر المنطقة)، وينسحب بعد ما تخسر ${CFG.combat.summonKnockout} حياة، وإذا وصلت حياته صفر تخسر المباراة على طول.</p>` });
+      <p><b>الفايدة:</b> يهجم بقوة ${Math.round((h.board.atk + CFG.hero.boardAtkPerRound * m.round) * (CFG.hero.boardPower == null ? 1 : CFG.hero.boardPower))}، ${CFG.hero.summonAuraAtk ? `والحلفاء +${CFG.hero.summonAuraAtk * 100}% هجوم، ` : ''}${CFG.hero.summonAbilityDiscount ? `وقدراته أرخص بـ${CFG.hero.summonAbilityDiscount}.` : 'وتأثير القيادة الخاص بالبطل (انظر تفاصيله).'}</p>
+      <p><b>المخاطرة:</b> ما ينضرب إلا لما تموت كل وحداتك، وبعدها ياخذ الضرر كامل بدون حماية مركز القيادة، وينسحب بعد ما تخسر ${CFG.combat.summonKnockout} حياة، وإذا وصلت حياته صفر تخسر المباراة على طول.</p>` });
     $('panel-right').innerHTML = `
       <section class="hero-card-mini">${portrait(h, { k: 'rh' })}
         <div class="hcm-r"><div class="lifebar-big"><i style="width:${(p.life / p.maxLife) * 100}%"></i></div><div class="hcm-n">${icon('heart')} <b>${lifeStr(p.life)}</b></div></div>
@@ -1084,7 +1084,7 @@
     const h = HEROES[id], W = WORLDS[h.world];
     modal(`<div class="detail-head">${portrait(h, { k: 'mh' })}<div><h2>${h.name}</h2><div class="hint">${h.title}</div>
       <span class="pill" style="--pc:${W.color}">${W.name}</span><div class="hint">${h.style}</div></div></div>
-      ${heroLevelHTML(id)}<div class="hint" style="margin:-2px 0 6px">كل مباراة تلعبها بالبطل تعطيه خبرة. قوته من المستوى تنحسب في كل الأطوار ما عدا «على نفس الجهاز».</div>
+      ${heroLevelHTML(id)}<div class="hint" style="margin:-2px 0 6px">كل مباراة تلعبها بالبطل تعطيه خبرة. قوته من المستوى تنحسب في كل الأطوار ما عدا «على نفس الجهاز» و«ضد صاحبك».</div>
       <div class="skillbox"><b>سلبية: ${h.passive.name}</b> — ${h.passive.text}</div>
       ${h.abilities.map((a) => `<div class="skillbox"><b>${a.name}</b> — <span style="color:var(--ess)">${a.cost} جوهر</span><br>${a.text}</div>`).join('')}
       ${h.vanguard ? `<div class="skillbox vg"><b>👑 ${h.vanguard.name}</b> (لما ينزل الساحة)<br>${h.vanguard.text}</div>` : ''}
