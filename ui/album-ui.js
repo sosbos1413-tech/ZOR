@@ -21,7 +21,9 @@
     const d = C.def(id), owned = C.owned(id), s = A.cardState(id);
     const card = UI().cardHTML(d, { k: 'alb' + id, lvl: owned ? C.level(id) : 0, cls: owned ? '' : 'unowned', attrs: `data-act="${d.role ? 'detail' : 'heroInfo'}" data-id="${id}"` });
     const chip = s === 'ready' ? `<button class="al-claim" data-act="albCard" data-id="${id}">+${A.cardPrize(id)} ${icon('gem')}</button>` : s === 'claimed' ? '<span class="al-got">✓</span>' : '';
-    return `<div class="al-tile ${owned ? '' : 'miss'} ${s}">${card}${owned ? chip : `<small class="al-hint">🔒 ${hint(id)}</small>`}</div>`;
+    // kid #8: a sticker book: every owned character gets a one-line "who am I" caption (role + home world)
+    const who = owned && d.role && AMB.DATA.ROLES[d.role] && W(d.world) ? `<small class="al-who">${AMB.DATA.ROLES[d.role].name} من ${W(d.world).name}</small>` : '';
+    return `<div class="al-tile ${owned ? '' : 'miss'} ${s}">${card}${who}${owned ? chip : `<small class="al-hint">🔒 ${hint(id)}</small>`}</div>`;
   }
 
   function rewardText(rw) {
@@ -56,7 +58,7 @@
         <button class="ibtn" data-act="info" data-k="albinfo" title="شرح">ⓘ</button></div>
       <div class="al-book" style="--wc:${pageColor(k)}">
         <div class="al-pagehead"><button class="al-flip" data-act="albGo" data-d="1" ${page >= PAGES.length - 1 ? 'disabled' : ''}>›</button>
-          <div class="al-title"><small>الصفحة ${page + 1} من ${PAGES.length}</small><h3>${pageName(k)}</h3></div>
+          <div class="al-title"><small>الصفحة ${page + 1} من ${PAGES.length}</small><h3>${pageName(k)}</h3>${W(k) && W(k).lore ? `<p class="al-lore">${W(k).lore}</p>` : ''}</div>
           <button class="al-flip" data-act="albGo" data-d="-1" ${page <= 0 ? 'disabled' : ''}>‹</button></div>
         <div class="al-sheet ${dir > 0 ? 'in-r' : dir < 0 ? 'in-l' : ''}">${pageHTML(k)}</div>
         <div class="al-dots">${PAGES.map((key, i) => `<button class="${i === page ? 'on' : ''}" data-act="albGoTo" data-i="${i}" title="${pageName(key)}">${readyOn(key) ? '<i></i>' : ''}</button>`).join('')}</div>
@@ -75,15 +77,17 @@
     const ui = UI();
     ui.sfx('merge');
     const cards = (packs || []).flatMap((p) => p.cards);
-    ui.overlay(`<div class="rv-wrap"><h2>🏆 جائزة الألبوم</h2><p class="cam-pay">${rewardText(res.reward)}</p>
+    ui.overlay(`<div class="rv-wrap"><h2>🏆 كمّلت الصفحة!</h2><p class="cam-pay">${rewardText(res.reward)}</p>
       ${cards.length ? `<div class="cam-pack-row">${cards.map((c, i) => `<div class="cu">${ui.portrait(C.def(c.id), { k: 'alr' + i + c.id })}<small style="color:${RAR[c.rarity].color}">${RAR[c.rarity].name}${c.isNew ? ' · جديدة!' : ''}</small></div>`).join('')}</div>` : ''}
       ${res.reward.title ? `<p class="hint">جهّز اللقب والإطار من «ممر الصدع» ← «ملفي»</p>` : ''}
       <div class="rv-btns"><button class="btn primary" data-act="packDone">تم</button></div></div>`);
+    // kid #8: a completed page is a party: confetti in the world's colours
+    setTimeout(() => { const h = document.querySelector('#overlay .rv-wrap h2'); if (h && ui.burst) ['#ffd24a', '#ff5aa0', '#5fe3ff', '#ffffff'].forEach((c, i) => setTimeout(() => ui.burst(h, c, 18, { r: 160, s: 8 }), i * 120)); }, 200);
   }
 
   AMB.TIPS = AMB.TIPS || {};
   AMB.TIPS.albinfo = () => ({ title: 'الألبوم', html: `<p>كل بطاقات اللعبة هنا. البطاقة اللي ما تملكها تطلع ظل مع طريقة الحصول عليها.</p>
-    <p>الألبوم كتاب: كل صفحة عالم، وتقلبها بالأسهم أو بسحبة. كل شخصية تحصل عليها لأول مرة تعطيك <b>٥٠ شظية</b> (والليجندري <b>١٠٠</b>)، وفي نهاية الصفحة زر <b>استلام الكل</b>. شخصيات البداية ما تعطي جائزة.</p>
+    <p>الألبوم كتاب: كل صفحة عالم، وتقلبها بالأسهم أو بسحبة. كل شخصية تحصل عليها لأول مرة تعطيك <b>٥٠ شظية</b> (والأسطوري <b>١٠٠</b>)، وفي نهاية الصفحة زر <b>استلام الكل</b>. شخصيات البداية ما تعطي جائزة.</p>
     <p>وإكمال كل شخصيات عالم يعطيك جائزة العالم (شظايا + لقب + إطار)، وكل الوحدات = باكجات + لقب «جامع الصدع».</p>` });
 
   function installActions() {

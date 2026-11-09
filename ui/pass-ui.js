@@ -58,7 +58,7 @@
   function resultPanel(r) {
     if (!r) return '';
     if (r.mult === 0) return `<div class="xp-panel"><div class="xp-h"><b>ممر الصدع</b></div><p class="hint">المباراة الودية ما تعطي خبرة، جرّب «ضد الكمبيوتر» عشان تتقدم في الممر.</p></div>`;
-    const lv = pass.level(), pct = pass.maxed() ? 100 : pass.xpInLevel();
+    const lv = pass.level(), pct = pass.maxed() ? 100 : Math.round((100 * pass.xpInLevel()) / P.SEASON.xpPerLevel);
     const up = r.levelAfter > r.levelBefore;
     return `<div class="xp-panel"><div class="xp-h"><b>ممر الصدع</b><span class="xp-gain">+${r.xp} خبرة</span></div>
       ${r.ended ? '<p class="hint">انتهى الموسم، ما تنضاف خبرة جديدة.</p>' : ''}
@@ -142,12 +142,14 @@
 
   function render() {
     const root = $('pass'); if (!root) return;
-    const lv = pass.level(), pct = pass.maxed() ? 100 : pass.xpInLevel();
+    const lv = pass.level(), pct = pass.maxed() ? 100 : Math.round((100 * pass.xpInLevel()) / P.SEASON.xpPerLevel);   // percent of the level, not raw XP
     const days = pass.daysLeft();
+    // kid #10: no season countdown and no premium teaser until the player has finished the campaign's first level
+    const fresh = !(AMB.campaign && AMB.campaign.isCleared('l1boss'));
     root.innerHTML = `<div class="pass-head"><div class="ph-lv"><small>المستوى</small><b>${lv}</b></div>
       <div class="ph-mid"><div class="ph-name">${P.SEASON.name}</div><div class="xp-bar big"><i style="width:${pct}%"></i></div>
-        <div class="ph-sub">${pass.maxed() ? 'وصلت لأعلى مستوى 🎉' : `${pass.xpInLevel()} / ${P.SEASON.xpPerLevel} خبرة للمستوى ${lv + 1}`} · ${pass.ended() ? '<b style="color:var(--red)">انتهى الموسم</b>' : `باقي ${days} يوم`}</div></div>
-      <button class="btn ph-prem" data-act="passPremium" title="مو متاح للحين">${pass.isPremium() ? '✓ بريميوم' : '👑 بريميوم · قريب'}</button></div>
+        <div class="ph-sub">${pass.maxed() ? 'وصلت لأعلى مستوى 🎉' : `${pass.xpInLevel()} / ${P.SEASON.xpPerLevel} خبرة للمستوى ${lv + 1}`} ${fresh ? '' : ` · ${pass.ended() ? '<b style="color:var(--red)">انتهى الموسم</b>' : `باقي ${days} يوم`}`}</div></div>
+      ${fresh ? '' : `<button class="btn ph-prem" data-act="passPremium" title="مو متاح للحين">${pass.isPremium() ? '✓ بريميوم' : '👑 بريميوم · قريب'}</button>`}</div>
       <div class="ptabs">${[['track', 'المسار'], ['missions', 'المهام'], ['profile', 'ملفي']].map(([k, n]) => `<button class="${tab === k ? 'on' : ''}" data-act="passTab" data-v="${k}">${n}${k === 'missions' && pass.dailyMissions().concat(pass.weeklyMissions()).some((m) => m.done && !m.claimed) ? ' <span class="dot sm"></span>' : ''}</button>`).join('')}</div>
       <div class="pbody">${tab === 'track' ? trackHTML() : tab === 'missions' ? missionsHTML() : profileHTML()}</div>`;
     if (tab === 'track') { const tr = $('ptrack'); if (tr) { const col = tr.querySelector(`[data-col="${Math.max(1, lv - 1)}"]`); if (col) tr.scrollLeft = col.offsetLeft - 8; } }

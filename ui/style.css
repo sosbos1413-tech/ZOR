@@ -2634,3 +2634,33 @@ body.in-match .toasts { top: 112px; }
 .rr-nums { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 12px; margin: 6px 0 2px; font-size: 13px; }
 .rr-nums span { display: inline-flex; align-items: center; gap: 4px; background: #0003; border-radius: 999px; padding: 3px 10px; }
 .rr-nums svg { width: 14px; height: 14px; }
+/* kid #3: the "shadow" enemy (same hero as yours) never looks like you: dark violet silhouette everywhere its portrait shows */
+body.mirror-foe #opp-panel .portrait, body.mirror-foe .rr-row .rr-side:last-child .portrait, body.mirror-foe .res-foe .portrait {
+  filter: grayscale(.6) hue-rotate(220deg) brightness(.55) contrast(1.35) drop-shadow(0 0 6px #a855f7); }
+.rr-who { display: block; font-weight: 700; font-size: 13px; margin-top: 2px; }
+
+/* kid #9: a gentle defeat: the hero stays in colour, soft rays, an encouraging tip */
+.res-stage.defeat .res-hero { filter: none; outline-color: var(--wc, #6d6152); animation: none; }
+.res-stage.defeat .res-rays { opacity: .35; filter: none; }
+.res-tip { margin: 8px auto 0; max-width: 340px; background: #ffd24a22; border: 2px solid #ffd24a88; border-radius: 12px; padding: 8px 12px; font-weight: 700; color: var(--paper); }
+
+.pity-fold { margin: 10px auto; max-width: 520px; } .pity-fold > summary { cursor: pointer; color: var(--paper3); font-size: 13px; list-style: none; text-align: center; padding: 10px; }
+/* kid #10: badges are a small dot, no number (less "you have 12 things to do" pressure) */
+.dot { font-size: 0 !important; width: 10px !important; height: 10px !important; min-width: 10px !important; padding: 0 !important; line-height: 0 !important; border-radius: 50% !important; }
+
+/* kid #5: the hero button glows when sending the hero in is a good idea */
+#scr-match .btn.can-summon { animation: summonGlow 1.1s ease-in-out infinite alternate; border-color: #ffd24a !important; }
+@keyframes summonGlow { from { box-shadow: 0 0 0 0 #ffd24a00; } to { box-shadow: 0 0 14px 3px #ffd24acc; } }
+@media (prefers-reduced-motion: reduce) { #scr-match .btn.can-summon { animation: none; box-shadow: 0 0 10px 2px #ffd24acc; } }
+
+.hc-own .cp-dots { font-style: normal; letter-spacing: 1px; font-size: 11px; color: #ffd24a; }
+
+/* kid #8: album as a sticker book */
+.al-who { display: block; text-align: center; font-size: 11px; color: var(--paper3); margin-top: 2px; }
+.al-lore { margin: 4px 0 0; font-size: 12px; color: var(--paper3); font-style: italic; }
+
+/* kid #1: the hero speaks in the tutorial bar */
+.tut-bar .tg-say { display: inline-flex; align-items: center; gap: 6px; max-width: 62vw; font-size: 13px; line-height: 1.25; }
+.tut-bar .tg-say .portrait { width: 30px; height: 30px; flex: 0 0 30px; }
+.tut-bar .tg-say b { font-weight: 700; }
+.tut-bar .tg-say { flex: 1 1 auto; max-width: none; min-width: 0; } .tut-bar .tg-dots { flex: 0 1 auto; min-width: 0; overflow: hidden; }

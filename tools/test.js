@@ -826,6 +826,10 @@ t('save: importing into a locked tab fails loudly and keeps the old data; netsyn
   const m = new AMB.Match({ mode: 'online', seed: 5, isolated: true, players: [{ heroId: 'orath', name: 'a' }, { heroId: 'merin', name: 'b' }] });
   eq(AMB.NetSync.replay(m, 1, new Array(201).fill(['sell', 'x'])).join(), 'ops', 'an op list over the cap is refused whole');
 });
+t('kid-friendly words: rarity names are plain Arabic (no English loanwords)', () => {
+  const R = AMB.ECONOMY.rarities;
+  eq([R.common.name, R.rare.name, R.epic.name, R.legendary.name].join(','), 'عادي,نادر,ملحمي,أسطوري');
+});
 t('online safety: a friend cannot send an impossible slot/index or a malformed op (nothing throws, nothing is duplicated)', () => {
   const m = new AMB.Match({ mode: 'online', seed: 5, isolated: true, players: [{ heroId: 'orath', name: 'a' }, { heroId: 'merin', name: 'b' }] });
   m.startRound(); const p = m.players[1]; p.gold = 50;

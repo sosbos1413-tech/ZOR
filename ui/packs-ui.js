@@ -21,10 +21,11 @@
     const d = P.def(PACK), left = P.pityLeft(PACK), done = d.pity.after - left;
     const segs = Array.from({ length: d.pity.after }, (_, i) => `<i class="${i < done ? 'on' : ''}"></i>`).join('');
     const R = RAR[d.pity.rarity];
-    return `<div class="pity ${left === 0 ? 'ready' : ''}" style="--rc:${R.color}">
+    // kid #10: the guarantee counter is folded behind a small "ⓘ الضمان" line (no countdown pushing to open more)
+    return `<details class="pity-fold"><summary>ⓘ الضمان</summary><div class="pity ${left === 0 ? 'ready' : ''}" style="--rc:${R.color}">
       <div class="pity-t">${left === 0 ? `🎉 الباكج الجاي فيه <b>${R.name}</b> مضمون!` : `باقي <b>${left}</b> على ضمان <b>${R.name}</b>`} <button class="ibtn" data-act="info" data-k="pity" title="شرح">ⓘ</button></div>
       <div class="pity-bar">${segs}</div>
-      </div>`;
+      </div></details>`;
   }
 
   function render() {
@@ -67,12 +68,11 @@
     const cards = order.map((c, i) => `<div class="rv" style="--d:${T[i].toFixed(2)}s;--rc:${RAR[c.rarity].color}" data-r="${c.rarity}">
         ${RAR[c.rarity].order >= 3 ? '<i class="rv-rays"></i>' : ''}<div class="rv-in"><div class="rv-back"><span>ZOR</span></div><div class="rv-front">${ui.cardHTML(C.def(c.id), { k: 'rv' + i + c.id, lvl: c.level })}${tagFor(c)}</div></div></div>`).join('');
     // UI v2: bigger cards (3 + 2 on phones), the rarest last with a longer build-up, and a «تخطي» button that turns the rest at once
-    ui.overlay(`<div class="rv-wrap rv2 ${'best-' + best.rarity}"><h2>${res.forced ? 'الضمان اشتغل! ' : ''}${RAR[best.rarity].name === RAR.legendary.name ? '✨ ليجندري! ✨' : 'باكج الصدع'}</h2>
+    ui.overlay(`<div class="rv-wrap rv2 ${'best-' + best.rarity}"><h2>${res.forced ? 'الضمان اشتغل! ' : ''}${RAR[best.rarity].name === RAR.legendary.name ? '✨ أسطوري! ✨' : 'باكج الصدع'}</h2>
       <div class="rv-row">${cards}</div>
       ${res.refund ? `<p class="hint">نسخ بطاقات بالمستوى الأقصى تحوّلت إلى ${res.refund} شظية.</p>` : ''}
-      <p class="rv-pity">${res.pityLeft === 0 ? 'الباكج الجاي فيه ليجندري مضمون!' : `باقي ${res.pityLeft} على ضمان الليجندري`}</p>
-      <div class="rv-btns"><button class="btn rv-skip" data-act="rvSkip">${icon('skip')} تخطي</button><button class="btn primary" data-act="packOpen" ${W.canAfford(P.def(PACK).cost) ? '' : 'disabled'}>افتح باكج ثاني · ${icon('gem')} ${P.def(PACK).cost.shards}</button>
-        <button class="btn" data-act="packDone" data-to="cards">مجموعتي</button><button class="btn ghost" data-act="packDone">تم</button></div></div>`);
+      <div class="rv-btns"><button class="btn rv-skip" data-act="rvSkip">${icon('skip')} تخطي</button><button class="btn primary big" data-act="packDone" data-to="cards">🎉 شوف شخصياتك الجديدة</button>
+        <button class="btn ghost" data-act="packOpen" ${W.canAfford(P.def(PACK).cost) ? '' : 'disabled'}>باكج ثاني · ${icon('gem')} ${P.def(PACK).cost.shards}</button><button class="btn ghost" data-act="packDone">تم</button></div></div>`);
     const wrap = document.querySelector('.rv-wrap');
     const timers = [];
     const at = (fn, ms) => timers.push(setTimeout(fn, ms));

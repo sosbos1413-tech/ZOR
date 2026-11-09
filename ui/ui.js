@@ -386,7 +386,7 @@
     else cls = rep.winner === mi ? 'win' : 'lose';
     const over = m.isOver;
     const side = (i) => { const r = rep.players[i], pl = m.players[i]; return `<div class="rr-side ${rep.winner === i ? 'won' : ''}">${portrait(r.heroKilled ? HEROES[pl.heroId] : HEROES[pl.heroId], { k: 'rr' + i })}
-        <div class="rr-life">${icon(r.heroKilled ? 'skull' : 'heart')} <b>${lifeStr(r.lifeAfter)}</b></div>${(r.backlash + r.direct) > 0 ? `<div class="rr-dmg"><bdi dir="ltr">−${Math.round(r.backlash + r.direct)}</bdi></div>` : '<div class="rr-dmg">&nbsp;</div>'}</div>`; };
+        <small class="rr-who">${S.mode === 'hotseat' ? esc(pl.name) : i === mi ? 'أنت' : esc(pl.name)}</small><div class="rr-life">${icon(r.heroKilled ? 'skull' : 'heart')} <b>${lifeStr(r.lifeAfter)}</b></div>${(r.backlash + r.direct) > 0 ? `<div class="rr-dmg"><bdi dir="ltr">−${Math.round(r.backlash + r.direct)}</bdi></div>` : '<div class="rr-dmg">&nbsp;</div>'}</div>`; };
     const me0 = rep.players[mi];
     const why = S.mode !== 'hotseat' && rep.winner === 1 - mi ? (me0.exposed ? `<div class="rr-why">${icon('shield')}<i>✗</i> ➜ ${icon('warn')}</div>` : `<div class="rr-why">${icon('star')} ➜ ${icon('sword')}</div>`) : '';
     const title = rep.winner === null ? `الجولة ${m.round}: تعادل`
@@ -399,7 +399,7 @@
       const sd = S.combat.sides, mine = (sd[mi].spec.units || []).length, theirs = (sd[1 - mi].spec.units || []).length, fd = sd[mi].frontDownAt, gold = m.players[mi].gold;
       whyNums = `<div class="rr-nums"><span>${icon('shield')} <b>${mine}</b> ضد <b>${theirs}</b></span>${mine ? `<span>${icon('warn')} ${fd != null ? `سقط الصف الأمامي <b>${fd.toFixed(1)}ث</b>` : 'الصف الأمامي صمد'}</span>` : ''}${gold > 0 ? `<span>${icon('gold')} <b>${gold}</b> ذهب ما صرفته</span>` : ''}</div>`;
     }
-    overlay(`<div class="ov-card rr ${cls}"><div class="rr-title">${title}</div><div class="rr-big">${icon(rep.winner === null ? 'swap' : cls === 'lose' ? 'skull' : 'crown')}</div>
+    overlay(`<div class="ov-card rr ${cls}"><div class="rr-title">${title}</div><div class="rr-big">${icon(rep.winner === null ? 'swap' : cls === 'lose' ? 'shield' : 'crown')}</div>
       <div class="rr-row">${side(0)}<div class="rr-vs">${icon('sword')}</div>${side(1)}</div>${why}${whyTxt ? `<div class="rr-note">${whyTxt}</div>` : ''}${whyNums}${rep.finale ? `<div class="rr-why">${icon('flame')} ×${CFG.match.finaleLossMult}</div>` : ''}
       <button class="btn primary big rr-go" data-act="${over ? 'toResults' : m.rewardPending ? 'rewards' : 'nextRound'}">${over ? 'النتيجة' : m.rewardPending ? 'اختر مكافأتك' : 'الجولة الجاية'}</button></div>`);
   }
@@ -448,7 +448,7 @@
         <i class="hc-halo"></i><div class="hc-frame"></div><div class="hc-art">${portrait(def, { bare: true, k: o.k })}<i class="sheen"></i></div><div class="hc-ring"></div>
         ${roleD}${isHero ? '' : stars(star)}${o.prog ? `<span class="hc-prog" title="نسخ متطابقة: واحدة إضافية وتترقى">${o.prog}</span>` : ''}<i class="hc-sbar"></i>${atkBd}${hpBd}${mid}</div>`;
     }
-    const own = o.own ? `<span class="hc-own ${o.own.pair ? 'up' : ''}" data-act="tip" data-k="own" data-id="${def.id}" data-x="${o.own.pair ? 'up' : o.own.n}">${o.own.pair ? '↑' : '×' + o.own.n}</span>` : '';
+    const own = o.own ? `<span class="hc-own ${o.own.pair ? 'up' : ''}" data-act="tip" data-k="own" data-id="${def.id}" data-x="${o.own.pair ? 'up' : o.own.n}">${o.own.s1 ? `<i class="cp-dots">${'●'.repeat(Math.min(2, o.own.s1))}${'○'.repeat(Math.max(1, 3 - Math.min(2, o.own.s1)))}</i>` : '×' + o.own.n}</span>` : '';   // kid #6: copies toward the next star as dots (●●○ = one more and it evolves)
     const rolePill = isHero ? '' : `<span class="rolepill ${ROLES[def.role].kind}" data-act="tip" data-k="role" data-id="${def.id}">${icon(ART.ROLE_ICON[def.role])}${ROLES[def.role].name}</span>`;
     const iconsRow = isHero
       ? disc('world', ART.WORLD_ICON[def.world], W.name, ['world', def.id]) + roleD
@@ -999,7 +999,7 @@
       const ow = owned[id];
       const pair = ow && ow.s1 >= 2;
       return cardHTML(d, { cls: `${ok ? '' : 'cant'} ${pair ? 'pair' : ''}`, k: 'sh' + i,
-        own: ow ? { n: ow.n, pair } : null,
+        own: ow ? { n: ow.n, pair, s1: ow.s1 } : null,
         attrs: `data-act="buy" data-idx="${i}" title="${esc(d.skill.name)}: ${esc(d.skill.text)}"` });
     }).join('');
     const items = p.itemShop.map((id, i) => {
@@ -1139,7 +1139,7 @@
     const sev = AMB.synergy.evaluate(Object.values(p.board), p.heroId), dups = dupCount(p);
     const synStrip = sev.list.length || dups ? `<span class="pb-syn">${synergyHTML(sev.list.slice(0, 4), dups)}</span>` : '';
     return `<div class="pb"><span class="pb-count">${icon('shield')} ${cnt}${p.summoned ? ' +' + icon('crown') : ''}</span>${synStrip}${bag ? `<span class="pb-bag">${bag}</span>` : ''}
-      <span class="pb-btns"><button class="btn small ib ${p.summoned ? 'on' : ''}" data-act="summon">${p.summoned ? '👑 رجّع البطل' : '👑 نزّل البطل'}</button><button class="btn small ib" data-act="autoArrange">تلقائي</button></span></div>`;
+      <span class="pb-btns"><button class="btn small ib ${p.summoned ? 'on' : ''} ${!p.summoned && S.match.round >= 2 && p.life >= 30 && S.mode !== 'online' ? 'can-summon' : ''}" data-act="summon">${p.summoned ? '👑 رجّع البطل' : '👑 نزّل البطل'}</button><button class="btn small ib" data-act="autoArrange">تلقائي</button></span></div>`;
   }
 
   // the synergy chips stay visible during the fight, so you can see WHY your board is strong (same chips as the prep bar; no new panels)
@@ -1149,6 +1149,15 @@
       const sev = AMB.synergy.evaluate(Object.values(pl.board).filter(Boolean), pl.heroId);
       return sev.list.length ? `<span class="pb-syn cc-syn">${synergyHTML(sev.list.slice(0, 4), 0)}</span>` : '';
     } catch (e) { return ''; }
+  }
+  // kid #9: one friendly tip after a lost match, picked from what actually happened
+  function lossTip(m) {
+    const p = m.players[0];
+    let everSummoned = p.summoned; try { everSummoned = everSummoned || m.summary(0).summoned; } catch (e) { /* ignore */ }
+    if (!everSummoned) return 'نزّل بطلك 👑 لما تكون حياتك زينة، يقاتل معك ويقوّي فريقك';
+    if (p.gold >= 10) return 'لا تخلي الذهب يتجمع: اشترِ وحدات أو خبرة عشان تنزّل وحدات أكثر';
+    if (p.level < 5) return 'اشترِ خبرة ⬆ عشان يرتفع مستواك وتنزّل وحدات أكثر في الساحة';
+    return 'حط الحراس والمقاتلين قدّام، والقناصة والسحرة ورا';
   }
   function renderCombatCtrl() {
     const el = $('combat-ctrl');
@@ -1194,7 +1203,7 @@
       ${rows.map(([n, f, dg, suf]) => `<tr><td>${n}</td>${[1, 2, 3].map((s) => { const v = f(s), b = f(1); return `<td>${fmt(v, dg || 0)}${suf || ''}${s > 1 && v !== b ? `<div class="delta">+${Math.round(((v - b) / b) * 100)}%</div>` : ''}</td>`; }).join('')}</tr>`).join('')}</table>
       <div class="skillbox"><b>المهارة — ${sk.name}:</b> ${sk.text}
         ${skRows ? `<table><tr><th></th><th>★</th><th>★★</th><th>★★★</th></tr>${skRows}</table>` : ''}</div>
-      ${(d.traits && d.traits.length) || d.sig ? `<div class="skillbox rar-box"><b>صفات ${AMB.ECONOMY.rarities[d.rarity] ? AMB.ECONOMY.rarities[d.rarity].name : ''}:</b>${(d.traits || []).map((id) => `<div>• ${AMB.DATA.TRAITS[id].name}: ${AMB.DATA.TRAITS[id].text}</div>`).join('')}${d.sig ? `<div class="sig-line">★ <b>${AMB.DATA.SIGS[d.sig].name}</b>: ${AMB.DATA.SIGS[d.sig].text}</div>` : ''}</div>` : `<div class="hint">كومن: يسوي دور ${ROLES[d.role].name} الأساسي بدون صفات إضافية.</div>`}
+      ${(d.traits && d.traits.length) || d.sig ? `<div class="skillbox rar-box"><b>صفات ${AMB.ECONOMY.rarities[d.rarity] ? AMB.ECONOMY.rarities[d.rarity].name : ''}:</b>${(d.traits || []).map((id) => `<div>• ${AMB.DATA.TRAITS[id].name}: ${AMB.DATA.TRAITS[id].text}</div>`).join('')}${d.sig ? `<div class="sig-line">★ <b>${AMB.DATA.SIGS[d.sig].name}</b>: ${AMB.DATA.SIGS[d.sig].text}</div>` : ''}</div>` : `<div class="hint">عادي: يسوي دور ${ROLES[d.role].name} الأساسي بدون صفات إضافية.</div>`}
       <div class="hint"><b>التطوير:</b> ${CFG.stars.copiesPerStar} نسخ ★ = ★★ ، و ${CFG.stars.copiesPerStar} نسخ ★★ = ★★★ (الحد الأقصى). الصحة والهجوم ×${SM[2]} ثم ×${SM[3]}؛ السرعة والمدى ما تتغير عشان ما تصير وحدة واحدة ما أحد يقدر عليها.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
         <div><span class="wtag" style="--w:${W.color}">${SYNERGIES[d.world].name}</span>${synOf(d.world)}</div>
@@ -1312,7 +1321,7 @@
     let title;
     if (m.winner === null || m.winner === undefined) title = 'تعادل';
     else if (S.mode === 'hotseat') title = `فاز ${esc(m.players[m.winner].name)}!`;
-    else title = m.winner === mySeat() ? 'نصر!' : 'هزيمة';
+    else title = m.winner === mySeat() ? 'نصر!' : 'قربت! جرّب مرة ثانية';
     const last = m.history[m.history.length - 1];
     const cols = m.players.map((p, i) => {
       const h = HEROES[p.heroId];
@@ -1338,7 +1347,7 @@
     const ptitle = own && AMB.PassUI ? AMB.PassUI.titleName() : '';
     const stage = `<div class="res-stage ${m.winner == null ? 'draw' : myWin ? 'victory' : 'defeat'}" style="--wc:${WORLDS[heroDef.world].color}"><div class="res-rays"></div><div class="res-hero">${portrait(avDef, { bare: true, k: 'resh' })}<i class="sheen"></i></div><div class="res-hname">${avDef.name}</div>${ptitle ? `<div class="res-title">${ptitle}</div>` : ''}</div>`;
     $('results').innerHTML = `${stage}<div class="res-banner"><h1>${title}</h1><p class="hint">${m.round} جولات · ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')} دقيقة ${S.mode === 'friendly' ? '· مباراة ودية (ما تنحسب)' : ''}</p>
-      <div class="timeline">${tl}</div></div>
+      <div class="timeline">${tl}</div>${S.mode !== 'hotseat' && m.winner != null && !myWin ? `<p class="res-tip">💡 ${lossTip(m)}</p>` : ''}</div>
       ${AMB.PassUI ? AMB.PassUI.resultPanel(S.passResult) : ''}
       <div class="res-quick">${m.players.map((p, i) => `<div class="rq ${m.winner === i ? 'won' : ''}"><b>${esc(p.name)}</b><span>${icon('heart')} ${lifeStr(p.life)}</span><span>${icon('sword')} ${p.stats.wins}–${p.stats.losses}</span><span>${fmt(p.stats.damageDealt)} ضرر</span></div>`).join('')}</div>
       <details class="res-details"><summary>تفاصيل المباراة</summary><div class="res-cols">${cols}</div></details>
@@ -1439,7 +1448,7 @@
     mode: (d) => { S.mode = d.v; S.picks = [null, null]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
     pickHero: (d, el, e) => {
       if (e.target.closest('[data-act="heroInfo"], [data-act="heroTry"]')) return;
-      if (heroLocked(d.id)) { toast('هذا البطل مقفل: تفتحه من الباكجات (ليجندري) أو الباتل باس', 'err'); return; }
+      if (heroLocked(d.id)) { toast('هذا البطل مقفل: تفتحه من الباكجات (أسطوري) أو الباتل باس', 'err'); return; }
       S.picks[S.pickIdx] = d.id; renderHeroSelect();
     },
     heroInfo: (d, el, e) => { e.stopPropagation(); heroDetail(d.id); },
@@ -1467,8 +1476,11 @@
       if (res(r)) {
         sfx('buy');
         if (r.merged && r.merged.length) {
-          r.merged.forEach((u) => toast(`تطوير! ${UNITS[u.defId].name} ${'★'.repeat(u.star)}`, 'good'));
+          r.merged.forEach((u) => toast(`🎉 تطورت! ${UNITS[u.defId].name} ${'★'.repeat(u.star)}`, 'good'));
           S.pop = { uid: r.merged[r.merged.length - 1].uid, merged: true };
+          // kid #6: a bigger party for a merge: confetti on the evolved unit once it is drawn
+          const muid = r.merged[r.merged.length - 1].uid;
+          setTimeout(() => { const el = document.querySelector(`[data-drag="unit:${muid}"]`); if (el) ['#ff5aa0', '#5fe3ff'].forEach((c) => burst(el, c, 14, { r: 90, s: 6 })); }, 80);
         } else {
           S.pop = { uid: r.unit.uid };
           const have = m0.allUnits(m0.players[S.v]).filter((x) => x.defId === r.unit.defId && x.star === 1).length;
@@ -1497,7 +1509,7 @@
         const can = (p.shop || []).filter((c) => c && UNITS[c] && p.gold >= UNITS[c].cost).length;
         if (p.gold >= 3 && can && p.bench.some((x) => !x) ) {
           S.warnedRound = m.round + ':' + S.v;
-          modal(`<h2>عندك ذهب ما صرفته</h2><p class="hint">معك <b>${p.gold}</b> ذهب وفيه بطاقات في المتجر تقدر تشتريها. الذهب ما يضيع، بس الوحدات الزيادة تقوّيك في القتال.</p>
+          modal(`<h2>💰 عندك ذهب!</h2><p class="hint">معك <b>${p.gold}</b> ذهب. اشترِ بطاقة من المتجر وحطها في الساحة، فريقك يصير أقوى.</p>
             <div style="display:flex;gap:8px;justify-content:center;margin-top:12px"><button class="btn primary big" data-act="closeModal">أرجع أشتري</button><button class="btn" data-act="readyForce">ابدأ القتال</button></div>`);
           return;
         }
@@ -1526,7 +1538,9 @@
     arm: () => { if (S.sel && S.sel.kind === 'item' && res(S.match.armSpell(S.v, S.sel.idx))) { S.sel = null; toast('التعويذة جاهزة للقتال الجاي', 'good'); renderMatch(); } },
     disarm: (d) => { if (prepActive() && res(S.match.disarmSpell(S.v, +d.idx))) renderMatch(); },
     sellItem: () => { if (S.sel && S.sel.kind === 'item' && res(S.match.sellItem(S.v, S.sel.idx))) { S.sel = null; renderMatch(); } },
-    summon: () => { if (prepActive() && res(S.match.toggleSummon(S.v))) { S.sel = null; toast(me().summoned ? 'البطل نزل الساحة' : 'البطل رجع لمركزه', 'good'); renderMatch(); } },
+    summon: () => { if (prepActive() && res(S.match.toggleSummon(S.v))) { S.sel = null; toast(me().summoned ? 'البطل نزل الساحة' : 'البطل رجع لمركزه', 'good'); renderMatch();
+      // kid #5: the very first summon gets a short entrance line
+      const ST = AMB.settings; if (me().summoned && ST && !ST.seen('firstSummon')) { ST.markSeen('firstSummon'); try { abilityBurst('أنا جاهز! 👑', S.v, WORLDS[HEROES[me().heroId].world].color); } catch (e) { /* ignore */ } } } },
     detail: (d, el, e) => { e.stopPropagation(); unitDetail(d.id, d.star ? +d.star : 0); },
     upgrades: () => upgradesModal(),
     more: () => { document.body.classList.toggle('more-open'); sfx('click'); },
@@ -1755,6 +1769,6 @@
 
   // debug / testing hook
   globalThis.AMB_UI = { renderHeroSelect, heroPickHTML, startPractice, startCombat, afterReward, showResults, S, ACT, itemsHTML: () => Object.values(ITEMS).map((it) => itemCardHTML(it)).join(''), renderMatch, cardHTML, itemCardHTML, show, toast, sfx, burst, modal, closeModal, overlay, closeOverlay, startMatch, portrait, stars };
-  globalThis.AMB_UI.abilityBurst = abilityBurst;   // UI v2 (match screens)
+  globalThis.AMB_UI.abilityBurst = abilityBurst; globalThis.AMB_UI.lossTip = lossTip;   // UI v2 (match screens)
   if (AMB.PassUI) { AMB.PassUI.installActions(); AMB.PassUI.applyCosmetics(); AMB.PassUI.refreshMenu(); }
 })();

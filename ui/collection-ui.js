@@ -66,7 +66,7 @@
     root.innerHTML = `<div class="col-head">
         ${C.needsStarter() ? '' : `<details class="col-fold" data-fold="colDeck" ${isOpen('colDeck') ? 'open' : ''}><summary><b>🃏 ديكك <span class="${dn >= L.min ? '' : 'bad'}">${dn}/${L.size}</span></b><small>للحملة والبرج والأحداث</small></summary>${deckBar()}</details>`}
         ${C.needsStarter() ? '<div class="col-starter">ما اخترت بطلك الأول للحين: اضغط «العب» واختر واحد من الأربعة.</div>' : ''}
-        <div><b>${C.ownedCount()} / ${C.ids().length}</b> بطاقة · ${ready ? `<span class="col-ready">${ready} جاهزة للتطوير</span>` : 'ما فيه ترقيات جاهزة'}</div>
+        <div>${(() => { const at = AMB.album ? AMB.album.total() : null, hs = Object.keys(AMB.DATA.HEROES), ho = hs.filter((h) => C.owned(h)).length; return at ? `<b>${at.owned} / ${at.total}</b> وحدة · <b>${ho} / ${hs.length}</b> أبطال` : `<b>${C.ownedCount()} / ${C.ids().length}</b> بطاقة`; })()} · ${ready ? `<span class="col-ready">${ready} جاهزة للتطوير</span>` : 'ما فيه ترقيات جاهزة'}</div>
         <details class="col-fold" data-fold="colHow" ${isOpen('colHow') ? 'open' : ''}><summary><b>كيف أطوّر بطاقاتي؟</b>${ready ? `<small class="col-ready">⬆ ${ready} جاهزة</small>` : ''}</summary>
         <div class="up-how">كل نسخة <u>مكررة</u> من باكج تروح لبطاقتها. لما يكتمل شريط النسخ يطلع زر <b>⬆ طوّر</b> ويرفع قوتها <b>+${Math.round(AMB.ECONOMY.cards.levelBonus * 100)}%</b> في الحملة والبرج والأحداث.
           ${ready ? `<button class="btn small primary" data-act="colRole" data-v="up">⬆ ${ready} جاهزة الحين</button>` : '<span class="hint">ما فيه بطاقة جاهزة الحين، افتح باكجات.</span>'} <button class="ibtn" data-act="info" data-k="colinfo" title="شرح">ⓘ</button></div>

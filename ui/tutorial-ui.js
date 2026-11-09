@@ -36,19 +36,19 @@
   const G = (n) => icon(n);
   const ARR = '<i class="tg-arr">➜</i>';
   const STEPS = [
-    { id: 'buy1', round: 1, bar: [G('gold'), ARR, '🃏'], target: () => shopCard(0), done: () => units() >= 1 },
-    { id: 'front', round: 1, bar: ['🃏', ARR, G('shield')], target: () => (sel() && sel().kind === 'unit' ? { point: cell('f1'), allow: [cell('f1'), benchUnit()] } : { point: benchUnit(), allow: [benchUnit(), cell('f1')] }), done: () => front() >= 1 },
-    { id: 'buy2', round: 1, bar: [G('gold'), ARR, '🃏'], target: () => shopCard(2), done: () => units() >= 2 },
-    { id: 'back', round: 1, bar: ['🃏', ARR, G('bow')], target: () => (sel() && sel().kind === 'unit' ? { point: cell('b1'), allow: [cell('b1'), benchUnit()] } : { point: benchUnit(), allow: [benchUnit(), cell('b1')] }), done: () => back() >= 1 },
-    { id: 'guard', round: 1, ack: true, bar: [G('shield'), '=', G('check')], target: () => guardEl() },
-    { id: 'ready1', round: 1, bar: [G('sword'), G('check')], target: () => ready(), done: () => UI().S.phase === 'combat' || UI().S.match.round > 1 },
-    { id: 'merge', round: 2, bar: ['🃏', '🃏', '🃏', ARR, G('star')], target: () => { for (let i = 0; i < 3; i++) { const el = q(`.shop-cards .tcard[data-idx="${i}"]:not(.empty)`); if (el && P().shop[i]) return el; } return null; }, done: () => UI().S.match.allUnits(P()).some((u) => u.star >= 2) },
-    { id: 'reroll', round: 2, bar: [G('gold'), G('refresh')], target: () => reroll(), done: () => P().stats.rerolls >= 1 },
-    { id: 'ready2', round: 2, bar: [G('sword'), G('check')], target: () => ready(), done: () => UI().S.phase === 'combat' || UI().S.match.round > 2 },
+    { id: 'buy1', say: 'اشترِ هالبطاقة بالذهب!', round: 1, bar: [G('gold'), ARR, '🃏'], target: () => shopCard(0), done: () => units() >= 1 },
+    { id: 'front', say: 'حطها قدّام، تحميني 🛡', round: 1, bar: ['🃏', ARR, G('shield')], target: () => (sel() && sel().kind === 'unit' ? { point: cell('f1'), allow: [cell('f1'), benchUnit()] } : { point: benchUnit(), allow: [benchUnit(), cell('f1')] }), done: () => front() >= 1 },
+    { id: 'buy2', say: 'خذ وحدة ثانية!', round: 1, bar: [G('gold'), ARR, '🃏'], target: () => shopCard(2), done: () => units() >= 2 },
+    { id: 'back', say: 'هذي حطها ورا، تضرب من بعيد 🏹', round: 1, bar: ['🃏', ARR, G('bow')], target: () => (sel() && sel().kind === 'unit' ? { point: cell('b1'), allow: [cell('b1'), benchUnit()] } : { point: benchUnit(), allow: [benchUnit(), cell('b1')] }), done: () => back() >= 1 },
+    { id: 'guard', say: 'اللي قدّام يحموني. اضغط عليه', round: 1, ack: true, bar: [G('shield'), '=', G('check')], target: () => guardEl() },
+    { id: 'ready1', say: 'جاهزين؟ اضغط «جاهز»!', round: 1, bar: [G('sword'), G('check')], target: () => ready(), done: () => UI().S.phase === 'combat' || UI().S.match.round > 1 },
+    { id: 'merge', say: 'ثلاث نسخ متشابهة = نجمة ⭐ اشترِها', round: 2, bar: ['🃏', '🃏', '🃏', ARR, G('star')], target: () => { for (let i = 0; i < 3; i++) { const el = q(`.shop-cards .tcard[data-idx="${i}"]:not(.empty)`); if (el && P().shop[i]) return el; } return null; }, done: () => UI().S.match.allUnits(P()).some((u) => u.star >= 2) },
+    { id: 'reroll', say: 'جرّب تحدّث المتجر 🔄', round: 2, bar: [G('gold'), G('refresh')], target: () => reroll(), done: () => P().stats.rerolls >= 1 },
+    { id: 'ready2', say: 'يلا للقتال!', round: 2, bar: [G('sword'), G('check')], target: () => ready(), done: () => UI().S.phase === 'combat' || UI().S.match.round > 2 },
     // round 3: the two things that decide real matches: spend gold on levels (more units on the board), and send the hero in
-    { id: 'xp', round: 3, bar: [G('gold'), ARR, G('up')], target: () => q('#shopbar [data-act="xp"]') || q('[data-act="xp"]'), done: () => xpBase != null && P().level * 1000 + P().xp > xpBase },   // the round's free XP does not count: only a bought level-up
-    { id: 'summon', round: 3, bar: [G('crown'), ARR, G('sword')], target: () => q('[data-act="summon"]'), done: () => P().summoned },
-    { id: 'ready3', round: 3, bar: [G('sword'), G('check')], target: () => ready(), done: () => UI().S.phase === 'combat' },
+    { id: 'xp', say: 'اشترِ خبرة، كل ما زاد مستواك تنزّل وحدات أكثر', round: 3, bar: [G('gold'), ARR, G('up')], target: () => q('#shopbar [data-act="xp"]') || q('[data-act="xp"]'), done: () => xpBase != null && P().level * 1000 + P().xp > xpBase },   // the round's free XP does not count: only a bought level-up
+    { id: 'summon', say: 'نزّلني الساحة! 👑 أقاتل معك', round: 3, bar: [G('crown'), ARR, G('sword')], target: () => q('[data-act="summon"]'), done: () => P().summoned },
+    { id: 'ready3', say: 'آخر جولة، يلا نفوز!', round: 3, bar: [G('sword'), G('check')], target: () => ready(), done: () => UI().S.phase === 'combat' },
   ];
 
   // ---------------------------------------------------------------- layers
@@ -103,7 +103,7 @@
     const key = idx + ':' + (sel() ? sel().kind : '') + ':' + m.round;
     if (key !== lastKey) {
       lastKey = key;
-      bar.innerHTML = `<span class="tg-ic">${st.bar.join('')}</span>${st.ack ? `<button class="tg-ok" data-tut="ok">${icon('check')}</button>` : ''}<span class="tg-dots">${STEPS.map((x, i) => `<i class="${i < idx ? 'done' : i === idx ? 'now' : ''}"></i>`).join('')}</span>${replay ? `<button class="tg-skip" data-tut="skip">${icon('skip')}</button>` : ''}`;
+      bar.innerHTML = `${st.say ? `<span class="tg-say">${ui.portrait(AMB.DATA.HEROES[P().heroId], { k: 'tsay' })}<b>${st.say}</b></span>` : ''}<span class="tg-ic">${st.bar.join('')}</span>${st.ack ? `<button class="tg-ok" data-tut="ok">${icon('check')}</button>` : ''}<span class="tg-dots">${STEPS.map((x, i) => `<i class="${i < idx ? 'done' : i === idx ? 'now' : ''}"></i>`).join('')}</span>${replay ? `<button class="tg-skip" data-tut="skip">${icon('skip')}</button>` : ''}`;
     }
     place(st.target(), st);
   }

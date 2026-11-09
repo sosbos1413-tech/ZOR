@@ -172,7 +172,7 @@
       const benchFree = p.bench.indexOf(null) >= 0;
       if (!benchFree) {
         const same = this.allUnits(p).filter((u) => u.defId === defId && u.star === 1).length;
-        if (same < Match.copiesFor(2) - 1) return { ok: false, reason: 'الاحتياط ممتلئ' };
+        if (same < Match.copiesFor(2) - 1) return { ok: false, reason: 'الاحتياط مليان: بِع وحدة أو حطها في الساحة' };
       }
       return { ok: true };
     }
