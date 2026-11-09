@@ -2865,3 +2865,15 @@ body.big-text .mv2 { height: calc((var(--app-h, 100vh) - 76px) / var(--z, 1)); m
 .wm-arm { min-height: 82px; min-width: 104px; padding: 6px; } .wm-ic svg { width: 28px; height: 28px; } .wm-arm b { font-size: 16px; }
 .wm-top { top: 5%; } .wm-bottom { bottom: 6%; }
 .wm.wm-col { height: min(440px, calc(var(--app-h, 100vh) - 360px)); min-height: 340px; }
+
+/* QA polish: upgrade screen, tutorial bar, speed buttons, toasts */
+.upg-row { display: grid; grid-template-columns: 56px 1fr; gap: 6px 10px; align-items: start; padding: 8px 0; border-bottom: 1px solid #0002; }
+.upg-row .portrait { width: 52px; height: 52px; } .upg-row > .btn, .upg-row > .hint { grid-column: 1 / -1; justify-self: start; }
+.upg-row .prog { height: 6px; } .upg-row > div { min-width: 0; overflow-wrap: anywhere; }
+body.tut-on .tut-bar { height: auto; min-height: 50px; max-height: 76px; flex-wrap: wrap; row-gap: 2px; }
+body.tut-on .tut-bar .tg-ic { font-size: 22px; gap: 4px; flex-wrap: nowrap; } body.tut-on .tut-bar .tg-ic svg { width: 26px; height: 26px; }
+body.tut-on .tut-bar .tg-say { font-size: 12px; max-width: 100%; }
+body.tut-on .tut-bar .tg-dots { order: 3; width: 100%; justify-content: center; gap: 3px; }
+.combat-ctrl .btn, #combat-ctrl .btn { flex: 0 1 auto; min-width: 0; white-space: nowrap; padding-inline: 10px; }
+#combat-ctrl .btn svg { flex: none; }
+@media (max-width: 380px) { #combat-ctrl .btn { padding-inline: 7px; font-size: 13px; } #combat-ctrl .fury { display: none; } }

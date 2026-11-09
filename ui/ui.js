@@ -1276,7 +1276,7 @@
     const bu = Object.entries(m.players[mi].stats.byUnit || {}).sort((x, y) => y[1] - x[1])[0];
     const share = `ZOR · ${m.winner === mi ? 'فزت' : m.winner == null ? 'تعادلت' : 'خسرت'} ${H.filter((r) => r.winner === mi).length}–${H.filter((r) => r.winner === 1 - mi).length}${bu ? ` · نجمي: ${UNITS[bu[0]].name}` : ''}`;
     S.shareText = share;
-    if (S.mode === 'ai') {   // adult #29: a link that lets a friend play the very same match
+    if (S.mode === 'ai' && !m.rules) {   // adult #29: a link that lets a friend play the very same match (full matches only: a short match has its own rules)
       const p0 = m.players[mi], p1 = m.players[1 - mi];
       const ch = { s: m.seed, h: p0.heroId, a: p1.heroId, st: p1.aiStyle, d: p1.difficulty, w: m.weekly, r: [H.filter((r) => r.winner === mi).length, H.filter((r) => r.winner === 1 - mi).length], l: Math.max(0, Math.round(p0.life)) };
       try { S.shareText = share + '\nتقدر تغلبني؟ نفس المباراة بالضبط: ' + location.origin + location.pathname + '?ch=' + btoa(unescape(encodeURIComponent(JSON.stringify(ch)))); } catch (e) { /* ignore */ }
@@ -1397,11 +1397,11 @@
       const target = byStar[0] > 0 || byStar[1] === 0 ? 1 : 2;
       const have = byStar[target - 1];
       const SM = CFG.stars.mult;
-      const preview = maxed ? 'وصلت لأعلى مستوى ★★★' : `عند ${'★'.repeat(target + 1)}: صحة ${fmt(d.hp * SM[target])} → <b>${fmt(d.hp * SM[target + 1])}</b>، هجوم ${fmt(d.atk * SM[target])} → <b>${fmt(d.atk * SM[target + 1])}</b>${d.skill.dmg ? `، ${d.skill.name} ${d.skill.dmg[target - 1]} → <b>${d.skill.dmg[target]}</b>` : d.skill.heal ? `، علاج ${d.skill.heal[target - 1]} → <b>${d.skill.heal[target]}</b>` : d.skill.shield ? `، درع ${d.skill.shield[target - 1]} → <b>${d.skill.shield[target]}</b>` : ''}`;
+      const preview = maxed ? 'وصلت لأعلى مستوى ★★★' : `عند <bdi dir="ltr">${'★'.repeat(target + 1)}</bdi>: صحة ${fmt(d.hp * SM[target])} → <b>${fmt(d.hp * SM[target + 1])}</b>، هجوم ${fmt(d.atk * SM[target])} → <b>${fmt(d.atk * SM[target + 1])}</b>${d.skill.dmg ? `، ${d.skill.name} ${d.skill.dmg[target - 1]} → <b>${d.skill.dmg[target]}</b>` : d.skill.heal ? `، علاج ${d.skill.heal[target - 1]} → <b>${d.skill.heal[target]}</b>` : d.skill.shield ? `، درع ${d.skill.shield[target - 1]} → <b>${d.skill.shield[target]}</b>` : ''}`;
       const inShop = p.shop.map((x, i) => [x, i]).filter((e) => e[0] === id);
       const btn = inShop.length && !maxed ? `<button class="btn small primary" data-act="buyFromUpg" data-idx="${inShop[0][1]}">شراء من المتجر (${d.cost})</button>` : `<span class="hint">${maxed ? '' : 'غير متوفر في المتجر الآن'}</span>`;
-      return `<div class="upg-row">${portrait(d, { k: 'up' + id })}<div><b>${d.name}</b> <span class="hint">★×${byStar[0]} ★★×${byStar[1]} ★★★×${byStar[2]} · المخزون ${m._pool(me())[id]}</span>
-        ${maxed ? '' : `<div class="hint">نسخ ${'★'.repeat(target)}: ${have}/${need} للترقية</div><div class="prog"><i style="width:${(have / need) * 100}%"></i></div>`}
+      return `<div class="upg-row">${portrait(d, { k: 'up' + id })}<div><b>${d.name}</b> <span class="hint"><bdi dir="ltr">★×${byStar[0]} · ★★×${byStar[1]} · ★★★×${byStar[2]}</bdi> · المخزون <bdi dir="ltr">${m._pool(me())[id]}</bdi></span>
+        ${maxed ? '' : `<div class="hint">نسخ <bdi dir="ltr">${'★'.repeat(target)}</bdi>: <bdi dir="ltr">${have}/${need}</bdi> للترقية</div><div class="prog"><i style="width:${(have / need) * 100}%"></i></div>`}
         <div class="hint">${preview}</div></div>${btn}</div>`;
     }).join('');
     modal(`<h2>شاشة التطوير</h2><p class="hint">اجمع ${need} نسخ متطابقة بنفس النجوم وتندمج لوحدة أقوى لحالها (والمعدات تنتقل معها). أعلى مستوى ★★★.
@@ -1446,6 +1446,7 @@
   const fought = (m) => m.history.length >= 1;
   function awardHeroXp(m) {
     if (!AMB.heroes || m._heroXp || S.mode === 'tutorial' || S.mode === 'practice' || S.mode === 'hotseat' || S.mode === 'friendly' || S.mode === 'online' || !fought(m)) return;
+    if (S.challenge && AMB.collection && !AMB.collection.owned(m.players[0].heroId)) return;   // a friend's challenge with a hero you do not own gives that hero no XP
     m._heroXp = true;
     const seat = mySeat(), p = m.players[seat], won = m.winner === seat;
     const roundsWon = m.history.filter((r) => r.winner === seat).length;
