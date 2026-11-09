@@ -27,7 +27,10 @@
   const coach = () => { try { return +(localStorage.getItem('amb_played') || 0) < 2; } catch (e) { return false; } };
   // senior #34: signed numbers and fractions keep left-to-right order inside Arabic text («+5», «−9», «1/7» never flip to «5+» or «7/ 1»)
   function bidiNums(html) { return String(html).split(/(<[^>]+>)/).map((part) => (part[0] === '<' ? part : part.replace(/([+\-−]\s?\d[\d.,]*%?|\d+\s?\/\s?\d+)/g, '<bdi dir="ltr">$1</bdi>'))).join(''); }
+  const toastQ = [];   // QA: a toast never sits on top of an open dialog: it waits until the dialog closes (errors still show at once)
   function toast(msg, kind, html) {
+    const mb = $('modal-back');
+    if (kind !== 'err' && mb && mb.classList.contains('on') && !toast._flush) { if (toastQ.length < 3) toastQ.push([msg, kind, html]); return; }
     const box = $('toasts');
     // never pile up: the same message just restarts its timer, and at most 2 toasts show at once
     const same = [...box.children].find((x) => (x._m || x.textContent) === msg);
@@ -77,6 +80,7 @@
   }
   function closeModal() {
     $('modal-back').classList.remove('on');
+    if (toastQ.length) { const q = toastQ.splice(0, toastQ.length); setTimeout(() => q.forEach((a) => toast(...a)), 250); }
     if (S._mp) { S._mp = false; if (S.paused && S.phase === 'prep') { S.paused = false; S.deadline = Date.now() + S.pausedLeft; renderTop(); } }   // resume the prep timer
   }
   function overlay(html) { $('overlay').innerHTML = html; $('overlay').classList.add('on'); }
