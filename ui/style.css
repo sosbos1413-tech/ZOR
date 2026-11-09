@@ -2321,3 +2321,5 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
 @media (min-width: 861px) { #combat-ctrl .cc-syn { display: none; } }
 #scr-match .topbar .ibtn2, .ibtn { position: relative; }
 #scr-match .topbar .ibtn2::after, .ibtn::after { content: ''; position: absolute; inset: -6px; }
+/* audit phase 2: short/landscape screens: the menu scrolls instead of hiding its main button below a fixed min-height */
+@media (max-height: 600px) { .mv2 { min-height: 0; overflow-y: auto; } }
