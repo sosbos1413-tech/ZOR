@@ -2734,3 +2734,11 @@ body.big-text #bnav button span, body.big-text #bnav button small { display: rev
 .dg-pill.has { animation: summonGlow 1.1s ease-in-out infinite alternate; }
 .modal .dg-m { display: flex; align-items: center; gap: 8px; min-height: 44px; border-bottom: 1px solid #0002; } .modal .dg-m span { flex: 1; } .modal .dg-m small { color: var(--muted); }
 .modal .dg-sw { color: var(--ink); background: #0001; border: 1px solid #0003; padding: 4px 10px; }
+
+/* prep focus: only your half during prep, with bigger, taller cells */
+#scr-match.prep-focus .field #slots .cell.enemy, #scr-match.prep-focus .field #slots .divider { display: none; }
+#scr-match.prep-focus .field .cell { aspect-ratio: .6; }
+@media (max-width: 860px) {
+  #scr-match.prep-focus .field-wrap { --cwv: min(calc((100vw - 30px) / 4), 150px); }
+}
+#scr-match.prep-focus .field .cell .tcard.mini { height: 100%; }

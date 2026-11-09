@@ -5809,6 +5809,8 @@ AMB.IMAGES = {
     // UI v2: the screen knows the phase, so CSS can hide the shop and the prep buttons while the fight plays
     const scr = $('scr-match'), ph = S.phase === 'combat' || S.phase === 'result' ? 'fight' : 'prep';
     if (scr && scr.dataset.ph !== ph) scr.dataset.ph = ph;
+    // during prep the opponent's half is hidden so your own cards get the room (it comes back for the fight; the opponent panel + 🔍 stay)
+    const sm = $('scr-match'); if (sm) sm.classList.toggle('prep-focus', S.phase === 'prep' || S.phase === 'resources' || S.phase === 'handoff');
     renderTop();
     renderOpp();
     renderSlots();
