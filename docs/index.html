@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="zor-build" content="80b8b39ba7">
+<meta name="zor-build" content="064eb80d6c">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121010">
 <link rel="manifest" href="manifest.webmanifest">
@@ -2335,6 +2335,14 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
 .field .cell.inplace::after { content: '✦'; position: absolute; top: 1px; right: 3px; z-index: 6; color: #f2b300; font-size: 13px; text-shadow: 0 0 4px #000, 1px 1px 0 #000; pointer-events: none; }
 .field .cell { position: relative; }
 .field .cell:not(:has(.tcard, .piece)) .rowic { opacity: .75; }
+
+/* audit phase 2: synergy chips visible during the fight; bigger touch areas for small buttons */
+#combat-ctrl .cc-syn { flex: 1 1 100%; justify-content: center; margin-top: 4px; }
+@media (min-width: 861px) { #combat-ctrl .cc-syn { display: none; } }
+#scr-match .topbar .ibtn2, .ibtn { position: relative; }
+#scr-match .topbar .ibtn2::after, .ibtn::after { content: ''; position: absolute; inset: -6px; }
+/* audit phase 2: short/landscape screens: the menu scrolls instead of hiding its main button below a fixed min-height */
+@media (max-height: 600px) { .mv2 { min-height: 0; overflow-y: auto; } }
 
 </style>
 </head>
@@ -8167,12 +8175,20 @@ AMB.IMAGES = {
       <span class="pb-btns"><button class="btn small ib ${p.summoned ? 'on' : ''}" data-act="summon">${p.summoned ? '👑 رجّع البطل' : '👑 نزّل البطل'}</button><button class="btn small ib" data-act="autoArrange">تلقائي</button></span></div>`;
   }
 
+  // the synergy chips stay visible during the fight, so you can see WHY your board is strong (same chips as the prep bar; no new panels)
+  function combatSynHTML() {
+    try {
+      const pl = S.match && S.match.players[S.v]; if (!pl) return '';
+      const sev = AMB.synergy.evaluate(Object.values(pl.board).filter(Boolean), pl.heroId);
+      return sev.list.length ? `<span class="pb-syn cc-syn">${synergyHTML(sev.list.slice(0, 4), 0)}</span>` : '';
+    } catch (e) { return ''; }
+  }
   function renderCombatCtrl() {
     const el = $('combat-ctrl');
     if (S.phase === 'combat') {
       el.innerHTML = `<span class="clock">0.0s</span>
         ${[1, 2, 4].map((s) => `<button class="btn small ${S.speed === s ? 'on' : ''}" data-act="speed" data-v="${s}">${s}x</button>`).join('')}
-        <button class="btn small ib" data-act="skip">تخطي</button><span class="fury"></span>`;
+        <button class="btn small ib" data-act="skip">تخطي</button><span class="fury"></span>${combatSynHTML()}`;
     } else if (S.phase === 'prep' || S.phase === 'resources') {
       el.innerHTML = prepBarHTML();
     } else el.innerHTML = '';
