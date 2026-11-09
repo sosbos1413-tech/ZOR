@@ -3,10 +3,13 @@
  * world colour, world glyph, role icon and tier ring. No external images.
  */
 (function () {
-  // the built single file carries every portrait as a base64 data URI. Re-parsing those long strings on every re-render is slow, so turn each into a blob: URL once at start-up.
+  // Portraits are plain URLs (docs/: content-hashed files under assets/, cached by the service worker); the browser
+  // only downloads one when a screen actually shows it. Only the optional single-file build (dist/zor.html) carries
+  // base64 data URIs: re-parsing those long strings on every re-render is slow, so there (and only there) each one
+  // becomes a blob: URL once at start-up.
   try {
     const IM = globalThis.AMB && globalThis.AMB.IMAGES;
-    if (IM && typeof Blob !== 'undefined' && typeof URL !== 'undefined' && URL.createObjectURL) {
+    if (IM && Object.keys(IM).some((id) => /^data:/.test(IM[id] || '')) && typeof Blob !== 'undefined' && typeof URL !== 'undefined' && URL.createObjectURL) {
       Object.keys(IM).forEach((id) => {
         const m = /^data:([^;,]+);base64,(.*)$/s.exec(IM[id] || ''); if (!m) return;
         const bin = atob(m[2]), bytes = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);

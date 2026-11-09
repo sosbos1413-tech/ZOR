@@ -50,7 +50,15 @@
   // after an update: say so once
   if (ss.get('zor_upd') === mine) { ss.del('zor_upd'); window.addEventListener('load', () => setTimeout(() => UI() && UI().toast('تم تحديث اللعبة ✓', 'good'), 800)); }
   // installable app: register the service worker (offline play + the "install app" prompt); updates still arrive through version.json
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+  // files this page loaded before the worker took over (first visit) are handed to it, so the game also starts offline next time
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => {});
+    const handOver = () => navigator.serviceWorker.ready.then((reg) => {
+      const urls = performance.getEntriesByType('resource').map((r) => r.name).concat([...document.querySelectorAll('svg image')].map((i) => i.href.baseVal ? new URL(i.href.baseVal, location.href).href : ''));
+      if (reg.active) reg.active.postMessage({ cache: [...new Set(urls)].filter(Boolean) });
+    }).catch(() => {});
+    if (document.readyState === 'complete') setTimeout(handOver, 1500); else window.addEventListener('load', () => setTimeout(handOver, 1500));
+  }
   setTimeout(check, 2500);
   setInterval(check, 5 * 60 * 1000);
   setInterval(tick, 3000);

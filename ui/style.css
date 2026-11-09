@@ -2244,7 +2244,11 @@ body.newbie .menu-main { display: none; }
 .i-tower { background-image: url(../assets/ui/ic_tower.webp); } .i-more { background-image: url(../assets/ui/ic_more.webp); } .i-gear { background-image: url(../assets/ui/ic_gear.webp); }
 #scr-menu { padding: 0; }
 .mv2 { position: relative; width: 100%; max-width: 520px; margin: 0 auto; height: calc(var(--app-h, 100vh) - 76px); min-height: 560px; overflow: hidden; }
-.mv2-bg { position: absolute; inset: 0; background: radial-gradient(120% 70% at 50% 28%, color-mix(in srgb, var(--wc, #c0392b) 55%, #000) 0, #0b0809 72%); }
+/* menu backdrop in the chosen hero's world colour (--wc, set by fillMenu): a glow behind the hero and faint manga speed lines. Only the tide world has painted art so far; it keeps its picture. */
+.mv2-bg { position: absolute; inset: 0; overflow: hidden; background:
+  radial-gradient(52% 32% at 50% 33%, color-mix(in srgb, var(--wc, #c0392b) 42%, transparent) 0, transparent 100%),
+  repeating-linear-gradient(118deg, transparent 0 22px, color-mix(in srgb, var(--wc, #c0392b) 9%, transparent) 22px 24px),
+  radial-gradient(120% 70% at 50% 28%, color-mix(in srgb, var(--wc, #c0392b) 55%, #000) 0, #0b0809 72%); }
 .mv2-bg.tide { background: url(../assets/ui/bg_tide.webp) center top / cover; }
 .mv2-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, #0b0809aa 0, #0000 22%, #0000 46%, #0b0809e6 82%, #0b0809 100%); }
 .mv2-top { position: absolute; top: 10px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; z-index: 5; }
