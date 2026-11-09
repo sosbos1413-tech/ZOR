@@ -2612,3 +2612,5 @@ body.big-text .hint, body.big-text small, body.big-text .card small { font-size:
 body.big-text .schip, body.big-text .badge, body.big-text .bn-l, body.big-text .mt-l { filter: contrast(1.25) brightness(1.1); font-weight: 700; }
 body.big-text #bnav button span, body.big-text #bnav button small { display: block !important; font-size: 12px; }
 #scr-hero { padding-bottom: 110px; } .cam-starter { padding-bottom: 170px; }
+body.in-match .toasts { top: 112px; }
+@media (orientation: landscape) and (max-height: 520px) { body.in-match .toasts { top: auto; bottom: 14px; left: 30%; } }
