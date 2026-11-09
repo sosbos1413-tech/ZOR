@@ -2625,3 +2625,9 @@ body.big-text #bnav button span, body.big-text #bnav button small { display: blo
 #scr-hero { padding-bottom: 110px; } .cam-starter { padding-bottom: 170px; }
 body.in-match .toasts { top: 112px; }
 @media (orientation: landscape) and (max-height: 520px) { body.in-match .toasts { top: auto; bottom: 14px; left: 30%; } }
+/* NIGHTLY 30: collection, packs and campaign share the v2 button look (rounded, no manga cut corners) */
+#scr-cards .btn, #scr-packs .btn, #scr-campaign .btn { clip-path: none; border-radius: 12px; border-width: 2px; }
+#scr-cards .btn.small, #scr-packs .btn.small, #scr-campaign .btn.small { border-radius: 999px; }
+#scr-cards .btn.dk { border-radius: 999px; padding: 4px 10px; }
+#scr-cards .btn.dk.on { background: color-mix(in srgb, var(--green) 85%, #000); color: #fff; border-color: #0006; }
+#scr-packs .btn.primary.big { border-radius: 16px; box-shadow: 0 4px 0 #000, 0 0 22px #e0262f55; }
