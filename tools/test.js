@@ -1505,5 +1505,32 @@ t('difficulties: separate progress, scaled enemies and prizes, hard needs medium
   eq(r2.prizes.map((p) => p.star).join(), '2,3', 'only the stars not paid before pay now');
 });
 
+console.log('practice fight + settings');
+t('practice (hero trial): short best-of-3 vs an easy computer, any hero, no card or hero levels, ends in 3 rounds or less', () => {
+  const prof = AMB.Profile.boot(MEM());
+  Object.keys(AMB.DATA.HEROES).forEach((h, k) => {
+    const o = prof.tutorial.practiceOptions(h, 11 + k);
+    eq(o.mode, 'practice'); ok(o.practice && !o.progression); eq(o.rules.maxRounds, 3);
+    ok(o.players[1].heroId !== h, 'enemy hero differs'); eq(o.players[1].difficulty, 'easy');
+    ok(!o.players[0].cardPower && !o.players[0].heroLevel, 'no progression power in a trial');
+    const m = new AMB.Match(o);
+    while (!m.isOver) { m.startRound(); AMB.AI.prep(m, 0); AMB.AI.prep(m, 1); m.resolveCombat(m.createCombat(false).runToEnd()); }
+    ok(m.round <= 3, 'at most 3 rounds'); ok(m.winner === 0 || m.winner === 1 || m.winner === null);
+    ok(!m.rewardPending, 'no reward draft');
+  });
+  eq(AMB.Tutorial.practiceOptions('orath', 3).players[0].heroId, 'orath', 'static helper');
+  // a trial of a hero you do not own changes nothing in the save
+  const mem = MEM(), p2 = AMB.Profile.boot(mem); const before = JSON.stringify(p2.save.get('collection'));
+  new AMB.Match(p2.tutorial.practiceOptions('kagira', 5)); eq(JSON.stringify(p2.save.get('collection')), before); ok(p2.collection.needsStarter());
+});
+t('settings: big text off and 1x speed for a new player; speed choice and one-time hints are remembered in the save', () => {
+  const mem = MEM(), p = AMB.Profile.boot(mem), st = p.settings;
+  ok(!st.bigText()); eq(st.speed(), 1, 'new players start at 1x'); ok(!st.seen('quickTips'));
+  ok(st.setSpeed(4)); ok(!st.setSpeed(3), 'only 1/2/4'); eq(st.speed(), 4);
+  st.setBigText(true); st.markSeen('quickTips'); ok(!st.folded('deck', false)); ok(st.folded('deck', true), 'default used until toggled'); st.setFolded('deck', false);
+  const p2 = AMB.Profile.boot(mem).settings;
+  ok(p2.bigText()); eq(p2.speed(), 4); ok(p2.seen('quickTips')); ok(!p2.folded('deck', true), 'a toggled section keeps its state');
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

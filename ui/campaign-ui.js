@@ -11,6 +11,7 @@
   const UI = () => globalThis.AMB_UI;
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   let hero = null;   // hero used for campaign fights (remembered while the page is open)
+  let starterSel = null;   // first-hero picker: the card selected before confirming
 
   const W = (id) => AMB.DATA.WORLDS[id];
   const pickHero = () => {
@@ -44,10 +45,12 @@
   function render() {
     const root = $('campaign'); if (!root) return;
     const R = LV.CAMPAIGN.rewards;
-    if (C.needsStarter()) {   // brand-new player: pick the first hero right here, then straight to fight 1
-      root.innerHTML = `<div class="cam-starter"><h3>اختر بطلك الأول</h3><p class="hint">هذا بطلك الدائم، والباقين تفتحهم بعدين</p>
-        <div class="cam-starter-row">${Object.values(AMB.DATA.HEROES).map((h) => `<div class="cs-pick">${UI().cardHTML(h, { k: 'cst' + h.id, attrs: `data-act="heroInfo" data-id="${h.id}"` })}
-          <div class="cs-style">${esc(h.style.split('—')[0])}</div><button class="btn primary" data-act="camStarter" data-id="${h.id}">اختر ${esc(h.name)}</button></div>`).join('')}</div></div>`;
+    if (C.needsStarter()) {   // brand-new player: pick the first hero right here (same picker as the quick match), then straight to fight 1
+      const ui = UI(), list = AMB.DATA.HERO_STARTERS.filter((id) => AMB.DATA.HEROES[id]);
+      if (!list.includes(starterSel)) starterSel = null;
+      root.innerHTML = `<div class="cam-starter"><h3>اختر بطلك الأول</h3><p class="hint">هذا بطلك الدائم. جرّب أي واحد بقتال تدريب قبل لا تختار، والباقين تفتحهم بعدين.</p>
+        <div class="hero-grid hp-grid">${list.map((id) => ui.heroPickHTML(AMB.DATA.HEROES[id], { act: 'camPick', sel: starterSel === id, trial: true, k: 'cst' })).join('')}</div>
+        <div class="hero-foot cam-foot"><button class="btn primary big" data-act="camStarter" data-id="${starterSel || ''}" ${starterSel ? '' : 'disabled'}>${starterSel ? `خذ ${esc(AMB.DATA.HEROES[starterSel].name)} بطلي الأول` : 'اختر بطل'}</button></div></div>`;
       return;
     }
     if (AMB.tutorial && AMB.tutorial.required()) {   // brand-new player: the guided match comes first
@@ -162,8 +165,9 @@
       camGo: (d) => start(d.id),
       camDiff: (d) => { CAM.setDiff(d.v); ui.sfx('click'); render(); },
       tutGo: () => AMB.TutorialUI.start({ after: () => { render(); preview(CAM.next()); } }),
+      camPick: (d, el, e) => { if (e && e.target.closest('[data-act="heroInfo"], [data-act="heroTry"]')) return; starterSel = d.id; ui.sfx('click'); render(); },
       camStarter: (d) => {
-        if (!C.chooseStarter(d.id)) return;
+        if (!d.id || !C.chooseStarter(d.id)) return;
         hero = d.id; ui.sfx('merge'); ui.toast(`${AMB.DATA.HEROES[d.id].name} صار بطلك!`, 'good');
         render();
         const afterTut = () => { render(); preview(CAM.next()); };

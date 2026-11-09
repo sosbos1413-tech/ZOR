@@ -2311,8 +2311,7 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
 /* audit phase 2: short/landscape screens: the menu scrolls instead of hiding its main button below a fixed min-height */
 @media (max-height: 600px) { .mv2 { min-height: 0; overflow-y: auto; } }
 
-/* =====================================================================
-   UI v2 — match screens (NIGHTLY 19–21): world floors per half, opponent panel,
+/* ==============================================================   UI v2 — match screens (NIGHTLY 19–21): world floors per half, opponent panel,
    «جاهز» next to your hero, icon shop dock with prices, clean combat screen,
    hero-ability burst. Animations use transform/opacity only.
    ===================================================================== */
@@ -2530,3 +2529,78 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
 .pity-bar i { border-radius: 4px; } .pk-odds li i { border-radius: 50%; }
 /* screen headers on these three screens: a dark strip with a rounded back pill */
 #scr-cards .scr-head .btn.ghost, #scr-packs .scr-head .btn.ghost, #scr-campaign .scr-head .btn.ghost { clip-path: none; border-radius: 999px; border-width: 2px; padding: 6px 16px; min-height: 40px; }
+=======
+/* ===== playtest fixes (UI-B, NIGHTLY 23-28 + audit 2.7) ===== */
+/* (23) hero picker: one compact card look for the quick match and the campaign's first hero; the confirm button stays at the bottom */
+#scr-hero .scr-head { margin-bottom: 10px; }
+#scr-hero .scr-head h2 { font-size: clamp(22px, 6.4vw, 34px); line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+#scr-hero .hero-grid, .hp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 10px; max-width: 900px; margin: 0 auto; padding-bottom: 96px; }
+.hp-sub { grid-column: 1 / -1; margin: 0 0 2px; font-size: 13.5px; line-height: 1.6; color: var(--paper2, #e9dfc8); text-align: center; }
+.hpick { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 8px 8px; cursor: pointer; text-align: center;
+  background: var(--paper); color: var(--ink); border: 3px solid var(--ink); border-top: 8px solid var(--wc); box-shadow: 4px 4px 0 #000; transition: transform .12s; }
+.hpick:active { transform: translateY(1px); }
+.hpick.sel { background: #fff6dc; box-shadow: 0 0 0 3px var(--red), 4px 4px 0 #000; }
+.hpick.sel::before { content: '✓'; position: absolute; top: 4px; inset-inline-start: 6px; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; background: var(--red); color: #fff; font-weight: 800; border: 2px solid var(--ink); }
+.hpick.locked { filter: grayscale(.85) brightness(.75); cursor: not-allowed; }
+.hp-lock { position: absolute; top: 4px; inset-inline-end: 6px; font-size: 16px; }
+.hp-pic .portrait { width: 76px; height: 76px; display: block; }
+.hp-name { font: 400 22px var(--display); line-height: 1.1; }
+.hp-world { background: var(--wc); color: var(--ink); border: 2px solid var(--ink); padding: 0 8px; font-size: 12px; font-weight: 700; }
+.hp-lv { font-size: 11.5px; color: var(--ink3, #4a3a30); font-weight: 700; }
+.hp-style { margin: 2px 0 4px; font-size: 12px; line-height: 1.5; color: var(--ink3, #4a3a30); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; min-height: 54px; }
+.cam-starter .hpick .hp-style { color: var(--ink3, #4a3a30); opacity: 1; }
+.hp-btns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: auto; }
+.hp-btns .btn.small { min-height: 40px; padding: 4px 10px; font-size: 13px; }
+.hp-try { background: var(--gold, #ffd24a) !important; color: #000 !important; }
+.hpick .hp-info { background: #fff !important; color: var(--ink) !important; border: 2px solid var(--ink) !important; opacity: 1; }
+.hpick .pick-badge { top: 4px; left: 4px; font-size: 11px; }
+#scr-hero .hero-foot, .cam-foot { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; margin: 0; padding: 12px 14px calc(12px + env(safe-area-inset-bottom)); text-align: center;
+  background: linear-gradient(transparent, #0c0807e6 30%); }
+#scr-hero .hero-foot .btn, .cam-foot .btn { width: min(420px, 100%); }
+body[data-nav="1"] .cam-foot { bottom: 68px; }
+.cam-starter .hp-grid { margin-top: 12px; text-align: start; }
+/* (24) tutorial: the hint bar is a fixed strip ABOVE the match (the match moves down to make room), so it never covers the enemy row */
+body.tut-on .tut-bar { top: 0; left: 0; right: 0; transform: none; max-width: none; height: 50px; border-width: 0 0 3px; box-shadow: 0 3px 0 var(--red); justify-content: center; padding: 2px 10px; gap: 10px; }
+body.tut-on #scr-match.active { padding-top: 56px !important; }
+body.tut-on .tut-bar .tg-dots { flex-wrap: nowrap; }
+@media (max-width: 860px) and (orientation: portrait) {
+  body.tut-on #scr-match .field-wrap { --cwv: clamp(44px, min(calc((var(--app-h, 100dvh) - 372px - 56px) / 4.7), calc((100vw - 22px) / 4)), 150px); }
+}
+/* @@25@@ */
+/* (25) touch targets: every small control gets an invisible hit area of at least 46x46 (the visuals keep their size) */
+.tcard .hc-info::after, .cnode::after, .al-dots button::after, #scr-match .trg::after, #scr-match .topbar .ibtn2::after, .ibtn::after {
+  content: ''; position: absolute; inset: auto; left: 50%; top: 50%; width: max(100%, 46px); height: max(100%, 46px); transform: translate(-50%, -50%); border-radius: 0; background: none;
+}
+#scr-match .trg { position: relative; }
+#scr-match .ab-trg { gap: 10px !important; }
+.cnode::after { width: max(100%, 48px); height: max(100%, 48px); border-radius: 50%; }
+.al-dots { gap: 34px; }
+/* shop cards sit in a scroll row that clips above and to the side: the ⓘ hit area grows into the card instead */
+/* match cards are zoomed down (0.5-0.64), so their hit area is set in the card's own (zoomed) units: 76 x 0.58 = 44px on screen */
+#scr-match .tcard .hc-info { z-index: 12; } #scr-match .tcard .hc-info::after { width: 76px; height: 76px; }
+#shopbar .tcard .hc-info::after { transform: translate(-72%, -28%); }
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 1100px) { #scr-match .tcard .hc-info::after { width: 90px; height: 90px; } }
+.tcard .hc-info { z-index: 9; }
+/* the small top-bar buttons are clipped to their slanted shape, which also clipped any bigger hit area:
+   the slanted face is now drawn by ::before and the button itself is an unclipped, invisible box */
+#scr-match .topbar .ibtn2 { clip-path: none; background: transparent; border-color: transparent; box-shadow: none; isolation: isolate; }
+#scr-match .topbar .ibtn2::before { content: ''; position: absolute; inset: 0; z-index: -1; background: var(--paper); border: 2px solid var(--ink); clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%); }
+#scr-match .topbar .ibtn2:hover:not(:disabled) { background: transparent; } #scr-match .topbar .ibtn2:hover:not(:disabled)::before { background: var(--gold); }
+#scr-match .topbar .ibtn2 + .ibtn2, #scr-match .topbar [data-act="menuMatch"] { margin-inline-start: 10px; }
+/* @@end25@@ */
+/* @@26@@ */
+/* (26) collection: the deck and the explanation fold into one line each, so the cards start higher on the screen */
+.col-fold { margin: 0 0 8px; }
+.col-fold > summary { list-style: none; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-height: 44px; padding: 6px 10px; cursor: pointer; background: #ffffff0d; border: 2px solid var(--paper3); color: var(--paper); }
+.col-fold > summary::-webkit-details-marker { display: none; }
+.col-fold > summary::after { content: '▾'; margin-inline-start: auto; font-size: 18px; color: var(--gold); transition: transform .15s; }
+.col-fold:not([open]) > summary::after { transform: rotate(90deg); }
+.col-fold > summary b span { color: var(--gold); } .col-fold > summary b span.bad { color: var(--red); }
+.col-fold > summary small { color: var(--paper3); font-size: 12px; }
+.col-fold[open] > summary { margin-bottom: 6px; border-color: var(--gold); }
+.col-fold .deck-bar { margin-bottom: 4px; }
+/* (26) pack reveal on phones: the card back is narrow (68px), so the logo is sized to fit once instead of overflowing into "ZORZORZOR" */
+.rv-back span { font-size: clamp(14px, 34cqw, 42px); line-height: 1; }
+.rv-back { container-type: inline-size; overflow: hidden; }
+@media (max-width: 520px) { .rv-wrap .rv-back span { font-size: 20px; text-shadow: 2px 2px 0 var(--red); } }
+/* @@end26@@ */

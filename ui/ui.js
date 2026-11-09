@@ -88,31 +88,61 @@
   // Player 2 on the same device is a guest and may use any hero.
   const starterPick = () => S.pickIdx === 0 && AMB.collection && AMB.collection.needsStarter();
   const heroLocked = (id) => S.pickIdx === 0 && AMB.collection && (starterPick() ? !AMB.DATA.HERO_STARTERS.includes(id) : !AMB.collection.owned(id));
+  // one compact hero card, shared by the quick-match picker and the campaign's first-hero picker (same look in both)
+  function heroPickHTML(h, o) {
+    o = o || {};
+    const W = WORLDS[h.world];
+    const lock = o.locked ? '<span class="hp-lock">🔒</span>' : '';
+    const lv = o.level && AMB.heroes ? `<span class="hp-lv">مستوى ${AMB.heroes.level(h.id)}</span>` : '';
+    return `<div class="hpick ${o.sel ? 'sel' : ''} ${o.locked ? 'locked' : ''}" style="--wc:${W.color}" data-act="${o.act || 'pickHero'}" data-id="${h.id}" role="button" aria-pressed="${o.sel ? 'true' : 'false'}">${o.badge || ''}${lock}
+      <div class="hp-pic">${portrait(h, { k: 'hp' + (o.k || '') + h.id })}</div>
+      <b class="hp-name">${h.name}</b><span class="hp-world">${W.name}</span>${lv}
+      <p class="hp-style">${esc(String(h.style).split('—')[0])}</p>
+      <div class="hp-btns"><button class="btn small ghost hp-info" data-act="heroInfo" data-id="${h.id}">ⓘ تفاصيل</button>${o.trial ? `<button class="btn small hp-try" data-act="heroTry" data-id="${h.id}">▶ جرّب</button>` : ''}</div>
+    </div>`;
+  }
   function renderHeroSelect() {
-    const who = starterPick() ? 'اختر بطلك الأول. ما تقدر تغيّره، والباقين تفتحهم من الباكجات أو الباتل باس'
-      : S.mode === 'hotseat' ? `اللاعب ${S.pickIdx + 1}: اختر بطلك${S.pickIdx === 1 ? ' (ضيف: كل الأبطال متاحين)' : ''}` : 'اختر بطلك';
+    const first = starterPick();
+    const who = first ? 'اختر بطلك الأول'
+      : S.mode === 'hotseat' ? `اللاعب ${S.pickIdx + 1}: اختر بطلك` : 'اختر بطلك';
+    const sub = first ? 'ما تقدر تغيّره بعدين. جرّب أي واحد بقتال تدريب قبل لا تختار، والباقين تفتحهم من الباكجات والممر.'
+      : S.mode === 'hotseat' && S.pickIdx === 1 ? 'ضيف: كل الأبطال متاحين' : '';
     $('hero-title').textContent = who;
     if (S.picks[S.pickIdx] && heroLocked(S.picks[S.pickIdx])) S.picks[S.pickIdx] = null;
     const cur = S.picks[S.pickIdx];
-    $('hero-grid').innerHTML = Object.values(HEROES).map((h) => {
-      const W = WORLDS[h.world];
-      const other = S.mode === 'hotseat' && S.pickIdx === 1 && S.picks[0] === h.id ? '<span class="pick-badge">اختيار اللاعب 1</span>' : '';
-      const units = Object.values(UNITS).filter((u) => u.world === h.world).map((u) => u.name).join('، ');
-      const lock = heroLocked(h.id) ? '<span class="hero-lock">🔒 مقفل<small>ليجندري: من الباكجات أو الباتل باس</small></span>' : '';
-      return `<div class="hero-card ${cur === h.id ? 'sel' : ''} ${lock ? 'locked' : ''}" style="--wc:${W.color}" data-act="pickHero" data-id="${h.id}">${other}${lock}
-        ${portrait(h, { k: 'hs' })}
-        <h3>${h.name}</h3>${S.mode === 'hotseat' || S.mode === 'online' ? '' : heroLevelHTML(h.id)}<div class="title">${h.title}</div>
-        <div class="world">${W.name}</div>
-        <div class="style">${h.style}</div>
-        <div class="ab"><b>سلبية: ${h.passive.name}</b> — ${h.passive.text}</div>
-        ${h.abilities.map((a) => `<div class="ab"><b>${a.name}</b> <span style="color:var(--ess)">(${a.cost} جوهر)</span>: ${a.text}</div>`).join('')}
-        ${h.vanguard ? `<div class="ab vg"><b>👑 ${h.vanguard.name}</b>: ${h.vanguard.text}</div>` : ''}
-        <div class="ab" style="color:var(--muted)">وحدات عالمه (رنين +${CFG.hero.resonancePerAlly * 100}%): ${units}</div>
-        <div style="text-align:center;margin-top:8px"><button class="btn small" data-act="heroInfo" data-id="${h.id}">تفاصيل</button></div>
-      </div>`;
-    }).join('');
+    const list = Object.values(HEROES).filter((h) => !first || AMB.DATA.HERO_STARTERS.includes(h.id));   // a new player only sees the four they can pick
+    $('hero-grid').innerHTML = (sub ? `<p class="hp-sub">${sub}</p>` : '') + list.map((h) => heroPickHTML(h, {
+      sel: cur === h.id, locked: heroLocked(h.id), trial: first, level: S.mode !== 'hotseat' && S.mode !== 'online' && !first,
+      badge: S.mode === 'hotseat' && S.pickIdx === 1 && S.picks[0] === h.id ? '<span class="pick-badge">اللاعب 1</span>' : '',
+    })).join('');
     $('hero-confirm').disabled = !cur;
-    $('hero-confirm').textContent = starterPick() ? 'خذه بطلي الأول' : S.mode === 'hotseat' && S.pickIdx === 0 ? 'تمام، دور اللاعب 2' : 'ابدأ المباراة';
+    $('hero-confirm').textContent = first ? (cur ? `خذ ${HEROES[cur].name} بطلي الأول` : 'اختر بطل') : S.mode === 'hotseat' && S.pickIdx === 0 ? 'تمام، دور اللاعب 2' : 'ابدأ المباراة';
+  }
+
+  // ---- hero trial (practice fight): try a starter before choosing it. Nothing from it is saved (no rewards, XP, stats, pass).
+  function startPractice(heroId, from) {
+    S.practice = { from, prevMode: S.mode, picks: S.picks.slice(), pickIdx: S.pickIdx };
+    S.mode = 'practice'; S.picks = [heroId, null]; S.pickIdx = 0;
+    closeModal(); startMatch();
+  }
+  function endPractice() {
+    const pr = S.practice || { from: 'hero', prevMode: 'ai', picks: [null, null], pickIdx: 0 };
+    closeOverlay(); closeModal(); cancelAnimationFrame(S.raf); S.phase = 'idle'; S.match = null; S.paused = false;
+    S.mode = pr.prevMode; S.picks = pr.picks; S.pickIdx = pr.pickIdx; S.practice = null;
+    if (pr.from === 'campaign') show('campaign');
+    else { renderHeroSelect(); show('hero'); }
+  }
+  function practiceResult(m, secs) {
+    const won = m.winner === 0, h = HEROES[m.players[0].heroId];
+    $('results').innerHTML = `<div class="res-stage ${won ? 'victory' : m.winner == null ? 'draw' : 'defeat'}" style="--wc:${WORLDS[h.world].color}"><div class="res-rays"></div>
+        <div class="res-hero">${portrait(h, { bare: true, k: 'prh' })}<i class="sheen"></i></div><div class="res-hname">${h.name}</div></div>
+      <div class="res-banner"><h1>${won ? 'فزت بالتدريب!' : m.winner == null ? 'تعادل' : 'خسرت التدريب'}</h1>
+        <p class="hint">النتيجة ${m.players[0].stats.wins} – ${m.players[1].stats.wins} · ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')} دقيقة</p>
+        <p class="hint">قتال تدريب: ما ينحسب ولا يعطي جوائز. ${HEROES[m.players[0].heroId].name} للحين مو بطلك.</p></div>
+      <div class="cam-btns"><button class="btn primary big" data-act="practiceBack">ارجع واختر بطلك</button>
+        <button class="btn big ghost" data-act="again">جرّب مرة ثانية</button></div>`;
+    show('results');
+    sfx(won ? 'win' : 'lose');
   }
 
   const maxR = () => (S.match && S.match.rules ? S.match.rules.maxRounds : CFG.match.maxRounds);
@@ -149,6 +179,7 @@
       : S.mode === 'tower' ? new AMB.Match(AMB.tower.matchOptions(S.tower.floor, S.picks[0]))
       : S.mode === 'event' ? new AMB.Match(AMB.weekly.matchOptions(S.event.stage, S.picks[0]))
       : S.mode === 'tutorial' ? new AMB.Match(AMB.tutorial.matchOptions(S.picks[0]))
+      : S.mode === 'practice' ? new AMB.Match(AMB.Tutorial.practiceOptions(S.picks[0]))
       : S.mode === 'online' ? AMB.NetUI.makeMatch()
       : new AMB.Match({ mode: S.mode, players });
     // same hero on both sides (e.g. your Kiro vs the Ember boss Kiro): the enemy becomes its "shadow"
@@ -170,7 +201,7 @@
   function prepBase() {
     const learn = S.match && S.match.round <= 2 ? 20 : 0;   // first two rounds: +20s to learn the screen
     if (S.mode === 'hotseat') return CFG.match.hotseatPrepSeconds + learn;
-    if (S.mode === 'friendly') return CFG.match.prepSeconds * 2 + learn;
+    if (S.mode === 'friendly' || S.mode === 'practice') return CFG.match.prepSeconds * 2 + learn;
     return CFG.match.prepSeconds + learn;
   }
 
@@ -1222,7 +1253,7 @@
   // a match counts for progression only if at least one combat was actually fought (an instant surrender pays nothing)
   const fought = (m) => m.history.length >= 1;
   function awardHeroXp(m) {
-    if (!AMB.heroes || m._heroXp || S.mode === 'tutorial' || S.mode === 'hotseat' || S.mode === 'friendly' || S.mode === 'online' || !fought(m)) return;
+    if (!AMB.heroes || m._heroXp || S.mode === 'tutorial' || S.mode === 'practice' || S.mode === 'hotseat' || S.mode === 'friendly' || S.mode === 'online' || !fought(m)) return;
     m._heroXp = true;
     const seat = mySeat(), p = m.players[seat], won = m.winner === seat;
     const roundsWon = m.history.filter((r) => r.winner === seat).length;
@@ -1254,6 +1285,7 @@
     cancelAnimationFrame(S.raf);
     S.phase = 'over';
     const secs = Math.round((Date.now() - S.startTs) / 1000);
+    if (S.mode === 'practice') return practiceResult(m, secs);   // hero trial: no XP, rewards, stats, pass or play count
     awardHeroXp(m);
     if (S.mode === 'campaign') return AMB.CampaignUI.showResult(m, secs);   // campaign and tower have their own results screens
     if (S.mode === 'tower') return AMB.TowerUI.showResult(m, secs);
@@ -1391,15 +1423,18 @@
     diff: (d) => { S.difficulty = d.v; document.querySelectorAll('#diff-seg button').forEach((b) => b.classList.toggle('on', b.dataset.v === d.v)); },
     mode: (d) => { S.mode = d.v; S.picks = [null, null]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
     pickHero: (d, el, e) => {
-      if (e.target.closest('[data-act="heroInfo"]')) return;
+      if (e.target.closest('[data-act="heroInfo"], [data-act="heroTry"]')) return;
       if (heroLocked(d.id)) { toast('هذا البطل مقفل: تفتحه من الباكجات (ليجندري) أو الباتل باس', 'err'); return; }
       S.picks[S.pickIdx] = d.id; renderHeroSelect();
     },
     heroInfo: (d, el, e) => { e.stopPropagation(); heroDetail(d.id); },
+    heroTry: (d, el, e) => { if (e) e.stopPropagation(); if (!HEROES[d.id]) return; startPractice(d.id, S.screen === 'campaign' ? 'campaign' : 'hero'); },
+    practiceBack: () => endPractice(),
     heroConfirm: () => {
       if (!S.picks[S.pickIdx] || heroLocked(S.picks[S.pickIdx])) return;
       if (starterPick()) {   // one-time starter choice, then continue to the match as usual
-        AMB.collection.chooseStarter(S.picks[0]); sfx('merge'); toast(`${HEROES[S.picks[0]].name} صار بطلك! الباقين تفتحهم من الباكجات أو الباتل باس`, 'good');
+        if (!AMB.collection.chooseStarter(S.picks[0])) return;
+        sfx('merge'); toast(`${HEROES[S.picks[0]].name} صار بطلك! الباقين تفتحهم من الباكجات أو الباتل باس`, 'good');
         renderHeroSelect(); return;
       }
       if (S.mode === 'hotseat' && S.pickIdx === 0) { S.pickIdx = 1; renderHeroSelect(); return; }
@@ -1508,7 +1543,7 @@
       me().life = 0;
       showResults();
     },
-    abandon: () => { if (S.net) AMB.NetUI.leave(); closeModal(); closeOverlay(); S._resumeAfterMenu = false; S.paused = false; cancelAnimationFrame(S.raf); S.phase = 'idle'; S.match = null; show('menu'); },
+    abandon: () => { if (S.mode === 'practice') { endPractice(); return; } if (S.net) AMB.NetUI.leave(); closeModal(); closeOverlay(); S._resumeAfterMenu = false; S.paused = false; cancelAnimationFrame(S.raf); S.phase = 'idle'; S.match = null; show('menu'); },
     speed: (d) => { S.speed = +d.v; renderCombatCtrl(); },
     skip: () => skipCombat(),
     nextRound: () => { closeOverlay(); if (S.match.isOver) showResults(); else nextRound(); },
@@ -1531,7 +1566,7 @@
     toResults: () => showResults(),
     abTrig: (d) => { if (!prepActive()) return; const cur = S.match.players[S.v].abilities[d.ab]; res(S.match.setAbility(S.v, d.ab, cur === d.t ? null : d.t)); renderMatch(); },
     info: (d, el, e) => { if (e) e.stopPropagation(); if (d.k === 'hero') { heroDetail(d.id); return; } const t = AMB.TIPS[d.k]; if (!t) return; const x = t(); modal(`<h2>${x.title}</h2><div class="tip-body">${x.html}</div>`); },
-    again: () => { if (S.mode === 'online') { if (S.net) AMB.NetUI.leave(); show('menu'); return; } if (S.mode === 'tutorial') { AMB.TutorialUI.start(); return; } if (S.mode === 'campaign' || S.mode === 'tower' || S.mode === 'event') { startMatch(); return; } S.picks = [S.picks[0], S.picks[1]]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
+    again: () => { if (S.mode === 'online') { if (S.net) AMB.NetUI.leave(); show('menu'); return; } if (S.mode === 'tutorial') { AMB.TutorialUI.start(); return; } if (S.mode === 'practice') { startMatch(); return; } if (S.mode === 'campaign' || S.mode === 'tower' || S.mode === 'event') { startMatch(); return; } S.picks = [S.picks[0], S.picks[1]]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
     statsExport: () => {
       const blob = new Blob([JSON.stringify(AMB.telemetry.load(), null, 2)], { type: 'application/json' });
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'multiverse-telemetry.json'; a.click();
@@ -1704,7 +1739,7 @@
   })();
 
   // debug / testing hook
-  globalThis.AMB_UI = { renderHeroSelect, startCombat, afterReward, showResults, S, ACT, itemsHTML: () => Object.values(ITEMS).map((it) => itemCardHTML(it)).join(''), renderMatch, cardHTML, itemCardHTML, show, toast, sfx, burst, modal, closeModal, overlay, closeOverlay, startMatch, portrait, stars };
+  globalThis.AMB_UI = { renderHeroSelect, heroPickHTML, startPractice, startCombat, afterReward, showResults, S, ACT, itemsHTML: () => Object.values(ITEMS).map((it) => itemCardHTML(it)).join(''), renderMatch, cardHTML, itemCardHTML, show, toast, sfx, burst, modal, closeModal, overlay, closeOverlay, startMatch, portrait, stars };
   globalThis.AMB_UI.abilityBurst = abilityBurst;   // UI v2 (match screens)
   if (AMB.PassUI) { AMB.PassUI.installActions(); AMB.PassUI.applyCosmetics(); AMB.PassUI.refreshMenu(); }
 })();
