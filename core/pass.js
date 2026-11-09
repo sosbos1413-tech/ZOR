@@ -202,7 +202,7 @@
       swapMission(id) {
         if (!api.canSwap()) return null;
         const today = api.dailyMissions(), cur = today.find((m) => m.id === id); if (!cur || cur.claimed) return null;
-        const used = today.map((m) => m.id), alt = DAILY.filter((x) => !used.includes(x.id));
+        const used = today.map((m) => m.id), alt = DAILY.filter((x) => !used.includes(x.id) && (st.daily.p[x.stat] || 0) < x.target);
         if (!alt.length) return null;
         const pickAlt = alt[hash(st.daily.key + ':swap:' + id) % alt.length];
         st.daily.swap = st.daily.swap || {}; st.daily.swap[id] = pickAlt.id; save(); return pickAlt;
@@ -250,7 +250,7 @@
       claim(level, track) { if (!api.canClaim(level, track)) return null; st.claimed[track].push(level); save(); const r = api.reward(level, track); if (onReward) { try { onReward(r, level, track); } catch (e) { /* reward hook never blocks claiming */ } } return r; },
       claimAll() { const got = []; for (let l = 1; l <= api.level(); l++) ['free', 'premium'].forEach((t) => { const r = api.claim(l, t); if (r) got.push({ level: l, track: t, reward: r }); }); return got; },
       isClaimed: (level, track) => st.claimed[track].includes(level),
-      unclaimedCount() { let n = 0; for (let l = 1; l <= api.level(); l++) ['free', 'premium'].forEach((t) => { if (api.canClaim(l, t)) n++; }); return n + api.dailyMissions().concat(api.weeklyMissions()).filter((m) => m.done && !m.claimed).length; },
+      unclaimedCount() { let n = 0; for (let l = 1; l <= api.level(); l++) ['free', 'premium'].forEach((t) => { if (api.canClaim(l, t)) n++; }); return n + api.dailyMissions().concat(api.weeklyMissions(), api.carriedMissions()).filter((m) => m.done && !m.claimed).length; },
 
       // ---- owned cosmetics + equip
       owned(type) {

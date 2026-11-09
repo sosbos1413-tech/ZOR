@@ -128,7 +128,7 @@
     const ui = UI(), S = ui.S, fightId = S.campaign.fightId, x = CAM.find(fightId);
     if (!m._camDone) { m._camDone = true; S.camResult = CAM.recordResult(fightId, Object.assign(m.summary(0), { lifeLeft: m.players[0].life, maxLife: m.players[0].maxLife, roundsLost: m.players[0].stats.losses })); }
     // a new player starts on easy: after 3 easy wins, move up to medium once (they can switch back any time)
-    try { const ST = AMB.settings; if (ST && !ST.seen('autoNormal') && CAM.diff() === 'easy' && m.winner === 0) { const won = ['l1f1', 'l1f2', 'l1f3', 'l1f4', 'l1boss'].filter((id) => CAM.isCleared(id, 'easy')).length; if (won >= 3) { ST.markSeen('autoNormal'); CAM.setDiff('normal'); setTimeout(() => UI().toast('صرت جاهز! الحملة الحين على «متوسط» وجوائزها أكبر', 'good'), 1200); } } } catch (e) { /* ignore */ }
+    try { const ST = AMB.settings; if (ST && !ST.seen('autoNormal') && CAM.diff() === 'easy' && m.winner === 0) { const won = ['l1f1', 'l1f2', 'l1f3', 'l1f4', 'l1boss'].filter((id) => CAM.isCleared(id, 'easy')).length; if (won >= 3) { ST.markSeen('autoNormal'); setTimeout(() => UI().toast('💪 صرت قوي! لو تبي جوائز أكبر جرّب «متوسط» من أعلى الحملة', 'good'), 1200); } } } catch (e) { /* ignore */ }
     const r = S.camResult, won = r.won, next = CAM.next(), nx = next && CAM.find(next);
     // why the 3rd star was missed: the hero loses life in a round you win too (the front line fell, or a drawn round), and the star needs it full
     const lifePct = Math.round(100 * m.players[0].life / m.players[0].maxLife);
@@ -142,7 +142,7 @@
     $('results').innerHTML = `<div class="res-stage ${won ? 'victory' : 'defeat'}" style="--wc:${W(x.level.world).color}"><div class="res-rays"></div>
         <div class="res-hero">${ui.portrait(AMB.DATA.HEROES[m.players[0].heroId], { bare: true, k: 'crh' })}<i class="sheen"></i></div>
         <div class="res-hname">${esc(x.fight.name)}</div></div>
-      <div class="res-banner"><h1>${won ? (x.fight.boss ? 'هزمت الزعيم!' : 'فوز!') : 'قربت! جرّب مرة ثانية'}</h1><p class="hint">النتيجة ${score} · ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')} دقيقة</p>
+      <div class="res-banner"><h1>${won ? (x.fight.boss ? 'هزمت الزعيم!' : 'فوز!') : m.players[0].stats.wins ? 'قربت! جرّب مرة ثانية' : 'هالمرة صعبة، جرّب مرة ثانية'}</h1><p class="hint">النتيجة ${score} · ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')} دقيقة</p>
         ${won ? `<div class="res-stars">${[1, 2, 3].map((k) => `<i class="${k <= r.stars ? 'on' : ''}" style="--d:${0.3 + k * 0.35}s">★</i>`).join('')}</div>
           <p class="hint">${r.newBest ? (r.prevStars ? `رقم جديد! من ${r.prevStars} لين ${r.stars} نجوم` : `${r.stars} من 3 نجوم`) : `أفضل نتيجة لك هنا: ${CAM.stars(fightId)} نجوم`}${r.stars < 3 ? ' · ' + LV.CAMPAIGN.stars.rules[r.stars].text + ' = ★' : ''}</p>${whyNo3}` : ''}
         ${r.chestsReady > r.chestsBefore ? '<button class="btn primary" data-act="go" data-to="campaign">🎁 صندوق نجوم جاهز! افتحه من خريطة الحملة</button>' : ''}

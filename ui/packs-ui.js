@@ -80,7 +80,7 @@
     ui.overlay(`<div class="rv-wrap rv2 ${'best-' + best.rarity}"><h2>${res.forced ? 'الضمان اشتغل! ' : ''}${RAR[best.rarity].name === RAR.legendary.name ? '✨ أسطوري! ✨' : 'باكج الصدع'}</h2>
       <div class="rv-row">${cards}</div>
       ${res.refund ? `<p class="hint">نسخ بطاقات بالمستوى الأقصى تحوّلت إلى ${res.refund} شظية.</p>` : ''}
-      <div class="rv-btns"><button class="btn rv-skip" data-act="rvSkip">${icon('skip')} تخطي</button><button class="btn primary big" data-act="packDone" data-to="cards">🎉 شوف شخصياتك الجديدة</button>
+      <div class="rv-btns"><button class="btn rv-skip" data-act="rvSkip">${icon('skip')} تخطي</button><button class="btn primary big" data-act="packDone" data-to="cards">${res.cards.some((c) => c.isNew) ? '🎉 شوف شخصياتك الجديدة' : '📚 شوف مجموعتك'}</button>
         <button class="btn ghost" data-act="packOpen" ${W.canAfford(P.def(PACK).cost) ? '' : 'disabled'}>باكج ثاني · ${icon('gem')} ${P.def(PACK).cost.shards}</button><button class="btn ghost" data-act="packDone">تم</button></div></div>`);
     const wrap = document.querySelector('.rv-wrap');
     const timers = [];
@@ -133,7 +133,7 @@
         all.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0) || RAR[b.rarity].order - RAR[a.rarity].order);
         ui.overlay(`<div class="rv-wrap"><h2>📦 ×${n} باكجات</h2><p class="hint">${all.filter((c) => c.isNew).length} شخصية جديدة${refund ? ` · ${refund} شظية من النسخ الزايدة` : ''}</p>
           <div class="cam-pack-row">${all.map((c, i) => `<div class="cu">${ui.portrait(C.def(c.id), { k: 'p5' + i + c.id })}<small style="color:${RAR[c.rarity].color}">${RAR[c.rarity].name}${c.isNew ? ' · جديدة!' : ''}</small></div>`).join('')}</div>
-          <div class="rv-btns"><button class="btn primary big" data-act="packDone" data-to="cards">🎉 شوف شخصياتك الجديدة</button><button class="btn ghost" data-act="packDone">تم</button></div></div>`);
+          <div class="rv-btns"><button class="btn primary big" data-act="packDone" data-to="cards">${all.some((c) => c.isNew) ? '🎉 شوف شخصياتك الجديدة' : '📚 شوف مجموعتك'}</button><button class="btn ghost" data-act="packDone">تم</button></div></div>`);
       },
       rvSkip: () => { const w = document.querySelector('#overlay .rv-wrap'); if (w && w._skip) w._skip(); },
       packDone: (d) => { ui.closeOverlay(); if (d.to) ui.show(d.to); else render(); },

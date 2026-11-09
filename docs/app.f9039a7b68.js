@@ -3790,7 +3790,7 @@
       const wrapped = function (...args) { depth++; try { return orig.apply(this, args); } finally { depth--; } };
       wrapped.__net = true; wrapped.__orig = orig; match[name] = wrapped;
     });
-    return { take() { const o = ops.splice(0, ops.length); return o; }, peek: () => ops.slice(), pop: () => ops.pop() };   // pop: an undone move (senior #39)
+    return { take() { const o = ops.splice(0, ops.length); return o; }, peek: () => ops.slice(), pop: () => ops.pop(), trim: (n) => { if (n >= 0 && n < ops.length) ops.length = n; } };   // pop: an undone move (senior #39)
   }
 
   // the shape of every op's arguments (after the player index). A friend's op is checked against this BEFORE it reaches the
@@ -4363,7 +4363,7 @@
       swapMission(id) {
         if (!api.canSwap()) return null;
         const today = api.dailyMissions(), cur = today.find((m) => m.id === id); if (!cur || cur.claimed) return null;
-        const used = today.map((m) => m.id), alt = DAILY.filter((x) => !used.includes(x.id));
+        const used = today.map((m) => m.id), alt = DAILY.filter((x) => !used.includes(x.id) && (st.daily.p[x.stat] || 0) < x.target);
         if (!alt.length) return null;
         const pickAlt = alt[hash(st.daily.key + ':swap:' + id) % alt.length];
         st.daily.swap = st.daily.swap || {}; st.daily.swap[id] = pickAlt.id; save(); return pickAlt;
@@ -4411,7 +4411,7 @@
       claim(level, track) { if (!api.canClaim(level, track)) return null; st.claimed[track].push(level); save(); const r = api.reward(level, track); if (onReward) { try { onReward(r, level, track); } catch (e) { /* reward hook never blocks claiming */ } } return r; },
       claimAll() { const got = []; for (let l = 1; l <= api.level(); l++) ['free', 'premium'].forEach((t) => { const r = api.claim(l, t); if (r) got.push({ level: l, track: t, reward: r }); }); return got; },
       isClaimed: (level, track) => st.claimed[track].includes(level),
-      unclaimedCount() { let n = 0; for (let l = 1; l <= api.level(); l++) ['free', 'premium'].forEach((t) => { if (api.canClaim(l, t)) n++; }); return n + api.dailyMissions().concat(api.weeklyMissions()).filter((m) => m.done && !m.claimed).length; },
+      unclaimedCount() { let n = 0; for (let l = 1; l <= api.level(); l++) ['free', 'premium'].forEach((t) => { if (api.canClaim(l, t)) n++; }); return n + api.dailyMissions().concat(api.weeklyMissions(), api.carriedMissions()).filter((m) => m.done && !m.claimed).length; },
 
       // ---- owned cosmetics + equip
       owned(type) {
@@ -5332,7 +5332,7 @@ AMB.IMAGES = {
   }
 
   // ---- senior #39: "↶ تراجع": take back the last move of this prep (buy, sell, move, items, XP, hero). Not online, not same-device, never across a reroll.
-  const UNDOABLE = ['buy', 'sell', 'move', 'buyItem', 'equip', 'unequip', 'sellItem', 'buyXp', 'toggleSummon', 'moveHero', 'autoArrange', 'armSpell', 'disarmSpell'];
+  const UNDOABLE = ['buy', 'sell', 'move', 'buyItem', 'equip', 'unequip', 'sellItem', 'buyXp', 'toggleSummon', 'moveHero', 'autoArrange', 'armSpell', 'disarmSpell', 'toggleLock', 'setAbility', 'setWager', 'setHunt'];
   function undoInstall() {
     S.undo = [];
     const m = S.match; if (!m || S.mode === 'online' || S.mode === 'hotseat' || S.mode === 'tutorial') return;
@@ -5340,9 +5340,9 @@ AMB.IMAGES = {
       const fn = m[name]; if (typeof fn !== 'function') return;
       m[name] = function (pi, ...args) {
         if (pi !== 0 || S._undoDepth || S.phase !== 'prep' && S.phase !== 'resources') return fn.call(this, pi, ...args);
-        const snap = this.snapshot(0); S._undoDepth = (S._undoDepth || 0) + 1;
+        const snap = this.snapshot(0), recLen = S.rs && S.rs.rec ? S.rs.rec.peek().length : -1; S._undoDepth = (S._undoDepth || 0) + 1;
         let r; try { r = fn.call(this, pi, ...args); } finally { S._undoDepth--; }
-        if (!r || r.ok !== false) { S.undo.push(snap); if (S.undo.length > 20) S.undo.shift(); }
+        if (!r || r.ok !== false) { S.undo.push({ snap, recLen }); if (S.undo.length > 20) S.undo.shift(); }
         return r;
       };
     });
@@ -5359,7 +5359,7 @@ AMB.IMAGES = {
   function resumeSaveRound() {
     if (!S.rs || !S.rs.cur) return;
     S.rs.cur.reward = S.rs.rec.take(); S.rs.rounds.push(S.rs.cur); S.rs.cur = null;
-    try { localStorage.setItem(RS_KEY, JSON.stringify({ opts: S.rs.opts, rounds: S.rs.rounds, hash: AMB.NetSync.hash(S.match), diff: S.rs.diff, picks: S.rs.picks, at: Date.now() })); } catch (e) { /* ignore */ }
+    try { localStorage.setItem(RS_KEY, JSON.stringify({ opts: S.rs.opts, rounds: S.rs.rounds, hash: AMB.NetSync.hash(S.match), diff: S.rs.diff, picks: S.rs.picks, at: Date.now(), t: Date.now() - (S.startTs || Date.now()) })); } catch (e) { /* ignore */ }
   }
   function resumeClear() { if (S.rs) S.rs = null; try { localStorage.removeItem(RS_KEY); } catch (e) { /* ignore */ } }
   function resumeSaved() { try { const v = JSON.parse(localStorage.getItem(RS_KEY)); return v && v.opts && Array.isArray(v.rounds) && v.rounds.length ? v : null; } catch (e) { return null; } }
@@ -5384,8 +5384,9 @@ AMB.IMAGES = {
     if (!m) { resumeClear(); toast('ما قدرت أرجّع المباراة، نبدأ من جديد', 'err'); fillMenu(); return; }
     S.mode = 'ai'; S.difficulty = sv.diff || S.difficulty; S.picks = sv.picks || [m.players[0].heroId, null]; S.match = m; S.v = 0; S.sel = null; S.combat = null;
     S.rs = { opts: sv.opts, rounds: sv.rounds, cur: null, rec: AMB.NetSync.record(m, 0), diff: sv.diff, picks: S.picks };
+    undoInstall();
     document.body.classList.toggle('mirror-foe', m.players[0].heroId === m.players[1].heroId);
-    S.startTs = Date.now(); S.speed = AMB.settings ? AMB.settings.speed() : 1;
+    S.startTs = Date.now() - (sv.t || 0); S.speed = AMB.settings ? AMB.settings.speed() : 1;
     show('match'); toast(`كمّلنا مباراتك: الجولة ${m.round + 1} من ${CFG.match.maxRounds}`, 'good');
     nextRound();
   }
@@ -5811,7 +5812,7 @@ AMB.IMAGES = {
     const scr = $('scr-match'), ph = S.phase === 'combat' || S.phase === 'result' ? 'fight' : 'prep';
     if (scr && scr.dataset.ph !== ph) scr.dataset.ph = ph;
     // during prep the opponent's half is hidden so your own cards get the room (it comes back for the fight; the opponent panel + 🔍 stay)
-    const sm = $('scr-match'); if (sm) sm.classList.toggle('prep-focus', S.phase === 'prep' || S.phase === 'resources' || S.phase === 'handoff');
+    const sm = $('scr-match'); if (sm) sm.classList.toggle('prep-focus', S.mode !== 'tutorial' && (S.phase === 'prep' || S.phase === 'resources' || S.phase === 'handoff'));   // the guided tutorial keeps the classic layout its hand points at
     renderTop();
     renderOpp();
     renderSlots();
@@ -6114,7 +6115,7 @@ AMB.IMAGES = {
           <button class="sd-btn" data-act="upgrades" aria-label="شاشة التطوير">${icon('star')}<small>تطوير</small></button></div>
       </div>`;
     // the drawer sits right above the dock (its height depends on the phone)
-    requestAnimationFrame(() => { const dk = document.querySelector('#shopbar .shop-dock'), sm = $('scr-match'); if (dk && sm) sm.style.setProperty('--dockH', Math.max(0, Math.round(innerHeight - dk.getBoundingClientRect().top + 4)) + 'px'); });
+    requestAnimationFrame(() => { const dk = document.querySelector('#shopbar .shop-dock'), sm = $('scr-match'); if (dk && sm && dk.getBoundingClientRect().height > 0) sm.style.setProperty('--dockH', Math.max(0, Math.round(innerHeight - dk.getBoundingClientRect().top + 4)) + 'px'); });
   }
 
   const SYN_ICON = (s) => (s.kind === 'world' ? ART.WORLD_ICON[s.id] : s.kind === 'special' ? 'star' : ART.ROLE_ICON[s.id]);
@@ -6269,7 +6270,8 @@ AMB.IMAGES = {
   function applyComfort() {
     const ST = AMB.settings; if (!ST) return;
     const z = [1, 1.12, 1.25][ST.textSize()] || 1;
-    document.documentElement.style.zoom = z === 1 ? '' : String(z);
+    document.documentElement.style.zoom = '';
+    document.documentElement.style.setProperty('--z', String(z));   // applied by CSS to the screens (not the match screen, not the bottom bar)
     document.body.classList.toggle('big-text', ST.textSize() > 0);
     document.body.classList.toggle('reduce-motion', ST.get('motion') === false);
     document.body.classList.toggle('no-vibe', ST.get('vibe') === false);
@@ -6468,7 +6470,7 @@ AMB.IMAGES = {
     let title;
     if (m.winner === null || m.winner === undefined) title = 'تعادل';
     else if (S.mode === 'hotseat') title = `فاز ${esc(m.players[m.winner].name)}!`;
-    else title = m.winner === mySeat() ? 'نصر!' : 'قربت! جرّب مرة ثانية';
+    else title = m.winner === mySeat() ? 'نصر!' : (() => { const a = m.players[mySeat()], b = m.players[1 - mySeat()]; return b.life - Math.max(0, a.life) <= 30 || a.stats.wins >= 3 ? 'قربت! جرّب مرة ثانية' : 'هالمرة صعبة، جرّب مرة ثانية'; })();
     const last = m.history[m.history.length - 1];
     const cols = m.players.map((p, i) => {
       const h = HEROES[p.heroId];
@@ -6526,7 +6528,7 @@ AMB.IMAGES = {
       return `<table><tr><th>الاسم</th><th>مرات</th><th>نسبة الفوز</th><th></th>${extra ? '<th>نهائي</th><th>★★★</th>' : ''}</tr>${rows.map(([k, v]) =>
         `<tr><td>${nameOf(k)}</td><td>${v.picks}</td><td>${pct(v.wins, v.picks)}%</td><td><div class="bar"><i style="width:${pct(v.wins, v.picks)}%"></i></div></td>${extra ? `<td>${v.final || 0}</td><td>${v.threeStar || 0}</td>` : ''}</tr>`).join('')}</table>`;
     };
-    const recent = d.recent.map((r) => `<tr><td>${new Date(r.at).toLocaleString('ar')}</td><td>${r.mode}</td><td>${r.heroes.map((h) => HEROES[h] ? HEROES[h].name : h).join(' ضد ')}</td><td>${r.winner === null ? 'تعادل' : 'لاعب ' + (r.winner + 1)}</td><td>${r.rounds}</td><td>${Math.round(r.seconds / 60 * 10) / 10}د</td></tr>`).join('');
+    const recent = d.recent.map((r) => `<tr><td>${new Date(r.at).toLocaleString('ar')}</td><td>${({ ai: 'ضد الكمبيوتر', short: 'قصيرة', hotseat: 'نفس الجهاز', online: 'ضد صاحبك', friendly: 'ودية', campaign: 'الحملة', tower: 'البرج', event: 'الحدث' })[r.mode] || r.mode}</td><td>${r.heroes.map((h) => HEROES[h] ? HEROES[h].name : h).join(' ضد ')}</td><td>${r.winner === null ? 'تعادل' : r.winner === 0 ? 'أنت' : r.mode === 'hotseat' ? 'لاعب 2' : r.mode === 'online' ? 'صاحبك' : 'الكمبيوتر'}</td><td>${r.rounds}</td><td>${Math.round(r.seconds / 60 * 10) / 10}د</td></tr>`).join('');
     $('stats').innerHTML = `
       <div class="box"><h3>نظرة عامة</h3>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center">
@@ -6715,7 +6717,7 @@ AMB.IMAGES = {
         <p class="hint">💡 لو بطله ينزل بدري، «شبكة الصدع» من متجر المعدات تخلي فريقك كله يضربه.</p>`);
     },
     hunt: (d) => { if (!prepActive()) return; if (res(S.match.setHunt(S.v, d.v))) { toast(d.v === 'weak' ? 'القتلة يصطادون الأضعف' : 'القتلة يصطادون الصف الخلفي', 'good'); ACT.scout(); } },
-    shareRes: () => { const t = S.shareText || 'ZOR'; try { if (navigator.share) { navigator.share({ text: t }).catch(() => {}); return; } } catch (e) { /* ignore */ } try { navigator.clipboard.writeText(t); toast('انسخ النص 📋', 'good'); } catch (e) { toast(t); } },
+    shareRes: () => { const t = S.shareText || 'ZOR'; try { if (navigator.share) { navigator.share({ text: t }).catch(() => {}); return; } } catch (e) { /* ignore */ } try { navigator.clipboard.writeText(t); toast('نسخت النص 📋 الصقه لصاحبك', 'good'); } catch (e) { toast(t); } },
     settings: () => settingsModal(),
     // adult #27: one gift box: claim every ready reward (login, pass levels, missions, album, campaign star chests) in one tap
     dayGoals: () => {
@@ -6729,13 +6731,13 @@ AMB.IMAGES = {
     takeChallenge: () => { const ch = S.pendingChallenge; if (!ch) return; closeModal(); S.mode = 'ai'; S.challenge = ch; S.pickIdx = 0; startMatch(); },
     undo: () => {
       if (!prepActive() || !S.undo || !S.undo.length) { toast('ما فيه حركة ترجع لها', ''); return; }
-      S.match.restore(0, S.undo.pop()); if (S.rs && S.rs.rec) S.rs.rec.pop();
+      const u0 = S.undo.pop(); S.match.restore(0, u0.snap); if (S.rs && S.rs.rec && u0.recLen >= 0) S.rs.rec.trim(u0.recLen);   // the saved moves go back to the same point as the board
       S.sel = null; sfx('click'); toast('↶ رجعت آخر حركة', ''); renderMatch();
     },
     inboxAll: () => {
       const got = []; let shards = 0;
       try { if (AMB.login && AMB.login.canClaim()) { const r = AMB.login.claim(); if (r) got.push('الدخول اليومي'); } } catch (e) { /* ignore */ }
-      try { if (AMB.pass) { const l = AMB.pass.claimAll(); if (l.length) got.push(`${l.length} من الممر`); AMB.pass.dailyMissions().concat(AMB.pass.weeklyMissions()).forEach((m) => { if (m.done && !m.claimed) { const r = AMB.pass.claimMission(m.id); if (r) { shards += r.shards; got.push('مهمة'); } } }); } } catch (e) { /* ignore */ }
+      try { if (AMB.pass) { const l = AMB.pass.claimAll(); if (l.length) got.push(`${l.length} من الممر`); AMB.pass.dailyMissions().concat(AMB.pass.weeklyMissions(), AMB.pass.carriedMissions()).forEach((m) => { if (m.done && !m.claimed) { const r = AMB.pass.claimMission(m.id); if (r) { shards += r.shards; got.push('مهمة'); } } }); } } catch (e) { /* ignore */ }
       try { if (AMB.album) AMB.album.worlds().concat(['heroes', 'exclusive']).forEach((k) => { const r = AMB.album.claimPage(k); if (r) { shards += r.shards; got.push('الألبوم'); } }); } catch (e) { /* ignore */ }
       try { if (AMB.campaign) ['easy', 'normal', 'hard'].forEach((d) => AMB.campaign.chests(d).filter((c) => c.state === 'ready').forEach((c) => { const r = AMB.campaign.claimChest(c.id, d); if (r) got.push('صندوق نجوم'); })); } catch (e) { /* ignore */ }
       if (!got.length) { toast('ما فيه جوائز جاهزة الحين', ''); return; }
@@ -6973,7 +6975,7 @@ AMB.IMAGES = {
     if (!ch || !Number.isInteger(ch.s) || !HEROES[ch.h] || !HEROES[ch.a] || !CFG.ai[ch.d] || !Array.isArray(ch.r)) return;
     try { history.replaceState(history.state, '', location.pathname); } catch (e) { /* ignore */ }
     S.pendingChallenge = ch;
-    setTimeout(() => modal(`<h2>⚔ تحدي من صاحبك</h2><p>صاحبك لعب بـ<b>${HEROES[ch.h].name}</b> ضد الكمبيوتر (${ch.d === 'expert' ? 'خبير' : ch.d === 'hard' ? 'صعب' : ch.d === 'easy' ? 'سهل' : 'عادي'}) وخلّص ${ch.r[0]}–${ch.r[1]}.</p><p class="hint">نفس المباراة بالضبط، بدون قوة بطاقات للطرفين. تقدر تغلبه؟</p><div class="net-btns"><button class="btn primary" data-act="takeChallenge">⚔ اقبل التحدي</button><button class="btn ghost" data-act="closeModal">بعدين</button></div>`), 900);
+    setTimeout(() => modal(`<h2>⚔ تحدي من صاحبك</h2><p>صاحبك لعب بـ<b>${HEROES[ch.h].name}</b> ضد الكمبيوتر (${ch.d === 'expert' ? 'خبير' : ch.d === 'hard' ? 'صعب' : ch.d === 'easy' ? 'سهل' : 'عادي'}) وخلّص ${ch.r[0]}–${ch.r[1]}.</p><p class="hint">نفس البداية ونفس الكمبيوتر. أنت تلعبها بدون قوة بطاقات (صاحبك لعبها ببطاقاته). تقدر تغلبه؟</p><div class="net-btns"><button class="btn primary" data-act="takeChallenge">⚔ اقبل التحدي</button><button class="btn ghost" data-act="closeModal">بعدين</button></div>`), 900);
   })();
   setTimeout(() => { const ST = AMB.settings; if (ST && !ST.seen('askBig') && S.screen === 'menu' && !$('modal-back').classList.contains('on')) { ST.markSeen('askBig');
     modal(`<h2>🔠 تبي الخط أكبر؟</h2><p class="hint">تقدر تغيّره بعدين من «المزيد» ← «الإعدادات».</p><div class="net-btns"><button class="btn primary" data-act="bigAsk" data-v="1">إيه، كبّره</button><button class="btn ghost" data-act="bigAsk" data-v="0">لا، كذا زين</button></div>`); } }, 1500);
@@ -7424,7 +7426,7 @@ AMB.IMAGES = {
     ui.overlay(`<div class="rv-wrap rv2 ${'best-' + best.rarity}"><h2>${res.forced ? 'الضمان اشتغل! ' : ''}${RAR[best.rarity].name === RAR.legendary.name ? '✨ أسطوري! ✨' : 'باكج الصدع'}</h2>
       <div class="rv-row">${cards}</div>
       ${res.refund ? `<p class="hint">نسخ بطاقات بالمستوى الأقصى تحوّلت إلى ${res.refund} شظية.</p>` : ''}
-      <div class="rv-btns"><button class="btn rv-skip" data-act="rvSkip">${icon('skip')} تخطي</button><button class="btn primary big" data-act="packDone" data-to="cards">🎉 شوف شخصياتك الجديدة</button>
+      <div class="rv-btns"><button class="btn rv-skip" data-act="rvSkip">${icon('skip')} تخطي</button><button class="btn primary big" data-act="packDone" data-to="cards">${res.cards.some((c) => c.isNew) ? '🎉 شوف شخصياتك الجديدة' : '📚 شوف مجموعتك'}</button>
         <button class="btn ghost" data-act="packOpen" ${W.canAfford(P.def(PACK).cost) ? '' : 'disabled'}>باكج ثاني · ${icon('gem')} ${P.def(PACK).cost.shards}</button><button class="btn ghost" data-act="packDone">تم</button></div></div>`);
     const wrap = document.querySelector('.rv-wrap');
     const timers = [];
@@ -7477,7 +7479,7 @@ AMB.IMAGES = {
         all.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0) || RAR[b.rarity].order - RAR[a.rarity].order);
         ui.overlay(`<div class="rv-wrap"><h2>📦 ×${n} باكجات</h2><p class="hint">${all.filter((c) => c.isNew).length} شخصية جديدة${refund ? ` · ${refund} شظية من النسخ الزايدة` : ''}</p>
           <div class="cam-pack-row">${all.map((c, i) => `<div class="cu">${ui.portrait(C.def(c.id), { k: 'p5' + i + c.id })}<small style="color:${RAR[c.rarity].color}">${RAR[c.rarity].name}${c.isNew ? ' · جديدة!' : ''}</small></div>`).join('')}</div>
-          <div class="rv-btns"><button class="btn primary big" data-act="packDone" data-to="cards">🎉 شوف شخصياتك الجديدة</button><button class="btn ghost" data-act="packDone">تم</button></div></div>`);
+          <div class="rv-btns"><button class="btn primary big" data-act="packDone" data-to="cards">${all.some((c) => c.isNew) ? '🎉 شوف شخصياتك الجديدة' : '📚 شوف مجموعتك'}</button><button class="btn ghost" data-act="packDone">تم</button></div></div>`);
       },
       rvSkip: () => { const w = document.querySelector('#overlay .rv-wrap'); if (w && w._skip) w._skip(); },
       packDone: (d) => { ui.closeOverlay(); if (d.to) ui.show(d.to); else render(); },
@@ -7621,7 +7623,7 @@ AMB.IMAGES = {
     const ui = UI(), S = ui.S, fightId = S.campaign.fightId, x = CAM.find(fightId);
     if (!m._camDone) { m._camDone = true; S.camResult = CAM.recordResult(fightId, Object.assign(m.summary(0), { lifeLeft: m.players[0].life, maxLife: m.players[0].maxLife, roundsLost: m.players[0].stats.losses })); }
     // a new player starts on easy: after 3 easy wins, move up to medium once (they can switch back any time)
-    try { const ST = AMB.settings; if (ST && !ST.seen('autoNormal') && CAM.diff() === 'easy' && m.winner === 0) { const won = ['l1f1', 'l1f2', 'l1f3', 'l1f4', 'l1boss'].filter((id) => CAM.isCleared(id, 'easy')).length; if (won >= 3) { ST.markSeen('autoNormal'); CAM.setDiff('normal'); setTimeout(() => UI().toast('صرت جاهز! الحملة الحين على «متوسط» وجوائزها أكبر', 'good'), 1200); } } } catch (e) { /* ignore */ }
+    try { const ST = AMB.settings; if (ST && !ST.seen('autoNormal') && CAM.diff() === 'easy' && m.winner === 0) { const won = ['l1f1', 'l1f2', 'l1f3', 'l1f4', 'l1boss'].filter((id) => CAM.isCleared(id, 'easy')).length; if (won >= 3) { ST.markSeen('autoNormal'); setTimeout(() => UI().toast('💪 صرت قوي! لو تبي جوائز أكبر جرّب «متوسط» من أعلى الحملة', 'good'), 1200); } } } catch (e) { /* ignore */ }
     const r = S.camResult, won = r.won, next = CAM.next(), nx = next && CAM.find(next);
     // why the 3rd star was missed: the hero loses life in a round you win too (the front line fell, or a drawn round), and the star needs it full
     const lifePct = Math.round(100 * m.players[0].life / m.players[0].maxLife);
@@ -7635,7 +7637,7 @@ AMB.IMAGES = {
     $('results').innerHTML = `<div class="res-stage ${won ? 'victory' : 'defeat'}" style="--wc:${W(x.level.world).color}"><div class="res-rays"></div>
         <div class="res-hero">${ui.portrait(AMB.DATA.HEROES[m.players[0].heroId], { bare: true, k: 'crh' })}<i class="sheen"></i></div>
         <div class="res-hname">${esc(x.fight.name)}</div></div>
-      <div class="res-banner"><h1>${won ? (x.fight.boss ? 'هزمت الزعيم!' : 'فوز!') : 'قربت! جرّب مرة ثانية'}</h1><p class="hint">النتيجة ${score} · ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')} دقيقة</p>
+      <div class="res-banner"><h1>${won ? (x.fight.boss ? 'هزمت الزعيم!' : 'فوز!') : m.players[0].stats.wins ? 'قربت! جرّب مرة ثانية' : 'هالمرة صعبة، جرّب مرة ثانية'}</h1><p class="hint">النتيجة ${score} · ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')} دقيقة</p>
         ${won ? `<div class="res-stars">${[1, 2, 3].map((k) => `<i class="${k <= r.stars ? 'on' : ''}" style="--d:${0.3 + k * 0.35}s">★</i>`).join('')}</div>
           <p class="hint">${r.newBest ? (r.prevStars ? `رقم جديد! من ${r.prevStars} لين ${r.stars} نجوم` : `${r.stars} من 3 نجوم`) : `أفضل نتيجة لك هنا: ${CAM.stars(fightId)} نجوم`}${r.stars < 3 ? ' · ' + LV.CAMPAIGN.stars.rules[r.stars].text + ' = ★' : ''}</p>${whyNo3}` : ''}
         ${r.chestsReady > r.chestsBefore ? '<button class="btn primary" data-act="go" data-to="campaign">🎁 صندوق نجوم جاهز! افتحه من خريطة الحملة</button>' : ''}

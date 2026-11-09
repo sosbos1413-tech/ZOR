@@ -2635,7 +2635,7 @@ body.in-match .toasts { top: 112px; }
 .btn, .btn.small, .btn.ib, .mv2-m, .ptabs button { min-height: 44px !important; }
 .ibtn { position: relative; z-index: 2; overflow: visible !important; }
 .ibtn::after { content: ''; position: absolute; inset: auto; left: 50%; top: 50%; width: 46px; height: 46px; transform: translate(-50%, -50%); }
-.chest { z-index: 1; } .chest::after { content: ''; position: absolute; inset: auto; left: 50%; top: 50%; width: 52px; height: 52px; transform: translate(-50%, -50%); }
+
 .al-claim { position: relative; }
 .al-claim::after { content: ''; position: absolute; inset: -9px -2px; }
 .chest { min-width: 44px; min-height: 44px; }
@@ -2827,4 +2827,20 @@ body.big-text #bnav button span, body.big-text #bnav button small { display: rev
   #scr-match.prep-focus #bench .bslot { width: 54px; height: 54px; min-width: 54px; }
   #scr-match.prep-focus #bench .bmed { width: 44px; height: 44px; }
   #scr-match.prep-focus .shop-drawer { bottom: var(--dockH, 70px); }
+}
+
+/* text size (QA fix): zoom the screens and dialogs, never the match screen or the bottom navigation */
+body.big-text .screen:not(#scr-match), body.big-text .modal, body.big-text #more-sheet, body.big-text .overlay > * { zoom: var(--z, 1); }
+body.big-text .mv2 { height: calc((var(--app-h, 100vh) - 76px) / var(--z, 1)); min-height: 0; }
+
+#inbox-btn { top: 62px; left: 12px; }
+#day-goals { top: 68px; left: 68px; }
+
+.al-book .al-who, .al-book .al-hint, .al-book .al-lore { color: #5a4630; }
+
+@media (max-width: 860px) and (orientation: portrait) {
+  #scr-match.prep-focus .field .cell.mine.rec { opacity: 1; box-shadow: inset 0 0 0 3px #ffd24a, 0 0 12px #ffd24a88; }   /* where the selected bench unit can go */
+  #scr-match.prep-focus .field .cell .hc-prog { top: 4px; bottom: auto; }
+  #scr-match .pb-syn { overflow-x: auto; scrollbar-width: none; }
+  .sd-cards { row-gap: 20px; }
 }

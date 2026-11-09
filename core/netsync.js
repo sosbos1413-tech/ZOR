@@ -39,7 +39,7 @@
       const wrapped = function (...args) { depth++; try { return orig.apply(this, args); } finally { depth--; } };
       wrapped.__net = true; wrapped.__orig = orig; match[name] = wrapped;
     });
-    return { take() { const o = ops.splice(0, ops.length); return o; }, peek: () => ops.slice(), pop: () => ops.pop() };   // pop: an undone move (senior #39)
+    return { take() { const o = ops.splice(0, ops.length); return o; }, peek: () => ops.slice(), pop: () => ops.pop(), trim: (n) => { if (n >= 0 && n < ops.length) ops.length = n; } };   // pop: an undone move (senior #39)
   }
 
   // the shape of every op's arguments (after the player index). A friend's op is checked against this BEFORE it reaches the

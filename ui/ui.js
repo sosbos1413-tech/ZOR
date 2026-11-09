@@ -344,7 +344,7 @@
   }
 
   // ---- senior #39: "↶ تراجع": take back the last move of this prep (buy, sell, move, items, XP, hero). Not online, not same-device, never across a reroll.
-  const UNDOABLE = ['buy', 'sell', 'move', 'buyItem', 'equip', 'unequip', 'sellItem', 'buyXp', 'toggleSummon', 'moveHero', 'autoArrange', 'armSpell', 'disarmSpell'];
+  const UNDOABLE = ['buy', 'sell', 'move', 'buyItem', 'equip', 'unequip', 'sellItem', 'buyXp', 'toggleSummon', 'moveHero', 'autoArrange', 'armSpell', 'disarmSpell', 'toggleLock', 'setAbility', 'setWager', 'setHunt'];
   function undoInstall() {
     S.undo = [];
     const m = S.match; if (!m || S.mode === 'online' || S.mode === 'hotseat' || S.mode === 'tutorial') return;
@@ -352,9 +352,9 @@
       const fn = m[name]; if (typeof fn !== 'function') return;
       m[name] = function (pi, ...args) {
         if (pi !== 0 || S._undoDepth || S.phase !== 'prep' && S.phase !== 'resources') return fn.call(this, pi, ...args);
-        const snap = this.snapshot(0); S._undoDepth = (S._undoDepth || 0) + 1;
+        const snap = this.snapshot(0), recLen = S.rs && S.rs.rec ? S.rs.rec.peek().length : -1; S._undoDepth = (S._undoDepth || 0) + 1;
         let r; try { r = fn.call(this, pi, ...args); } finally { S._undoDepth--; }
-        if (!r || r.ok !== false) { S.undo.push(snap); if (S.undo.length > 20) S.undo.shift(); }
+        if (!r || r.ok !== false) { S.undo.push({ snap, recLen }); if (S.undo.length > 20) S.undo.shift(); }
         return r;
       };
     });
@@ -371,7 +371,7 @@
   function resumeSaveRound() {
     if (!S.rs || !S.rs.cur) return;
     S.rs.cur.reward = S.rs.rec.take(); S.rs.rounds.push(S.rs.cur); S.rs.cur = null;
-    try { localStorage.setItem(RS_KEY, JSON.stringify({ opts: S.rs.opts, rounds: S.rs.rounds, hash: AMB.NetSync.hash(S.match), diff: S.rs.diff, picks: S.rs.picks, at: Date.now() })); } catch (e) { /* ignore */ }
+    try { localStorage.setItem(RS_KEY, JSON.stringify({ opts: S.rs.opts, rounds: S.rs.rounds, hash: AMB.NetSync.hash(S.match), diff: S.rs.diff, picks: S.rs.picks, at: Date.now(), t: Date.now() - (S.startTs || Date.now()) })); } catch (e) { /* ignore */ }
   }
   function resumeClear() { if (S.rs) S.rs = null; try { localStorage.removeItem(RS_KEY); } catch (e) { /* ignore */ } }
   function resumeSaved() { try { const v = JSON.parse(localStorage.getItem(RS_KEY)); return v && v.opts && Array.isArray(v.rounds) && v.rounds.length ? v : null; } catch (e) { return null; } }
@@ -396,8 +396,9 @@
     if (!m) { resumeClear(); toast('ما قدرت أرجّع المباراة، نبدأ من جديد', 'err'); fillMenu(); return; }
     S.mode = 'ai'; S.difficulty = sv.diff || S.difficulty; S.picks = sv.picks || [m.players[0].heroId, null]; S.match = m; S.v = 0; S.sel = null; S.combat = null;
     S.rs = { opts: sv.opts, rounds: sv.rounds, cur: null, rec: AMB.NetSync.record(m, 0), diff: sv.diff, picks: S.picks };
+    undoInstall();
     document.body.classList.toggle('mirror-foe', m.players[0].heroId === m.players[1].heroId);
-    S.startTs = Date.now(); S.speed = AMB.settings ? AMB.settings.speed() : 1;
+    S.startTs = Date.now() - (sv.t || 0); S.speed = AMB.settings ? AMB.settings.speed() : 1;
     show('match'); toast(`كمّلنا مباراتك: الجولة ${m.round + 1} من ${CFG.match.maxRounds}`, 'good');
     nextRound();
   }
@@ -823,7 +824,7 @@
     const scr = $('scr-match'), ph = S.phase === 'combat' || S.phase === 'result' ? 'fight' : 'prep';
     if (scr && scr.dataset.ph !== ph) scr.dataset.ph = ph;
     // during prep the opponent's half is hidden so your own cards get the room (it comes back for the fight; the opponent panel + 🔍 stay)
-    const sm = $('scr-match'); if (sm) sm.classList.toggle('prep-focus', S.phase === 'prep' || S.phase === 'resources' || S.phase === 'handoff');
+    const sm = $('scr-match'); if (sm) sm.classList.toggle('prep-focus', S.mode !== 'tutorial' && (S.phase === 'prep' || S.phase === 'resources' || S.phase === 'handoff'));   // the guided tutorial keeps the classic layout its hand points at
     renderTop();
     renderOpp();
     renderSlots();
@@ -1126,7 +1127,7 @@
           <button class="sd-btn" data-act="upgrades" aria-label="شاشة التطوير">${icon('star')}<small>تطوير</small></button></div>
       </div>`;
     // the drawer sits right above the dock (its height depends on the phone)
-    requestAnimationFrame(() => { const dk = document.querySelector('#shopbar .shop-dock'), sm = $('scr-match'); if (dk && sm) sm.style.setProperty('--dockH', Math.max(0, Math.round(innerHeight - dk.getBoundingClientRect().top + 4)) + 'px'); });
+    requestAnimationFrame(() => { const dk = document.querySelector('#shopbar .shop-dock'), sm = $('scr-match'); if (dk && sm && dk.getBoundingClientRect().height > 0) sm.style.setProperty('--dockH', Math.max(0, Math.round(innerHeight - dk.getBoundingClientRect().top + 4)) + 'px'); });
   }
 
   const SYN_ICON = (s) => (s.kind === 'world' ? ART.WORLD_ICON[s.id] : s.kind === 'special' ? 'star' : ART.ROLE_ICON[s.id]);
@@ -1281,7 +1282,8 @@
   function applyComfort() {
     const ST = AMB.settings; if (!ST) return;
     const z = [1, 1.12, 1.25][ST.textSize()] || 1;
-    document.documentElement.style.zoom = z === 1 ? '' : String(z);
+    document.documentElement.style.zoom = '';
+    document.documentElement.style.setProperty('--z', String(z));   // applied by CSS to the screens (not the match screen, not the bottom bar)
     document.body.classList.toggle('big-text', ST.textSize() > 0);
     document.body.classList.toggle('reduce-motion', ST.get('motion') === false);
     document.body.classList.toggle('no-vibe', ST.get('vibe') === false);
@@ -1480,7 +1482,7 @@
     let title;
     if (m.winner === null || m.winner === undefined) title = 'تعادل';
     else if (S.mode === 'hotseat') title = `فاز ${esc(m.players[m.winner].name)}!`;
-    else title = m.winner === mySeat() ? 'نصر!' : 'قربت! جرّب مرة ثانية';
+    else title = m.winner === mySeat() ? 'نصر!' : (() => { const a = m.players[mySeat()], b = m.players[1 - mySeat()]; return b.life - Math.max(0, a.life) <= 30 || a.stats.wins >= 3 ? 'قربت! جرّب مرة ثانية' : 'هالمرة صعبة، جرّب مرة ثانية'; })();
     const last = m.history[m.history.length - 1];
     const cols = m.players.map((p, i) => {
       const h = HEROES[p.heroId];
@@ -1538,7 +1540,7 @@
       return `<table><tr><th>الاسم</th><th>مرات</th><th>نسبة الفوز</th><th></th>${extra ? '<th>نهائي</th><th>★★★</th>' : ''}</tr>${rows.map(([k, v]) =>
         `<tr><td>${nameOf(k)}</td><td>${v.picks}</td><td>${pct(v.wins, v.picks)}%</td><td><div class="bar"><i style="width:${pct(v.wins, v.picks)}%"></i></div></td>${extra ? `<td>${v.final || 0}</td><td>${v.threeStar || 0}</td>` : ''}</tr>`).join('')}</table>`;
     };
-    const recent = d.recent.map((r) => `<tr><td>${new Date(r.at).toLocaleString('ar')}</td><td>${r.mode}</td><td>${r.heroes.map((h) => HEROES[h] ? HEROES[h].name : h).join(' ضد ')}</td><td>${r.winner === null ? 'تعادل' : 'لاعب ' + (r.winner + 1)}</td><td>${r.rounds}</td><td>${Math.round(r.seconds / 60 * 10) / 10}د</td></tr>`).join('');
+    const recent = d.recent.map((r) => `<tr><td>${new Date(r.at).toLocaleString('ar')}</td><td>${({ ai: 'ضد الكمبيوتر', short: 'قصيرة', hotseat: 'نفس الجهاز', online: 'ضد صاحبك', friendly: 'ودية', campaign: 'الحملة', tower: 'البرج', event: 'الحدث' })[r.mode] || r.mode}</td><td>${r.heroes.map((h) => HEROES[h] ? HEROES[h].name : h).join(' ضد ')}</td><td>${r.winner === null ? 'تعادل' : r.winner === 0 ? 'أنت' : r.mode === 'hotseat' ? 'لاعب 2' : r.mode === 'online' ? 'صاحبك' : 'الكمبيوتر'}</td><td>${r.rounds}</td><td>${Math.round(r.seconds / 60 * 10) / 10}د</td></tr>`).join('');
     $('stats').innerHTML = `
       <div class="box"><h3>نظرة عامة</h3>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center">
@@ -1727,7 +1729,7 @@
         <p class="hint">💡 لو بطله ينزل بدري، «شبكة الصدع» من متجر المعدات تخلي فريقك كله يضربه.</p>`);
     },
     hunt: (d) => { if (!prepActive()) return; if (res(S.match.setHunt(S.v, d.v))) { toast(d.v === 'weak' ? 'القتلة يصطادون الأضعف' : 'القتلة يصطادون الصف الخلفي', 'good'); ACT.scout(); } },
-    shareRes: () => { const t = S.shareText || 'ZOR'; try { if (navigator.share) { navigator.share({ text: t }).catch(() => {}); return; } } catch (e) { /* ignore */ } try { navigator.clipboard.writeText(t); toast('انسخ النص 📋', 'good'); } catch (e) { toast(t); } },
+    shareRes: () => { const t = S.shareText || 'ZOR'; try { if (navigator.share) { navigator.share({ text: t }).catch(() => {}); return; } } catch (e) { /* ignore */ } try { navigator.clipboard.writeText(t); toast('نسخت النص 📋 الصقه لصاحبك', 'good'); } catch (e) { toast(t); } },
     settings: () => settingsModal(),
     // adult #27: one gift box: claim every ready reward (login, pass levels, missions, album, campaign star chests) in one tap
     dayGoals: () => {
@@ -1741,13 +1743,13 @@
     takeChallenge: () => { const ch = S.pendingChallenge; if (!ch) return; closeModal(); S.mode = 'ai'; S.challenge = ch; S.pickIdx = 0; startMatch(); },
     undo: () => {
       if (!prepActive() || !S.undo || !S.undo.length) { toast('ما فيه حركة ترجع لها', ''); return; }
-      S.match.restore(0, S.undo.pop()); if (S.rs && S.rs.rec) S.rs.rec.pop();
+      const u0 = S.undo.pop(); S.match.restore(0, u0.snap); if (S.rs && S.rs.rec && u0.recLen >= 0) S.rs.rec.trim(u0.recLen);   // the saved moves go back to the same point as the board
       S.sel = null; sfx('click'); toast('↶ رجعت آخر حركة', ''); renderMatch();
     },
     inboxAll: () => {
       const got = []; let shards = 0;
       try { if (AMB.login && AMB.login.canClaim()) { const r = AMB.login.claim(); if (r) got.push('الدخول اليومي'); } } catch (e) { /* ignore */ }
-      try { if (AMB.pass) { const l = AMB.pass.claimAll(); if (l.length) got.push(`${l.length} من الممر`); AMB.pass.dailyMissions().concat(AMB.pass.weeklyMissions()).forEach((m) => { if (m.done && !m.claimed) { const r = AMB.pass.claimMission(m.id); if (r) { shards += r.shards; got.push('مهمة'); } } }); } } catch (e) { /* ignore */ }
+      try { if (AMB.pass) { const l = AMB.pass.claimAll(); if (l.length) got.push(`${l.length} من الممر`); AMB.pass.dailyMissions().concat(AMB.pass.weeklyMissions(), AMB.pass.carriedMissions()).forEach((m) => { if (m.done && !m.claimed) { const r = AMB.pass.claimMission(m.id); if (r) { shards += r.shards; got.push('مهمة'); } } }); } } catch (e) { /* ignore */ }
       try { if (AMB.album) AMB.album.worlds().concat(['heroes', 'exclusive']).forEach((k) => { const r = AMB.album.claimPage(k); if (r) { shards += r.shards; got.push('الألبوم'); } }); } catch (e) { /* ignore */ }
       try { if (AMB.campaign) ['easy', 'normal', 'hard'].forEach((d) => AMB.campaign.chests(d).filter((c) => c.state === 'ready').forEach((c) => { const r = AMB.campaign.claimChest(c.id, d); if (r) got.push('صندوق نجوم'); })); } catch (e) { /* ignore */ }
       if (!got.length) { toast('ما فيه جوائز جاهزة الحين', ''); return; }
@@ -1985,7 +1987,7 @@
     if (!ch || !Number.isInteger(ch.s) || !HEROES[ch.h] || !HEROES[ch.a] || !CFG.ai[ch.d] || !Array.isArray(ch.r)) return;
     try { history.replaceState(history.state, '', location.pathname); } catch (e) { /* ignore */ }
     S.pendingChallenge = ch;
-    setTimeout(() => modal(`<h2>⚔ تحدي من صاحبك</h2><p>صاحبك لعب بـ<b>${HEROES[ch.h].name}</b> ضد الكمبيوتر (${ch.d === 'expert' ? 'خبير' : ch.d === 'hard' ? 'صعب' : ch.d === 'easy' ? 'سهل' : 'عادي'}) وخلّص ${ch.r[0]}–${ch.r[1]}.</p><p class="hint">نفس المباراة بالضبط، بدون قوة بطاقات للطرفين. تقدر تغلبه؟</p><div class="net-btns"><button class="btn primary" data-act="takeChallenge">⚔ اقبل التحدي</button><button class="btn ghost" data-act="closeModal">بعدين</button></div>`), 900);
+    setTimeout(() => modal(`<h2>⚔ تحدي من صاحبك</h2><p>صاحبك لعب بـ<b>${HEROES[ch.h].name}</b> ضد الكمبيوتر (${ch.d === 'expert' ? 'خبير' : ch.d === 'hard' ? 'صعب' : ch.d === 'easy' ? 'سهل' : 'عادي'}) وخلّص ${ch.r[0]}–${ch.r[1]}.</p><p class="hint">نفس البداية ونفس الكمبيوتر. أنت تلعبها بدون قوة بطاقات (صاحبك لعبها ببطاقاته). تقدر تغلبه؟</p><div class="net-btns"><button class="btn primary" data-act="takeChallenge">⚔ اقبل التحدي</button><button class="btn ghost" data-act="closeModal">بعدين</button></div>`), 900);
   })();
   setTimeout(() => { const ST = AMB.settings; if (ST && !ST.seen('askBig') && S.screen === 'menu' && !$('modal-back').classList.contains('on')) { ST.markSeen('askBig');
     modal(`<h2>🔠 تبي الخط أكبر؟</h2><p class="hint">تقدر تغيّره بعدين من «المزيد» ← «الإعدادات».</p><div class="net-btns"><button class="btn primary" data-act="bigAsk" data-v="1">إيه، كبّره</button><button class="btn ghost" data-act="bigAsk" data-v="0">لا، كذا زين</button></div>`); } }, 1500);
