@@ -2851,3 +2851,27 @@ body.big-text .mv2 { height: calc((var(--app-h, 100vh) - 76px) / var(--z, 1)); m
   .sc { width: var(--scw, calc((100vw - 52px) / 3)); max-width: 150px; }
   .sd-cards { gap: 18px 8px; }
 }
+
+/* campaign world map: a compass with four arms (tap a world to see its stages) */
+.wm { position: relative; width: 100%; max-width: 440px; margin: 10px auto; height: min(560px, calc(var(--app-h, 100vh) - 260px)); min-height: 440px;
+  background: radial-gradient(circle at 50% 50%, #f3ead6 0%, #e7dbc0 55%, #d4c39b 100%); border: 3px solid #c9a04a; border-radius: 18px; box-shadow: 0 0 0 3px #000, inset 0 0 40px #7a5a2088; overflow: hidden; }
+.wm::before { content: ''; position: absolute; inset: 8px; border: 1px solid #c9a04a88; border-radius: 12px; pointer-events: none; }
+.wm-lines i { position: absolute; background: linear-gradient(90deg, transparent, #c9a04a, transparent); }
+.wm-lines i:first-child { left: 8%; right: 8%; top: 50%; height: 2px; }
+.wm-lines i:last-child { top: 8%; bottom: 8%; left: 50%; width: 2px; background: linear-gradient(180deg, transparent, #c9a04a, transparent); }
+.wm-core { position: absolute; left: 50%; top: 50%; width: 96px; height: 96px; transform: translate(-50%, -50%); display: grid; place-items: center; filter: drop-shadow(0 0 14px #f2c94c); pointer-events: none; }
+.wm-core svg { position: absolute; inset: 0; } .wm-core b { position: relative; font-size: 15px; color: #3a2400; text-shadow: 0 1px 0 #ffe9a0; }
+.wm-arm { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; text-align: center; color: #fff; border: 2px solid var(--wc); border-radius: 16px; padding: 8px 6px; min-width: 112px; min-height: 96px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--wc) 80%, #000) 0%, color-mix(in srgb, var(--wc) 45%, #000) 100%); box-shadow: 0 4px 0 #0008, 0 0 18px color-mix(in srgb, var(--wc) 40%, transparent); }
+.wm-arm b { font: 400 18px var(--display); text-shadow: 0 2px 0 #0008; line-height: 1.1; } .wm-arm small { font-size: 12px; opacity: .95; }
+.wm-ic svg { width: 34px; height: 34px; } .wm-arm.locked { filter: grayscale(.9) brightness(.65); }
+.wm-arm.done { box-shadow: 0 4px 0 #0008, 0 0 0 3px #4ade80; }
+.wm-arm.here { animation: summonGlow 1.1s ease-in-out infinite alternate; }
+.wm-lock { position: absolute; top: 4px; left: 6px; font-style: normal; } .wm-go { position: absolute; bottom: -12px; font-style: normal; font-size: 12px; font-weight: 700; background: #ffd24a; color: #2a1a00; border-radius: 999px; padding: 1px 10px; }
+.wm-top { top: 8%; left: 50%; transform: translateX(-50%); } .wm-bottom { bottom: 8%; left: 50%; transform: translateX(-50%); }
+.wm-left { left: 4%; top: 50%; transform: translateY(-50%); } .wm-right { right: 4%; top: 50%; transform: translateY(-50%); }
+.wm-back { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 8px 0; padding: 4px 6px; } .wm-back b { font-size: 18px; } .wm-back svg { width: 20px; height: 20px; vertical-align: -4px; }
+@media (prefers-reduced-motion: reduce) { .wm-arm.here { animation: none; } }
+.wm { min-height: 360px; height: min(540px, calc(var(--app-h, 100vh) - 300px)); }
+.wm-arm { min-height: 82px; min-width: 104px; padding: 6px; } .wm-ic svg { width: 28px; height: 28px; } .wm-arm b { font-size: 16px; }
+.wm-top { top: 5%; } .wm-bottom { bottom: 6%; }

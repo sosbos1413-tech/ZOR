@@ -12,6 +12,7 @@
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   let hero = null;   // hero used for campaign fights (remembered while the page is open)
   let starterSel = null;   // first-hero picker: the card selected before confirming
+  let camWorld = null;     // the world map: null = the four-arm hub, otherwise one world's levels
 
   const W = (id) => AMB.DATA.WORLDS[id];
   const pickHero = () => {
@@ -63,9 +64,29 @@
     const DF = LV.DIFFICULTY, cd = CAM.diff();
     const tabs = `<div class="cam-diff">${CAM.DIFFS.map((k) => `<button class="cd ${k === cd ? 'on' : ''}" style="--dc:${DF[k].color}" data-act="camDiff" data-v="${k}"><b>${DF[k].name}</b><small>★ ${CAM.totalStars(k)}/${CAM.maxStars()}</small></button>`).join('')}</div>
       <div class="hint cam-dnote">${cd === 'easy' ? 'أعداء أضعف وجوائز أصغر، لقصة مريحة' : cd === 'normal' ? 'الحملة الأساسية' : 'أعداء أقوى بـ30% وجوائز أكبر: باكجات مضاعفة وبطاقات أندر. كل مستوى ينفتح بعد ما تخلصه في «متوسط»'}</div>`;
-    root.innerHTML = tabs + `<div class="cam-note">⚔️ جولتين من 3 تكسب (الزعيم 4 من 7) · ⭐ النجوم تفتح صناديق · 👑 كل نجمة زعيم لها جائزة <button class="ibtn" data-act="info" data-k="caminfo" title="شرح">ⓘ</button></div>
+    // ---- world map: a compass with four arms; tapping a world shows only that world's levels (Neon -> Neon-9 street + Network stage)
+    const WORLD_ORDER = ['ember', 'sylvan', 'neon', 'tide'];   // left, top, right, bottom
+    const worldLevels = (w) => LV.LEVELS.map((l, li) => ({ l, li })).filter((x) => x.l.world === w);
+    const nextId = CAM.next(), nextF = nextId && CAM.find(nextId);
+    if (camWorld && !worldLevels(camWorld).length) camWorld = null;
+    if (!camWorld) {
+      const arm = (w, pos) => {
+        const ls = worldLevels(w), wd = W(w), total = ls.reduce((n, x) => n + x.l.fights.length, 0), cleared = ls.reduce((n, x) => n + CAM.progress(x.l.id).cleared, 0);
+        const stars = ls.reduce((n, x) => n + CAM.levelStars(x.l.id), 0), maxS = total * 3, open = ls.some((x) => CAM.levelUnlocked(x.li)), here = nextF && nextF.level.world === w;
+        return `<button class="wm-arm wm-${pos} ${open ? '' : 'locked'} ${here ? 'here' : ''} ${cleared >= total ? 'done' : ''}" style="--wc:${wd.color}" data-act="camWorld" data-w="${w}" aria-label="${esc(wd.name)}">
+          <span class="wm-ic">${icon(AMB.art.WORLD_ICON[w])}</span><b>${esc(wd.name)}</b><small><bdi dir="ltr">${cleared}/${total}</bdi> · ★ <bdi dir="ltr">${stars}/${maxS}</bdi></small>${open ? '' : '<i class="wm-lock">🔒</i>'}${here ? '<i class="wm-go">▶ كمّل</i>' : ''}</button>`;
+      };
+      const totalAll = LV.LEVELS.reduce((n, l) => n + l.fights.length, 0), doneAll = LV.LEVELS.reduce((n, l) => n + CAM.progress(l.id).cleared, 0);
+      root.innerHTML = tabs + `<div class="wm"><div class="wm-lines"><i></i><i></i></div>
+        ${arm('sylvan', 'top')}${arm('ember', 'left')}${arm('neon', 'right')}${arm('tide', 'bottom')}
+        <div class="wm-core"><svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,4 58,34 90,24 66,46 96,60 62,62 70,94 50,70 30,94 38,62 4,60 34,46 10,24 42,34" fill="#f2c94c" stroke="#a87a12" stroke-width="1.5"/></svg><b><bdi dir="ltr">${doneAll}/${totalAll}</bdi></b></div></div>
+        ${chestsHTML()}`;
+      refreshMenu(); return;
+    }
+    const wd = W(camWorld);
+    root.innerHTML = tabs + `<div class="wm-back"><button class="btn small ghost" data-act="camWorld" data-w="">‹ خريطة العوالم</button><b style="color:${wd.color}">${icon(AMB.art.WORLD_ICON[camWorld])} ${esc(wd.name)}</b></div>` + `<div class="cam-note">⚔️ جولتين من 3 تكسب (الزعيم 4 من 7) · ⭐ النجوم تفتح صناديق · 👑 كل نجمة زعيم لها جائزة <button class="ibtn" data-act="info" data-k="caminfo" title="شرح">ⓘ</button></div>
       ${chestsHTML()}
-      <div class="cam-levels">${LV.LEVELS.map((l, li) => {
+      <div class="cam-levels">${LV.LEVELS.map((l, li) => ({ l, li })).filter((x) => x.l.world === camWorld).map(({ l, li }) => {
         const pr = CAM.progress(l.id), unlocked = CAM.levelUnlocked(li);
         const lockMsg = cd === 'hard' && !CAM.levelDone(l.id, 'normal') ? '🔒 خلّصه في «متوسط» أول' : '🔒 خلّص المستوى اللي قبله';
         return `<section class="cam-level ${unlocked ? '' : 'locked'} ${CAM.levelDone(l.id, cd) ? 'done' : ''}" style="--wc:${W(l.world).color}">
@@ -162,6 +183,7 @@
   function installActions() {
     const ui = UI(); if (!ui || ui.ACT.camFight) return;
     Object.assign(ui.ACT, {
+      camWorld: (d) => { camWorld = d.w || null; ui.sfx('click'); render(); window.scrollTo(0, 0); },
       camFight: (d) => preview(d.id),
       camHero: (d) => { hero = d.id; preview(d.f); },
       camGo: (d) => start(d.id),
