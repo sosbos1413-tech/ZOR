@@ -588,6 +588,21 @@
     setTimeout(() => b.remove(), 1500);
   }
 
+  // UI v2: a hero ability fired: its name bursts over that hero's half of the field (one element, CSS transform/opacity only, gone in 1.2 s)
+  function abilityBurst(name, side, color) {
+    const fl = $('floats'); if (!fl) return;
+    const mine = S.combatViewer == null ? side === S.v : side === S.combatViewer;
+    const old = fl.querySelector('.ab-burst.' + (mine ? 'me' : 'foe')); if (old) old.remove();
+    const el = document.createElement('div');
+    el.className = 'ab-burst ' + (mine ? 'me' : 'foe');
+    el.style.setProperty('--bc', color || '#ffd24a');
+    el.innerHTML = '<i class="abr"></i><i class="abr two"></i><b></b>';
+    el.querySelector('b').textContent = name;
+    fl.appendChild(el);
+    sfx('cast');
+    setTimeout(() => el.remove(), 1250);
+  }
+
   function drawCombat(skipFx) {
     const c = S.combat;
     const byId = {};
@@ -608,10 +623,12 @@
       cl.toggle('shielded', f.shield > 1);
     }
     renderPosts();
-    const clock = document.querySelector('.combat-ctrl .clock');
-    if (clock) clock.textContent = fmt(c.t, 1) + 's';
+    // clock + fury: written only when the text changes (this runs every frame)
+    const clock = document.querySelector('.combat-ctrl .clock'), ct = fmt(c.t, 1) + 's';
+    if (clock && clock._t !== ct) { clock._t = ct; clock.textContent = ct; }
     const fury = document.querySelector('.combat-ctrl .fury');
-    if (fury) fury.innerHTML = c.t > CFG.combat.furyStart ? `${icon('flame')}×${fmt(c.fury(), 2)}` : (c.assault ? icon('warn') : '');
+    const fh = c.t > CFG.combat.furyStart ? `${icon('flame')}×${fmt(c.fury(), 2)}` : (c.assault ? icon('warn') : '');
+    if (fury && fury._h !== fh) { fury._h = fh; fury.innerHTML = fh; }
 
     const events = c.drainEvents();
     if (skipFx) return;
@@ -654,8 +671,11 @@
         fx.appendChild(ln);
         requestAnimationFrame(() => (ln.style.opacity = 0));
         setTimeout(() => ln.remove(), 280);
-      } else if (e.type === 'heroAbility' || e.type === 'spell') {
-        addFloat(50, e.side === S.combatViewer ? 62 : 38, (e.type === 'spell' ? '✦ ' : '⚡ ') + e.name, 'big');
+      } else if (e.type === 'heroAbility') {
+        const hh = HEROES[S.match.players[e.side].heroId];
+        abilityBurst(e.name, e.side, WORLDS[hh.world].color);
+      } else if (e.type === 'spell') {
+        addFloat(50, e.side === S.combatViewer ? 62 : 38, '✦ ' + e.name, 'big');
       } else if (e.type === 'exposed') {
         addFloat(50, e.side === S.combatViewer ? 84 : 16, 'سقط خط الدفاع!', 'big');
       } else if (e.type === 'assault') {
@@ -675,7 +695,11 @@
   // ======================================================================= match rendering
   function renderMatch(keepTokens) {
     if (!S.match) return;
+    // UI v2: the screen knows the phase, so CSS can hide the shop and the prep buttons while the fight plays
+    const scr = $('scr-match'), ph = S.phase === 'combat' || S.phase === 'result' ? 'fight' : 'prep';
+    if (scr && scr.dataset.ph !== ph) scr.dataset.ph = ph;
     renderTop();
+    renderOpp();
     renderSlots();
     if (S.phase !== 'combat' && !keepTokens) { $('fx').innerHTML = ''; $('floats').innerHTML = ''; }
     renderPosts();
@@ -754,6 +778,44 @@
       <button class="btn small ibtn2" data-act="menuMatch">☰</button>`;
   }
 
+  // UI v2: the opponent panel above the field (hero, name, level, life). Built once per render; in combat only the life changes (oppLife)
+  function renderOpp() {
+    const el = $('opp-panel'); if (!el) return;
+    const m = S.match, v = viewerSide(), o = m.players[1 - v], h = HEROES[o.heroId];
+    el.style.setProperty('--ow', WORLDS[h.world].color);
+    el.innerHTML = `${portrait(h, { k: 'opp' })}<span class="op-n">${esc(o.name)}</span>
+      <span class="op-lv" title="المستوى">${icon('crown')}<b>${o.level}</b></span>
+      <span class="op-life"><span class="op-bar"><i></i></span>${icon('heart')}<b>${lifeStr(o.life)}</b></span>`;
+    S.oppUi = { bar: el.querySelector('.op-bar i'), num: el.querySelector('.op-life b'), txt: '', pct: -1 };
+    oppLife(o.life, o.maxLife);
+  }
+  function oppLife(life, max) { barLife(S.oppUi, life, max); }
+  function dockLife(life, max) { barLife(S.dockUi, life, max); }
+  function barLife(u, life, max) {   // called every combat frame: writes to the DOM only when the shown value changes
+    if (!u || !u.bar) return;
+    const txt = String(lifeStr(life)), pct = Math.round(Math.max(0, Math.min(1, life / (max || 1))) * 200) / 200;
+    if (txt !== u.txt) { u.txt = txt; u.num.textContent = txt; }
+    if (pct !== u.pct) { u.pct = pct; u.bar.style.transform = `scaleX(${pct})`; }
+  }
+  // UI v2: each half of the field gets its owner's world floor (CSS gradients only). Bottom = you (or your arena cosmetic), top = the opponent:
+  // the campaign level's world against a boss line-up, otherwise the opponent's hero world (random for a random computer hero, your friend's hero online)
+  function foeWorld(v) {
+    const o = S.match.players[1 - v];
+    if (S.mode === 'campaign' && S.campaign && AMB.campaign && AMB.campaign.find) {
+      try { const x = AMB.campaign.find(S.campaign.fightId); if (x && x.level && WORLDS[x.level.world]) return x.level.world; } catch (e) { /* fall back to the hero */ }
+    }
+    if (o.arenaWorld && WORLDS[o.arenaWorld]) return o.arenaWorld;
+    return HEROES[o.heroId].world;
+  }
+  function setFloors(fe, mine, foe) {
+    const bg = fe.querySelector('.field-bg'); if (!bg) return;
+    const key = foe + '|' + mine;
+    if (bg.dataset.fl === key) return;
+    bg.dataset.fl = key;
+    bg.innerHTML = `<i class="fl top w-${foe}"></i><i class="fl bot w-${mine}"></i><div class="rift-line"></div>`;
+    fe.classList.add('v2f');
+  }
+
   // Field = a CSS grid of cards:  enemy post / enemy back / enemy front / rift / my front / my back / my post
   function renderSlots() {
     if (S.phase === 'combat' || S.phase === 'result') return; // combat view is built by buildTokens()
@@ -800,6 +862,7 @@
     if (AMB.PassUI) { const ac = (v === 0 && S.mode !== 'hotseat') ? AMB.PassUI.arenaClass() : ''; [...fe.classList].filter((c) => c.startsWith('ar-')).forEach((c) => fe.classList.remove(c)); if (ac) fe.classList.add(ac); }
     fe.style.setProperty('--mw', WORLDS[HEROES[p.heroId].world].color);
     fe.style.setProperty('--ew', WORLDS[HEROES[m.players[o].heroId].world].color);
+    setFloors(fe, HEROES[p.heroId].world, foeWorld(v));
     $('slots').innerHTML =
       row(o, 'b', false) + row(o, 'f', false) +
       `<div class="divider"><span>${inCombat ? '' : icon('eye')}</span></div>` +
@@ -831,8 +894,12 @@
       const st = onBoard && !inCombat ? `<span class="st">${icon('crown')}</span>` : safe ? `<span class="st safe">${icon('shield')}${front ? `<b>${front}</b>` : ''}</span>` : `<span class="st risk">${icon('warn')}</span>`;
       el.style.setProperty('--wc', WORLDS[h.world].color);
       el.className = 'post' + (onBoard && !inCombat ? ' empty-hero' : '') + (exposed && !onBoard ? ' exposed' : '') + (safe ? '' : ' risk');
+      const shown = S.phase === 'result' ? p.life : life;   // after the fight: the life after the round's damage
+      if (side !== viewer) oppLife(shown, p.maxLife); else dockLife(shown, p.maxLife);
       const chip = document.querySelectorAll('#topbar .lifechip')[side === viewer ? 0 : 1];   // the phone shows hero life + safety in the top bar (the posts are hidden there)
-      if (chip) { const b = chip.querySelector('b'); if (b) b.textContent = lifeStr(life); const ls = chip.querySelector('.lc-st'); if (ls) ls.innerHTML = onBoard && !inCombat ? icon('crown') : safe ? icon('shield') : icon('warn'); chip.classList.toggle('risk', !safe && !(onBoard && !inCombat)); }
+      // per-frame in combat: touch the chip only when what it shows changes
+      const csig = lifeStr(shown) + '|' + (onBoard && !inCombat ? 'c' : safe ? 's' : 'w');
+      if (chip && chip._sig !== csig) { chip._sig = csig; const b = chip.querySelector('b'); if (b) b.textContent = lifeStr(shown); const ls = chip.querySelector('.lc-st'); if (ls) ls.innerHTML = onBoard && !inCombat ? icon('crown') : safe ? icon('shield') : icon('warn'); chip.classList.toggle('risk', !safe && !(onBoard && !inCombat)); }
       // rebuilding the post (portrait + icons) every animation frame was the most expensive thing in combat: rebuild it only when something but the life changed
       const sig = [side, p.heroId, onBoard, inCombat, safe, exposed, front].join('|');
       if (el.dataset.sig !== sig || !el.querySelector('.lifebar i')) {
@@ -894,19 +961,22 @@
       const it = ITEMS[id];
       return itemCardHTML(it, { cls: p.gold >= it.cost ? '' : 'cant', attrs: `data-act="buyItem" data-idx="${i}"` });
     }).join('');
-    const freeR = p.freeRerolls > 0;
+    const freeR = p.freeRerolls > 0, maxed = p.level >= E.maxLevel, need = m.xpNeeded(p);
+    const rCost = freeR ? 0 : E.rerollCost;
+    const price = (n, ok) => `<span class="pr ${ok ? '' : 'no'}">${icon('gold')}<b>${n}</b></span>`;
+    // UI v2 dock: «جاهز» next to your hero, then round icon buttons (refresh / lock / XP / upgrades) with their prices
     $('shopbar').innerHTML = `
-      <div class="shop-actions">
-        <button class="btn ib-act" data-act="reroll" title="D"><span class="lb">تحديث</span><span class="cost">${freeR ? '0' : icon('gold') + E.rerollCost}</span></button>
-        <button class="btn ib-act" data-act="xp" ${p.level >= E.maxLevel ? 'disabled' : ''} title="F"><span class="lb">خبرة</span><span class="cost">${icon('gold')}${E.xpCost}</span></button>
-        <button class="btn ib-act ${p.shopLocked ? 'on' : ''}" data-act="lock"><span class="lb">${p.shopLocked ? 'مثبّت' : 'تثبيت'}</span></button>
+      <div class="shop-dock">
+        <button class="btn primary ready-btn" data-act="ready" title="Enter"><span class="lb">جاهز</span></button>
+        <button class="dock-hero" data-act="heroDock" title="قدرات البطل" aria-label="قدرات البطل" style="--wc:${WORLDS[HEROES[p.heroId].world].color}">${portrait(myAvatar(p, 0), { k: 'dock' })}<span class="dh-lv">${icon('crown')}${p.level}</span></button>
+        <span class="dock-sp"></span>
+        <button class="sb-ic" data-act="reroll" title="تحديث المتجر (D)" aria-label="تحديث المتجر">${icon('refresh')}${price(rCost, p.gold >= rCost)}</button>
+        <button class="sb-ic ${p.shopLocked ? 'on' : ''}" data-act="lock" title="${p.shopLocked ? 'المتجر مثبّت' : 'ثبّت المتجر للجولة الجاية'}" aria-label="تثبيت المتجر">${icon(p.shopLocked ? 'lock' : 'unlock')}</button>
+        <button class="sb-ic xp" data-act="xp" ${maxed ? 'disabled' : ''} title="اشتر خبرة (F)" aria-label="اشتر خبرة">${icon('up')}${maxed ? '' : price(E.xpCost, p.gold >= E.xpCost)}<i class="xpm"><i style="transform:scaleX(${need ? Math.min(1, p.xp / need) : 1})"></i></i></button>
+        <button class="sb-ic" data-act="upgrades" title="شاشة التطوير" aria-label="شاشة التطوير">${icon('star')}</button>
       </div>
       <div class="shop-row"><div class="shop-cards">${cards}</div>
-      <div class="item-cards">${items}</div></div>
-      <div class="shop-actions">
-        <button class="btn ib-act" data-act="upgrades"><span class="lb">تطوير</span></button>
-        <button class="btn primary ready-btn" data-act="ready" title="Enter"><span class="lb">جاهز</span></button>
-      </div>`;
+      <div class="item-cards">${items}</div></div>`;
   }
 
   const SYN_ICON = (s) => (s.kind === 'world' ? ART.WORLD_ICON[s.id] : s.kind === 'special' ? 'star' : ART.ROLE_ICON[s.id]);
@@ -1036,10 +1106,16 @@
   }
   function renderCombatCtrl() {
     const el = $('combat-ctrl');
-    if (S.phase === 'combat') {
-      el.innerHTML = `<span class="clock">0.0s</span>
-        ${[1, 2, 4].map((s) => `<button class="btn small ${S.speed === s ? 'on' : ''}" data-act="speed" data-v="${s}">${s}x</button>`).join('')}
-        <button class="btn small ib" data-act="skip">تخطي</button><span class="fury"></span>${combatSynHTML()}`;
+    S.dockUi = null;
+    if (S.phase === 'combat' || S.phase === 'result') {
+      // UI v2 combat dock: your hero + life on one side, clock / speed / skip on the other, synergy chips under them
+      const p = me(), h = HEROES[p.heroId];
+      el.innerHTML = `<div class="cc-dock"><span class="cc-hero" style="--wc:${WORLDS[h.world].color}">${portrait(myAvatar(p, 0), { k: 'ccd' })}<span class="cc-life"><span class="op-bar"><i></i></span>${icon('heart')}<b>${lifeStr(p.life)}</b></span></span>
+        <span class="cc-sp"></span>
+        ${S.phase === 'combat' ? `<span class="clock">0.0s</span><span class="fury"></span><button class="btn small cc-speed" data-act="speed" data-v="${S.speed >= 4 ? 1 : S.speed * 2}" title="السرعة" aria-label="السرعة">${icon('play')}<b>${S.speed}x</b></button>
+        <button class="btn small ib cc-skip" data-act="skip">${icon('skip')}تخطي</button>` : ''}</div>${combatSynHTML()}`;
+      S.dockUi = { bar: el.querySelector('.cc-life .op-bar i'), num: el.querySelector('.cc-life b'), txt: '', pct: -1 };
+      dockLife(p.life, p.maxLife);
     } else if (S.phase === 'prep' || S.phase === 'resources') {
       el.innerHTML = prepBarHTML();
     } else el.innerHTML = '';
@@ -1414,6 +1490,8 @@
       renderTop();
     },
     panels: () => { S.panels = !S.panels; $('scr-match').classList.toggle('show-panels', S.panels); renderTop(); },
+    // your hero in the bottom dock: opens the abilities layer where the phone has one (portrait), otherwise the hero card
+    heroDock: () => { if (matchMedia('(max-width: 860px) and (orientation: portrait)').matches) ACT.panels(); else heroDetail(me().heroId); },
     menuMatch: () => matchMenu(),
     resumeMenu: () => {
       closeModal();
@@ -1627,5 +1705,6 @@
 
   // debug / testing hook
   globalThis.AMB_UI = { renderHeroSelect, startCombat, afterReward, showResults, S, ACT, itemsHTML: () => Object.values(ITEMS).map((it) => itemCardHTML(it)).join(''), renderMatch, cardHTML, itemCardHTML, show, toast, sfx, burst, modal, closeModal, overlay, closeOverlay, startMatch, portrait, stars };
+  globalThis.AMB_UI.abilityBurst = abilityBurst;   // UI v2 (match screens)
   if (AMB.PassUI) { AMB.PassUI.installActions(); AMB.PassUI.applyCosmetics(); AMB.PassUI.refreshMenu(); }
 })();

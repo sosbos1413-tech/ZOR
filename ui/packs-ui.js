@@ -66,22 +66,38 @@
     const T = FX ? FX.revealTimes(order) : order.map((_, i) => 0.35 + i * 0.45);
     const cards = order.map((c, i) => `<div class="rv" style="--d:${T[i].toFixed(2)}s;--rc:${RAR[c.rarity].color}" data-r="${c.rarity}">
         ${RAR[c.rarity].order >= 3 ? '<i class="rv-rays"></i>' : ''}<div class="rv-in"><div class="rv-back"><span>ZOR</span></div><div class="rv-front">${ui.cardHTML(C.def(c.id), { k: 'rv' + i + c.id, lvl: c.level })}${tagFor(c)}</div></div></div>`).join('');
-    ui.overlay(`<div class="rv-wrap ${'best-' + best.rarity}"><h2>${res.forced ? 'الضمان اشتغل! ' : ''}${RAR[best.rarity].name === RAR.legendary.name ? '✨ ليجندري! ✨' : 'باكج الصدع'}</h2>
+    // UI v2: bigger cards (3 + 2 on phones), the rarest last with a longer build-up, and a «تخطي» button that turns the rest at once
+    ui.overlay(`<div class="rv-wrap rv2 ${'best-' + best.rarity}"><h2>${res.forced ? 'الضمان اشتغل! ' : ''}${RAR[best.rarity].name === RAR.legendary.name ? '✨ ليجندري! ✨' : 'باكج الصدع'}</h2>
       <div class="rv-row">${cards}</div>
       ${res.refund ? `<p class="hint">نسخ بطاقات بالمستوى الأقصى تحوّلت إلى ${res.refund} شظية.</p>` : ''}
       <p class="rv-pity">${res.pityLeft === 0 ? 'الباكج الجاي فيه ليجندري مضمون!' : `باقي ${res.pityLeft} على ضمان الليجندري`}</p>
-      <div class="rv-btns"><button class="btn primary" data-act="packOpen" ${W.canAfford(P.def(PACK).cost) ? '' : 'disabled'}>افتح باكج ثاني · ${icon('gem')} ${P.def(PACK).cost.shards}</button>
+      <div class="rv-btns"><button class="btn rv-skip" data-act="rvSkip">${icon('skip')} تخطي</button><button class="btn primary" data-act="packOpen" ${W.canAfford(P.def(PACK).cost) ? '' : 'disabled'}>افتح باكج ثاني · ${icon('gem')} ${P.def(PACK).cost.shards}</button>
         <button class="btn" data-act="packDone" data-to="cards">مجموعتي</button><button class="btn ghost" data-act="packDone">تم</button></div></div>`);
     const wrap = document.querySelector('.rv-wrap');
+    const timers = [];
+    const at = (fn, ms) => timers.push(setTimeout(fn, ms));
+    const live = () => $('overlay').classList.contains('on') && wrap.isConnected;
     order.forEach((c, i) => {
       const L = RAR[c.rarity].order;
-      if (FX && L >= 3) setTimeout(() => { if ($('overlay').classList.contains('on')) FX.charge(wrap, c.rarity); }, Math.max(0, T[i] * 1000 - (L === 4 ? 1300 : 600)));
-      setTimeout(() => {
-        if (!$('overlay').classList.contains('on')) return;
-        const el = document.querySelectorAll('.rv')[i];
+      if (FX && L >= 3) at(() => { if (live()) FX.charge(wrap, c.rarity); }, Math.max(0, T[i] * 1000 - (L === 4 ? 1300 : 600)));
+      at(() => {
+        if (!live()) return;
+        const el = wrap.querySelectorAll('.rv')[i];
         if (FX) FX.reveal(el, c.rarity, wrap, c); else ui.sfx(L >= 3 ? 'merge' : 'click');
+        if (i === order.length - 1) wrap.classList.add('rv-done');
       }, T[i] * 1000 + 300);
     });
+    // skip: stop the remaining timers, turn every card now, and give the best card its effect once
+    wrap._skip = () => {
+      if (wrap.classList.contains('rv-done')) return;
+      timers.forEach(clearTimeout); timers.length = 0;
+      ['rv-charge-3', 'rv-charge-4'].forEach((k) => wrap.classList.remove(k));
+      wrap.classList.add('rv-skipped', 'rv-done');
+      const els = wrap.querySelectorAll('.rv');
+      els.forEach((el) => el.classList.add('hit'));
+      const bi = order.indexOf(best);
+      if (FX && els[bi]) FX.reveal(els[bi], best.rarity, wrap, best); else ui.sfx('click');
+    };
   }
 
   function installActions() {
@@ -93,6 +109,7 @@
         if (!res) { ui.toast('ما عندك شظايا كافية', 'err'); return; }
         render(); reveal(res);
       },
+      rvSkip: () => { const w = document.querySelector('#overlay .rv-wrap'); if (w && w._skip) w._skip(); },
       packDone: (d) => { ui.closeOverlay(); if (d.to) ui.show(d.to); else render(); },
     });
   }
