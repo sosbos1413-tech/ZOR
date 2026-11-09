@@ -70,6 +70,9 @@
       const syn = AMB.synergy.evaluate(spec.units, spec.heroId);
       side.synergy = syn;
       const spells = (spec.spells || []).map((id) => ITEMS[id].spell);
+      // world rules: an active world synergy also gives its members a signature mechanic (ignite / tide shield / jam / grow)
+      side.rules = {};
+      syn.list.forEach((sy) => { if (sy.kind === 'world' && sy.activeTier >= 0 && sy.tiers[sy.activeTier].rule) side.rules[sy.id] = sy.tiers[sy.activeTier].rule; });
 
       // --- units
       spec.units.forEach((u) => {
@@ -108,6 +111,7 @@
           regenPct: mods.regenPct, mana: mods.startMana, maxMana: def.mana, skill: def.skill, sig: def.sig || null, inPlace,
         });
         if (mods.startShieldPct) f.shield += maxHp * mods.startShieldPct;
+        if (side.rules[def.world]) { f.wrule = side.rules[def.world]; f.atk0 = f.atk; f.maxHp0 = maxHp; f.growN = 0; f._gn = f.wrule.every || 0; }
       });
 
       // --- hero (summoned onto the board, or waiting at the command post)
@@ -213,7 +217,7 @@
     }
 
     effAtk(f) { return f.atk * (1 + this.buffSum(f, 'atkPct')); }
-    effAs(f) { return f.as * (1 + this.buffSum(f, 'asPct')); }
+    effAs(f) { return f.as * (1 + this.buffSum(f, 'asPct')) * (f.jam && f.jam.until > this.t ? 1 - f.jam.pct : 1); }   // neon rule: a jammed unit attacks slower
     effDef(f) { return clamp(f.def + this.buffSum(f, 'dr'), 0, this.C.maxDef); }
     fury() { return this.t > this.C.furyStart ? 1 + this.C.furyPerSec * (this.t - this.C.furyStart) : 1; }
 
@@ -308,6 +312,9 @@
       f.alive = false;
       f.hp = 0;
       this.sides[f.side].deaths += f.isHero ? 0 : 1;
+      if (!f.isHero) this.fighters.forEach((a) => {   // tide rule: when an ally falls, the living tide units get a shield
+        if (a.alive && a.side === f.side && a.wrule && a.wrule.type === 'tideShield') { a.shield += a.maxHp * a.wrule.pct; this.emit({ type: 'status', id: a.id, text: 'درع المدّ' }); }
+      });
       if (src && src.alive && !src.isHero) {   // legendary kill triggers
         if (src.sig === 'bloodrush' && (src._br || 0) < 3) { src._br = (src._br || 0) + 1; src.buffs.push({ asPct: 0.2, until: Infinity }); }
         if (src.sig === 'reaper' && src.skill) src.mana = src.maxMana;
@@ -398,6 +405,18 @@
       }
     }
 
+    // world rules that ride on a basic attack: ember ignites the target, neon jams (slows) its attacks
+    _worldHit(f, tgt) {
+      const r = f.wrule;
+      if (r.type === 'ignite') {
+        if (!tgt.ignite || tgt.ignite.until <= this.t) this.emit({ type: 'status', id: tgt.id, text: 'حرق' });
+        tgt.ignite = { dps: this.effAtk(f) * r.pct, until: this.t + r.dur, src: f.id };
+      } else if (r.type === 'jam') {
+        if (!tgt.jam || tgt.jam.until <= this.t) this.emit({ type: 'status', id: tgt.id, text: 'بطء' });
+        tgt.jam = { pct: r.pct, until: this.t + r.dur };
+      }
+    }
+
     stun(f, dur) { if (f.alive && !f.passive) { f.stun = Math.max(f.stun, dur); this.emit({ type: 'stun', id: f.id }); } }
 
     // ---------------------------------------------------------------- hero abilities / spells
@@ -483,6 +502,19 @@
         f.buffs = f.buffs.filter((b) => b.until > this.t);
         if (f.sig === 'frostaura' && this.t >= (f._au || 0)) { f._au = this.t + 0.25; this.enemiesOf(f).forEach((e) => { if (!e.isHero && dist(e, f) <= 2.6) e.buffs.push({ asPct: -0.12, until: this.t + 0.4 }); }); }
         if (f.sig === 'bloom' && this.t >= (f._bl || 3)) { f._bl = this.t + 3; this.fighters.forEach((a) => { if (a.side === f.side && a.alive && !a.isHero) this.heal(a, a.maxHp * 0.03, true); }); }
+        if (f.wrule && f.wrule.type === 'grow' && f.growN < f.wrule.max && this.t >= f._gn) {   // sylvan rule: the unit grows every few seconds
+          f._gn += f.wrule.every; f.growN++;
+          f.atk += f.atk0 * f.wrule.pct; const add = f.maxHp0 * f.wrule.pct; f.maxHp += add; f.hp += add;
+          this.emit({ type: 'status', id: f.id, text: 'نمو' });
+        }
+        if (f.ignite) {   // ember rule: a burn that refreshes on every hit (one at a time, it does not stack)
+          if (f.ignite.until <= this.t) f.ignite = null;
+          else {
+            const ig = f.ignite, src = this.fighters.find((x) => x.id === ig.src);
+            this.damage(src && src.alive ? src : null, f, ig.dps * dt, { skill: true, dot: true });
+            if (!f.alive) continue;
+          }
+        }
         if (f.dots.length) {
           f.dots = f.dots.filter((d) => d.until > this.t);
           for (const d of f.dots) {
@@ -517,6 +549,7 @@
             if (f.sig === 'overload' && (f.ov || 0) < 10) { f.ov = (f.ov || 0) + 1; f.as *= 1.03; }
             this.emit({ type: 'attack', from: f.id, to: tgt.id, ranged: f.range > 1 });
             this.damage(f, tgt, this.effAtk(f) * (crit ? f.critDmg : 1), { crit });
+            if (f.wrule && tgt.alive && !tgt.passive) this._worldHit(f, tgt);
             if (f.skill) f.mana = Math.min(f.maxMana, f.mana + this.C.manaPerAttack);
           }
         }

@@ -27,7 +27,8 @@
     let s = 0;
     const sameStar1 = owned.filter((u) => u.defId === defId && u.star === 1).length;
     const sameAny = owned.filter((u) => u.defId === defId).length;
-    s += sameStar1 * 2.6 + (sameAny - sameStar1) * 1.2;
+    const sameStar2 = owned.filter((u) => u.defId === defId && u.star === 2).length;
+    s += sameStar1 * 2.6 + sameStar2 * 2.4 + (sameAny - sameStar1 - sameStar2) * 0.3;   // a copy toward ★★★ is worth chasing too
     const style = p.aiStyle;
     if (def.world === hero.world) s += style === 'mono' ? 3 : style === 'balanced' ? 1.4 : 0.4;
     const roles = {};
@@ -94,6 +95,16 @@
     });
   }
 
+  // how well an equipment piece fits the current board (0 = no good holder)
+  function itemFit(match, p, it) {
+    const board = match.allUnits(p).filter((u) => u.items.length < AMB.CONFIG.economy.maxItemsPerUnit);
+    if (!board.length) return 0;
+    const tank = board.some((u) => ['guardian', 'fighter'].includes(AMB.DATA.UNITS[u.defId].role));
+    if (it.id === 'star_plate') return tank ? 1 : 0.3;
+    if (it.id === 'mana_prism') return board.some((u) => ['mage', 'support'].includes(AMB.DATA.UNITS[u.defId].role)) ? 1 : 0.4;
+    return 1;
+  }
+
   function prep(match, pi) {
     const p = match.players[pi];
     if (p.lineup) return;   // scripted campaign enemy: its board is set by match.applyLineup
@@ -110,6 +121,20 @@
       const surplus = p.gold - E.xpCost - reserve * (1 / cfg.levelAggro);
       const almost = match.xpNeeded(p) - p.xp <= E.xpPerBuy;
       if (boardFull && (surplus >= 0 || (almost && p.gold - E.xpCost >= reserve * 0.5))) match.buyXp(pi); else break;
+    }
+
+    // --- equipment first: it stays on the unit (and moves with it on a merge), so one piece every other round is a sound buy
+    if (!cfg.noItems && match.round >= 2) {
+      const owned = p.items.filter((id) => AMB.DATA.ITEMS[id].kind === 'equip').length + match.allUnits(p).reduce((n, u) => n + u.items.length, 0);
+      const want = Math.floor(match.round / 2) + (cfg.itemGreed || 0);
+      let best = -1, bs = 0;
+      p.itemShop.forEach((id, i) => {
+        const it = id && AMB.DATA.ITEMS[id];
+        if (!it || it.kind !== 'equip' || p.gold < it.cost + (cfg.itemKeep == null ? 2 : cfg.itemKeep)) return;
+        const sc = itemFit(match, p, it);
+        if (sc > bs) { bs = sc; best = i; }
+      });
+      if (best >= 0 && owned < want) match.buyItem(pi, best);
     }
 
     // --- buying / rerolling
@@ -135,9 +160,9 @@
       break;
     }
 
-    // --- items
-    p.itemShop.forEach((id, i) => {
-      if (!id) return;
+    // --- items: spells only with spare gold (they last one combat)
+    if (!cfg.noItems) p.itemShop.forEach((id, i) => {
+      if (!id || AMB.DATA.ITEMS[id].kind !== 'spell') return;
       const it = AMB.DATA.ITEMS[id];
       if (p.gold - it.cost >= reserve && match.boardCount(p) + p.bench.filter(Boolean).length >= 2 && rng.chance(0.7)) match.buyItem(pi, i);
     });
