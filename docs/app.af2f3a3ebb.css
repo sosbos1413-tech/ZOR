@@ -2753,3 +2753,78 @@ body.big-text #bnav button span, body.big-text #bnav button small { display: rev
   #scr-match.prep-focus .field-wrap { --cwv: min(calc((100vw - 30px) / 4), 150px); }
 }
 #scr-match.prep-focus .field .cell .tcard.mini { height: 100%; }
+
+/* ===================== new arena layout (phones, portrait): ruins battlefield, round bench, leather shop drawer ===================== */
+.shop-toggle, .shop-drawer, .bmed { display: none; }
+@media (max-width: 860px) and (orientation: portrait) {
+  #scr-match.prep-focus .field { background: url(assets/ui/arena/bg.333d4f46f6.webp) center / cover no-repeat; border-radius: 10px; }
+  #scr-match.prep-focus .field .cell.mine { border: 0; background: url(assets/ui/arena/slot.fa4b2f815d.webp) center / 100% 100% no-repeat; opacity: .92; }
+  #scr-match.prep-focus .field .cell.mine:has(.tcard) { background: none; opacity: 1; }
+  #scr-match.prep-focus .field .cell.mine .rowic { opacity: .45; }
+  /* bench: six round medallions */
+  #scr-match.prep-focus #bench { display: flex; justify-content: center; gap: 8px; padding: 4px 0; background: none; border: 0; }
+  #scr-match.prep-focus #bench .lbl { display: none; }
+  #scr-match.prep-focus #bench .bslot { width: 50px; height: 50px; min-width: 50px; flex: none; border: 0; border-radius: 50%; background: url(assets/ui/arena/btn.68220622e0.webp) center / 100% 100% no-repeat; display: grid; place-items: center; padding: 0; }
+  #scr-match.prep-focus #bench .bslot > .tcard { display: none; }
+  #scr-match.prep-focus #bench .bmed { display: block; position: relative; width: 40px; height: 40px; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 2px #c9a04a; }
+  #scr-match.prep-focus #bench .bmed.sel { box-shadow: 0 0 0 3px #ffd24a, 0 0 12px #ffd24a; }
+  #scr-match.prep-focus #bench .bmed .portrait { width: 100%; height: 100%; }
+  #scr-match.prep-focus #bench .bm-st { position: absolute; bottom: -1px; left: 0; right: 0; text-align: center; font-size: 9px; color: #ffd24a; text-shadow: 0 1px 2px #000; font-style: normal; }
+  /* the old shop row and round dock buttons move into the drawer */
+  #scr-match.prep-focus #shopbar .shop-row, #scr-match.prep-focus #shopbar .sb-ic { display: none !important; }
+  #scr-match.prep-focus .shop-toggle { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-width: 64px; min-height: 52px; border-radius: 14px; border: 2px solid #c9a04a; background: url(assets/ui/arena/eq.24e584270e.webp) center / 100% 100%; color: #ffd24a; font-size: 22px; }
+  #scr-match.prep-focus .shop-toggle span { font-size: 11px; font-weight: 700; color: #f3ead6; }
+  #scr-match.prep-focus .shop-drawer { display: block; position: fixed; left: 0; right: 0; bottom: 74px; z-index: 40; height: min(64vh, 540px);
+    background: url(assets/ui/arena/drawer.b0073b6f97.webp) center / 100% 100% no-repeat; padding: 30px 12px 10px; transform: translateY(calc(100% + 80px)); transition: transform .25s ease; }
+  #scr-match.prep-focus .shop-drawer.open { transform: none; }
+  .sd-handle { position: absolute; top: 0; left: 25%; right: 25%; height: 32px; background: none; border: 0; }
+  .sd-cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 8px; }
+  .sc { position: relative; width: calc((100vw - 52px) / 3); max-width: 150px; aspect-ratio: 507 / 793; cursor: pointer; }
+  .sc.cant { filter: grayscale(.7) brightness(.7); }
+  .sc.empty { opacity: .35; }
+  .sc-art { position: absolute; left: 17.5%; right: 19.3%; top: 20.4%; bottom: 11.5%; overflow: hidden; border-radius: 6px; background: var(--wc); }
+  .sc-art .portrait { width: 100%; height: 100%; }
+  .sc-frame { position: absolute; inset: 0; background: url(assets/ui/arena/card.07cd71c3b0.webp) center / 100% 100% no-repeat; pointer-events: none; }
+  .sc-gem { position: absolute; left: 50%; top: 2.2%; width: 9%; aspect-ratio: 1; transform: translateX(-50%) rotate(45deg); background: var(--rc); box-shadow: 0 0 8px var(--rc); border-radius: 2px; }
+  .sc-cost, .sc-hp, .sc-atk { position: absolute; width: 17%; aspect-ratio: 1; display: grid; place-items: center; border-radius: 50%; font-size: clamp(10px, 3.2vw, 14px); font-weight: 900; color: #fff; text-shadow: 0 1px 2px #000; }
+  .sc-cost { left: 6.5%; top: 14.5%; background: radial-gradient(#f2c94c, #a87a12); color: #2a1a00; text-shadow: none; }
+  .sc-hp { left: 7.5%; bottom: 3.3%; background: radial-gradient(#e0262f, #6e0d12); }
+  .sc-atk { right: 8.5%; bottom: 3.3%; background: radial-gradient(#6b7c8f, #2a323c); }
+  .sc-role { position: absolute; right: 21%; top: 21.5%; width: 18%; aspect-ratio: 1; border-radius: 50%; background: #000a; display: grid; place-items: center; }
+  .sc-role svg { width: 70%; height: 70%; }
+  .sc-dots { position: absolute; left: 50%; top: 82%; transform: translateX(-50%); font-size: 11px; color: #ffd24a; text-shadow: 0 1px 2px #000; letter-spacing: 1px; }
+  .sc-name { position: absolute; left: 0; right: 0; bottom: -15px; text-align: center; font-size: 11px; font-weight: 700; color: #f3ead6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sc-info { position: absolute; right: 3%; top: 3%; width: 22px; height: 22px; border-radius: 50%; border: 1px solid #ffd24a; background: #000a; color: #fff; font-size: 12px; }
+  .sc-info::after { content: ''; position: absolute; inset: -11px; }
+  .sd-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 20px; }
+  .sd-items { display: flex; gap: 6px; margin-inline-end: auto; }
+  .sd-eq { position: relative; width: 46px; height: 46px; border: 0; background: url(assets/ui/arena/eq.24e584270e.webp) center / 100% 100%; color: #ffd24a; display: grid; place-items: center; }
+  .sd-eq svg { width: 22px; height: 22px; } .sd-eq b { position: absolute; bottom: -4px; left: -4px; background: #c9a04a; color: #2a1a00; border-radius: 999px; font-size: 10px; padding: 0 5px; }
+  .sd-eq.cant { filter: grayscale(.8) brightness(.7); } .sd-eq.empty { opacity: .35; }
+  .sd-btn { position: relative; width: 52px; height: 52px; border: 0; border-radius: 50%; background: url(assets/ui/arena/btn.68220622e0.webp) center / 100% 100%; color: #ffd24a; display: grid; place-items: center; }
+  .sd-btn svg { width: 22px; height: 22px; } .sd-btn.on { box-shadow: 0 0 0 2px #ffd24a; }
+  .sd-btn b { position: absolute; bottom: -2px; left: -4px; background: radial-gradient(#f2c94c, #a87a12); color: #2a1a00; border-radius: 999px; font-size: 10px; padding: 0 5px; }
+  .sd-btn small { position: absolute; bottom: -14px; font-size: 10px; color: #f3ead6; white-space: nowrap; }
+  .sd-btn[disabled] { opacity: .45; }
+}
+
+@media (max-width: 860px) and (orientation: portrait) {
+  .sd-handle { top: -18px; left: 50%; right: auto; width: min(70vw, 300px); height: 40px; transform: translateX(-50%); background: url(assets/ui/arena/handle.774c9d2419.webp) center / contain no-repeat; }
+  .sd-handle i { display: none; }
+  #scr-match.prep-focus .shop-drawer { padding-top: 28px; border-radius: 14px; }
+  #scr-match.prep-focus .shop-toggle { min-width: 58px; min-height: 48px; font-size: 20px; }
+  #scr-match.prep-focus .shop-toggle.on { box-shadow: 0 0 0 2px #ffd24a; }
+  /* with the drawer closed the arena takes the free height */
+  #scr-match.prep-focus .field .cell { aspect-ratio: .52; }
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  #scr-match.prep-focus #shopbar { height: auto !important; min-height: 0; flex-wrap: nowrap; padding-top: 6px; padding-bottom: 6px; }
+  #scr-match.prep-focus .shop-dock { flex-wrap: nowrap; height: auto; min-height: 0; align-items: center; width: 100%; }
+  #scr-match.prep-focus .shop-dock .dock-sp { flex: 1; }
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  #scr-match.prep-focus .field .cell { aspect-ratio: .46; }
+  #scr-match.prep-focus #bench .bslot { width: 54px; height: 54px; min-width: 54px; }
+  #scr-match.prep-focus #bench .bmed { width: 44px; height: 44px; }
+  #scr-match.prep-focus .shop-drawer { bottom: var(--dockH, 70px); }
+}

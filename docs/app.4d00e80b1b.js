@@ -5295,6 +5295,7 @@ AMB.IMAGES = {
     S.sel = null;
     S.phase = 'resources';
     S.paused = false;
+    S.shopOpen = S.mode !== 'tutorial';   // the drawer opens at the start of every prep (shop first), close it to arrange
     renderMatch();
     // the first-run guide opens in a moment: skip the round banner and income toast so nothing stacks on it
     const tutNext = false;
@@ -6046,7 +6047,7 @@ AMB.IMAGES = {
       return;
     }
     $('bench').innerHTML = lbl + p.bench.map((u, i) =>
-      `<div class="bslot" data-act="bench" data-idx="${i}" data-drop="bench:${i}">${u ? pieceHTML(u, { sel: S.sel && S.sel.kind === 'unit' && S.sel.uid === u.uid }) : ''}</div>`).join('');
+      `<div class="bslot" data-act="bench" data-idx="${i}" data-drop="bench:${i}">${u ? `<span class="bmed ${S.sel && S.sel.kind === 'unit' && S.sel.uid === u.uid ? 'sel' : ''}" draggable="true" data-drag="unit:${u.uid}" title="${esc(UNITS[u.defId].name)}">${portrait(UNITS[u.defId], { bare: true, k: 'bm' + u.uid })}<i class="bm-st">${'★'.repeat(u.star)}</i></span>` + pieceHTML(u, { sel: S.sel && S.sel.kind === 'unit' && S.sel.uid === u.uid }) : ''}</div>`).join('');
   }
 
   function renderShop() {
@@ -6059,6 +6060,18 @@ AMB.IMAGES = {
     }
     const owned = {};
     m.allUnits(p).forEach((u) => { owned[u.defId] = owned[u.defId] || { n: 0, s1: 0 }; owned[u.defId].n++; if (u.star === 1) owned[u.defId].s1++; });
+    // new arena layout: the shop is a leather drawer with big framed cards (gold frame, rarity gem, coin price, health/attack)
+    const RAR = AMB.ECONOMY.rarities;
+    const bigCards = p.shop.map((id, i) => {
+      if (!id) return `<div class="sc empty"><i class="sc-frame"></i></div>`;
+      const d = UNITS[id], ok = m.canBuy(S.v, i).ok, ow = owned[id], st = cardStats(d, 1), rc = (RAR[d.rarity || 'common'] || RAR.common).color;
+      const dots = ow && ow.s1 ? `<span class="sc-dots">${'●'.repeat(Math.min(2, ow.s1))}${'○'.repeat(Math.max(1, 3 - Math.min(2, ow.s1)))}</span>` : '';
+      return `<div class="sc ${ok ? '' : 'cant'}" data-act="buy" data-idx="${i}" style="--rc:${rc};--wc:${WORLDS[d.world].color}" title="${esc(d.name)}: ${esc(d.skill.name)}">
+        <span class="sc-art">${portrait(d, { bare: true, k: 'sca' + i })}</span><i class="sc-frame"></i>
+        <span class="sc-gem"></span><b class="sc-cost">${d.cost}</b><b class="sc-hp">${st.hp}</b><b class="sc-atk">${st.atk}</b>
+        <span class="sc-role">${icon(ART.ROLE_ICON[d.role] || 'star')}</span>${dots}
+        <span class="sc-name">${esc(d.name)}</span><button class="sc-info" data-act="detail" data-id="${d.id}" aria-label="تفاصيل">ⓘ</button></div>`;
+    }).join('');
     const cards = p.shop.map((id, i) => {
       if (!id) return `<div class="tcard hc full empty"></div>`;
       const d = UNITS[id];
@@ -6082,6 +6095,7 @@ AMB.IMAGES = {
       <div class="shop-dock">
         <button class="btn primary ready-btn" data-act="ready" title="Enter"><span class="lb">جاهز</span></button>
         <button class="dock-hero" data-act="heroDock" title="قدرات البطل" aria-label="قدرات البطل" style="--wc:${WORLDS[HEROES[p.heroId].world].color}">${portrait(myAvatar(p, 0), { k: 'dock' })}<span class="dh-lv">${icon('crown')}${p.level}</span></button>
+        <button class="shop-toggle ${S.shopOpen ? 'on' : ''}" data-act="shopToggle" aria-label="المتجر">🛒<span>${S.shopOpen ? 'سكّر' : 'المتجر'}</span></button>
         <span class="dock-sp"></span>
         <button class="sb-ic" data-act="reroll" title="تحديث المتجر (D)" aria-label="تحديث المتجر">${icon('refresh')}${price(rCost, p.gold >= rCost)}<span class="sb-lb">تحديث</span></button>
         <button class="sb-ic ${p.shopLocked ? 'on' : ''}" data-act="lock" title="${p.shopLocked ? 'المتجر مثبّت' : 'ثبّت المتجر للجولة الجاية'}" aria-label="تثبيت المتجر">${icon(p.shopLocked ? 'lock' : 'unlock')}<span class="sb-lb">تثبيت</span></button>
@@ -6089,7 +6103,18 @@ AMB.IMAGES = {
         <button class="sb-ic" data-act="upgrades" title="شاشة التطوير" aria-label="شاشة التطوير">${icon('star')}<span class="sb-lb">تطوير</span></button>
       </div>
       <div class="shop-row"><div class="shop-cards">${cards}</div>
-      <div class="item-cards">${items}</div></div>`;
+      <div class="item-cards">${items}</div></div>
+      <div class="shop-drawer ${S.shopOpen ? 'open' : ''}">
+        <button class="sd-handle" data-act="shopToggle" aria-label="سكّر المتجر"><i></i></button>
+        <div class="sd-cards">${bigCards}</div>
+        <div class="sd-row"><div class="sd-items">${p.itemShop.map((id, i) => id ? `<button class="sd-eq ${p.gold >= ITEMS[id].cost ? '' : 'cant'}" data-act="buyItem" data-idx="${i}" title="${esc(ITEMS[id].name)}: ${esc(ITEMS[id].text)}">${icon(ITEMS[id].icon)}<b>${ITEMS[id].cost}</b></button>` : '<span class="sd-eq empty"></span>').join('')}</div>
+          <button class="sd-btn" data-act="reroll" aria-label="تحديث المتجر">${icon('refresh')}<b>${rCost}</b><small>تحديث</small></button>
+          <button class="sd-btn ${p.shopLocked ? 'on' : ''}" data-act="lock" aria-label="تثبيت المتجر">${icon(p.shopLocked ? 'lock' : 'unlock')}<small>تثبيت</small></button>
+          <button class="sd-btn" data-act="xp" ${maxed ? 'disabled' : ''} aria-label="اشتر خبرة">${icon('up')}${maxed ? '' : `<b>${E.xpCost}</b>`}<small>خبرة</small></button>
+          <button class="sd-btn" data-act="upgrades" aria-label="شاشة التطوير">${icon('star')}<small>تطوير</small></button></div>
+      </div>`;
+    // the drawer sits right above the dock (its height depends on the phone)
+    requestAnimationFrame(() => { const dk = document.querySelector('#shopbar .shop-dock'), sm = $('scr-match'); if (dk && sm) sm.style.setProperty('--dockH', Math.max(0, Math.round(innerHeight - dk.getBoundingClientRect().top + 4)) + 'px'); });
   }
 
   const SYN_ICON = (s) => (s.kind === 'world' ? ART.WORLD_ICON[s.id] : s.kind === 'special' ? 'star' : ART.ROLE_ICON[s.id]);
@@ -6719,6 +6744,7 @@ AMB.IMAGES = {
     },
     setOpt: (d) => { const ST = AMB.settings; if (!ST) return; if (d.k === 'textSize') ST.setTextSize(+d.v); else ST.set(d.k, d.v === 'true' ? true : d.v === 'false' ? false : isNaN(+d.v) ? d.v : +d.v); applyComfort(); sfx('click'); settingsModal(); },
     bigAsk: (d) => { const ST = AMB.settings; if (ST) { ST.markSeen('askBig'); if (d.v === '1') ST.setTextSize(1); applyComfort(); } closeModal(); },
+    shopToggle: () => { S.shopOpen = !S.shopOpen; sfx('click'); renderShop(); },
     resumeMatch: () => resumeMatch(),
     resumeDrop: () => { resumeClear(); fillMenu(); },
     wager: () => { if (!prepActive()) return; const p = me(); if (res(S.match.setWager(S.v, !p.wager))) { toast(p.wager ? '🎲 راهنت: الخاسر في الحسم يخسر أكثر' : 'لغيت الرهان', p.wager ? 'good' : ''); renderMatch(); } },
