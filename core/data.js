@@ -389,10 +389,10 @@
       vanguard: { name: 'الهجوم الكاسح', text: 'لما ينزل الساحة: الفريق +11% هجوم، وهو يضرب أقوى (+5% هجوم، +3% فرصة حرجة).', allyAtk: 0.22, heroAtk: 0.1, heroCrit: 0.06 },
       passive: { id: 'blazing_will', name: 'إرادة متقدة', text: 'لما يسقط الصف الأمامي، الفريق ياخذ +45% هجوم.' },
       abilities: [
-        { id: 'inferno_banner', name: 'أمر الهجوم', cost: 3, type: 'buffAllies', atkPct: 0.35, dur: 6,
-          text: '+35% هجوم لكل الفريق لمدة 6 ثواني.' },
-        { id: 'meteor', name: 'نيزك الجمر', cost: 4, type: 'damageCluster', dmg: 200, scale: 25, radius: 1.6,
-          text: 'نيزك ينزل على أكثر مكان فيه أعداء (200 + 25 مع كل جولة).' },
+        { id: 'inferno_banner', name: 'أمر الهجوم', cost: 3, type: 'buffAllies', atkPct: 0.42, dur: 6,
+          text: '+42% هجوم لكل الفريق لمدة 6 ثواني.' },
+        { id: 'meteor', name: 'نيزك الجمر', cost: 4, type: 'damageCluster', dmg: 240, scale: 25, radius: 1.6,
+          text: 'نيزك ينزل على أكثر مكان فيه أعداء (240 + 25 مع كل جولة).' },
       ],
     },
     merin: {
@@ -461,10 +461,10 @@
       vanguard: { name: 'نبضة الإيقاع', text: 'لما ينزل الساحة: الفريق +5% سرعة هجوم، وهو يضرب حرجة أكثر (+5%)، وقدراته أرخص بنقطة.', allyAs: 0.10, heroCrit: 0.10, extraDiscount: 1 },
       passive: { id: 'data_stream', name: 'تدفق البيانات', text: '+1 ذهب إضافي كل جولة، وكل وحداتك +2% سرعة هجوم.' },
       abilities: [
-        { id: 'hologram_wall', name: 'جدار الهولوغرام', cost: 3, type: 'shieldAllies', amount: 150, scale: 25,
-          text: 'درع لكل الفريق (150 + 25 مع كل جولة).' },
-        { id: 'glitch_pulse', name: 'نبضة تشويش', cost: 4, type: 'stunEnemies', dur: 1.2,
-          text: 'يوقف كل الأعداء لمدة 1.2 ثانية.' },
+        { id: 'hologram_wall', name: 'جدار الهولوغرام', cost: 3, type: 'shieldAllies', amount: 240, scale: 25,
+          text: 'درع لكل الفريق (240 + 25 مع كل جولة).' },
+        { id: 'glitch_pulse', name: 'نبضة تشويش', cost: 4, type: 'stunEnemies', dur: 1.6,
+          text: 'يوقف كل الأعداء لمدة 1.6 ثانية.' },
       ],
     },
     thora: {
@@ -539,8 +539,8 @@
       { n: 2, effects: [{ scope: 'members', stat: 'lifesteal', value: 0.2 }], text: 'المقاتلون يسرقون 20% من ضررهم صحة' },
       { n: 4, effects: [{ scope: 'members', stat: 'lifesteal', value: 0.35 }, { scope: 'members', stat: 'atkPct', value: 0.1 }], text: 'يسرقون 35% صحة، و+10% هجوم' }] },
     assassin: { id: 'assassin', kind: 'role', name: 'القتلة', tiers: [
-      { n: 2, effects: [{ scope: 'members', stat: 'crit', value: 0.12 }, { scope: 'members', stat: 'critDmg', value: 0.25 }], text: '+12% فرصة حرجة، و+25% ضرر الحرجة' },
-      { n: 3, effects: [{ scope: 'members', stat: 'crit', value: 0.2 }, { scope: 'members', stat: 'critDmg', value: 0.4 }], text: '+20% فرصة حرجة، و+40% ضرر الحرجة' }] },
+      { n: 2, effects: [{ scope: 'members', stat: 'crit', value: 0.12 }, { scope: 'members', stat: 'critDmg', value: 0.25 }, { scope: 'members', stat: 'atkPct', value: 0.25 }, { scope: 'members', stat: 'hpPct', value: 0.2 }], text: '+12% فرصة حرجة، و+25% ضرر الحرجة، و+25% هجوم، و+20% صحة' },
+      { n: 3, effects: [{ scope: 'members', stat: 'crit', value: 0.2 }, { scope: 'members', stat: 'critDmg', value: 0.4 }, { scope: 'members', stat: 'atkPct', value: 0.5 }, { scope: 'members', stat: 'hpPct', value: 0.4 }], text: '+20% فرصة حرجة، و+40% ضرر الحرجة، و+50% هجوم، و+40% صحة' }] },
     mage: { id: 'mage', kind: 'role', name: 'السحرة', tiers: [
       { n: 2, effects: [{ scope: 'members', stat: 'skillPower', value: 0.45 }, { scope: 'members', stat: 'startMana', value: 30 }], text: '+45% قوة المهارة، و+30 مانا' },
       { n: 3, effects: [{ scope: 'members', stat: 'skillPower', value: 0.9 }, { scope: 'members', stat: 'startMana', value: 50 }], text: '+90% قوة المهارة، و+50 مانا' }] },
