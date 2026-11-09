@@ -10,7 +10,7 @@
   const { icon } = AMB.art;
   const UI = () => globalThis.AMB_UI;
   let active = false, idx = 0, replay = false, after = null, rerolled = 0, timer = 0, lastKey = '';
-  let ring, hand, bar;
+  let ring, hand, bar, point = null, xpBase = null;   // point = the element the hand points at now
 
   // ---------------------------------------------------------------- finding things on the screen
   const q = (sel) => document.querySelector(sel);
@@ -21,7 +21,12 @@
   const cell = (slot) => q(`#slots .cell.mine[data-slot="${slot}"]`);
   const ready = () => q('.ready-btn');
   const reroll = () => q('#shopbar [data-act="reroll"]');
-  const guardEl = () => { const a = q('#panel-left .guard'); return vis(a) ? a : q('#topbar .lifechip.me'); };
+  // the guard step points at what actually protects the hero: the shield counter (wide screens) or the front-row unit you just placed (phones)
+  const guardEl = () => {
+    const a = q('#panel-left .guard'); if (vis(a)) return a;
+    const fr = [...document.querySelectorAll('#slots .cell.mine[data-slot^="f"]')].find((c) => c.querySelector('.tcard'));
+    return fr || cell('f1');
+  };
   const sel = () => UI().S.sel;
   const P = () => UI().S.match.players[0];
   const front = () => Object.keys(P().board).filter((s) => s[0] === 'f').length;
@@ -41,7 +46,7 @@
     { id: 'reroll', round: 2, bar: [G('gold'), G('refresh')], target: () => reroll(), done: () => P().stats.rerolls >= 1 },
     { id: 'ready2', round: 2, bar: [G('sword'), G('check')], target: () => ready(), done: () => UI().S.phase === 'combat' || UI().S.match.round > 2 },
     // round 3: the two things that decide real matches: spend gold on levels (more units on the board), and send the hero in
-    { id: 'xp', round: 3, bar: [G('gold'), ARR, G('up')], target: () => q('#shopbar [data-act="xp"]') || q('[data-act="xp"]'), done: () => P().xp > 0 || P().level > 4 },
+    { id: 'xp', round: 3, bar: [G('gold'), ARR, G('up')], target: () => q('#shopbar [data-act="xp"]') || q('[data-act="xp"]'), done: () => xpBase != null && P().level * 1000 + P().xp > xpBase },   // the round's free XP does not count: only a bought level-up
     { id: 'summon', round: 3, bar: [G('crown'), ARR, G('sword')], target: () => q('[data-act="summon"]'), done: () => P().summoned },
     { id: 'ready3', round: 3, bar: [G('sword'), G('check')], target: () => ready(), done: () => UI().S.phase === 'combat' },
   ];
@@ -53,9 +58,17 @@
     hand = document.createElement('div'); hand.className = 'tut-hand'; hand.innerHTML = icon('hand'); document.body.appendChild(hand);
     bar = document.createElement('div'); bar.className = 'tut-bar'; document.body.appendChild(bar);
     bar.addEventListener('click', (e) => { if (e.target.closest('[data-tut="ok"]')) { idx++; lastKey = ''; tick(); } else if (e.target.closest('[data-tut="skip"]')) skip(); });
+    document.addEventListener('click', ackTap, true);
   }
-  function hide() { if (ring) { ring.style.display = 'none'; hand.style.display = 'none'; bar.style.display = 'none'; } document.querySelectorAll('.tut-target').forEach((e) => e.classList.remove('tut-target')); document.body.classList.remove('tut-on'); }
-  function unmount() { [ring, hand, bar].forEach((e) => e && e.remove()); ring = hand = bar = null; document.querySelectorAll('.tut-target').forEach((e) => e.classList.remove('tut-target')); document.body.classList.remove('tut-on'); }
+  // a "look here" step (no move to make): tapping the thing the hand points at moves on, instead of opening/selecting it
+  function ackTap(e) {
+    const st = STEPS[idx];
+    if (!active || !st || !st.ack || !point || !point.isConnected || !point.contains(e.target)) return;
+    e.preventDefault(); e.stopPropagation();
+    idx++; lastKey = ''; tick();
+  }
+  function hide() { point = null; if (ring) { ring.style.display = 'none'; hand.style.display = 'none'; bar.style.display = 'none'; } document.querySelectorAll('.tut-target').forEach((e) => e.classList.remove('tut-target')); document.body.classList.remove('tut-on'); }
+  function unmount() { document.removeEventListener('click', ackTap, true); point = null; [ring, hand, bar].forEach((e) => e && e.remove()); ring = hand = bar = null; document.querySelectorAll('.tut-target').forEach((e) => e.classList.remove('tut-target')); document.body.classList.remove('tut-on'); }
 
   function place(targets, st) {
     const spec = targets && targets.point !== undefined ? targets : { point: targets, allow: [targets] };
@@ -64,6 +77,7 @@
     list.forEach((e) => e.classList.add('tut-target'));
     // the ring + hand mark the thing to tap now; the other allowed element stays clickable (e.g. to change the selected unit)
     const t = vis(spec.point) ? spec.point : null;
+    point = t;
     if (!t) { ring.style.display = 'none'; hand.style.display = 'none'; return; }
     const row = t.closest('.shop-row'); if (row && t.closest('.shop-cards')) { const r = t.getBoundingClientRect(), rr = row.getBoundingClientRect(); if (r.left < rr.left || r.right > rr.right) t.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); }
     const r = t.getBoundingClientRect(), pad = 6;
@@ -83,6 +97,7 @@
     while (STEPS[idx] && STEPS[idx].done && STEPS[idx].round === m.round && STEPS[idx].done()) { idx++; lastKey = ''; }
     const st = STEPS[idx];
     if (!st || st.round !== m.round) { hide(); return; }
+    if (st.id === 'xp' && xpBase == null) xpBase = P().level * 1000 + P().xp;
     mount(); document.body.classList.add('tut-on');
     bar.style.display = 'flex'; ring.style.display = 'block'; hand.style.display = 'block';
     const key = idx + ':' + (sel() ? sel().kind : '') + ':' + m.round;
@@ -103,7 +118,7 @@
     if (o.replay && C.needsStarter()) { ui.toast('اختر بطلك أول', 'err'); return; }
     ui.closeOverlay(); ui.closeModal();
     S.mode = 'tutorial'; S.picks = [C.starterHero() || Object.keys(AMB.DATA.HEROES)[0], null]; S.pickIdx = 0;
-    idx = 0; rerolled = 0; lastKey = ''; active = true;
+    idx = 0; rerolled = 0; lastKey = ''; xpBase = null; active = true;
     clearInterval(timer); timer = setInterval(tick, 220);
     ui.startMatch();
   }

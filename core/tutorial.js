@@ -12,11 +12,25 @@
   // the shop of each round is fixed (round 2 has three copies of one unit so a merge to a star is guaranteed)
   const SHOP = { 1: ['forge_bulwark', 'ash_ronin', 'pixel_sniper', 'wave_caller', 'grid_hound'], 2: ['ash_ronin', 'ash_ronin', 'ash_ronin', 'thorn_fox', 'moss_warden'], 3: ['thorn_fox', 'moss_warden', 'pixel_sniper', 'wave_caller', 'grid_hound'] };
 
+  /**
+   * Practice fight ("جرّب"): try a hero before it is yours. A short best-of-3 against an easy computer, any hero allowed,
+   * no card levels and no hero level. The UI runs it as mode 'practice' and saves nothing from it (no rewards, XP, stats, pass).
+   */
+  function practiceOptions(heroId, seed) {
+    const s = seed || 1 + Math.floor(Math.random() * 2 ** 30);
+    const others = Object.keys(AMB.DATA.HEROES).filter((h) => h !== heroId);
+    return {
+      mode: 'practice', practice: true, seed: s, progression: false,
+      rules: { maxRounds: 3, winsNeeded: 2, start: T().start },
+      players: [{ heroId, name: 'أنت' }, { heroId: others[s % others.length], name: 'تدريب', isAI: true, aiStyle: 'balanced', difficulty: 'easy' }],
+    };
+  }
+
   function Tutorial(save, deps) {
     deps = deps || {};
     const st = () => save.get('tutorial');
     const api = {
-      SHOP,
+      SHOP, practiceOptions,
       done: () => !!st().done,
       rewarded: () => !!st().rewarded,
       /** a brand-new player must do it: nothing cleared in the campaign yet and the tutorial not finished */
@@ -50,5 +64,6 @@
     };
     return api;
   }
+  Tutorial.practiceOptions = practiceOptions;
   AMB.Tutorial = Tutorial;
 })();
