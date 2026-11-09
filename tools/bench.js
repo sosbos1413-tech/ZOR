@@ -9,6 +9,9 @@ const G = +(process.argv[2] || 300), SEED = +(process.argv[3] || 1), W = +(proce
 if (process.argv[5] === 'child') {
   ['config', 'data', 'util', 'synergy', 'combat', 'match', 'ai', 'telemetry'].forEach((f) => require(path.join(__dirname, '..', 'core', f + '.js')));
   const AMB = globalThis.AMB, heroes = Object.keys(AMB.DATA.HEROES), styles = ['mono', 'mixed', 'balanced'];
+  // optional config overrides for experiments: OVR='{"vanguardScale":0.4}' node tools/bench.js 1000 1 4
+  const find = (o, k) => { for (const sec of Object.keys(o)) if (o[sec] && typeof o[sec] === 'object' && k in o[sec]) return o[sec]; return null; };
+  Object.entries(JSON.parse(process.env.OVR || '{}')).forEach(([k, v]) => { const sec = find(AMB.CONFIG, k); if (!sec) throw new Error('unknown config ' + k); sec[k] = v; });
   const part = +process.argv[6], n = +process.argv[7], rng = AMB.util.RNG(SEED * 1000 + part);
   const out = {}; heroes.forEach((h) => (out[h] = [0, 0]));
   for (let g = 0; g < n; g++) heroes.forEach((h) => {

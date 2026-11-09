@@ -490,18 +490,19 @@
 
   // Equipment (attached to a unit) and spells (armed for the next combat).
   const ITEMS = {
+    // equipment: a real piece of power for its holder (it stays on the unit and moves with it on a merge)
     rift_blade: { id: 'rift_blade', kind: 'equip', name: 'نصل الصدع', cost: 3, icon: 'sword',
-      effects: [{ stat: 'atkPct', value: 0.25 }], text: '+25% هجوم.' },
+      effects: [{ stat: 'atkPct', value: 0.4 }], text: '+40% هجوم.' },
     star_plate: { id: 'star_plate', kind: 'equip', name: 'درع النجم', cost: 3, icon: 'shield',
-      effects: [{ stat: 'hpPct', value: 0.3 }, { stat: 'dr', value: 0.05 }], text: '+30% صحة، و5% ضرر أقل عليه.' },
+      effects: [{ stat: 'hpPct', value: 0.5 }, { stat: 'dr', value: 0.1 }], text: '+50% صحة، و10% ضرر أقل عليه.' },
     swift_charm: { id: 'swift_charm', kind: 'equip', name: 'تميمة الريح', cost: 3, icon: 'wind',
-      effects: [{ stat: 'asPct', value: 0.25 }], text: '+25% سرعة هجوم.' },
+      effects: [{ stat: 'asPct', value: 0.4 }], text: '+40% سرعة هجوم.' },
     mana_prism: { id: 'mana_prism', kind: 'equip', name: 'موشور المانا', cost: 3, icon: 'orb',
-      effects: [{ stat: 'startMana', value: 40 }, { stat: 'skillPower', value: 0.1 }], text: '+40 مانا من البداية، و+10% قوة للمهارة.' },
+      effects: [{ stat: 'startMana', value: 60 }, { stat: 'skillPower', value: 0.25 }], text: '+60 مانا من البداية، و+25% قوة للمهارة.' },
     vamp_fang: { id: 'vamp_fang', kind: 'equip', name: 'ناب الظل', cost: 3, icon: 'fang',
-      effects: [{ stat: 'lifesteal', value: 0.2 }], text: 'يسرق 20% من ضرره صحة.' },
+      effects: [{ stat: 'lifesteal', value: 0.25 }, { stat: 'atkPct', value: 0.15 }], text: 'يسرق 25% من ضرره صحة، و+15% هجوم.' },
     hawk_scope: { id: 'hawk_scope', kind: 'equip', name: 'منظار الصقر', cost: 3, icon: 'eye',
-      effects: [{ stat: 'range', value: 1 }, { stat: 'crit', value: 0.15 }], text: '+1 مدى، و+15% فرصة ضربة حرجة.' },
+      effects: [{ stat: 'range', value: 1 }, { stat: 'crit', value: 0.25 }], text: '+1 مدى، و+25% فرصة ضربة حرجة.' },
 
     war_hymn: { id: 'war_hymn', kind: 'spell', name: 'ترنيمة الحرب', cost: 2, icon: 'note',
       spell: { type: 'buffAll', atkPct: 0.2 }, text: 'القتال الجاي: +20% هجوم لكل الفريق.' },

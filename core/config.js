@@ -72,6 +72,11 @@
       // a 3-star is strong but still loses to a well-built team (see DESIGN.md).
       mult: { 1: 1, 2: 1.8, 3: 3.0 },
       copiesPerStar: 3,
+      copiesTo: { 2: 3, 3: 2 },   // same-star units that merge into the next star: 3×★ = ★★, 2×★★ = ★★★ (6 copies, reachable in a 7-round match)
+      rewardHeldWeight: 10,        // the free-recruit reward favours units you already hold (weight per copy held)
+      ownedShopWeight: 8,         // shop focus: a unit you hold (below ★★★) is this many times likelier to show up in your shop
+      focusMinCopies: 2,          // ...once you hold at least this many copies of it
+      focusFreshOnly: true,       // true: the focus only shapes the free shop at the start of a round (not paid rerolls)
       maxStar: 3,
     },
 

@@ -87,7 +87,7 @@
         const essGain = E.essencePerRound + (AMB.DATA.HEROES[p.heroId].passive.id === 'deep_reserve' ? 2 : 0);
         if (this.round > 1) p.essence = Math.max(p.essence, Math.min(E.essenceMax, p.essence + essGain));   // a 'pure essence' reward above the cap is kept (never clamped away)
         p.freeRerolls = AMB.DATA.HEROES[p.heroId].passive.id === 'free_reroll' ? 1 : 0;
-        if (!p.shopLocked || !p.shop.length) this._rollShop(p);
+        if (!p.shopLocked || !p.shop.length) this._rollShop(p, true);
         p.shopLocked = false;
         this._validateAbilities(p);
       });
@@ -107,11 +107,15 @@
       if (p.level >= E.maxLevel) p.xp = 0;
     }
 
-    _drawUnit(p) {
+    _drawUnit(p, fresh) {
       const odds = AMB.CONFIG.economy.tierOdds[Math.max(3, p.level)];
       const tier = this._rng(p).weighted(odds.map((w, i) => [i + 1, w]).filter((e) => e[1] > 0));
       const mine = (u) => !p.allowed || p.allowed.has(u.id);   // progression: only units the player owns
-      let entries = Object.values(AMB.DATA.UNITS).filter((u) => u.tier === tier && mine(u)).map((u) => [u.id, this._pool(p)[u.id]]);
+      // shop focus: a unit you already hold (and can still upgrade) shows up more often, so stars are a goal you can chase
+      const SC = AMB.CONFIG.stars, focus = (fresh || !SC.focusFreshOnly ? SC.ownedShopWeight : 1) || 1, held = {};
+      if (focus !== 1) this.allUnits(p).forEach((u) => { if (u.star < AMB.CONFIG.stars.maxStar) held[u.defId] = (held[u.defId] || 0) + this.copiesOf(u); });
+      const minHeld = AMB.CONFIG.stars.focusMinCopies || 1;
+      let entries = Object.values(AMB.DATA.UNITS).filter((u) => u.tier === tier && mine(u)).map((u) => [u.id, this._pool(p)[u.id] * (held[u.id] >= minHeld ? focus : 1)]);
       let pick = this._rng(p).weighted(entries);
       if (!pick) { // tier exhausted (or none owned in it): fall back to any available unit you own
         entries = Object.values(AMB.DATA.UNITS).filter(mine).map((u) => [u.id, this._pool(p)[u.id]]);
@@ -120,10 +124,10 @@
       return pick;
     }
 
-    _rollShop(p) {
+    _rollShop(p, fresh) {
       const E = AMB.CONFIG.economy;
       p.shop = [];
-      for (let i = 0; i < E.shopSlots; i++) p.shop.push(this._drawUnit(p));
+      for (let i = 0; i < E.shopSlots; i++) p.shop.push(this._drawUnit(p, fresh));
       const items = Object.keys(AMB.DATA.ITEMS);
       p.itemShop = [];
       for (let i = 0; i < E.itemShopSlots; i++) p.itemShop.push(this._rng(p).pick(items));
@@ -168,7 +172,7 @@
       const benchFree = p.bench.indexOf(null) >= 0;
       if (!benchFree) {
         const same = this.allUnits(p).filter((u) => u.defId === defId && u.star === 1).length;
-        if (same < AMB.CONFIG.stars.copiesPerStar - 1) return { ok: false, reason: 'الاحتياط ممتلئ' };
+        if (same < Match.copiesFor(2) - 1) return { ok: false, reason: 'الاحتياط ممتلئ' };
       }
       return { ok: true };
     }
@@ -198,8 +202,9 @@
       while (check && check.star < S.maxStar) {
         const list = this.allUnits(p).filter((u) => u.defId === check.defId && u.star === check.star);
         if (p._overflow && p._overflow.defId === check.defId && p._overflow.star === check.star && !list.includes(p._overflow)) list.push(p._overflow);
-        if (list.length < S.copiesPerStar) break;
-        const use = list.slice(0, S.copiesPerStar);
+        const need = Match.copiesFor(check.star + 1);
+        if (list.length < need) break;
+        const use = list.slice(0, need);
         // keep the position of a board copy if one exists
         const onBoard = use.map((u) => this._locate(p, u)).find((l) => l && l.zone === 'board');
         const keepLoc = onBoard || use.map((u) => this._locate(p, u)).find((l) => l) || null;
@@ -243,7 +248,10 @@
     }
     findUnit(p, uid) { return this.allUnits(p).find((u) => u.uid === uid) || null; }
 
-    copiesOf(u) { return Math.pow(AMB.CONFIG.stars.copiesPerStar, u.star - 1); }
+    /** units of star-1 that merge into one unit of `star` (3 for ★★; ★★★ may need fewer, see CONFIG.stars.copiesTo) */
+    static copiesFor(star) { const S = AMB.CONFIG.stars; return (S.copiesTo && S.copiesTo[star]) || S.copiesPerStar; }
+    /** how many 1★ copies a unit is made of (sell value and pool refund) */
+    copiesOf(u) { let n = 1; for (let s = 2; s <= u.star; s++) n *= Match.copiesFor(s); return n; }
     sellValue(u) { return Math.round(AMB.DATA.UNITS[u.defId].cost * this.copiesOf(u) * AMB.CONFIG.economy.sellRefund); }
 
     sell(pi, uid) {
@@ -594,7 +602,10 @@
         case 'unit': {
           const tier = R.tiers[st], hero = AMB.DATA.HEROES[p.heroId];
           const mine = (u) => !p.allowed || p.allowed.has(u.id);
-          const entries = Object.values(AMB.DATA.UNITS).filter((u) => u.tier === tier && this._pool(p)[u.id] > 0 && mine(u)).map((u) => [u.id, u.world === hero.world ? 2 : 1]);
+          // a unit you already hold below ★★★ is the likeliest pick (the free recruit doubles as a step toward the next star)
+          const held = {}, F = AMB.CONFIG.stars.rewardHeldWeight || 0;
+          if (F) this.allUnits(p).forEach((u) => { if (u.star < AMB.CONFIG.stars.maxStar) held[u.defId] = (held[u.defId] || 0) + this.copiesOf(u); });
+          const entries = Object.values(AMB.DATA.UNITS).filter((u) => u.tier === tier && this._pool(p)[u.id] > 0 && mine(u)).map((u) => [u.id, (u.world === hero.world ? 2 : 1) + (held[u.id] ? F * held[u.id] : 0)]);
           const any = entries.length ? entries : Object.values(AMB.DATA.UNITS).filter((u) => this._pool(p)[u.id] > 0 && mine(u)).map((u) => [u.id, 1]);
           const defId = this._rng(p).weighted(any);
           if (defId) { out.unit = defId; out.text += ' → ' + AMB.DATA.UNITS[defId].name; this._grantUnit(p, defId); }
