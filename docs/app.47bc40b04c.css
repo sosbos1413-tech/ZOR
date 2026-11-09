@@ -311,8 +311,6 @@ h1, h2, h3 { font-family: var(--display); font-weight: 400; letter-spacing: .3px
 
 /* ---------- shop: trading-card hand */
 .shopbar { display: flex; gap: 10px; align-items: stretch; padding: 8px; overflow-x: auto; background-color: var(--paper2); }
-.shop-actions { display: flex; flex-direction: column; gap: 6px; min-width: 130px; }
-.shop-actions .btn { display: flex; justify-content: space-between; gap: 6px; align-items: center; font-size: 13px; padding: 6px 12px; }
 .shop-cards { display: flex; gap: 8px; flex: 1; }
 .card {
   flex: 1; min-width: 104px; max-width: 160px; background: #fffaf0; border: 3px solid var(--ink); padding: 18px 6px 6px; cursor: pointer;
@@ -422,8 +420,6 @@ h1, h2, h3 { font-family: var(--display); font-weight: 400; letter-spacing: .3px
   .panel.left { order: 4; }
   .field-wrap { max-width: 420px; }
   .field { width: calc(100% - 14px); }
-  .shop-actions { flex-direction: row; flex-wrap: wrap; min-width: 0; width: 100%; }
-  .shop-actions .btn { flex: 1; }
   .shop-cards { overflow-x: auto; min-width: 100%; padding-bottom: 4px; }
   .item-cards { border-right: 0; padding-right: 0; }
   .shop-cards .card, .item-cards .card { min-width: 88px; }
@@ -631,7 +627,6 @@ h1, h2, h3 { font-family: var(--display); font-weight: 400; letter-spacing: .3px
 .tcard.item .tc-text { min-height: 30px; }
 .tcard.full.empty { min-height: 118px; }
 .shopbar { padding: 5px 8px; }
-.shop-actions .btn { padding: 5px 12px; }
 
 @media (max-width: 860px) {
   /* phones / tablets: stack  hero(enemy) → field → hero(me) → controls → bench */
@@ -940,11 +935,6 @@ h1, h2, h3 { font-family: var(--display); font-weight: 400; letter-spacing: .3px
   .combat-ctrl { min-height: 28px; }
   /* shop: actions on one row, cards right under them at reduced size */
   .shopbar { gap: 3px; padding: 3px 4px 2px; flex-wrap: wrap; overflow: hidden; align-items: stretch; }
-  .shop-actions { flex-direction: row; flex-wrap: nowrap; width: auto; gap: 3px; }
-  .shop-actions:first-child { flex: 1.6; }
-  .shop-actions:last-child { flex: 1; }
-  .shop-actions .btn { flex: 1; padding: 3px 4px; font-size: 11.5px; justify-content: center; gap: 3px; }
-  .shop-actions .btn .ic { width: 12px; height: 12px; }
   .ready-btn { min-width: 0 !important; font-size: 15px !important; }
   .shop-cards, .item-cards { flex-wrap: nowrap; min-width: 0; width: auto; padding: 4px 2px 8px; gap: 5px; border: 0; }
   .shop-cards { order: 5; flex: 0 0 auto; }
@@ -989,7 +979,6 @@ h1, h2, h3 { font-family: var(--display); font-weight: 400; letter-spacing: .3px
   .side .bslot { width: 40px; }
   .side .bench-row { padding: 2px 3px; }
   .tcard.hc.full { zoom: .62; }
-  .shop-actions .btn { padding: 2px 4px; }
   .shopbar { padding-top: 2px; gap: 2px; }
 }
 
@@ -1679,7 +1668,6 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
 #scr-match .field .cell.mine[data-row]:not(:has(.tcard))::after { content: none; }
 #scr-match .bench-row .lbl { writing-mode: horizontal-tb; transform: none; padding: 4px; display: grid; place-items: center; } #scr-match .bench-row .lbl svg { width: 18px; height: 18px; }
 /* shop + action buttons: icons */
-#scr-match .ib-act { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 46px; padding: 6px 12px; font-size: 18px; font-weight: 800; } #scr-match .ib-act > svg { width: 24px; height: 24px; } #scr-match .ib-act .cost { display: inline-flex; align-items: center; gap: 2px; } #scr-match .ib-act .cost svg { width: 16px; height: 16px; }
 #scr-match .ready-btn { min-width: 84px; min-height: 54px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; } #scr-match .ready-btn svg { width: 28px; height: 28px; }
 #scr-match .shop-closed { display: grid; place-items: center; width: 100%; min-height: 80px; color: var(--muted); } #scr-match .shop-closed svg { width: 40px; height: 40px; opacity: .6; }
 #scr-match .pb .ib { display: inline-flex; align-items: center; gap: 3px; font-size: 15px; padding: 4px 9px; } #scr-match .pb .ib svg { width: 18px; height: 18px; } #scr-match .pb-count { display: inline-flex; align-items: center; gap: 3px; font-size: 16px; } #scr-match .pb-count svg { width: 18px; height: 18px; }
@@ -1696,7 +1684,6 @@ body.mirror-foe .lifechip:not(.me) .portrait, body.mirror-foe .tcard.hero.foe .h
   #scr-match .tb-round { font-size: 16px; } #scr-match .tb-round svg { width: 14px; height: 14px; }
   #scr-match .topbar .lvl { font-size: 14px; } #scr-match .topbar .lvl b { font-size: 15px; } #scr-match .topbar .xpbar { display: none; }
   #scr-match .topbar .res { font-size: 13px; padding: 1px 5px; }
-  #scr-match .ib-act { min-height: 38px; padding: 4px 8px; font-size: 15px; } #scr-match .ib-act > svg { width: 20px; height: 20px; }
   #scr-match .ready-btn { min-width: 64px; min-height: 44px; } #scr-match .ready-btn svg { width: 22px; height: 22px; }
   #scr-match .side .post { min-height: 30px; } #scr-match .side .post .st { font-size: 13px; } #scr-match .side .post > .st svg { width: 18px; height: 18px; }
   #scr-match .panel { background: var(--paper); }
@@ -1964,7 +1951,6 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
 .cam-level header { flex-wrap: wrap; row-gap: 4px; } .cam-level header .cl-lock { flex-basis: 100%; order: 3; font-size: 13px; }
 .cam-level header h3 { overflow-wrap: anywhere; }
 /* action buttons carry words, not symbols */
-#scr-match .ib-act .lb { font-weight: 800; white-space: nowrap; }
 #scr-match .ready-btn .lb { font-size: inherit; }
 #scr-match .ready-btn { font-size: 22px !important; letter-spacing: 0; }
 @media (max-width: 860px) { #scr-match .ready-btn { font-size: 18px !important; min-width: 72px; } #scr-match .ib-act { font-size: 14px; padding: 4px 7px; gap: 3px; } #scr-match .pb-btns .btn.ib { font-size: 13px; padding: 4px 8px; white-space: nowrap; } }
@@ -1988,11 +1974,8 @@ body.tut-on #scr-match .tut-target, body.tut-on #scr-match .tut-target * { point
   #scr-match .tcard.hc.full.empty { height: 140px; }
   #scr-match #bench .bslot, #scr-match .side .bslot { width: 40px; height: 46px; }
   #scr-match #shopbar { padding: 3px 5px; gap: 3px 6px; }
-  #scr-match #shopbar .shop-actions { flex: 1 1 46%; flex-direction: row; flex-wrap: nowrap; width: auto; min-width: 0; gap: 4px; order: 1; }
   #scr-match #shopbar .shop-row { order: 3; display: flex; flex-wrap: nowrap; gap: 6px; align-items: flex-start; }
   #scr-match #shopbar .shop-cards, #scr-match #shopbar .item-cards { flex-wrap: nowrap; min-width: 0; overflow: visible; padding: 0; border: 0; }
-  #scr-match #shopbar .shop-actions .btn .cost { font-size: 11px; } #scr-match #shopbar .ib-act { gap: 2px; }
-  #scr-match #shopbar .shop-actions .btn { flex: 1; min-height: 32px; padding: 2px 4px; font-size: 13px; }
   #scr-match #shopbar .shop-row { width: 100%; }
   #scr-match #bench { padding: 2px 6px; }
   #scr-match .side .bslot, #scr-match .bslot { width: 44px; height: 50px; }
@@ -2338,3 +2321,297 @@ input, textarea, [contenteditable], .net-code, .sel-ok { -webkit-user-select: te
 #scr-match .topbar .ibtn2::after, .ibtn::after { content: ''; position: absolute; inset: -6px; }
 /* audit phase 2: short/landscape screens: the menu scrolls instead of hiding its main button below a fixed min-height */
 @media (max-height: 600px) { .mv2 { min-height: 0; overflow-y: auto; } }
+
+/* ==============================================================   UI v2 — match screens (NIGHTLY 19–21): world floors per half, opponent panel,
+   «جاهز» next to your hero, icon shop dock with prices, clean combat screen,
+   hero-ability burst. Animations use transform/opacity only.
+   ===================================================================== */
+/* (19) each half of the field shows its owner's world: top = opponent, bottom = you (CSS gradients, no images) */
+.field.v2f .field-bg { display: block; z-index: 0; pointer-events: none; background: none; }
+.field.v2f .rift-line { display: none; }
+.field.v2f .fl { position: absolute; left: 0; right: 0; height: 50%; display: block; }
+.field.v2f .fl.top { top: 0; } .field.v2f .fl.bot { bottom: 0; }
+.field.v2f .fl::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
+.field.v2f .fl.top::after { background: linear-gradient(to bottom, #0000 55%, #0009 100%), linear-gradient(to right, #0006, #0000 18% 82%, #0006); }
+.field.v2f .fl.bot::after { background: linear-gradient(to top, #0000 55%, #0009 100%), linear-gradient(to right, #0006, #0000 18% 82%, #0006); }
+.fl.w-ember { --wc: #ff7a45; background:
+  radial-gradient(60% 40% at 22% 30%, #ff7a4560, transparent 70%), radial-gradient(50% 35% at 80% 72%, #ff5a1a50, transparent 70%),
+  repeating-linear-gradient(62deg, transparent 0 34px, #ff7a4560 34px 36px, transparent 36px 70px),
+  repeating-linear-gradient(-38deg, transparent 0 47px, #ffb34740 47px 48px, transparent 48px 96px),
+  linear-gradient(160deg, #2a1209, #170905 60%, #2b0f06); }
+.fl.w-tide { --wc: #3ec9ff; background:
+  radial-gradient(55% 38% at 70% 30%, #3ec9ff48, transparent 70%),
+  repeating-radial-gradient(circle at 28% 60%, transparent 0 16px, #3ec9ff36 16px 18px),
+  repeating-linear-gradient(170deg, transparent 0 22px, #bfe6ff1c 22px 23px),
+  linear-gradient(180deg, #082339, #051626 65%, #0a2a44); }
+.fl.w-neon { --wc: #c45cff; background:
+  radial-gradient(55% 40% at 30% 40%, #c45cff50, transparent 70%), radial-gradient(40% 30% at 78% 70%, #00e5ff30, transparent 70%),
+  repeating-linear-gradient(0deg, transparent 0 23px, #c45cff48 23px 24px),
+  repeating-linear-gradient(90deg, transparent 0 23px, #c45cff48 23px 24px),
+  linear-gradient(180deg, #160828, #0c0418 70%, #1a0830); }
+.fl.w-sylvan { --wc: #52d67c; background:
+  radial-gradient(30% 22% at 18% 28%, #52d67c4a, transparent 70%), radial-gradient(34% 24% at 76% 66%, #52d67c40, transparent 70%), radial-gradient(22% 16% at 54% 18%, #9bffb830, transparent 70%),
+  repeating-linear-gradient(0deg, transparent 0 46px, #0000004d 46px 48px),
+  repeating-linear-gradient(90deg, transparent 0 58px, #0000003d 58px 60px),
+  linear-gradient(180deg, #102a17, #0a1c0f 65%, #13301a); }
+/* your arena cosmetic (battle pass) stays your half; the opponent's world covers only the top half */
+.field.v2f[class*="ar-"] .fl.bot { display: none; }
+/* the drifting sparks: same look, now moved with transform (a composited layer) instead of repainting background-position every frame */
+.field.v2f::before { z-index: 1; inset: 0 0 -96px 0; background-size: 74px 96px, 118px 96px; animation: v2drift 16s linear infinite; will-change: transform; }
+@keyframes v2drift { from { transform: translateY(0); } to { transform: translateY(-96px); } }
+.field.v2f #slots { z-index: 2; }
+.field.v2f .fx, .field.v2f .floats { z-index: 5; }
+.field.v2f .divider::before { background: linear-gradient(90deg, transparent, var(--ew, #e0262f) 20%, #fff 50%, var(--mw, #f2b300) 80%, transparent); height: 4px; opacity: .85; }
+.field.v2f .divider span { background: transparent; }
+.field.v2f .cell { background: #00000026; }
+@media (prefers-reduced-motion: reduce) { .field.v2f::before { animation: none; } }
+
+/* (20) opponent panel: compact hero, name, level and life above the field (phones; the desktop keeps the left rail) */
+.opp-panel { display: none; }
+@media (max-width: 860px) and (orientation: portrait), (orientation: landscape) and (max-height: 520px) and (max-width: 1100px) {
+  #scr-match .opp-panel { display: flex; align-items: center; gap: 6px; height: 32px; flex: none; align-self: stretch; margin: 0 4px; padding: 0 4px; direction: rtl;
+    background: linear-gradient(270deg, color-mix(in srgb, var(--ow, #e0262f) 34%, #121010), #121010 70%); border: 2px solid var(--ow, #e0262f); border-radius: 9px; color: var(--paper); box-shadow: 0 2px 0 #000; overflow: hidden; }
+  #scr-match .opp-panel .portrait { width: 26px; height: 26px; flex: none; border-radius: 6px; }
+  #scr-match .opp-panel .op-n { flex: 1 1 auto; min-width: 0; font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #scr-match .opp-panel .op-lv { display: inline-flex; align-items: center; gap: 2px; font: 400 15px var(--display); color: var(--gold); flex: none; }
+  #scr-match .opp-panel .op-lv svg { width: 14px; height: 14px; }
+  #scr-match .opp-panel .op-life { display: inline-flex; align-items: center; gap: 3px; flex: none; font: 400 17px var(--display); direction: ltr; }
+  #scr-match .opp-panel .op-life svg { width: 14px; height: 14px; color: #ff5a63; }
+  /* the opponent's life lives in this panel now: the top bar keeps only yours */
+  #scr-match .topbar .lifechip:not(.me) { display: none !important; }
+}
+.op-bar { display: inline-block; width: 64px; height: 7px; background: #000; border: 1px solid #ffffff40; border-radius: 4px; overflow: hidden; direction: ltr; }
+.op-bar i { display: block; width: 100%; height: 100%; background: linear-gradient(90deg, #ff3b45, #ff8a5a); transform-origin: left center; transition: transform .2s linear; }
+
+/* (20) shop dock: «جاهز» next to your hero, then round icon buttons with prices */
+#scr-match .shop-dock { display: flex; align-items: center; gap: 6px; flex: 1 0 100%; order: 1; min-height: 44px; direction: rtl; }
+#scr-match .shop-dock .dock-sp { flex: 1 1 0; min-width: 0; }
+#scr-match .shop-dock .ready-btn { flex: none; min-width: 108px !important; height: 42px; padding: 0 18px; font: 400 23px var(--display) !important; line-height: 1; box-shadow: 3px 3px 0 #000; }
+#scr-match .dock-hero { position: relative; flex: none; width: 44px; height: 44px; padding: 0; border: 3px solid var(--wc, var(--gold)); border-radius: 10px; background: #000; cursor: pointer; box-shadow: 0 0 10px color-mix(in srgb, var(--wc, #f2b300) 55%, transparent), 2px 2px 0 #000; }
+#scr-match .dock-hero .portrait { width: 100%; height: 100%; border-radius: 7px; }
+#scr-match .dock-hero .dh-lv { position: absolute; bottom: -5px; left: -6px; display: inline-flex; align-items: center; gap: 1px; padding: 0 3px; background: #000; color: var(--gold); border: 1.5px solid var(--gold); border-radius: 7px; font: 400 12px var(--display); line-height: 15px; }
+#scr-match .dock-hero .dh-lv svg { width: 10px; height: 10px; }
+#scr-match .sb-ic { position: relative; flex: none; width: 44px; height: 44px; padding: 0; display: grid; place-items: center; border-radius: 50%; cursor: pointer; color: #fff;
+  border: 2px solid #9fd8ff; background: radial-gradient(circle at 50% 30%, #2f5f9a, #10284a 70%); box-shadow: 0 2px 0 #000, inset 0 2px 0 #ffffff30; transition: transform .08s; }
+#scr-match .sb-ic svg { width: 21px; height: 21px; }
+#scr-match .sb-ic:active:not(:disabled) { transform: scale(.92); }
+#scr-match .sb-ic:disabled { opacity: .45; cursor: not-allowed; }
+#scr-match .sb-ic.on { border-color: var(--gold); background: radial-gradient(circle at 50% 30%, #8a6a10, #3a2a05 70%); color: var(--gold); }
+#scr-match .sb-ic .pr { position: absolute; top: -6px; right: -5px; display: inline-flex; align-items: center; gap: 1px; padding: 0 4px 0 2px; height: 17px; border-radius: 9px; background: #f2b300; color: #000; border: 1.5px solid #000; font: 400 13px var(--display); line-height: 1; direction: ltr; }
+#scr-match .sb-ic .pr svg { width: 11px; height: 11px; color: #000; }
+#scr-match .sb-ic .pr.no { background: #6d6152; color: #f3ead6; } #scr-match .sb-ic .pr.no svg { color: #f3ead6; }
+#scr-match .sb-ic .xpm { position: absolute; left: 9px; right: 9px; bottom: 6px; height: 3px; background: #0008; border-radius: 2px; overflow: hidden; }
+#scr-match .sb-ic .xpm i { display: block; height: 100%; background: #7dffa0; transform-origin: right center; }
+/* desktop: the dock is a column at the start of the shop */
+@media (min-width: 861px) and (min-height: 521px) {
+  #scr-match .shop-dock { flex: 0 0 auto; flex-direction: column; justify-content: center; flex-wrap: wrap; max-width: 170px; }
+  #scr-match .shop-dock .dock-sp { display: none; }
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  #scr-match .shopbar { height: 156px; padding: 3px 4px 2px; }
+  #scr-match .field-wrap { --cwv: clamp(48px, min(calc((var(--app-h, 100dvh) - 410px) / 4.7), calc((100vw - 44px) / 4)), 150px); }
+}
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 1100px) {
+  #scr-match.active { grid-template-rows: auto auto auto auto minmax(0, 1fr); }
+  #scr-match .field { grid-row: 2 / 6; }
+  #scr-match .opp-panel { grid-column: 2; grid-row: 2; margin: 0; }
+  #scr-match #bench { grid-row: 3; } #scr-match #combat-ctrl { grid-row: 4; } #scr-match #shopbar { grid-row: 5; }
+  #scr-match .shop-dock { min-height: 38px; gap: 5px; }
+  #scr-match .shop-dock .ready-btn { height: 36px; min-width: 92px !important; font-size: 20px !important; }
+  #scr-match .dock-hero { width: 38px; height: 38px; }
+  #scr-match .sb-ic { width: 38px; height: 38px; } #scr-match .sb-ic svg { width: 18px; height: 18px; }
+}
+
+/* (21) clean combat screen: no shop, no bench, no prep buttons; your hero + clock / speed / skip at the bottom */
+#scr-match .cc-dock { display: flex; align-items: center; gap: 6px; width: 100%; direction: rtl; }
+#scr-match .cc-dock .cc-sp { flex: 1 1 0; }
+#scr-match .cc-hero { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px 2px 3px; border: 2px solid var(--wc, var(--gold)); border-radius: 10px; color: var(--paper);
+  background: linear-gradient(270deg, color-mix(in srgb, var(--wc, #f2b300) 30%, #121010), #121010 75%); }
+#scr-match .cc-hero .portrait { width: 34px; height: 34px; border-radius: 7px; flex: none; }
+#scr-match .cc-life { display: inline-flex; align-items: center; gap: 3px; font: 400 18px var(--display); direction: ltr; }
+#scr-match .cc-life svg { width: 14px; height: 14px; color: #ff5a63; }
+#scr-match .cc-life .op-bar { width: 58px; }
+#scr-match .cc-life .op-bar i { background: linear-gradient(90deg, #2fd16a, #9bffb8); }
+#scr-match .cc-dock .btn.small { min-height: 40px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 3px; font-size: 14px; }
+#scr-match .cc-dock .btn.small svg { width: 14px; height: 14px; }
+#scr-match .cc-dock .cc-speed b { font: 400 17px var(--display); direction: ltr; }
+#scr-match .cc-dock .clock { min-width: 52px; font-size: 19px; }
+#scr-match[data-ph="fight"] .shopbar, #scr-match[data-ph="fight"] #bench { display: none !important; }
+@media (max-width: 860px) and (orientation: portrait) {
+  #scr-match[data-ph="fight"] .field-wrap { flex: 1 1 auto; --cwv: clamp(48px, min(calc((var(--app-h, 100dvh) - 230px) / 4.7), calc((100vw - 44px) / 4)), 150px); }
+  #scr-match[data-ph="fight"] #combat-ctrl { margin-top: auto; padding: 4px 4px 6px; }
+  #scr-match[data-ph="fight"] #field { margin-block: auto !important; }
+}
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 1100px) {
+  #scr-match[data-ph="fight"] #combat-ctrl { grid-row: 3; }
+}
+
+/* (21) hero ability: the name bursts over its owner's half (transform/opacity only) */
+.ab-burst { position: absolute; left: 50%; top: 74%; width: 0; height: 0; z-index: 8; pointer-events: none; }
+.ab-burst.foe { top: 26%; }
+.ab-burst .abr { position: absolute; left: -80px; top: -80px; width: 160px; height: 160px; border-radius: 50%; border: 3px solid var(--bc); box-shadow: 0 0 18px var(--bc), inset 0 0 18px var(--bc);
+  opacity: 0; transform: scale(.15); animation: abring .85s cubic-bezier(.2, .7, .3, 1) forwards; }
+.ab-burst .abr.two { animation-delay: .14s; border-width: 2px; }
+.ab-burst b { position: absolute; left: 0; top: 0; white-space: nowrap; direction: rtl; font: 400 clamp(24px, 8vw, 38px) var(--display); color: #fff; padding: 2px 22px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--bc) 55%, #000) 20% 80%, transparent);
+  text-shadow: 0 0 12px var(--bc), 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
+  opacity: 0; transform: translate(-50%, -50%) scale(2); animation: abtxt 1.2s cubic-bezier(.2, .8, .3, 1) forwards; }
+@keyframes abring { 0% { opacity: .95; transform: scale(.15); } 100% { opacity: 0; transform: scale(1.6); } }
+@keyframes abtxt { 0% { opacity: 0; transform: translate(-50%, -50%) scale(2); } 14% { opacity: 1; transform: translate(-50%, -50%) scale(.94); } 24% { transform: translate(-50%, -50%) scale(1); } 76% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -64%) scale(1.04); } }
+@media (prefers-reduced-motion: reduce) { .ab-burst .abr { display: none; } .ab-burst b { animation-duration: 1.4s; } }
+
+/* =====================================================================
+   UI v2 — pack reveal (audit 2.6 / 3.5): bigger cards, the logo fits the card back,
+   card-by-card turn that grows with rarity, a visible «تخطي». CSS animations: transform/opacity.
+   ===================================================================== */
+.rv-wrap.rv2 { width: 100%; max-width: 760px; }
+#overlay:has(.rv2) { background-color: #0b0909f7; }
+.rv-wrap.rv2 h2 { margin: 0 0 10px; }
+.rv-wrap.rv2 .rv-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px 10px; }
+.rv-wrap.rv2 .rv { --cz: 1.04; width: calc(100px * var(--cz) + 4px); flex: none; }
+.rv-wrap.rv2 .rv-front .tcard.hc.full { zoom: var(--cz); }
+.rv-wrap.rv2 .rv-back, .rv-wrap.rv2 .rv-front { padding-top: 0; gap: 6px; }
+.rv-wrap.rv2 .rv-back { border-radius: 12px; overflow: hidden; }
+.rv-wrap.rv2 .rv-back span { font-size: calc(30px * var(--cz)); line-height: 1; letter-spacing: 0; text-shadow: 2px 2px 0 var(--red); max-width: 100%; }
+.rv-wrap.rv2 .rv-tag { white-space: normal; max-width: 100%; font-size: 11px; line-height: 1.25; padding: 2px 5px; overflow-wrap: anywhere; }
+/* the turn grows with rarity: common is quick, legendary slow and heavy */
+.rv-wrap.rv2 .rv[data-r=common] .rv-in { animation-duration: .42s; }
+.rv-wrap.rv2 .rv[data-r=rare] .rv-in { animation-duration: .55s; }
+.rv-wrap.rv2 .rv[data-r=epic] .rv-in { animation-duration: .7s; }
+.rv-wrap.rv2 .rv[data-r=legendary] .rv-in { animation-duration: .9s; }
+.rv-wrap.rv2 .rv[data-r=rare].hit .rv-front { animation: rv2pop .45s cubic-bezier(.2, 1.6, .4, 1); }
+.rv-wrap.rv2 .rv[data-r=epic].hit .rv-front { animation: rv2pop .6s cubic-bezier(.2, 1.9, .4, 1); --pz: 1.18; }
+.rv-wrap.rv2 .rv[data-r=legendary].hit .rv-front { animation: rv2pop .8s cubic-bezier(.2, 2, .4, 1); --pz: 1.28; }
+@keyframes rv2pop { 0% { transform: scale(var(--pz, 1.1)); } 100% { transform: scale(1); } }
+/* skip: every card shows its face right away */
+.rv-wrap.rv2.rv-skipped .rv-in { animation: none; transform: none; }
+.rv-wrap.rv2 .rv-skip { background: #000; color: var(--gold); border-color: var(--gold); }
+.rv-wrap.rv2 .rv-skip svg { width: 14px; height: 14px; vertical-align: -2px; }
+.rv-wrap.rv2.rv-done .rv-skip { display: none; }
+/* the other buttons wait until the cards are out, so the first tap on the row is always «تخطي» */
+.rv-wrap.rv2:not(.rv-done) .rv-btns .btn:not(.rv-skip) { opacity: .35; pointer-events: none; }
+.rv-wrap.rv2 .rv-btns .btn { min-height: 44px; }
+@media (max-width: 520px) {
+  .rv-wrap.rv2 .rv-row { flex-wrap: wrap; gap: 12px 8px; max-width: 360px; margin: 0 auto; }
+  .rv-wrap.rv2 .rv { --cz: 1.04; width: calc(100px * var(--cz) + 2px); }
+  .rv-wrap.rv2 h2 { font-size: 26px; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  #overlay:has(.rv2) { padding: 6px 10px; }
+  .rv-wrap.rv2 h2 { font-size: 22px; margin-bottom: 4px; }
+  .rv-wrap.rv2 .rv-row { flex-wrap: nowrap; gap: 8px; }
+  .rv-wrap.rv2 .rv { --cz: .98; }
+  .rv-wrap.rv2 .rv-tag { font-size: 10px; }
+  .rv-wrap.rv2 .rv-pity { margin: 4px 0; font-size: 13px; }
+  .rv-wrap.rv2 .rv-btns { margin-top: 2px; gap: 6px; }
+  .rv-wrap.rv2 .rv-btns .btn { padding: 6px 12px; font-size: 14px; min-height: 40px; }
+  .rv-wrap.rv2 .rv-rays { width: 260px; height: 260px; margin: -130px 0 0 -130px; }
+}
+
+/* =====================================================================
+   UI v2 — collection / packs / campaign take the match style (NIGHTLY 22):
+   dark rounded panels with a soft rim, world colours on world things, one pill style for filters and tabs.
+   The skewed .btn stays the one action button everywhere (same as «جاهز» in the match).
+   ===================================================================== */
+:root { --v2-panel: linear-gradient(160deg, #221c19, #141010 70%); --v2-rim: #ffffff2e; }
+.cam-note, .cam-chests, .col-head, .pity, .pk-odds, .deck-bar {
+  border-radius: 12px; border: 2px solid var(--v2-rim); background: var(--v2-panel); box-shadow: 0 3px 0 #000; }
+.cam-chests { border-color: color-mix(in srgb, var(--gold) 70%, transparent); }
+.deck-bar { border-color: color-mix(in srgb, var(--gold) 75%, transparent); background: #120e0ce6; }
+.deck-bar.bad { border-color: var(--red); }
+.pity.ready { border-color: var(--rc); box-shadow: 0 0 0 2px var(--rc), 0 3px 0 #000; }
+.up-how { border-radius: 10px; border: 2px dashed #ffffff40; }
+/* campaign levels: the world's colour as the rim and the glow */
+.cam-level { border-radius: 14px; border: 2px solid var(--wc); box-shadow: 0 3px 0 #000, 0 0 18px color-mix(in srgb, var(--wc) 22%, transparent);
+  background: radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--wc) 30%, transparent), transparent 60%), var(--v2-panel); }
+.cl-n { border-radius: 10px; border-width: 2px; }
+.cnode:not(.boss) { box-shadow: 0 0 0 3px var(--wc), 0 3px 0 #000; }
+.cam-diff .cd { border-radius: 12px; border: 2px solid var(--v2-rim); background: var(--v2-panel); }
+.cam-diff .cd.on { background: var(--dc); color: #000; border-color: var(--dc); box-shadow: 0 0 12px color-mix(in srgb, var(--dc) 45%, transparent), 0 3px 0 #000; }
+.cc-track { border-radius: 8px; overflow: visible; } .cc-track > i { border-radius: 6px; }
+.chest { border-width: 2px; }
+/* one pill style for filters (collection) */
+.collection .filters .btn.small { clip-path: none; border-radius: 999px; border: 2px solid var(--v2-rim); background: #1c1714; color: var(--paper); box-shadow: 0 2px 0 #000; padding: 4px 14px; }
+.collection .filters .btn.small[style] { border-color: var(--rc); }
+.collection .filters .btn.small.on { background: var(--gold); color: #000; border-color: var(--gold); }
+.collection .filters .btn.small:hover:not(:disabled):not(.on) { background: #2a2320; }
+/* packs: the pack itself keeps its foil; the stats and odds use the panels above */
+.pk-art { border-radius: 18px; }
+.pity-bar i { border-radius: 4px; } .pk-odds li i { border-radius: 50%; }
+/* screen headers on these three screens: a dark strip with a rounded back pill */
+#scr-cards .scr-head .btn.ghost, #scr-packs .scr-head .btn.ghost, #scr-campaign .scr-head .btn.ghost { clip-path: none; border-radius: 999px; border-width: 2px; padding: 6px 16px; min-height: 40px; }
+=======
+/* ===== playtest fixes (UI-B, NIGHTLY 23-28 + audit 2.7) ===== */
+/* (23) hero picker: one compact card look for the quick match and the campaign's first hero; the confirm button stays at the bottom */
+#scr-hero .scr-head { margin-bottom: 10px; }
+#scr-hero .scr-head h2 { font-size: clamp(22px, 6.4vw, 34px); line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+#scr-hero .hero-grid, .hp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 10px; max-width: 900px; margin: 0 auto; padding-bottom: 96px; }
+.hp-sub { grid-column: 1 / -1; margin: 0 0 2px; font-size: 13.5px; line-height: 1.6; color: var(--paper2, #e9dfc8); text-align: center; }
+.hpick { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 8px 8px; cursor: pointer; text-align: center;
+  background: var(--paper); color: var(--ink); border: 3px solid var(--ink); border-top: 8px solid var(--wc); box-shadow: 4px 4px 0 #000; transition: transform .12s; }
+.hpick:active { transform: translateY(1px); }
+.hpick.sel { background: #fff6dc; box-shadow: 0 0 0 3px var(--red), 4px 4px 0 #000; }
+.hpick.sel::before { content: '✓'; position: absolute; top: 4px; inset-inline-start: 6px; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; background: var(--red); color: #fff; font-weight: 800; border: 2px solid var(--ink); }
+.hpick.locked { filter: grayscale(.85) brightness(.75); cursor: not-allowed; }
+.hp-lock { position: absolute; top: 4px; inset-inline-end: 6px; font-size: 16px; }
+.hp-pic .portrait { width: 76px; height: 76px; display: block; }
+.hp-name { font: 400 22px var(--display); line-height: 1.1; }
+.hp-world { background: var(--wc); color: var(--ink); border: 2px solid var(--ink); padding: 0 8px; font-size: 12px; font-weight: 700; }
+.hp-lv { font-size: 11.5px; color: var(--ink3, #4a3a30); font-weight: 700; }
+.hp-style { margin: 2px 0 4px; font-size: 12px; line-height: 1.5; color: var(--ink3, #4a3a30); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; min-height: 54px; }
+.cam-starter .hpick .hp-style { color: var(--ink3, #4a3a30); opacity: 1; }
+.hp-btns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: auto; }
+.hp-btns .btn.small { min-height: 40px; padding: 4px 10px; font-size: 13px; }
+.hp-try { background: var(--gold, #ffd24a) !important; color: #000 !important; }
+.hpick .hp-info { background: #fff !important; color: var(--ink) !important; border: 2px solid var(--ink) !important; opacity: 1; }
+.hpick .pick-badge { top: 4px; left: 4px; font-size: 11px; }
+#scr-hero .hero-foot, .cam-foot { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; margin: 0; padding: 12px 14px calc(12px + env(safe-area-inset-bottom)); text-align: center;
+  background: linear-gradient(transparent, #0c0807e6 30%); }
+#scr-hero .hero-foot .btn, .cam-foot .btn { width: min(420px, 100%); }
+body[data-nav="1"] .cam-foot { bottom: 68px; }
+.cam-starter .hp-grid { margin-top: 12px; text-align: start; }
+/* (24) tutorial: the hint bar is a fixed strip ABOVE the match (the match moves down to make room), so it never covers the enemy row */
+body.tut-on .tut-bar { top: 0; left: 0; right: 0; transform: none; max-width: none; height: 50px; border-width: 0 0 3px; box-shadow: 0 3px 0 var(--red); justify-content: center; padding: 2px 10px; gap: 10px; }
+body.tut-on #scr-match.active { padding-top: 56px !important; }
+body.tut-on .tut-bar .tg-dots { flex-wrap: nowrap; }
+@media (max-width: 860px) and (orientation: portrait) {
+  body.tut-on #scr-match .field-wrap { --cwv: clamp(44px, min(calc((var(--app-h, 100dvh) - 372px - 56px) / 4.7), calc((100vw - 22px) / 4)), 150px); }
+}
+/* @@25@@ */
+/* (25) touch targets: every small control gets an invisible hit area of at least 46x46 (the visuals keep their size) */
+.tcard .hc-info::after, .cnode::after, .al-dots button::after, #scr-match .trg::after, #scr-match .topbar .ibtn2::after, .ibtn::after {
+  content: ''; position: absolute; inset: auto; left: 50%; top: 50%; width: max(100%, 46px); height: max(100%, 46px); transform: translate(-50%, -50%); border-radius: 0; background: none;
+}
+#scr-match .trg { position: relative; }
+#scr-match .ab-trg { gap: 10px !important; }
+.cnode::after { width: max(100%, 48px); height: max(100%, 48px); border-radius: 50%; }
+.al-dots { gap: 34px; }
+/* shop cards sit in a scroll row that clips above and to the side: the ⓘ hit area grows into the card instead */
+/* match cards are zoomed down (0.5-0.64), so their hit area is set in the card's own (zoomed) units: 76 x 0.58 = 44px on screen */
+#scr-match .tcard .hc-info { z-index: 12; } #scr-match .tcard .hc-info::after { width: 76px; height: 76px; }
+#shopbar .tcard .hc-info::after { transform: translate(-72%, -28%); }
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 1100px) { #scr-match .tcard .hc-info::after { width: 90px; height: 90px; } }
+.tcard .hc-info { z-index: 9; }
+/* the small top-bar buttons are clipped to their slanted shape, which also clipped any bigger hit area:
+   the slanted face is now drawn by ::before and the button itself is an unclipped, invisible box */
+#scr-match .topbar .ibtn2 { clip-path: none; background: transparent; border-color: transparent; box-shadow: none; isolation: isolate; }
+#scr-match .topbar .ibtn2::before { content: ''; position: absolute; inset: 0; z-index: -1; background: var(--paper); border: 2px solid var(--ink); clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%); }
+#scr-match .topbar .ibtn2:hover:not(:disabled) { background: transparent; } #scr-match .topbar .ibtn2:hover:not(:disabled)::before { background: var(--gold); }
+#scr-match .topbar .ibtn2 + .ibtn2, #scr-match .topbar [data-act="menuMatch"] { margin-inline-start: 10px; }
+/* @@end25@@ */
+/* @@26@@ */
+/* (26) collection: the deck and the explanation fold into one line each, so the cards start higher on the screen */
+.col-fold { margin: 0 0 8px; }
+.col-fold > summary { list-style: none; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-height: 44px; padding: 6px 10px; cursor: pointer; background: #ffffff0d; border: 2px solid var(--paper3); color: var(--paper); }
+.col-fold > summary::-webkit-details-marker { display: none; }
+.col-fold > summary::after { content: '▾'; margin-inline-start: auto; font-size: 18px; color: var(--gold); transition: transform .15s; }
+.col-fold:not([open]) > summary::after { transform: rotate(90deg); }
+.col-fold > summary b span { color: var(--gold); } .col-fold > summary b span.bad { color: var(--red); }
+.col-fold > summary small { color: var(--paper3); font-size: 12px; }
+.col-fold[open] > summary { margin-bottom: 6px; border-color: var(--gold); }
+.col-fold .deck-bar { margin-bottom: 4px; }
+/* (26) pack reveal on phones: the card back is narrow (68px), so the logo is sized to fit once instead of overflowing into "ZORZORZOR" */
+.rv-back span { font-size: clamp(14px, 34cqw, 42px); line-height: 1; }
+.rv-back { container-type: inline-size; overflow: hidden; }
+@media (max-width: 520px) { .rv-wrap .rv-back span { font-size: 20px; text-shadow: 2px 2px 0 var(--red); } }
+/* @@end26@@ */

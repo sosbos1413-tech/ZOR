@@ -73,6 +73,11 @@
       // a 3-star is strong but still loses to a well-built team (see DESIGN.md).
       mult: { 1: 1, 2: 1.8, 3: 3.0 },
       copiesPerStar: 3,
+      copiesTo: { 2: 3, 3: 2 },   // same-star units that merge into the next star: 3×★ = ★★, 2×★★ = ★★★ (6 copies, reachable in a 7-round match)
+      rewardHeldWeight: 10,        // the free-recruit reward favours units you already hold (weight per copy held)
+      ownedShopWeight: 8,         // shop focus: a unit you hold (below ★★★) is this many times likelier to show up in your shop
+      focusMinCopies: 2,          // ...once you hold at least this many copies of it
+      focusFreshOnly: true,       // true: the focus only shapes the free shop at the start of a round (not paid rerolls)
       maxStar: 3,
     },
 
@@ -532,8 +537,8 @@
       vanguard: { name: 'درع المدّ', text: 'لما ينزل الساحة: الفريق يتجدد 0.15% من صحته كل ثانية، وهو ياخذ درع حياة وحدة ويصمد أطول بحياة قبل ما ينسحب.', allyRegen: 0.003, heroShield: 1, knockoutBonus: 1 },
       passive: { id: 'deep_reserve', name: 'مخزون عميق', text: '+2 جوهرة زيادة كل جولة.' },
       abilities: [
-        { id: 'tidal_ward', name: 'حاجز المدّ', cost: 3, type: 'shieldAllies', amount: 150, scale: 25,
-          text: 'درع لكل الفريق (150 + 25 مع كل جولة).' },
+        { id: 'tidal_ward', name: 'حاجز المدّ', cost: 3, type: 'shieldAllies', amount: 175, scale: 25,
+          text: 'درع لكل الفريق (175 + 25 مع كل جولة).' },
         { id: 'moon_spring', name: 'ينبوع القمر', cost: 4, type: 'healAllies', pct: 0.36,
           text: 'يعالج كل الفريق بنسبة 36% من صحتهم الكاملة.' },
       ],
@@ -589,13 +594,13 @@
     nayako: {
       id: 'nayako', name: 'ناياكو', title: 'نجمة الشبكة', world: 'neon', style: 'إيقاع: نجمة خفيفة تغيّر مجرى المعركة بنبضة. اقتصاد وتشويش.',
       board: { atk: 72, as: 0.9, range: 4, def: 0.05, crit: 0.18 },
-      vanguard: { name: 'نبضة الإيقاع', text: 'لما ينزل الساحة: الفريق +5% سرعة هجوم، وهو يضرب حرجة أكثر (+5%)، وقدراته أرخص بنقطة.', allyAs: 0.10, heroCrit: 0.10, extraDiscount: 1 },
+      vanguard: { name: 'نبضة الإيقاع', text: 'لما ينزل الساحة: الفريق +3% سرعة هجوم، وهو يضرب حرجة أكثر (+5%)، وقدراته أرخص بنقطة.', allyAs: 0.06, heroCrit: 0.10, extraDiscount: 1 },
       passive: { id: 'data_stream', name: 'تدفق البيانات', text: '+1 ذهب إضافي كل جولة، وكل وحداتك +2% سرعة هجوم.' },
       abilities: [
-        { id: 'hologram_wall', name: 'جدار الهولوغرام', cost: 3, type: 'shieldAllies', amount: 240, scale: 25,
-          text: 'درع لكل الفريق (240 + 25 مع كل جولة).' },
-        { id: 'glitch_pulse', name: 'نبضة تشويش', cost: 4, type: 'stunEnemies', dur: 1.6,
-          text: 'يوقف كل الأعداء لمدة 1.6 ثانية.' },
+        { id: 'hologram_wall', name: 'جدار الهولوغرام', cost: 3, type: 'shieldAllies', amount: 150, scale: 25,
+          text: 'درع لكل الفريق (150 + 25 مع كل جولة).' },
+        { id: 'glitch_pulse', name: 'نبضة تشويش', cost: 4, type: 'stunEnemies', dur: 1.3,
+          text: 'يوقف كل الأعداء لمدة 1.3 ثانية.' },
       ],
     },
     thora: {
@@ -621,18 +626,19 @@
 
   // Equipment (attached to a unit) and spells (armed for the next combat).
   const ITEMS = {
+    // equipment: a real piece of power for its holder (it stays on the unit and moves with it on a merge)
     rift_blade: { id: 'rift_blade', kind: 'equip', name: 'نصل الصدع', cost: 3, icon: 'sword',
-      effects: [{ stat: 'atkPct', value: 0.25 }], text: '+25% هجوم.' },
+      effects: [{ stat: 'atkPct', value: 0.4 }], text: '+40% هجوم.' },
     star_plate: { id: 'star_plate', kind: 'equip', name: 'درع النجم', cost: 3, icon: 'shield',
-      effects: [{ stat: 'hpPct', value: 0.3 }, { stat: 'dr', value: 0.05 }], text: '+30% صحة، و5% ضرر أقل عليه.' },
+      effects: [{ stat: 'hpPct', value: 0.5 }, { stat: 'dr', value: 0.1 }], text: '+50% صحة، و10% ضرر أقل عليه.' },
     swift_charm: { id: 'swift_charm', kind: 'equip', name: 'تميمة الريح', cost: 3, icon: 'wind',
-      effects: [{ stat: 'asPct', value: 0.25 }], text: '+25% سرعة هجوم.' },
+      effects: [{ stat: 'asPct', value: 0.4 }], text: '+40% سرعة هجوم.' },
     mana_prism: { id: 'mana_prism', kind: 'equip', name: 'موشور المانا', cost: 3, icon: 'orb',
-      effects: [{ stat: 'startMana', value: 40 }, { stat: 'skillPower', value: 0.1 }], text: '+40 مانا من البداية، و+10% قوة للمهارة.' },
+      effects: [{ stat: 'startMana', value: 60 }, { stat: 'skillPower', value: 0.25 }], text: '+60 مانا من البداية، و+25% قوة للمهارة.' },
     vamp_fang: { id: 'vamp_fang', kind: 'equip', name: 'ناب الظل', cost: 3, icon: 'fang',
-      effects: [{ stat: 'lifesteal', value: 0.2 }], text: 'يسرق 20% من ضرره صحة.' },
+      effects: [{ stat: 'lifesteal', value: 0.25 }, { stat: 'atkPct', value: 0.15 }], text: 'يسرق 25% من ضرره صحة، و+15% هجوم.' },
     hawk_scope: { id: 'hawk_scope', kind: 'equip', name: 'منظار الصقر', cost: 3, icon: 'eye',
-      effects: [{ stat: 'range', value: 1 }, { stat: 'crit', value: 0.15 }], text: '+1 مدى، و+15% فرصة ضربة حرجة.' },
+      effects: [{ stat: 'range', value: 1 }, { stat: 'crit', value: 0.25 }], text: '+1 مدى، و+25% فرصة ضربة حرجة.' },
 
     war_hymn: { id: 'war_hymn', kind: 'spell', name: 'ترنيمة الحرب', cost: 2, icon: 'note',
       spell: { type: 'buffAll', atkPct: 0.2 }, text: 'القتال الجاي: +20% هجوم لكل الفريق.' },
@@ -886,6 +892,9 @@
       const syn = AMB.synergy.evaluate(spec.units, spec.heroId);
       side.synergy = syn;
       const spells = (spec.spells || []).map((id) => ITEMS[id].spell);
+      // world rules: an active world synergy also gives its members a signature mechanic (ignite / tide shield / jam / grow)
+      side.rules = {};
+      syn.list.forEach((sy) => { if (sy.kind === 'world' && sy.activeTier >= 0 && sy.tiers[sy.activeTier].rule) side.rules[sy.id] = sy.tiers[sy.activeTier].rule; });
 
       // --- units
       spec.units.forEach((u) => {
@@ -924,6 +933,7 @@
           regenPct: mods.regenPct, mana: mods.startMana, maxMana: def.mana, skill: def.skill, sig: def.sig || null, inPlace,
         });
         if (mods.startShieldPct) f.shield += maxHp * mods.startShieldPct;
+        if (side.rules[def.world]) { f.wrule = side.rules[def.world]; f.atk0 = f.atk; f.maxHp0 = maxHp; f.growN = 0; f._gn = f.wrule.every || 0; }
       });
 
       // --- hero (summoned onto the board, or waiting at the command post)
@@ -1029,7 +1039,7 @@
     }
 
     effAtk(f) { return f.atk * (1 + this.buffSum(f, 'atkPct')); }
-    effAs(f) { return f.as * (1 + this.buffSum(f, 'asPct')); }
+    effAs(f) { return f.as * (1 + this.buffSum(f, 'asPct')) * (f.jam && f.jam.until > this.t ? 1 - f.jam.pct : 1); }   // neon rule: a jammed unit attacks slower
     effDef(f) { return clamp(f.def + this.buffSum(f, 'dr'), 0, this.C.maxDef); }
     fury() { return this.t > this.C.furyStart ? 1 + this.C.furyPerSec * (this.t - this.C.furyStart) : 1; }
 
@@ -1124,6 +1134,9 @@
       f.alive = false;
       f.hp = 0;
       this.sides[f.side].deaths += f.isHero ? 0 : 1;
+      if (!f.isHero) this.fighters.forEach((a) => {   // tide rule: when an ally falls, the living tide units get a shield
+        if (a.alive && a.side === f.side && a.wrule && a.wrule.type === 'tideShield') { a.shield += a.maxHp * a.wrule.pct; this.emit({ type: 'status', id: a.id, text: 'درع المدّ' }); }
+      });
       if (src && src.alive && !src.isHero) {   // legendary kill triggers
         if (src.sig === 'bloodrush' && (src._br || 0) < 3) { src._br = (src._br || 0) + 1; src.buffs.push({ asPct: 0.2, until: Infinity }); }
         if (src.sig === 'reaper' && src.skill) src.mana = src.maxMana;
@@ -1214,6 +1227,18 @@
       }
     }
 
+    // world rules that ride on a basic attack: ember ignites the target, neon jams (slows) its attacks
+    _worldHit(f, tgt) {
+      const r = f.wrule;
+      if (r.type === 'ignite') {
+        if (!tgt.ignite || tgt.ignite.until <= this.t) this.emit({ type: 'status', id: tgt.id, text: 'حرق' });
+        tgt.ignite = { dps: this.effAtk(f) * r.pct, until: this.t + r.dur, src: f.id };
+      } else if (r.type === 'jam') {
+        if (!tgt.jam || tgt.jam.until <= this.t) this.emit({ type: 'status', id: tgt.id, text: 'بطء' });
+        tgt.jam = { pct: r.pct, until: this.t + r.dur };
+      }
+    }
+
     stun(f, dur) { if (f.alive && !f.passive) { f.stun = Math.max(f.stun, dur); this.emit({ type: 'stun', id: f.id }); } }
 
     // ---------------------------------------------------------------- hero abilities / spells
@@ -1299,6 +1324,19 @@
         f.buffs = f.buffs.filter((b) => b.until > this.t);
         if (f.sig === 'frostaura' && this.t >= (f._au || 0)) { f._au = this.t + 0.25; this.enemiesOf(f).forEach((e) => { if (!e.isHero && dist(e, f) <= 2.6) e.buffs.push({ asPct: -0.12, until: this.t + 0.4 }); }); }
         if (f.sig === 'bloom' && this.t >= (f._bl || 3)) { f._bl = this.t + 3; this.fighters.forEach((a) => { if (a.side === f.side && a.alive && !a.isHero) this.heal(a, a.maxHp * 0.03, true); }); }
+        if (f.wrule && f.wrule.type === 'grow' && f.growN < f.wrule.max && this.t >= f._gn) {   // sylvan rule: the unit grows every few seconds
+          f._gn += f.wrule.every; f.growN++;
+          f.atk += f.atk0 * f.wrule.pct; const add = f.maxHp0 * f.wrule.pct; f.maxHp += add; f.hp += add;
+          this.emit({ type: 'status', id: f.id, text: 'نمو' });
+        }
+        if (f.ignite) {   // ember rule: a burn that refreshes on every hit (one at a time, it does not stack)
+          if (f.ignite.until <= this.t) f.ignite = null;
+          else {
+            const ig = f.ignite, src = this.fighters.find((x) => x.id === ig.src);
+            this.damage(src && src.alive ? src : null, f, ig.dps * dt, { skill: true, dot: true });
+            if (!f.alive) continue;
+          }
+        }
         if (f.dots.length) {
           f.dots = f.dots.filter((d) => d.until > this.t);
           for (const d of f.dots) {
@@ -1333,6 +1371,7 @@
             if (f.sig === 'overload' && (f.ov || 0) < 10) { f.ov = (f.ov || 0) + 1; f.as *= 1.03; }
             this.emit({ type: 'attack', from: f.id, to: tgt.id, ranged: f.range > 1 });
             this.damage(f, tgt, this.effAtk(f) * (crit ? f.critDmg : 1), { crit });
+            if (f.wrule && tgt.alive && !tgt.passive) this._worldHit(f, tgt);
             if (f.skill) f.mana = Math.min(f.maxMana, f.mana + this.C.manaPerAttack);
           }
         }
@@ -1483,7 +1522,7 @@
         const essGain = E.essencePerRound + (AMB.DATA.HEROES[p.heroId].passive.id === 'deep_reserve' ? 2 : 0);
         if (this.round > 1) p.essence = Math.max(p.essence, Math.min(E.essenceMax, p.essence + essGain));   // a 'pure essence' reward above the cap is kept (never clamped away)
         p.freeRerolls = AMB.DATA.HEROES[p.heroId].passive.id === 'free_reroll' ? 1 : 0;
-        if (!p.shopLocked || !p.shop.length) this._rollShop(p);
+        if (!p.shopLocked || !p.shop.length) this._rollShop(p, true);
         p.shopLocked = false;
         this._validateAbilities(p);
       });
@@ -1503,11 +1542,15 @@
       if (p.level >= E.maxLevel) p.xp = 0;
     }
 
-    _drawUnit(p) {
+    _drawUnit(p, fresh) {
       const odds = AMB.CONFIG.economy.tierOdds[Math.max(3, p.level)];
       const tier = this._rng(p).weighted(odds.map((w, i) => [i + 1, w]).filter((e) => e[1] > 0));
       const mine = (u) => !p.allowed || p.allowed.has(u.id);   // progression: only units the player owns
-      let entries = Object.values(AMB.DATA.UNITS).filter((u) => u.tier === tier && mine(u)).map((u) => [u.id, this._pool(p)[u.id]]);
+      // shop focus: a unit you already hold (and can still upgrade) shows up more often, so stars are a goal you can chase
+      const SC = AMB.CONFIG.stars, focus = (fresh || !SC.focusFreshOnly ? SC.ownedShopWeight : 1) || 1, held = {};
+      if (focus !== 1) this.allUnits(p).forEach((u) => { if (u.star < AMB.CONFIG.stars.maxStar) held[u.defId] = (held[u.defId] || 0) + this.copiesOf(u); });
+      const minHeld = AMB.CONFIG.stars.focusMinCopies || 1;
+      let entries = Object.values(AMB.DATA.UNITS).filter((u) => u.tier === tier && mine(u)).map((u) => [u.id, this._pool(p)[u.id] * (held[u.id] >= minHeld ? focus : 1)]);
       let pick = this._rng(p).weighted(entries);
       if (!pick) { // tier exhausted (or none owned in it): fall back to any available unit you own
         entries = Object.values(AMB.DATA.UNITS).filter(mine).map((u) => [u.id, this._pool(p)[u.id]]);
@@ -1516,10 +1559,10 @@
       return pick;
     }
 
-    _rollShop(p) {
+    _rollShop(p, fresh) {
       const E = AMB.CONFIG.economy;
       p.shop = [];
-      for (let i = 0; i < E.shopSlots; i++) p.shop.push(this._drawUnit(p));
+      for (let i = 0; i < E.shopSlots; i++) p.shop.push(this._drawUnit(p, fresh));
       const items = Object.keys(AMB.DATA.ITEMS);
       p.itemShop = [];
       for (let i = 0; i < E.itemShopSlots; i++) p.itemShop.push(this._rng(p).pick(items));
@@ -1564,7 +1607,7 @@
       const benchFree = p.bench.indexOf(null) >= 0;
       if (!benchFree) {
         const same = this.allUnits(p).filter((u) => u.defId === defId && u.star === 1).length;
-        if (same < AMB.CONFIG.stars.copiesPerStar - 1) return { ok: false, reason: 'الاحتياط ممتلئ' };
+        if (same < Match.copiesFor(2) - 1) return { ok: false, reason: 'الاحتياط ممتلئ' };
       }
       return { ok: true };
     }
@@ -1594,8 +1637,9 @@
       while (check && check.star < S.maxStar) {
         const list = this.allUnits(p).filter((u) => u.defId === check.defId && u.star === check.star);
         if (p._overflow && p._overflow.defId === check.defId && p._overflow.star === check.star && !list.includes(p._overflow)) list.push(p._overflow);
-        if (list.length < S.copiesPerStar) break;
-        const use = list.slice(0, S.copiesPerStar);
+        const need = Match.copiesFor(check.star + 1);
+        if (list.length < need) break;
+        const use = list.slice(0, need);
         // keep the position of a board copy if one exists
         const onBoard = use.map((u) => this._locate(p, u)).find((l) => l && l.zone === 'board');
         const keepLoc = onBoard || use.map((u) => this._locate(p, u)).find((l) => l) || null;
@@ -1639,7 +1683,10 @@
     }
     findUnit(p, uid) { return this.allUnits(p).find((u) => u.uid === uid) || null; }
 
-    copiesOf(u) { return Math.pow(AMB.CONFIG.stars.copiesPerStar, u.star - 1); }
+    /** units of star-1 that merge into one unit of `star` (3 for ★★; ★★★ may need fewer, see CONFIG.stars.copiesTo) */
+    static copiesFor(star) { const S = AMB.CONFIG.stars; return (S.copiesTo && S.copiesTo[star]) || S.copiesPerStar; }
+    /** how many 1★ copies a unit is made of (sell value and pool refund) */
+    copiesOf(u) { let n = 1; for (let s = 2; s <= u.star; s++) n *= Match.copiesFor(s); return n; }
     sellValue(u) { return Math.round(AMB.DATA.UNITS[u.defId].cost * this.copiesOf(u) * AMB.CONFIG.economy.sellRefund); }
 
     sell(pi, uid) {
@@ -1990,7 +2037,10 @@
         case 'unit': {
           const tier = R.tiers[st], hero = AMB.DATA.HEROES[p.heroId];
           const mine = (u) => !p.allowed || p.allowed.has(u.id);
-          const entries = Object.values(AMB.DATA.UNITS).filter((u) => u.tier === tier && this._pool(p)[u.id] > 0 && mine(u)).map((u) => [u.id, u.world === hero.world ? 2 : 1]);
+          // a unit you already hold below ★★★ is the likeliest pick (the free recruit doubles as a step toward the next star)
+          const held = {}, F = AMB.CONFIG.stars.rewardHeldWeight || 0;
+          if (F) this.allUnits(p).forEach((u) => { if (u.star < AMB.CONFIG.stars.maxStar) held[u.defId] = (held[u.defId] || 0) + this.copiesOf(u); });
+          const entries = Object.values(AMB.DATA.UNITS).filter((u) => u.tier === tier && this._pool(p)[u.id] > 0 && mine(u)).map((u) => [u.id, (u.world === hero.world ? 2 : 1) + (held[u.id] ? F * held[u.id] : 0)]);
           const any = entries.length ? entries : Object.values(AMB.DATA.UNITS).filter((u) => this._pool(p)[u.id] > 0 && mine(u)).map((u) => [u.id, 1]);
           const defId = this._rng(p).weighted(any);
           if (defId) { out.unit = defId; out.text += ' → ' + AMB.DATA.UNITS[defId].name; this._grantUnit(p, defId); }
@@ -2079,7 +2129,8 @@
     let s = 0;
     const sameStar1 = owned.filter((u) => u.defId === defId && u.star === 1).length;
     const sameAny = owned.filter((u) => u.defId === defId).length;
-    s += sameStar1 * 2.6 + (sameAny - sameStar1) * 1.2;
+    const sameStar2 = owned.filter((u) => u.defId === defId && u.star === 2).length;
+    s += sameStar1 * 2.6 + sameStar2 * 2.4 + (sameAny - sameStar1 - sameStar2) * 0.3;   // a copy toward ★★★ is worth chasing too
     const style = p.aiStyle;
     if (def.world === hero.world) s += style === 'mono' ? 3 : style === 'balanced' ? 1.4 : 0.4;
     const roles = {};
@@ -2146,6 +2197,16 @@
     });
   }
 
+  // how well an equipment piece fits the current board (0 = no good holder)
+  function itemFit(match, p, it) {
+    const board = match.allUnits(p).filter((u) => u.items.length < AMB.CONFIG.economy.maxItemsPerUnit);
+    if (!board.length) return 0;
+    const tank = board.some((u) => ['guardian', 'fighter'].includes(AMB.DATA.UNITS[u.defId].role));
+    if (it.id === 'star_plate') return tank ? 1 : 0.3;
+    if (it.id === 'mana_prism') return board.some((u) => ['mage', 'support'].includes(AMB.DATA.UNITS[u.defId].role)) ? 1 : 0.4;
+    return 1;
+  }
+
   function prep(match, pi) {
     const p = match.players[pi];
     if (p.lineup) return;   // scripted campaign enemy: its board is set by match.applyLineup
@@ -2162,6 +2223,20 @@
       const surplus = p.gold - E.xpCost - reserve * (1 / cfg.levelAggro);
       const almost = match.xpNeeded(p) - p.xp <= E.xpPerBuy;
       if (boardFull && (surplus >= 0 || (almost && p.gold - E.xpCost >= reserve * 0.5))) match.buyXp(pi); else break;
+    }
+
+    // --- equipment first: it stays on the unit (and moves with it on a merge), so one piece every other round is a sound buy
+    if (!cfg.noItems && match.round >= 2) {
+      const owned = p.items.filter((id) => AMB.DATA.ITEMS[id].kind === 'equip').length + match.allUnits(p).reduce((n, u) => n + u.items.length, 0);
+      const want = Math.floor(match.round / 2) + (cfg.itemGreed || 0);
+      let best = -1, bs = 0;
+      p.itemShop.forEach((id, i) => {
+        const it = id && AMB.DATA.ITEMS[id];
+        if (!it || it.kind !== 'equip' || p.gold < it.cost + (cfg.itemKeep == null ? 2 : cfg.itemKeep)) return;
+        const sc = itemFit(match, p, it);
+        if (sc > bs) { bs = sc; best = i; }
+      });
+      if (best >= 0 && owned < want) match.buyItem(pi, best);
     }
 
     // --- buying / rerolling
@@ -2187,9 +2262,9 @@
       break;
     }
 
-    // --- items
-    p.itemShop.forEach((id, i) => {
-      if (!id) return;
+    // --- items: spells only with spare gold (they last one combat)
+    if (!cfg.noItems) p.itemShop.forEach((id, i) => {
+      if (!id || AMB.DATA.ITEMS[id].kind !== 'spell') return;
       const it = AMB.DATA.ITEMS[id];
       if (p.gold - it.cost >= reserve && match.boardCount(p) + p.bench.filter(Boolean).length >= 2 && rng.chance(0.7)) match.buyItem(pi, i);
     });
@@ -2979,60 +3054,60 @@
 
   const LEVELS = [
     L('l1', 'ember', 'kagira', 'أطراف مملكة الجمر', { gold: 6, level: 4 }, [
-      F('l1f1', 'دورية الرماد', 1.73, [['ash_ronin', 1, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['pixel_sniper', 1, 'b1', 2]]),
-      F('l1f2', 'حرّاس الأتون', 1.51, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 1, 'f2', 1], ['thorn_fox', 1, 'f3', 2], ['pixel_sniper', 1, 'b1', 1]]),
+      F('l1f1', 'دورية الرماد', 1.82, [['ash_ronin', 1, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['pixel_sniper', 1, 'b1', 2]]),
+      F('l1f2', 'حرّاس الأتون', 1.55, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 1, 'f2', 1], ['thorn_fox', 1, 'f3', 2], ['pixel_sniper', 1, 'b1', 1]]),
       F('l1f3', 'كمين الشرر', 1.26, [['ash_ronin', 1, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['spark_wraith', 1, 'b2', 1], ['pyre_archer', 1, 'b1', 2]]),
-      F('l1f4', 'رماة المحرقة', 1.26, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 1, 'f2', 1], ['coral_sentinel', 1, 'f3', 2], ['pyre_archer', 1, 'b1', 1], ['spark_wraith', 1, 'b2', 3]]),
-      F('l1boss', 'الزعيم: كيرو', 0.79, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 2, 'f2', 1], ['pyre_archer', 1, 'b0', 1], ['caldera_seer', 1, 'b2', 2], ['spark_wraith', 1, 'b3', 4], ['forge_bulwark', 2, 'f3', 6]], { boss: true }),
+      F('l1f4', 'رماة المحرقة', 1.28, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 1, 'f2', 1], ['coral_sentinel', 1, 'f3', 2], ['pyre_archer', 1, 'b1', 1], ['spark_wraith', 1, 'b2', 3]]),
+      F('l1boss', 'الزعيم: كيرو', 0.87, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 2, 'f2', 1], ['pyre_archer', 1, 'b0', 1], ['caldera_seer', 1, 'b2', 2], ['spark_wraith', 1, 'b3', 4], ['forge_bulwark', 2, 'f3', 6]], { boss: true }),
     ]),
     L('l2', 'tide', 'merin', 'سواحل المدّ القمري', { gold: 8, level: 5 }, [
-      F('l2f1', 'حرس المرجان', 1.71, [['coral_sentinel', 1, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['wave_caller', 1, 'b1', 1], ['pixel_sniper', 1, 'b2', 2]]),
-      F('l2f2', 'سيوف القمر', 1.48, [['coral_sentinel', 1, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['lunar_blade', 1, 'f3', 2], ['wave_caller', 1, 'b1', 1], ['mist_witch', 1, 'b2', 3]]),
+      F('l2f1', 'حرس المرجان', 1.8, [['coral_sentinel', 1, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['wave_caller', 1, 'b1', 1], ['pixel_sniper', 1, 'b2', 2]]),
+      F('l2f2', 'سيوف القمر', 1.51, [['coral_sentinel', 1, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['lunar_blade', 1, 'f3', 2], ['wave_caller', 1, 'b1', 1], ['mist_witch', 1, 'b2', 3]]),
       F('l2f3', 'ضباب الساحرات', 1.03, [['coral_sentinel', 2, 'f1', 1], ['moss_warden', 1, 'f2', 1], ['mist_witch', 1, 'b1', 1], ['wave_caller', 1, 'b2', 1], ['willow_eye', 1, 'b3', 2]]),
-      F('l2f4', 'موجة المدّ', 0.87, [['coral_sentinel', 2, 'f1', 1], ['lunar_blade', 2, 'f2', 1], ['thorn_fox', 1, 'f3', 1], ['mist_witch', 1, 'b1', 1], ['wave_caller', 1, 'b2', 2], ['pixel_sniper', 1, 'b3', 3]]),
-      F('l2boss', 'الزعيم: ميران', 0.81, [['coral_sentinel', 2, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['wave_caller', 1, 'b0', 1], ['mist_witch', 1, 'b2', 1], ['tide_priest', 1, 'b3', 2], ['coral_sentinel', 2, 'f0', 4], ['lunar_blade', 2, 'f3', 6]], { boss: true }),
+      F('l2f4', 'موجة المدّ', 0.96, [['coral_sentinel', 2, 'f1', 1], ['lunar_blade', 2, 'f2', 1], ['thorn_fox', 1, 'f3', 1], ['mist_witch', 1, 'b1', 1], ['wave_caller', 1, 'b2', 2], ['pixel_sniper', 1, 'b3', 3]]),
+      F('l2boss', 'الزعيم: ميران', 0.92, [['coral_sentinel', 2, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['wave_caller', 1, 'b0', 1], ['mist_witch', 1, 'b2', 1], ['tide_priest', 1, 'b3', 2], ['coral_sentinel', 2, 'f0', 4], ['lunar_blade', 2, 'f3', 6]], { boss: true }),
     ]),
     L('l3', 'neon', 'zerokai', 'شوارع نيون-٩', { gold: 10, level: 5 }, [
-      F('l3f1', 'كلاب الشبكة', 1.41, [['firewall_unit', 1, 'f1', 1], ['grid_hound', 2, 'f2', 1], ['grid_hound', 1, 'f3', 1], ['pixel_sniper', 1, 'b1', 1], ['spectral_coder', 1, 'b2', 2]]),
-      F('l3f2', 'قنّاصو البكسل', 1.21, [['firewall_unit', 1, 'f1', 1], ['chrome_ronin', 1, 'f2', 2], ['pixel_sniper', 2, 'b1', 1], ['pixel_sniper', 1, 'b2', 1], ['spectral_coder', 1, 'b3', 1]]),
+      F('l3f1', 'كلاب الشبكة', 1.37, [['firewall_unit', 1, 'f1', 1], ['grid_hound', 2, 'f2', 1], ['grid_hound', 1, 'f3', 1], ['pixel_sniper', 1, 'b1', 1], ['spectral_coder', 1, 'b2', 2]]),
+      F('l3f2', 'قنّاصو البكسل', 1.15, [['firewall_unit', 1, 'f1', 1], ['chrome_ronin', 1, 'f2', 2], ['pixel_sniper', 2, 'b1', 1], ['pixel_sniper', 1, 'b2', 1], ['spectral_coder', 1, 'b3', 1]]),
       F('l3f3', 'جدار النار', 0.99, [['firewall_unit', 2, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 1, 'b1', 1], ['spectral_coder', 1, 'b2', 2], ['spark_wraith', 1, 'b3', 3]]),
       F('l3f4', 'المبرمجة الطيفية', 0.92, [['firewall_unit', 2, 'f1', 1], ['chrome_ronin', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 2, 'b1', 1], ['spectral_coder', 1, 'b2', 1], ['mist_witch', 1, 'b3', 2]]),
-      F('l3boss', 'الزعيم: زيرو-كاي', 0.74, [['firewall_unit', 2, 'f1', 1], ['chrome_ronin', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 2, 'b0', 1], ['spectral_coder', 1, 'b2', 2], ['pixel_sniper', 2, 'b3', 4], ['firewall_unit', 2, 'f0', 6]], { boss: true }),
+      F('l3boss', 'الزعيم: زيرو-كاي', 0.78, [['firewall_unit', 2, 'f1', 1], ['chrome_ronin', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 2, 'b0', 1], ['spectral_coder', 1, 'b2', 2], ['pixel_sniper', 2, 'b3', 4], ['firewall_unit', 2, 'f0', 6]], { boss: true }),
     ]),
     L('l4', 'sylvan', 'orath', 'قلب الغابة الأزلية', { gold: 12, level: 6 }, [
       F('l4f1', 'ثعالب الأشواك', 1.35, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['thorn_fox', 1, 'f3', 1], ['willow_eye', 1, 'b1', 1], ['wave_caller', 1, 'b2', 1], ['root_shaman', 1, 'b3', 3]]),
       F('l4f2', 'عيون الصفصاف', 0.87, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['coral_sentinel', 2, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['willow_eye', 1, 'b2', 1], ['spectral_coder', 1, 'b3', 2]]),
-      F('l4f3', 'المتربّص', 0.97, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['wave_caller', 2, 'b3', 2]]),
+      F('l4f3', 'المتربّص', 0.9, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['wave_caller', 2, 'b3', 2]]),
       F('l4f4', 'شامان الجذور', 0.83, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['firewall_unit', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['tide_priest', 1, 'b3', 3]]),
-      F('l4boss', 'الزعيم: أوراث', 0.74, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b0', 1], ['root_shaman', 2, 'b2', 1], ['tide_priest', 1, 'b3', 2], ['wild_stalker', 2, 'f2', 5]], { boss: true }),
+      F('l4boss', 'الزعيم: أوراث', 0.83, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b0', 1], ['root_shaman', 2, 'b2', 1], ['tide_priest', 1, 'b3', 2], ['wild_stalker', 2, 'f2', 5]], { boss: true }),
     ]),
     L('l5', 'ember', 'rika', 'أتون الملكة', { gold: 12, level: 6 }, [
-      F('l5f1', 'عمّال المطارق', 1.32, [['goka', 1, 'f1', 1], ['forge_bulwark', 2, 'f2', 1], ['ash_ronin', 2, 'f0', 1], ['pyre_archer', 1, 'b2', 1], ['natsuki', 1, 'b0', 2]]),
-      F('l5f2', 'حرس السندان', 0.96, [['kurenai', 1, 'f1', 1], ['godo', 2, 'f2', 1], ['akane', 1, 'b3', 2], ['pyre_archer', 2, 'b1', 1], ['momo', 1, 'b2', 1]]),
-      F('l5f3', 'قنّاصة الجمر', 1.03, [['forge_bulwark', 2, 'f1', 1], ['goka', 1, 'f2', 1], ['yuta', 2, 'b0', 1], ['pyre_archer', 2, 'b1', 1], ['caldera_seer', 1, 'b2', 2], ['tsubaki', 2, 'b3', 1]]),
+      F('l5f1', 'عمّال المطارق', 1.26, [['goka', 1, 'f1', 1], ['forge_bulwark', 2, 'f2', 1], ['ash_ronin', 2, 'f0', 1], ['pyre_archer', 1, 'b2', 1], ['natsuki', 1, 'b0', 2]]),
+      F('l5f2', 'حرس السندان', 0.94, [['kurenai', 1, 'f1', 1], ['godo', 2, 'f2', 1], ['akane', 1, 'b3', 2], ['pyre_archer', 2, 'b1', 1], ['momo', 1, 'b2', 1]]),
+      F('l5f3', 'قنّاصة الجمر', 0.96, [['forge_bulwark', 2, 'f1', 1], ['goka', 1, 'f2', 1], ['yuta', 2, 'b0', 1], ['pyre_archer', 2, 'b1', 1], ['caldera_seer', 1, 'b2', 2], ['tsubaki', 2, 'b3', 1]]),
       F('l5f4', 'مصهر الأتون', 0.61, [['kurenai', 2, 'f1', 1], ['goka', 2, 'f2', 1], ['godo', 2, 'f3', 1], ['natsuki', 2, 'b1', 1], ['caldera_seer', 1, 'b2', 1], ['spark_wraith', 2, 'b3', 2]]),
-      F('l5boss', 'الزعيمة: ريكا', 0.58, [['kurenai', 2, 'f1', 1], ['goka', 2, 'f2', 1], ['godo', 2, 'f0', 1], ['caldera_seer', 2, 'b0', 1], ['momo', 2, 'b2', 2], ['akane', 2, 'b3', 4], ['natsuki', 2, 'f3', 6]], { boss: true }),
+      F('l5boss', 'الزعيمة: ريكا', 0.63, [['kurenai', 2, 'f1', 1], ['goka', 2, 'f2', 1], ['godo', 2, 'f0', 1], ['caldera_seer', 2, 'b0', 1], ['momo', 2, 'b2', 2], ['akane', 2, 'b3', 4], ['natsuki', 2, 'f3', 6]], { boss: true }),
     ]),
     L('l6', 'tide', 'kairyu', 'عاصفة القبطان', { gold: 12, level: 6 }, [
-      F('l6f1', 'بحّارة العاصفة', 0.99, [['coral_sentinel', 2, 'f1', 1], ['ryujin', 1, 'f2', 1], ['tomoe', 2, 'f0', 1], ['kota', 2, 'b1', 1], ['wave_caller', 2, 'b2', 1]]),
-      F('l6f2', 'سيوف الموج', 0.92, [['seiji', 2, 'f1', 1], ['lunar_blade', 2, 'f2', 1], ['daikai', 1, 'f3', 1], ['haruka', 2, 'b0', 1], ['miyuki', 1, 'b2', 1], ['mizuki', 2, 'b3', 2]]),
+      F('l6f1', 'بحّارة العاصفة', 0.97, [['coral_sentinel', 2, 'f1', 1], ['ryujin', 1, 'f2', 1], ['tomoe', 2, 'f0', 1], ['kota', 2, 'b1', 1], ['wave_caller', 2, 'b2', 1]]),
+      F('l6f2', 'سيوف الموج', 0.88, [['seiji', 2, 'f1', 1], ['lunar_blade', 2, 'f2', 1], ['daikai', 1, 'f3', 1], ['haruka', 2, 'b0', 1], ['miyuki', 1, 'b2', 1], ['mizuki', 2, 'b3', 2]]),
       F('l6f3', 'ضباب الأرخبيل', 0.67, [['daikai', 2, 'f1', 1], ['ryujin', 1, 'f2', 1], ['coral_sentinel', 2, 'f3', 1], ['mist_witch', 2, 'b1', 1], ['haruka', 2, 'b2', 1], ['tide_priest', 1, 'b3', 2]]),
       F('l6f4', 'سفينة القمر', 0.78, [['daikai', 2, 'f1', 1], ['ryujin', 2, 'f2', 1], ['seiji', 2, 'f0', 1], ['mist_witch', 2, 'b1', 1], ['otohime', 1, 'b2', 1], ['kota', 2, 'b3', 2]]),
-      F('l6boss', 'الزعيم: كايريو', 0.58, [['daikai', 2, 'f1', 1], ['ryujin', 2, 'f2', 1], ['seiji', 2, 'f0', 1], ['haruka', 2, 'b0', 1], ['otohime', 1, 'b2', 2], ['mizuki', 2, 'b3', 4], ['lunar_blade', 2, 'f3', 6]], { boss: true }),
+      F('l6boss', 'الزعيم: كايريو', 0.69, [['daikai', 2, 'f1', 1], ['ryujin', 2, 'f2', 1], ['seiji', 2, 'f0', 1], ['haruka', 2, 'b0', 1], ['otohime', 1, 'b2', 2], ['mizuki', 2, 'b3', 4], ['lunar_blade', 2, 'f3', 6]], { boss: true }),
     ]),
     L('l7', 'neon', 'nayako', 'مسرح الشبكة', { gold: 14, level: 6 }, [
-      F('l7f1', 'جمهور الهولوغرام', 1.06, [['firewall_unit', 2, 'f1', 1], ['juzo', 2, 'f2', 1], ['gantetsu', 2, 'f0', 1], ['pixel_sniper', 2, 'b1', 1], ['mitsuki', 2, 'b2', 1]]),
-      F('l7f2', 'كلاب الخوادم', 1.17, [['kogetsu', 1, 'f1', 1], ['tetsuya', 2, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['reiji', 2, 'b0', 1], ['spectral_coder', 2, 'b2', 1], ['nagi', 2, 'b3', 2]]),
+      F('l7f1', 'جمهور الهولوغرام', 1.08, [['firewall_unit', 2, 'f1', 1], ['juzo', 2, 'f2', 1], ['gantetsu', 2, 'f0', 1], ['pixel_sniper', 2, 'b1', 1], ['mitsuki', 2, 'b2', 1]]),
+      F('l7f2', 'كلاب الخوادم', 1.15, [['kogetsu', 1, 'f1', 1], ['tetsuya', 2, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['reiji', 2, 'b0', 1], ['spectral_coder', 2, 'b2', 1], ['nagi', 2, 'b3', 2]]),
       F('l7f3', 'عازفو البكسل', 0.97, [['chrome_ronin', 1, 'f1', 1], ['gantetsu', 2, 'f2', 1], ['firewall_unit', 2, 'f3', 1], ['mugen', 1, 'b1', 1], ['pixel_sniper', 2, 'b2', 1], ['yozora', 1, 'b3', 2]]),
-      F('l7f4', 'قلب الشبكة', 0.87, [['kogetsu', 2, 'f1', 1], ['chrome_ronin', 2, 'f2', 1], ['firewall_unit', 2, 'f0', 1], ['mugen', 2, 'b1', 1], ['spectral_coder', 2, 'b2', 1], ['reiji', 2, 'b3', 2]]),
-      F('l7boss', 'الزعيمة: ناياكو', 0.52, [['kogetsu', 2, 'f1', 1], ['chrome_ronin', 2, 'f2', 1], ['gantetsu', 2, 'f0', 1], ['mugen', 2, 'b0', 1], ['yozora', 2, 'b2', 2], ['nagi', 2, 'b3', 4], ['juzo', 2, 'f3', 6]], { boss: true }),
+      F('l7f4', 'قلب الشبكة', 0.88, [['kogetsu', 2, 'f1', 1], ['chrome_ronin', 2, 'f2', 1], ['firewall_unit', 2, 'f0', 1], ['mugen', 2, 'b1', 1], ['spectral_coder', 2, 'b2', 1], ['reiji', 2, 'b3', 2]]),
+      F('l7boss', 'الزعيمة: ناياكو', 0.72, [['kogetsu', 2, 'f1', 1], ['chrome_ronin', 2, 'f2', 1], ['gantetsu', 2, 'f0', 1], ['mugen', 2, 'b0', 1], ['yozora', 2, 'b2', 2], ['nagi', 2, 'b3', 4], ['juzo', 2, 'f3', 6]], { boss: true }),
     ]),
     L('l8', 'sylvan', 'thora', 'عرين الدب الأزلي', { gold: 14, level: 7 }, [
       F('l8f1', 'صيّادو اللحاء', 1.08, [['taiju', 1, 'f1', 1], ['kashiwagi', 1, 'f2', 1], ['genzo', 2, 'f0', 1], ['kazehaya', 2, 'b1', 1], ['yoshino', 2, 'b2', 1]]),
-      F('l8f2', 'حرّاس الغصن', 0.92, [['genzo', 2, 'f1', 1], ['kaito', 2, 'f2', 1], ['daigo', 2, 'f3', 1], ['gensai', 2, 'b0', 1], ['takashi', 2, 'b2', 1], ['hayate', 2, 'b3', 2]]),
-      F('l8f3', 'همس الغابة', 0.9, [['taiju', 2, 'f1', 1], ['kashiwagi', 1, 'f2', 1], ['genzo', 2, 'f3', 1], ['shirayuki', 1, 'b1', 1], ['ibara', 2, 'b2', 1], ['hisui', 1, 'b3', 2]]),
+      F('l8f2', 'حرّاس الغصن', 0.87, [['genzo', 2, 'f1', 1], ['kaito', 2, 'f2', 1], ['daigo', 2, 'f3', 1], ['gensai', 2, 'b0', 1], ['takashi', 2, 'b2', 1], ['hayate', 2, 'b3', 2]]),
+      F('l8f3', 'همس الغابة', 0.92, [['taiju', 2, 'f1', 1], ['kashiwagi', 1, 'f2', 1], ['genzo', 2, 'f3', 1], ['shirayuki', 1, 'b1', 1], ['ibara', 2, 'b2', 1], ['hisui', 1, 'b3', 2]]),
       F('l8f4', 'قبضة الجذور', 0.56, [['taiju', 2, 'f1', 1], ['kashiwagi', 2, 'f2', 1], ['genzo', 2, 'f0', 1], ['shirayuki', 2, 'b1', 1], ['root_shaman', 2, 'b2', 1], ['wild_stalker', 2, 'b3', 2]]),
-      F('l8boss', 'الزعيمة: ثورا', 0.63, [['taiju', 2, 'f1', 1], ['kashiwagi', 2, 'f2', 1], ['genzo', 2, 'f0', 1], ['shirayuki', 2, 'b0', 1], ['hisui', 2, 'b2', 2], ['wild_stalker', 2, 'b3', 4], ['kaito', 2, 'f3', 6]], { boss: true }),
+      F('l8boss', 'الزعيمة: ثورا', 0.65, [['taiju', 2, 'f1', 1], ['kashiwagi', 2, 'f2', 1], ['genzo', 2, 'f0', 1], ['shirayuki', 2, 'b0', 1], ['hisui', 2, 'b2', 2], ['wild_stalker', 2, 'b3', 4], ['kaito', 2, 'f3', 6]], { boss: true }),
     ]),
   ];
 
@@ -3546,11 +3621,25 @@
   // the shop of each round is fixed (round 2 has three copies of one unit so a merge to a star is guaranteed)
   const SHOP = { 1: ['forge_bulwark', 'ash_ronin', 'pixel_sniper', 'wave_caller', 'grid_hound'], 2: ['ash_ronin', 'ash_ronin', 'ash_ronin', 'thorn_fox', 'moss_warden'], 3: ['thorn_fox', 'moss_warden', 'pixel_sniper', 'wave_caller', 'grid_hound'] };
 
+  /**
+   * Practice fight ("جرّب"): try a hero before it is yours. A short best-of-3 against an easy computer, any hero allowed,
+   * no card levels and no hero level. The UI runs it as mode 'practice' and saves nothing from it (no rewards, XP, stats, pass).
+   */
+  function practiceOptions(heroId, seed) {
+    const s = seed || 1 + Math.floor(Math.random() * 2 ** 30);
+    const others = Object.keys(AMB.DATA.HEROES).filter((h) => h !== heroId);
+    return {
+      mode: 'practice', practice: true, seed: s, progression: false,
+      rules: { maxRounds: 3, winsNeeded: 2, start: T().start },
+      players: [{ heroId, name: 'أنت' }, { heroId: others[s % others.length], name: 'تدريب', isAI: true, aiStyle: 'balanced', difficulty: 'easy' }],
+    };
+  }
+
   function Tutorial(save, deps) {
     deps = deps || {};
     const st = () => save.get('tutorial');
     const api = {
-      SHOP,
+      SHOP, practiceOptions,
       done: () => !!st().done,
       rewarded: () => !!st().rewarded,
       /** a brand-new player must do it: nothing cleared in the campaign yet and the tutorial not finished */
@@ -3584,6 +3673,7 @@
     };
     return api;
   }
+  Tutorial.practiceOptions = practiceOptions;
   AMB.Tutorial = Tutorial;
 })();
 
@@ -3930,6 +4020,26 @@
  */
 (function () {
   const AMB = globalThis.AMB;
+  // player settings that travel with the save (export/import): big-text mode, combat speed, one-time hints already shown
+  AMB.Save.register('settings', { version: 1, defaults: () => ({ bigText: false, speed: 0, seen: {}, fold: {} }) });
+  const SPEEDS = [1, 2, 4];
+  function Settings(save) {
+    const st = () => save.get('settings');
+    return {
+      bigText: () => !!st().bigText,
+      setBigText(on) { save.update('settings', (s) => { s.bigText = !!on; }); return !!on; },
+      /** combat speed: the last one the player picked; a new player starts at 1x */
+      speed: () => (SPEEDS.includes(st().speed) ? st().speed : 1),
+      setSpeed(v) { v = +v; if (!SPEEDS.includes(v)) return false; if (st().speed !== v) save.update('settings', (s) => { s.speed = v; }); return true; },
+      /** one-time hints: seen(k) is false until markSeen(k) */
+      seen: (k) => !!st().seen[k],
+      markSeen(k) { if (!st().seen[k]) save.update('settings', (s) => { s.seen[k] = true; }); },
+      /** folded (collapsed) sections; `dflt` is used until the player toggles that section once */
+      folded: (k, dflt) => (k in st().fold ? !!st().fold[k] : !!dflt),
+      setFolded(k, on) { save.update('settings', (s) => { s.fold[k] = !!on; }); },
+    };
+  }
+  AMB.Settings = Settings;
   function boot(storage, nowFn, rng) {
     const save = AMB.Save.create(storage, nowFn);
     const events = AMB.Events();
@@ -3945,12 +4055,13 @@
     const tower = AMB.Tower(save, { wallet, packs, collection, events, campaign, addPassXp: (n) => AMB.pass && AMB.pass.addXp(n) });
     const weekly = AMB.WeeklyEvents(save, { wallet, packs, collection, events, campaign, now: nowFn, addPassXp: (n) => AMB.pass && AMB.pass.addXp(n) });
     const tutorial = AMB.Tutorial(save, { wallet, campaign, events });
-    return { save, events, wallet, collection, packs, campaign, login, album, tower, weekly, tutorial, heroes };
+    const settings = Settings(save);
+    return { save, events, wallet, collection, packs, campaign, login, album, tower, weekly, tutorial, heroes, settings };
   }
   AMB.Profile = { boot };
   if (typeof document !== 'undefined' && !AMB.save) {
     const p = boot();
-    AMB.save = p.save; AMB.events = p.events; AMB.wallet = p.wallet; AMB.collection = p.collection; AMB.packs = p.packs; AMB.campaign = p.campaign; AMB.login = p.login; AMB.album = p.album; AMB.tower = p.tower; AMB.weekly = p.weekly; AMB.tutorial = p.tutorial;
+    AMB.save = p.save; AMB.events = p.events; AMB.wallet = p.wallet; AMB.collection = p.collection; AMB.packs = p.packs; AMB.campaign = p.campaign; AMB.login = p.login; AMB.album = p.album; AMB.tower = p.tower; AMB.weekly = p.weekly; AMB.tutorial = p.tutorial; AMB.settings = p.settings;
   }
 })();
 
@@ -4848,31 +4959,61 @@ AMB.IMAGES = {
   // Player 2 on the same device is a guest and may use any hero.
   const starterPick = () => S.pickIdx === 0 && AMB.collection && AMB.collection.needsStarter();
   const heroLocked = (id) => S.pickIdx === 0 && AMB.collection && (starterPick() ? !AMB.DATA.HERO_STARTERS.includes(id) : !AMB.collection.owned(id));
+  // one compact hero card, shared by the quick-match picker and the campaign's first-hero picker (same look in both)
+  function heroPickHTML(h, o) {
+    o = o || {};
+    const W = WORLDS[h.world];
+    const lock = o.locked ? '<span class="hp-lock">🔒</span>' : '';
+    const lv = o.level && AMB.heroes ? `<span class="hp-lv">مستوى ${AMB.heroes.level(h.id)}</span>` : '';
+    return `<div class="hpick ${o.sel ? 'sel' : ''} ${o.locked ? 'locked' : ''}" style="--wc:${W.color}" data-act="${o.act || 'pickHero'}" data-id="${h.id}" role="button" aria-pressed="${o.sel ? 'true' : 'false'}">${o.badge || ''}${lock}
+      <div class="hp-pic">${portrait(h, { k: 'hp' + (o.k || '') + h.id })}</div>
+      <b class="hp-name">${h.name}</b><span class="hp-world">${W.name}</span>${lv}
+      <p class="hp-style">${esc(String(h.style).split('—')[0])}</p>
+      <div class="hp-btns"><button class="btn small ghost hp-info" data-act="heroInfo" data-id="${h.id}">ⓘ تفاصيل</button>${o.trial ? `<button class="btn small hp-try" data-act="heroTry" data-id="${h.id}">▶ جرّب</button>` : ''}</div>
+    </div>`;
+  }
   function renderHeroSelect() {
-    const who = starterPick() ? 'اختر بطلك الأول. ما تقدر تغيّره، والباقين تفتحهم من الباكجات أو الباتل باس'
-      : S.mode === 'hotseat' ? `اللاعب ${S.pickIdx + 1}: اختر بطلك${S.pickIdx === 1 ? ' (ضيف: كل الأبطال متاحين)' : ''}` : 'اختر بطلك';
+    const first = starterPick();
+    const who = first ? 'اختر بطلك الأول'
+      : S.mode === 'hotseat' ? `اللاعب ${S.pickIdx + 1}: اختر بطلك` : 'اختر بطلك';
+    const sub = first ? 'ما تقدر تغيّره بعدين. جرّب أي واحد بقتال تدريب قبل لا تختار، والباقين تفتحهم من الباكجات والممر.'
+      : S.mode === 'hotseat' && S.pickIdx === 1 ? 'ضيف: كل الأبطال متاحين' : '';
     $('hero-title').textContent = who;
     if (S.picks[S.pickIdx] && heroLocked(S.picks[S.pickIdx])) S.picks[S.pickIdx] = null;
     const cur = S.picks[S.pickIdx];
-    $('hero-grid').innerHTML = Object.values(HEROES).map((h) => {
-      const W = WORLDS[h.world];
-      const other = S.mode === 'hotseat' && S.pickIdx === 1 && S.picks[0] === h.id ? '<span class="pick-badge">اختيار اللاعب 1</span>' : '';
-      const units = Object.values(UNITS).filter((u) => u.world === h.world).map((u) => u.name).join('، ');
-      const lock = heroLocked(h.id) ? '<span class="hero-lock">🔒 مقفل<small>ليجندري: من الباكجات أو الباتل باس</small></span>' : '';
-      return `<div class="hero-card ${cur === h.id ? 'sel' : ''} ${lock ? 'locked' : ''}" style="--wc:${W.color}" data-act="pickHero" data-id="${h.id}">${other}${lock}
-        ${portrait(h, { k: 'hs' })}
-        <h3>${h.name}</h3>${S.mode === 'hotseat' || S.mode === 'online' ? '' : heroLevelHTML(h.id)}<div class="title">${h.title}</div>
-        <div class="world">${W.name}</div>
-        <div class="style">${h.style}</div>
-        <div class="ab"><b>سلبية: ${h.passive.name}</b> — ${h.passive.text}</div>
-        ${h.abilities.map((a) => `<div class="ab"><b>${a.name}</b> <span style="color:var(--ess)">(${a.cost} جوهر)</span>: ${a.text}</div>`).join('')}
-        ${h.vanguard ? `<div class="ab vg"><b>👑 ${h.vanguard.name}</b>: ${h.vanguard.text}</div>` : ''}
-        <div class="ab" style="color:var(--muted)">وحدات عالمه (رنين +${CFG.hero.resonancePerAlly * 100}%): ${units}</div>
-        <div style="text-align:center;margin-top:8px"><button class="btn small" data-act="heroInfo" data-id="${h.id}">تفاصيل</button></div>
-      </div>`;
-    }).join('');
+    const list = Object.values(HEROES).filter((h) => !first || AMB.DATA.HERO_STARTERS.includes(h.id));   // a new player only sees the four they can pick
+    $('hero-grid').innerHTML = (sub ? `<p class="hp-sub">${sub}</p>` : '') + list.map((h) => heroPickHTML(h, {
+      sel: cur === h.id, locked: heroLocked(h.id), trial: first, level: S.mode !== 'hotseat' && S.mode !== 'online' && !first,
+      badge: S.mode === 'hotseat' && S.pickIdx === 1 && S.picks[0] === h.id ? '<span class="pick-badge">اللاعب 1</span>' : '',
+    })).join('');
     $('hero-confirm').disabled = !cur;
-    $('hero-confirm').textContent = starterPick() ? 'خذه بطلي الأول' : S.mode === 'hotseat' && S.pickIdx === 0 ? 'تمام، دور اللاعب 2' : 'ابدأ المباراة';
+    $('hero-confirm').textContent = first ? (cur ? `خذ ${HEROES[cur].name} بطلي الأول` : 'اختر بطل') : S.mode === 'hotseat' && S.pickIdx === 0 ? 'تمام، دور اللاعب 2' : 'ابدأ المباراة';
+  }
+
+  // ---- hero trial (practice fight): try a starter before choosing it. Nothing from it is saved (no rewards, XP, stats, pass).
+  function startPractice(heroId, from) {
+    S.practice = { from, prevMode: S.mode, picks: S.picks.slice(), pickIdx: S.pickIdx };
+    S.mode = 'practice'; S.picks = [heroId, null]; S.pickIdx = 0;
+    closeModal(); startMatch();
+  }
+  function endPractice() {
+    const pr = S.practice || { from: 'hero', prevMode: 'ai', picks: [null, null], pickIdx: 0 };
+    closeOverlay(); closeModal(); cancelAnimationFrame(S.raf); S.phase = 'idle'; S.match = null; S.paused = false;
+    S.mode = pr.prevMode; S.picks = pr.picks; S.pickIdx = pr.pickIdx; S.practice = null;
+    if (pr.from === 'campaign') show('campaign');
+    else { renderHeroSelect(); show('hero'); }
+  }
+  function practiceResult(m, secs) {
+    const won = m.winner === 0, h = HEROES[m.players[0].heroId];
+    $('results').innerHTML = `<div class="res-stage ${won ? 'victory' : m.winner == null ? 'draw' : 'defeat'}" style="--wc:${WORLDS[h.world].color}"><div class="res-rays"></div>
+        <div class="res-hero">${portrait(h, { bare: true, k: 'prh' })}<i class="sheen"></i></div><div class="res-hname">${h.name}</div></div>
+      <div class="res-banner"><h1>${won ? 'فزت بالتدريب!' : m.winner == null ? 'تعادل' : 'خسرت التدريب'}</h1>
+        <p class="hint">النتيجة ${m.players[0].stats.wins} – ${m.players[1].stats.wins} · ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')} دقيقة</p>
+        <p class="hint">قتال تدريب: ما ينحسب ولا يعطي جوائز. ${HEROES[m.players[0].heroId].name} للحين مو بطلك.</p></div>
+      <div class="cam-btns"><button class="btn primary big" data-act="practiceBack">ارجع واختر بطلك</button>
+        <button class="btn big ghost" data-act="again">جرّب مرة ثانية</button></div>`;
+    show('results');
+    sfx(won ? 'win' : 'lose');
   }
 
   const maxR = () => (S.match && S.match.rules ? S.match.rules.maxRounds : CFG.match.maxRounds);
@@ -4909,6 +5050,7 @@ AMB.IMAGES = {
       : S.mode === 'tower' ? new AMB.Match(AMB.tower.matchOptions(S.tower.floor, S.picks[0]))
       : S.mode === 'event' ? new AMB.Match(AMB.weekly.matchOptions(S.event.stage, S.picks[0]))
       : S.mode === 'tutorial' ? new AMB.Match(AMB.tutorial.matchOptions(S.picks[0]))
+      : S.mode === 'practice' ? new AMB.Match(AMB.Tutorial.practiceOptions(S.picks[0]))
       : S.mode === 'online' ? AMB.NetUI.makeMatch()
       : new AMB.Match({ mode: S.mode, players });
     // same hero on both sides (e.g. your Kiro vs the Ember boss Kiro): the enemy becomes its "shadow"
@@ -4930,7 +5072,7 @@ AMB.IMAGES = {
   function prepBase() {
     const learn = S.match && S.match.round <= 2 ? 20 : 0;   // first two rounds: +20s to learn the screen
     if (S.mode === 'hotseat') return CFG.match.hotseatPrepSeconds + learn;
-    if (S.mode === 'friendly') return CFG.match.prepSeconds * 2 + learn;
+    if (S.mode === 'friendly' || S.mode === 'practice') return CFG.match.prepSeconds * 2 + learn;
     return CFG.match.prepSeconds + learn;
   }
 
@@ -5348,6 +5490,21 @@ AMB.IMAGES = {
     setTimeout(() => b.remove(), 1500);
   }
 
+  // UI v2: a hero ability fired: its name bursts over that hero's half of the field (one element, CSS transform/opacity only, gone in 1.2 s)
+  function abilityBurst(name, side, color) {
+    const fl = $('floats'); if (!fl) return;
+    const mine = S.combatViewer == null ? side === S.v : side === S.combatViewer;
+    const old = fl.querySelector('.ab-burst.' + (mine ? 'me' : 'foe')); if (old) old.remove();
+    const el = document.createElement('div');
+    el.className = 'ab-burst ' + (mine ? 'me' : 'foe');
+    el.style.setProperty('--bc', color || '#ffd24a');
+    el.innerHTML = '<i class="abr"></i><i class="abr two"></i><b></b>';
+    el.querySelector('b').textContent = name;
+    fl.appendChild(el);
+    sfx('cast');
+    setTimeout(() => el.remove(), 1250);
+  }
+
   function drawCombat(skipFx) {
     const c = S.combat;
     const byId = {};
@@ -5368,10 +5525,12 @@ AMB.IMAGES = {
       cl.toggle('shielded', f.shield > 1);
     }
     renderPosts();
-    const clock = document.querySelector('.combat-ctrl .clock');
-    if (clock) clock.textContent = fmt(c.t, 1) + 's';
+    // clock + fury: written only when the text changes (this runs every frame)
+    const clock = document.querySelector('.combat-ctrl .clock'), ct = fmt(c.t, 1) + 's';
+    if (clock && clock._t !== ct) { clock._t = ct; clock.textContent = ct; }
     const fury = document.querySelector('.combat-ctrl .fury');
-    if (fury) fury.innerHTML = c.t > CFG.combat.furyStart ? `${icon('flame')}×${fmt(c.fury(), 2)}` : (c.assault ? icon('warn') : '');
+    const fh = c.t > CFG.combat.furyStart ? `${icon('flame')}×${fmt(c.fury(), 2)}` : (c.assault ? icon('warn') : '');
+    if (fury && fury._h !== fh) { fury._h = fh; fury.innerHTML = fh; }
 
     const events = c.drainEvents();
     if (skipFx) return;
@@ -5414,8 +5573,11 @@ AMB.IMAGES = {
         fx.appendChild(ln);
         requestAnimationFrame(() => (ln.style.opacity = 0));
         setTimeout(() => ln.remove(), 280);
-      } else if (e.type === 'heroAbility' || e.type === 'spell') {
-        addFloat(50, e.side === S.combatViewer ? 62 : 38, (e.type === 'spell' ? '✦ ' : '⚡ ') + e.name, 'big');
+      } else if (e.type === 'heroAbility') {
+        const hh = HEROES[S.match.players[e.side].heroId];
+        abilityBurst(e.name, e.side, WORLDS[hh.world].color);
+      } else if (e.type === 'spell') {
+        addFloat(50, e.side === S.combatViewer ? 62 : 38, '✦ ' + e.name, 'big');
       } else if (e.type === 'exposed') {
         addFloat(50, e.side === S.combatViewer ? 84 : 16, 'سقط خط الدفاع!', 'big');
       } else if (e.type === 'assault') {
@@ -5435,7 +5597,11 @@ AMB.IMAGES = {
   // ======================================================================= match rendering
   function renderMatch(keepTokens) {
     if (!S.match) return;
+    // UI v2: the screen knows the phase, so CSS can hide the shop and the prep buttons while the fight plays
+    const scr = $('scr-match'), ph = S.phase === 'combat' || S.phase === 'result' ? 'fight' : 'prep';
+    if (scr && scr.dataset.ph !== ph) scr.dataset.ph = ph;
     renderTop();
+    renderOpp();
     renderSlots();
     if (S.phase !== 'combat' && !keepTokens) { $('fx').innerHTML = ''; $('floats').innerHTML = ''; }
     renderPosts();
@@ -5514,6 +5680,44 @@ AMB.IMAGES = {
       <button class="btn small ibtn2" data-act="menuMatch">☰</button>`;
   }
 
+  // UI v2: the opponent panel above the field (hero, name, level, life). Built once per render; in combat only the life changes (oppLife)
+  function renderOpp() {
+    const el = $('opp-panel'); if (!el) return;
+    const m = S.match, v = viewerSide(), o = m.players[1 - v], h = HEROES[o.heroId];
+    el.style.setProperty('--ow', WORLDS[h.world].color);
+    el.innerHTML = `${portrait(h, { k: 'opp' })}<span class="op-n">${esc(o.name)}</span>
+      <span class="op-lv" title="المستوى">${icon('crown')}<b>${o.level}</b></span>
+      <span class="op-life"><span class="op-bar"><i></i></span>${icon('heart')}<b>${lifeStr(o.life)}</b></span>`;
+    S.oppUi = { bar: el.querySelector('.op-bar i'), num: el.querySelector('.op-life b'), txt: '', pct: -1 };
+    oppLife(o.life, o.maxLife);
+  }
+  function oppLife(life, max) { barLife(S.oppUi, life, max); }
+  function dockLife(life, max) { barLife(S.dockUi, life, max); }
+  function barLife(u, life, max) {   // called every combat frame: writes to the DOM only when the shown value changes
+    if (!u || !u.bar) return;
+    const txt = String(lifeStr(life)), pct = Math.round(Math.max(0, Math.min(1, life / (max || 1))) * 200) / 200;
+    if (txt !== u.txt) { u.txt = txt; u.num.textContent = txt; }
+    if (pct !== u.pct) { u.pct = pct; u.bar.style.transform = `scaleX(${pct})`; }
+  }
+  // UI v2: each half of the field gets its owner's world floor (CSS gradients only). Bottom = you (or your arena cosmetic), top = the opponent:
+  // the campaign level's world against a boss line-up, otherwise the opponent's hero world (random for a random computer hero, your friend's hero online)
+  function foeWorld(v) {
+    const o = S.match.players[1 - v];
+    if (S.mode === 'campaign' && S.campaign && AMB.campaign && AMB.campaign.find) {
+      try { const x = AMB.campaign.find(S.campaign.fightId); if (x && x.level && WORLDS[x.level.world]) return x.level.world; } catch (e) { /* fall back to the hero */ }
+    }
+    if (o.arenaWorld && WORLDS[o.arenaWorld]) return o.arenaWorld;
+    return HEROES[o.heroId].world;
+  }
+  function setFloors(fe, mine, foe) {
+    const bg = fe.querySelector('.field-bg'); if (!bg) return;
+    const key = foe + '|' + mine;
+    if (bg.dataset.fl === key) return;
+    bg.dataset.fl = key;
+    bg.innerHTML = `<i class="fl top w-${foe}"></i><i class="fl bot w-${mine}"></i><div class="rift-line"></div>`;
+    fe.classList.add('v2f');
+  }
+
   // Field = a CSS grid of cards:  enemy post / enemy back / enemy front / rift / my front / my back / my post
   function renderSlots() {
     if (S.phase === 'combat' || S.phase === 'result') return; // combat view is built by buildTokens()
@@ -5560,6 +5764,7 @@ AMB.IMAGES = {
     if (AMB.PassUI) { const ac = (v === 0 && S.mode !== 'hotseat') ? AMB.PassUI.arenaClass() : ''; [...fe.classList].filter((c) => c.startsWith('ar-')).forEach((c) => fe.classList.remove(c)); if (ac) fe.classList.add(ac); }
     fe.style.setProperty('--mw', WORLDS[HEROES[p.heroId].world].color);
     fe.style.setProperty('--ew', WORLDS[HEROES[m.players[o].heroId].world].color);
+    setFloors(fe, HEROES[p.heroId].world, foeWorld(v));
     $('slots').innerHTML =
       row(o, 'b', false) + row(o, 'f', false) +
       `<div class="divider"><span>${inCombat ? '' : icon('eye')}</span></div>` +
@@ -5591,8 +5796,12 @@ AMB.IMAGES = {
       const st = onBoard && !inCombat ? `<span class="st">${icon('crown')}</span>` : safe ? `<span class="st safe">${icon('shield')}${front ? `<b>${front}</b>` : ''}</span>` : `<span class="st risk">${icon('warn')}</span>`;
       el.style.setProperty('--wc', WORLDS[h.world].color);
       el.className = 'post' + (onBoard && !inCombat ? ' empty-hero' : '') + (exposed && !onBoard ? ' exposed' : '') + (safe ? '' : ' risk');
+      const shown = S.phase === 'result' ? p.life : life;   // after the fight: the life after the round's damage
+      if (side !== viewer) oppLife(shown, p.maxLife); else dockLife(shown, p.maxLife);
       const chip = document.querySelectorAll('#topbar .lifechip')[side === viewer ? 0 : 1];   // the phone shows hero life + safety in the top bar (the posts are hidden there)
-      if (chip) { const b = chip.querySelector('b'); if (b) b.textContent = lifeStr(life); const ls = chip.querySelector('.lc-st'); if (ls) ls.innerHTML = onBoard && !inCombat ? icon('crown') : safe ? icon('shield') : icon('warn'); chip.classList.toggle('risk', !safe && !(onBoard && !inCombat)); }
+      // per-frame in combat: touch the chip only when what it shows changes
+      const csig = lifeStr(shown) + '|' + (onBoard && !inCombat ? 'c' : safe ? 's' : 'w');
+      if (chip && chip._sig !== csig) { chip._sig = csig; const b = chip.querySelector('b'); if (b) b.textContent = lifeStr(shown); const ls = chip.querySelector('.lc-st'); if (ls) ls.innerHTML = onBoard && !inCombat ? icon('crown') : safe ? icon('shield') : icon('warn'); chip.classList.toggle('risk', !safe && !(onBoard && !inCombat)); }
       // rebuilding the post (portrait + icons) every animation frame was the most expensive thing in combat: rebuild it only when something but the life changed
       const sig = [side, p.heroId, onBoard, inCombat, safe, exposed, front].join('|');
       if (el.dataset.sig !== sig || !el.querySelector('.lifebar i')) {
@@ -5654,19 +5863,22 @@ AMB.IMAGES = {
       const it = ITEMS[id];
       return itemCardHTML(it, { cls: p.gold >= it.cost ? '' : 'cant', attrs: `data-act="buyItem" data-idx="${i}"` });
     }).join('');
-    const freeR = p.freeRerolls > 0;
+    const freeR = p.freeRerolls > 0, maxed = p.level >= E.maxLevel, need = m.xpNeeded(p);
+    const rCost = freeR ? 0 : E.rerollCost;
+    const price = (n, ok) => `<span class="pr ${ok ? '' : 'no'}">${icon('gold')}<b>${n}</b></span>`;
+    // UI v2 dock: «جاهز» next to your hero, then round icon buttons (refresh / lock / XP / upgrades) with their prices
     $('shopbar').innerHTML = `
-      <div class="shop-actions">
-        <button class="btn ib-act" data-act="reroll" title="D"><span class="lb">تحديث</span><span class="cost">${freeR ? '0' : icon('gold') + E.rerollCost}</span></button>
-        <button class="btn ib-act" data-act="xp" ${p.level >= E.maxLevel ? 'disabled' : ''} title="F"><span class="lb">خبرة</span><span class="cost">${icon('gold')}${E.xpCost}</span></button>
-        <button class="btn ib-act ${p.shopLocked ? 'on' : ''}" data-act="lock"><span class="lb">${p.shopLocked ? 'مثبّت' : 'تثبيت'}</span></button>
+      <div class="shop-dock">
+        <button class="btn primary ready-btn" data-act="ready" title="Enter"><span class="lb">جاهز</span></button>
+        <button class="dock-hero" data-act="heroDock" title="قدرات البطل" aria-label="قدرات البطل" style="--wc:${WORLDS[HEROES[p.heroId].world].color}">${portrait(myAvatar(p, 0), { k: 'dock' })}<span class="dh-lv">${icon('crown')}${p.level}</span></button>
+        <span class="dock-sp"></span>
+        <button class="sb-ic" data-act="reroll" title="تحديث المتجر (D)" aria-label="تحديث المتجر">${icon('refresh')}${price(rCost, p.gold >= rCost)}</button>
+        <button class="sb-ic ${p.shopLocked ? 'on' : ''}" data-act="lock" title="${p.shopLocked ? 'المتجر مثبّت' : 'ثبّت المتجر للجولة الجاية'}" aria-label="تثبيت المتجر">${icon(p.shopLocked ? 'lock' : 'unlock')}</button>
+        <button class="sb-ic xp" data-act="xp" ${maxed ? 'disabled' : ''} title="اشتر خبرة (F)" aria-label="اشتر خبرة">${icon('up')}${maxed ? '' : price(E.xpCost, p.gold >= E.xpCost)}<i class="xpm"><i style="transform:scaleX(${need ? Math.min(1, p.xp / need) : 1})"></i></i></button>
+        <button class="sb-ic" data-act="upgrades" title="شاشة التطوير" aria-label="شاشة التطوير">${icon('star')}</button>
       </div>
       <div class="shop-row"><div class="shop-cards">${cards}</div>
-      <div class="item-cards">${items}</div></div>
-      <div class="shop-actions">
-        <button class="btn ib-act" data-act="upgrades"><span class="lb">تطوير</span></button>
-        <button class="btn primary ready-btn" data-act="ready" title="Enter"><span class="lb">جاهز</span></button>
-      </div>`;
+      <div class="item-cards">${items}</div></div>`;
   }
 
   const SYN_ICON = (s) => (s.kind === 'world' ? ART.WORLD_ICON[s.id] : s.kind === 'special' ? 'star' : ART.ROLE_ICON[s.id]);
@@ -5796,10 +6008,16 @@ AMB.IMAGES = {
   }
   function renderCombatCtrl() {
     const el = $('combat-ctrl');
-    if (S.phase === 'combat') {
-      el.innerHTML = `<span class="clock">0.0s</span>
-        ${[1, 2, 4].map((s) => `<button class="btn small ${S.speed === s ? 'on' : ''}" data-act="speed" data-v="${s}">${s}x</button>`).join('')}
-        <button class="btn small ib" data-act="skip">تخطي</button><span class="fury"></span>${combatSynHTML()}`;
+    S.dockUi = null;
+    if (S.phase === 'combat' || S.phase === 'result') {
+      // UI v2 combat dock: your hero + life on one side, clock / speed / skip on the other, synergy chips under them
+      const p = me(), h = HEROES[p.heroId];
+      el.innerHTML = `<div class="cc-dock"><span class="cc-hero" style="--wc:${WORLDS[h.world].color}">${portrait(myAvatar(p, 0), { k: 'ccd' })}<span class="cc-life"><span class="op-bar"><i></i></span>${icon('heart')}<b>${lifeStr(p.life)}</b></span></span>
+        <span class="cc-sp"></span>
+        ${S.phase === 'combat' ? `<span class="clock">0.0s</span><span class="fury"></span><button class="btn small cc-speed" data-act="speed" data-v="${S.speed >= 4 ? 1 : S.speed * 2}" title="السرعة" aria-label="السرعة">${icon('play')}<b>${S.speed}x</b></button>
+        <button class="btn small ib cc-skip" data-act="skip">${icon('skip')}تخطي</button>` : ''}</div>${combatSynHTML()}`;
+      S.dockUi = { bar: el.querySelector('.cc-life .op-bar i'), num: el.querySelector('.cc-life b'), txt: '', pct: -1 };
+      dockLife(p.life, p.maxLife);
     } else if (S.phase === 'prep' || S.phase === 'resources') {
       el.innerHTML = prepBarHTML();
     } else el.innerHTML = '';
@@ -5906,7 +6124,7 @@ AMB.IMAGES = {
   // a match counts for progression only if at least one combat was actually fought (an instant surrender pays nothing)
   const fought = (m) => m.history.length >= 1;
   function awardHeroXp(m) {
-    if (!AMB.heroes || m._heroXp || S.mode === 'tutorial' || S.mode === 'hotseat' || S.mode === 'friendly' || S.mode === 'online' || !fought(m)) return;
+    if (!AMB.heroes || m._heroXp || S.mode === 'tutorial' || S.mode === 'practice' || S.mode === 'hotseat' || S.mode === 'friendly' || S.mode === 'online' || !fought(m)) return;
     m._heroXp = true;
     const seat = mySeat(), p = m.players[seat], won = m.winner === seat;
     const roundsWon = m.history.filter((r) => r.winner === seat).length;
@@ -5938,6 +6156,7 @@ AMB.IMAGES = {
     cancelAnimationFrame(S.raf);
     S.phase = 'over';
     const secs = Math.round((Date.now() - S.startTs) / 1000);
+    if (S.mode === 'practice') return practiceResult(m, secs);   // hero trial: no XP, rewards, stats, pass or play count
     awardHeroXp(m);
     if (S.mode === 'campaign') return AMB.CampaignUI.showResult(m, secs);   // campaign and tower have their own results screens
     if (S.mode === 'tower') return AMB.TowerUI.showResult(m, secs);
@@ -6075,15 +6294,18 @@ AMB.IMAGES = {
     diff: (d) => { S.difficulty = d.v; document.querySelectorAll('#diff-seg button').forEach((b) => b.classList.toggle('on', b.dataset.v === d.v)); },
     mode: (d) => { S.mode = d.v; S.picks = [null, null]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
     pickHero: (d, el, e) => {
-      if (e.target.closest('[data-act="heroInfo"]')) return;
+      if (e.target.closest('[data-act="heroInfo"], [data-act="heroTry"]')) return;
       if (heroLocked(d.id)) { toast('هذا البطل مقفل: تفتحه من الباكجات (ليجندري) أو الباتل باس', 'err'); return; }
       S.picks[S.pickIdx] = d.id; renderHeroSelect();
     },
     heroInfo: (d, el, e) => { e.stopPropagation(); heroDetail(d.id); },
+    heroTry: (d, el, e) => { if (e) e.stopPropagation(); if (!HEROES[d.id]) return; startPractice(d.id, S.screen === 'campaign' ? 'campaign' : 'hero'); },
+    practiceBack: () => endPractice(),
     heroConfirm: () => {
       if (!S.picks[S.pickIdx] || heroLocked(S.picks[S.pickIdx])) return;
       if (starterPick()) {   // one-time starter choice, then continue to the match as usual
-        AMB.collection.chooseStarter(S.picks[0]); sfx('merge'); toast(`${HEROES[S.picks[0]].name} صار بطلك! الباقين تفتحهم من الباكجات أو الباتل باس`, 'good');
+        if (!AMB.collection.chooseStarter(S.picks[0])) return;
+        sfx('merge'); toast(`${HEROES[S.picks[0]].name} صار بطلك! الباقين تفتحهم من الباكجات أو الباتل باس`, 'good');
         renderHeroSelect(); return;
       }
       if (S.mode === 'hotseat' && S.pickIdx === 0) { S.pickIdx = 1; renderHeroSelect(); return; }
@@ -6174,6 +6396,8 @@ AMB.IMAGES = {
       renderTop();
     },
     panels: () => { S.panels = !S.panels; $('scr-match').classList.toggle('show-panels', S.panels); renderTop(); },
+    // your hero in the bottom dock: opens the abilities layer where the phone has one (portrait), otherwise the hero card
+    heroDock: () => { if (matchMedia('(max-width: 860px) and (orientation: portrait)').matches) ACT.panels(); else heroDetail(me().heroId); },
     menuMatch: () => matchMenu(),
     resumeMenu: () => {
       closeModal();
@@ -6190,7 +6414,7 @@ AMB.IMAGES = {
       me().life = 0;
       showResults();
     },
-    abandon: () => { if (S.net) AMB.NetUI.leave(); closeModal(); closeOverlay(); S._resumeAfterMenu = false; S.paused = false; cancelAnimationFrame(S.raf); S.phase = 'idle'; S.match = null; show('menu'); },
+    abandon: () => { if (S.mode === 'practice') { endPractice(); return; } if (S.net) AMB.NetUI.leave(); closeModal(); closeOverlay(); S._resumeAfterMenu = false; S.paused = false; cancelAnimationFrame(S.raf); S.phase = 'idle'; S.match = null; show('menu'); },
     speed: (d) => { S.speed = +d.v; renderCombatCtrl(); },
     skip: () => skipCombat(),
     nextRound: () => { closeOverlay(); if (S.match.isOver) showResults(); else nextRound(); },
@@ -6213,7 +6437,7 @@ AMB.IMAGES = {
     toResults: () => showResults(),
     abTrig: (d) => { if (!prepActive()) return; const cur = S.match.players[S.v].abilities[d.ab]; res(S.match.setAbility(S.v, d.ab, cur === d.t ? null : d.t)); renderMatch(); },
     info: (d, el, e) => { if (e) e.stopPropagation(); if (d.k === 'hero') { heroDetail(d.id); return; } const t = AMB.TIPS[d.k]; if (!t) return; const x = t(); modal(`<h2>${x.title}</h2><div class="tip-body">${x.html}</div>`); },
-    again: () => { if (S.mode === 'online') { if (S.net) AMB.NetUI.leave(); show('menu'); return; } if (S.mode === 'tutorial') { AMB.TutorialUI.start(); return; } if (S.mode === 'campaign' || S.mode === 'tower' || S.mode === 'event') { startMatch(); return; } S.picks = [S.picks[0], S.picks[1]]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
+    again: () => { if (S.mode === 'online') { if (S.net) AMB.NetUI.leave(); show('menu'); return; } if (S.mode === 'tutorial') { AMB.TutorialUI.start(); return; } if (S.mode === 'practice') { startMatch(); return; } if (S.mode === 'campaign' || S.mode === 'tower' || S.mode === 'event') { startMatch(); return; } S.picks = [S.picks[0], S.picks[1]]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
     statsExport: () => {
       const blob = new Blob([JSON.stringify(AMB.telemetry.load(), null, 2)], { type: 'application/json' });
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'multiverse-telemetry.json'; a.click();
@@ -6386,7 +6610,8 @@ AMB.IMAGES = {
   })();
 
   // debug / testing hook
-  globalThis.AMB_UI = { renderHeroSelect, startCombat, afterReward, showResults, S, ACT, itemsHTML: () => Object.values(ITEMS).map((it) => itemCardHTML(it)).join(''), renderMatch, cardHTML, itemCardHTML, show, toast, sfx, burst, modal, closeModal, overlay, closeOverlay, startMatch, portrait, stars };
+  globalThis.AMB_UI = { renderHeroSelect, heroPickHTML, startPractice, startCombat, afterReward, showResults, S, ACT, itemsHTML: () => Object.values(ITEMS).map((it) => itemCardHTML(it)).join(''), renderMatch, cardHTML, itemCardHTML, show, toast, sfx, burst, modal, closeModal, overlay, closeOverlay, startMatch, portrait, stars };
+  globalThis.AMB_UI.abilityBurst = abilityBurst;   // UI v2 (match screens)
   if (AMB.PassUI) { AMB.PassUI.installActions(); AMB.PassUI.applyCosmetics(); AMB.PassUI.refreshMenu(); }
 })();
 
@@ -6489,7 +6714,7 @@ AMB.IMAGES = {
   function trackHTML() {
     const cols = [];
     for (let l = 1; l <= P.SEASON.levels; l++) {
-      cols.push(`<div class="pcol ${l === pass.level() ? 'now' : ''} ${l <= pass.level() ? 'reached' : ''}" data-col="${l}"><div class="plv">${l}</div>${cellHTML(l, 'free')}}</div>`);
+      cols.push(`<div class="pcol ${l === pass.level() ? 'now' : ''} ${l <= pass.level() ? 'reached' : ''}" data-col="${l}"><div class="plv">${l}</div>${cellHTML(l, 'free')}</div>`);
     }
     const n = [];
     for (let l = 1; l <= pass.level(); l++) ['free', 'premium'].forEach((t) => { if (pass.canClaim(l, t)) n.push(1); });
@@ -6592,6 +6817,7 @@ AMB.IMAGES = {
   const C = AMB.collection, RAR = AMB.ECONOMY.rarities;
   const { icon } = AMB.art;
   const UI = () => globalThis.AMB_UI;
+  let firstVisit = null;   // null until the screen is first drawn in this session
   let justUp = '', filter = '', roleF = '', deckOnly = false, upOnly = false;   // rarity filter ('' = all), role filter, show only the deck
 
   const pct = (a, b) => (b ? Math.min(100, Math.round((a / b) * 100)) : 100);
@@ -6641,14 +6867,20 @@ AMB.IMAGES = {
       .sort((a, b) => RAR[C.rarity(b)].order - RAR[C.rarity(a)].order || (C.def(a).role ? 1 : 0) - (C.def(b).role ? 1 : 0));
     const ready = C.ids().filter((id) => C.canUpgrade(id)).length;
     const fb = (v, n, col) => `<button class="btn small ${filter === v ? 'on' : ''}" data-act="colFilter" data-v="${v}" ${col ? `style="--rc:${col}"` : ''}>${n}</button>`;
+    // the deck and the "how to upgrade" box fold away so the cards show up sooner: open on the first visit, folded after that (each remembers the player's choice)
+    const ST = AMB.settings;
+    if (firstVisit === null) { firstVisit = !(ST && ST.seen('colVisited')); if (ST) ST.markSeen('colVisited'); }
+    const isOpen = (k) => !(ST ? ST.folded(k, !firstVisit) : false);
+    const L = C.deckLimits(), dn = C.deck().length;
     root.innerHTML = `<div class="col-head">
-        ${C.needsStarter() ? '' : deckBar()}
+        ${C.needsStarter() ? '' : `<details class="col-fold" data-fold="colDeck" ${isOpen('colDeck') ? 'open' : ''}><summary><b>🃏 ديكك <span class="${dn >= L.min ? '' : 'bad'}">${dn}/${L.size}</span></b><small>للحملة والبرج والأحداث</small></summary>${deckBar()}</details>`}
         ${C.needsStarter() ? '<div class="col-starter">ما اخترت بطلك الأول للحين: اضغط «العب» واختر واحد من الأربعة.</div>' : ''}
         <div><b>${C.ownedCount()} / ${C.ids().length}</b> بطاقة · ${ready ? `<span class="col-ready">${ready} جاهزة للتطوير</span>` : 'ما فيه ترقيات جاهزة'}</div>
-        <div class="up-how"><b>كيف أطوّر؟</b> كل نسخة <u>مكررة</u> من باكج تروح لبطاقتها. لما يكتمل شريط النسخ يطلع زر <b>⬆ طوّر</b> ويرفع قوتها <b>+${Math.round(AMB.ECONOMY.cards.levelBonus * 100)}%</b> في الحملة والبرج والأحداث.
+        <details class="col-fold" data-fold="colHow" ${isOpen('colHow') ? 'open' : ''}><summary><b>كيف أطوّر بطاقاتي؟</b>${ready ? `<small class="col-ready">⬆ ${ready} جاهزة</small>` : ''}</summary>
+        <div class="up-how">كل نسخة <u>مكررة</u> من باكج تروح لبطاقتها. لما يكتمل شريط النسخ يطلع زر <b>⬆ طوّر</b> ويرفع قوتها <b>+${Math.round(AMB.ECONOMY.cards.levelBonus * 100)}%</b> في الحملة والبرج والأحداث.
           ${ready ? `<button class="btn small primary" data-act="colRole" data-v="up">⬆ ${ready} جاهزة الحين</button>` : '<span class="hint">ما فيه بطاقة جاهزة الحين، افتح باكجات.</span>'} <button class="ibtn" data-act="info" data-k="colinfo" title="شرح">ⓘ</button></div>
         <div class="rar-legend">${Object.entries(RAR).map(([k, r]) => `<span class="rl r-${k}"><i></i>${r.name} <small>+${Math.round((r.power - 1) * 100)}%</small></span>`).join('')}</div>
-        <button class="btn primary small" data-act="go" data-to="packs">افتح باكجات للحصول على نسخ</button>
+        <button class="btn primary small" data-act="go" data-to="packs">افتح باكجات للحصول على نسخ</button></details>
         <div class="filters">${fb('', 'الكل')}${Object.entries(RAR).map(([k, r]) => fb(k, r.name, r.color)).join('')}</div>
         <div class="filters"><button class="btn small ${roleF === '' && !deckOnly && !upOnly ? 'on' : ''}" data-act="colRole" data-v="">كل الأدوار</button><button class="btn small ${upOnly ? 'on' : ''}" data-act="colRole" data-v="up">⬆ جاهزة للتطوير</button><button class="btn small ${deckOnly ? 'on' : ''}" data-act="colRole" data-v="deck">الديك فقط</button>${Object.entries(AMB.DATA.ROLES).map(([k, r]) => `<button class="btn small ${roleF === k ? 'on' : ''}" data-act="colRole" data-v="${k}">${r.name}</button>`).join('')}</div>
       </div>
@@ -6695,6 +6927,8 @@ AMB.IMAGES = {
     ensure() { if (!C.deckValid()) { C.autoBuild(); if (UI()) UI().toast('رتبت لك ديك تلقائي', 'good'); } return true; },
     line() { const L = C.deckLimits(), n = C.deck().length; return `<div class="deck-line ${n >= L.min ? '' : 'bad'}">🃏 ديكك: <b>${n}/${L.size}</b>${n >= L.min ? '' : ' (ناقص: يرتّب لك تلقائيًا)'} <button class="btn small" data-act="deckEdit">عدّل</button></div>`; },
   };
+  // remember each folded section (the toggle event does not bubble: listen in the capture phase)
+  document.addEventListener('toggle', (e) => { const d = e.target; if (d && d.dataset && d.dataset.fold && AMB.settings) AMB.settings.setFolded(d.dataset.fold, !d.open); }, true);
   AMB.CollectionUI = { render, refreshMenu, installActions, unlockHint };
   if (UI()) installActions();
   refreshMenu();
@@ -6770,22 +7004,38 @@ AMB.IMAGES = {
     const T = FX ? FX.revealTimes(order) : order.map((_, i) => 0.35 + i * 0.45);
     const cards = order.map((c, i) => `<div class="rv" style="--d:${T[i].toFixed(2)}s;--rc:${RAR[c.rarity].color}" data-r="${c.rarity}">
         ${RAR[c.rarity].order >= 3 ? '<i class="rv-rays"></i>' : ''}<div class="rv-in"><div class="rv-back"><span>ZOR</span></div><div class="rv-front">${ui.cardHTML(C.def(c.id), { k: 'rv' + i + c.id, lvl: c.level })}${tagFor(c)}</div></div></div>`).join('');
-    ui.overlay(`<div class="rv-wrap ${'best-' + best.rarity}"><h2>${res.forced ? 'الضمان اشتغل! ' : ''}${RAR[best.rarity].name === RAR.legendary.name ? '✨ ليجندري! ✨' : 'باكج الصدع'}</h2>
+    // UI v2: bigger cards (3 + 2 on phones), the rarest last with a longer build-up, and a «تخطي» button that turns the rest at once
+    ui.overlay(`<div class="rv-wrap rv2 ${'best-' + best.rarity}"><h2>${res.forced ? 'الضمان اشتغل! ' : ''}${RAR[best.rarity].name === RAR.legendary.name ? '✨ ليجندري! ✨' : 'باكج الصدع'}</h2>
       <div class="rv-row">${cards}</div>
       ${res.refund ? `<p class="hint">نسخ بطاقات بالمستوى الأقصى تحوّلت إلى ${res.refund} شظية.</p>` : ''}
       <p class="rv-pity">${res.pityLeft === 0 ? 'الباكج الجاي فيه ليجندري مضمون!' : `باقي ${res.pityLeft} على ضمان الليجندري`}</p>
-      <div class="rv-btns"><button class="btn primary" data-act="packOpen" ${W.canAfford(P.def(PACK).cost) ? '' : 'disabled'}>افتح باكج ثاني · ${icon('gem')} ${P.def(PACK).cost.shards}</button>
+      <div class="rv-btns"><button class="btn rv-skip" data-act="rvSkip">${icon('skip')} تخطي</button><button class="btn primary" data-act="packOpen" ${W.canAfford(P.def(PACK).cost) ? '' : 'disabled'}>افتح باكج ثاني · ${icon('gem')} ${P.def(PACK).cost.shards}</button>
         <button class="btn" data-act="packDone" data-to="cards">مجموعتي</button><button class="btn ghost" data-act="packDone">تم</button></div></div>`);
     const wrap = document.querySelector('.rv-wrap');
+    const timers = [];
+    const at = (fn, ms) => timers.push(setTimeout(fn, ms));
+    const live = () => $('overlay').classList.contains('on') && wrap.isConnected;
     order.forEach((c, i) => {
       const L = RAR[c.rarity].order;
-      if (FX && L >= 3) setTimeout(() => { if ($('overlay').classList.contains('on')) FX.charge(wrap, c.rarity); }, Math.max(0, T[i] * 1000 - (L === 4 ? 1300 : 600)));
-      setTimeout(() => {
-        if (!$('overlay').classList.contains('on')) return;
-        const el = document.querySelectorAll('.rv')[i];
+      if (FX && L >= 3) at(() => { if (live()) FX.charge(wrap, c.rarity); }, Math.max(0, T[i] * 1000 - (L === 4 ? 1300 : 600)));
+      at(() => {
+        if (!live()) return;
+        const el = wrap.querySelectorAll('.rv')[i];
         if (FX) FX.reveal(el, c.rarity, wrap, c); else ui.sfx(L >= 3 ? 'merge' : 'click');
+        if (i === order.length - 1) wrap.classList.add('rv-done');
       }, T[i] * 1000 + 300);
     });
+    // skip: stop the remaining timers, turn every card now, and give the best card its effect once
+    wrap._skip = () => {
+      if (wrap.classList.contains('rv-done')) return;
+      timers.forEach(clearTimeout); timers.length = 0;
+      ['rv-charge-3', 'rv-charge-4'].forEach((k) => wrap.classList.remove(k));
+      wrap.classList.add('rv-skipped', 'rv-done');
+      const els = wrap.querySelectorAll('.rv');
+      els.forEach((el) => el.classList.add('hit'));
+      const bi = order.indexOf(best);
+      if (FX && els[bi]) FX.reveal(els[bi], best.rarity, wrap, best); else ui.sfx('click');
+    };
   }
 
   function installActions() {
@@ -6797,6 +7047,7 @@ AMB.IMAGES = {
         if (!res) { ui.toast('ما عندك شظايا كافية', 'err'); return; }
         render(); reveal(res);
       },
+      rvSkip: () => { const w = document.querySelector('#overlay .rv-wrap'); if (w && w._skip) w._skip(); },
       packDone: (d) => { ui.closeOverlay(); if (d.to) ui.show(d.to); else render(); },
     });
   }
@@ -6821,6 +7072,7 @@ AMB.IMAGES = {
   const UI = () => globalThis.AMB_UI;
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   let hero = null;   // hero used for campaign fights (remembered while the page is open)
+  let starterSel = null;   // first-hero picker: the card selected before confirming
 
   const W = (id) => AMB.DATA.WORLDS[id];
   const pickHero = () => {
@@ -6854,10 +7106,12 @@ AMB.IMAGES = {
   function render() {
     const root = $('campaign'); if (!root) return;
     const R = LV.CAMPAIGN.rewards;
-    if (C.needsStarter()) {   // brand-new player: pick the first hero right here, then straight to fight 1
-      root.innerHTML = `<div class="cam-starter"><h3>اختر بطلك الأول</h3><p class="hint">هذا بطلك الدائم، والباقين تفتحهم بعدين</p>
-        <div class="cam-starter-row">${Object.values(AMB.DATA.HEROES).map((h) => `<div class="cs-pick">${UI().cardHTML(h, { k: 'cst' + h.id, attrs: `data-act="heroInfo" data-id="${h.id}"` })}
-          <div class="cs-style">${esc(h.style.split('—')[0])}</div><button class="btn primary" data-act="camStarter" data-id="${h.id}">اختر ${esc(h.name)}</button></div>`).join('')}</div></div>`;
+    if (C.needsStarter()) {   // brand-new player: pick the first hero right here (same picker as the quick match), then straight to fight 1
+      const ui = UI(), list = AMB.DATA.HERO_STARTERS.filter((id) => AMB.DATA.HEROES[id]);
+      if (!list.includes(starterSel)) starterSel = null;
+      root.innerHTML = `<div class="cam-starter"><h3>اختر بطلك الأول</h3><p class="hint">هذا بطلك الدائم. جرّب أي واحد بقتال تدريب قبل لا تختار، والباقين تفتحهم بعدين.</p>
+        <div class="hero-grid hp-grid">${list.map((id) => ui.heroPickHTML(AMB.DATA.HEROES[id], { act: 'camPick', sel: starterSel === id, trial: true, k: 'cst' })).join('')}</div>
+        <div class="hero-foot cam-foot"><button class="btn primary big" data-act="camStarter" data-id="${starterSel || ''}" ${starterSel ? '' : 'disabled'}>${starterSel ? `خذ ${esc(AMB.DATA.HEROES[starterSel].name)} بطلي الأول` : 'اختر بطل'}</button></div></div>`;
       return;
     }
     if (AMB.tutorial && AMB.tutorial.required()) {   // brand-new player: the guided match comes first
@@ -6972,8 +7226,9 @@ AMB.IMAGES = {
       camGo: (d) => start(d.id),
       camDiff: (d) => { CAM.setDiff(d.v); ui.sfx('click'); render(); },
       tutGo: () => AMB.TutorialUI.start({ after: () => { render(); preview(CAM.next()); } }),
+      camPick: (d, el, e) => { if (e && e.target.closest('[data-act="heroInfo"], [data-act="heroTry"]')) return; starterSel = d.id; ui.sfx('click'); render(); },
       camStarter: (d) => {
-        if (!C.chooseStarter(d.id)) return;
+        if (!d.id || !C.chooseStarter(d.id)) return;
         hero = d.id; ui.sfx('merge'); ui.toast(`${AMB.DATA.HEROES[d.id].name} صار بطلك!`, 'good');
         render();
         const afterTut = () => { render(); preview(CAM.next()); };
@@ -7813,7 +8068,7 @@ AMB.IMAGES = {
   const { icon } = AMB.art;
   const UI = () => globalThis.AMB_UI;
   let active = false, idx = 0, replay = false, after = null, rerolled = 0, timer = 0, lastKey = '';
-  let ring, hand, bar;
+  let ring, hand, bar, point = null, xpBase = null;   // point = the element the hand points at now
 
   // ---------------------------------------------------------------- finding things on the screen
   const q = (sel) => document.querySelector(sel);
@@ -7824,7 +8079,12 @@ AMB.IMAGES = {
   const cell = (slot) => q(`#slots .cell.mine[data-slot="${slot}"]`);
   const ready = () => q('.ready-btn');
   const reroll = () => q('#shopbar [data-act="reroll"]');
-  const guardEl = () => { const a = q('#panel-left .guard'); return vis(a) ? a : q('#topbar .lifechip.me'); };
+  // the guard step points at what actually protects the hero: the shield counter (wide screens) or the front-row unit you just placed (phones)
+  const guardEl = () => {
+    const a = q('#panel-left .guard'); if (vis(a)) return a;
+    const fr = [...document.querySelectorAll('#slots .cell.mine[data-slot^="f"]')].find((c) => c.querySelector('.tcard'));
+    return fr || cell('f1');
+  };
   const sel = () => UI().S.sel;
   const P = () => UI().S.match.players[0];
   const front = () => Object.keys(P().board).filter((s) => s[0] === 'f').length;
@@ -7844,7 +8104,7 @@ AMB.IMAGES = {
     { id: 'reroll', round: 2, bar: [G('gold'), G('refresh')], target: () => reroll(), done: () => P().stats.rerolls >= 1 },
     { id: 'ready2', round: 2, bar: [G('sword'), G('check')], target: () => ready(), done: () => UI().S.phase === 'combat' || UI().S.match.round > 2 },
     // round 3: the two things that decide real matches: spend gold on levels (more units on the board), and send the hero in
-    { id: 'xp', round: 3, bar: [G('gold'), ARR, G('up')], target: () => q('#shopbar [data-act="xp"]') || q('[data-act="xp"]'), done: () => P().xp > 0 || P().level > 4 },
+    { id: 'xp', round: 3, bar: [G('gold'), ARR, G('up')], target: () => q('#shopbar [data-act="xp"]') || q('[data-act="xp"]'), done: () => xpBase != null && P().level * 1000 + P().xp > xpBase },   // the round's free XP does not count: only a bought level-up
     { id: 'summon', round: 3, bar: [G('crown'), ARR, G('sword')], target: () => q('[data-act="summon"]'), done: () => P().summoned },
     { id: 'ready3', round: 3, bar: [G('sword'), G('check')], target: () => ready(), done: () => UI().S.phase === 'combat' },
   ];
@@ -7856,9 +8116,17 @@ AMB.IMAGES = {
     hand = document.createElement('div'); hand.className = 'tut-hand'; hand.innerHTML = icon('hand'); document.body.appendChild(hand);
     bar = document.createElement('div'); bar.className = 'tut-bar'; document.body.appendChild(bar);
     bar.addEventListener('click', (e) => { if (e.target.closest('[data-tut="ok"]')) { idx++; lastKey = ''; tick(); } else if (e.target.closest('[data-tut="skip"]')) skip(); });
+    document.addEventListener('click', ackTap, true);
   }
-  function hide() { if (ring) { ring.style.display = 'none'; hand.style.display = 'none'; bar.style.display = 'none'; } document.querySelectorAll('.tut-target').forEach((e) => e.classList.remove('tut-target')); document.body.classList.remove('tut-on'); }
-  function unmount() { [ring, hand, bar].forEach((e) => e && e.remove()); ring = hand = bar = null; document.querySelectorAll('.tut-target').forEach((e) => e.classList.remove('tut-target')); document.body.classList.remove('tut-on'); }
+  // a "look here" step (no move to make): tapping the thing the hand points at moves on, instead of opening/selecting it
+  function ackTap(e) {
+    const st = STEPS[idx];
+    if (!active || !st || !st.ack || !point || !point.isConnected || !point.contains(e.target)) return;
+    e.preventDefault(); e.stopPropagation();
+    idx++; lastKey = ''; tick();
+  }
+  function hide() { point = null; if (ring) { ring.style.display = 'none'; hand.style.display = 'none'; bar.style.display = 'none'; } document.querySelectorAll('.tut-target').forEach((e) => e.classList.remove('tut-target')); document.body.classList.remove('tut-on'); }
+  function unmount() { document.removeEventListener('click', ackTap, true); point = null; [ring, hand, bar].forEach((e) => e && e.remove()); ring = hand = bar = null; document.querySelectorAll('.tut-target').forEach((e) => e.classList.remove('tut-target')); document.body.classList.remove('tut-on'); }
 
   function place(targets, st) {
     const spec = targets && targets.point !== undefined ? targets : { point: targets, allow: [targets] };
@@ -7867,6 +8135,7 @@ AMB.IMAGES = {
     list.forEach((e) => e.classList.add('tut-target'));
     // the ring + hand mark the thing to tap now; the other allowed element stays clickable (e.g. to change the selected unit)
     const t = vis(spec.point) ? spec.point : null;
+    point = t;
     if (!t) { ring.style.display = 'none'; hand.style.display = 'none'; return; }
     const row = t.closest('.shop-row'); if (row && t.closest('.shop-cards')) { const r = t.getBoundingClientRect(), rr = row.getBoundingClientRect(); if (r.left < rr.left || r.right > rr.right) t.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); }
     const r = t.getBoundingClientRect(), pad = 6;
@@ -7886,6 +8155,7 @@ AMB.IMAGES = {
     while (STEPS[idx] && STEPS[idx].done && STEPS[idx].round === m.round && STEPS[idx].done()) { idx++; lastKey = ''; }
     const st = STEPS[idx];
     if (!st || st.round !== m.round) { hide(); return; }
+    if (st.id === 'xp' && xpBase == null) xpBase = P().level * 1000 + P().xp;
     mount(); document.body.classList.add('tut-on');
     bar.style.display = 'flex'; ring.style.display = 'block'; hand.style.display = 'block';
     const key = idx + ':' + (sel() ? sel().kind : '') + ':' + m.round;
@@ -7906,7 +8176,7 @@ AMB.IMAGES = {
     if (o.replay && C.needsStarter()) { ui.toast('اختر بطلك أول', 'err'); return; }
     ui.closeOverlay(); ui.closeModal();
     S.mode = 'tutorial'; S.picks = [C.starterHero() || Object.keys(AMB.DATA.HEROES)[0], null]; S.pickIdx = 0;
-    idx = 0; rerolled = 0; lastKey = ''; active = true;
+    idx = 0; rerolled = 0; lastKey = ''; xpBase = null; active = true;
     clearInterval(timer); timer = setInterval(tick, 220);
     ui.startMatch();
   }

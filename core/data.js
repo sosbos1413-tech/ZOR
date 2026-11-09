@@ -401,8 +401,8 @@
       vanguard: { name: 'درع المدّ', text: 'لما ينزل الساحة: الفريق يتجدد 0.15% من صحته كل ثانية، وهو ياخذ درع حياة وحدة ويصمد أطول بحياة قبل ما ينسحب.', allyRegen: 0.003, heroShield: 1, knockoutBonus: 1 },
       passive: { id: 'deep_reserve', name: 'مخزون عميق', text: '+2 جوهرة زيادة كل جولة.' },
       abilities: [
-        { id: 'tidal_ward', name: 'حاجز المدّ', cost: 3, type: 'shieldAllies', amount: 150, scale: 25,
-          text: 'درع لكل الفريق (150 + 25 مع كل جولة).' },
+        { id: 'tidal_ward', name: 'حاجز المدّ', cost: 3, type: 'shieldAllies', amount: 175, scale: 25,
+          text: 'درع لكل الفريق (175 + 25 مع كل جولة).' },
         { id: 'moon_spring', name: 'ينبوع القمر', cost: 4, type: 'healAllies', pct: 0.36,
           text: 'يعالج كل الفريق بنسبة 36% من صحتهم الكاملة.' },
       ],
@@ -458,13 +458,13 @@
     nayako: {
       id: 'nayako', name: 'ناياكو', title: 'نجمة الشبكة', world: 'neon', style: 'إيقاع: نجمة خفيفة تغيّر مجرى المعركة بنبضة. اقتصاد وتشويش.',
       board: { atk: 72, as: 0.9, range: 4, def: 0.05, crit: 0.18 },
-      vanguard: { name: 'نبضة الإيقاع', text: 'لما ينزل الساحة: الفريق +5% سرعة هجوم، وهو يضرب حرجة أكثر (+5%)، وقدراته أرخص بنقطة.', allyAs: 0.10, heroCrit: 0.10, extraDiscount: 1 },
+      vanguard: { name: 'نبضة الإيقاع', text: 'لما ينزل الساحة: الفريق +3% سرعة هجوم، وهو يضرب حرجة أكثر (+5%)، وقدراته أرخص بنقطة.', allyAs: 0.06, heroCrit: 0.10, extraDiscount: 1 },
       passive: { id: 'data_stream', name: 'تدفق البيانات', text: '+1 ذهب إضافي كل جولة، وكل وحداتك +2% سرعة هجوم.' },
       abilities: [
-        { id: 'hologram_wall', name: 'جدار الهولوغرام', cost: 3, type: 'shieldAllies', amount: 240, scale: 25,
-          text: 'درع لكل الفريق (240 + 25 مع كل جولة).' },
-        { id: 'glitch_pulse', name: 'نبضة تشويش', cost: 4, type: 'stunEnemies', dur: 1.6,
-          text: 'يوقف كل الأعداء لمدة 1.6 ثانية.' },
+        { id: 'hologram_wall', name: 'جدار الهولوغرام', cost: 3, type: 'shieldAllies', amount: 150, scale: 25,
+          text: 'درع لكل الفريق (150 + 25 مع كل جولة).' },
+        { id: 'glitch_pulse', name: 'نبضة تشويش', cost: 4, type: 'stunEnemies', dur: 1.3,
+          text: 'يوقف كل الأعداء لمدة 1.3 ثانية.' },
       ],
     },
     thora: {
