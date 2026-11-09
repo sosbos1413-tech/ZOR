@@ -118,7 +118,7 @@
       summonAbilityDiscount: 1, // abilities cost less while the hero fights
       boardAtkPerRound: 5,      // summoned hero attack scales with the round
       boardPower: 0.22,            // overall strength of the summoned hero's own fighting (tuned so summoning is a real choice, not always best)
-      vanguardScale: 0.5,        // strength of each hero's summoned-form bonuses
+      vanguardScale: 0.4,        // strength of each hero's summoned-form bonuses
     },
 
     ai: {

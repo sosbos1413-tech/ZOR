@@ -187,7 +187,7 @@
     document.body.classList.toggle('mirror-foe', mirror);
     if (mirror && S.mode === 'campaign') { const hn = HEROES[S.match.players[1].heroId].name, e = S.match.players[1]; if (e.name.includes(hn)) e.name = e.name.replace(hn, 'ظلّ ' + hn); }
     S.startTs = Date.now();
-    S.speed = 2;
+    S.speed = AMB.settings ? AMB.settings.speed() : 1;   // the last speed the player picked (1x for a new player)
     show('match');
     nextRound();
   }
@@ -1544,7 +1544,7 @@
       showResults();
     },
     abandon: () => { if (S.mode === 'practice') { endPractice(); return; } if (S.net) AMB.NetUI.leave(); closeModal(); closeOverlay(); S._resumeAfterMenu = false; S.paused = false; cancelAnimationFrame(S.raf); S.phase = 'idle'; S.match = null; show('menu'); },
-    speed: (d) => { S.speed = +d.v; renderCombatCtrl(); },
+    speed: (d) => { S.speed = +d.v; if (AMB.settings) AMB.settings.setSpeed(S.speed); renderCombatCtrl(); },
     skip: () => skipCombat(),
     nextRound: () => { closeOverlay(); if (S.match.isOver) showResults(); else nextRound(); },
     rewards: () => {

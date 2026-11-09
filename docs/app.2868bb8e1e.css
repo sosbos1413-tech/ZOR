@@ -2615,3 +2615,11 @@ body.tut-on .tut-bar .tg-dots { flex-wrap: nowrap; }
 .rv-back { container-type: inline-size; overflow: hidden; }
 @media (max-width: 520px) { .rv-wrap .rv-back span { font-size: 20px; text-shadow: 2px 2px 0 var(--red); } }
 /* @@end26@@ */
+.col-fold .deck-bar .db-top > b { display: none; }
+
+/* (28) big-text mode: bigger base font, names under icons, stronger badge contrast */
+body.big-text { font-size: 112%; }
+body.big-text .hint, body.big-text small, body.big-text .card small { font-size: 1.12em; }
+body.big-text .schip, body.big-text .badge, body.big-text .bn-l, body.big-text .mt-l { filter: contrast(1.25) brightness(1.1); font-weight: 700; }
+body.big-text #bnav button span, body.big-text #bnav button small { display: block !important; font-size: 12px; }
+#scr-hero { padding-bottom: 110px; } .cam-starter { padding-bottom: 170px; }

@@ -595,7 +595,7 @@
         case 'xp': this._gainXp(p, R.n[st]); break;
         case 'essence': p.essence = Math.min(AMB.CONFIG.economy.essenceMax + 3, p.essence + R.n[st]); break;
         case 'heal': p.life = Math.min(p.maxLife, p.life + R.n[st]); break;
-        case 'item': { const ids = Object.keys(AMB.DATA.ITEMS); const pick = this._rng(p).pick(ids); if (p.items.length < AMB.CONFIG.economy.itemBenchSize) p.items.push(pick); else p.gold += 3; out.item = pick; break; }
+        case 'item': { const ids = Object.keys(AMB.DATA.ITEMS); const pick = this._rng(p).pick(ids), pick2 = this._rng(p).pick(ids); this._stash(p, [pick, pick2]); out.item = pick; break; }
         case 'bless_atk': p.blessings.atkPct += R.pct[st]; break;
         case 'bless_hp': p.blessings.hpPct += R.pct[st]; break;
         case 'bless_as': p.blessings.asPct += R.pct[st]; break;

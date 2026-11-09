@@ -24,6 +24,8 @@
       <div class="save-kv"><span>الحماية من المسح التلقائي</span><b>${persisted === null ? 'غير معروفة' : persisted ? 'مفعّلة ✓' : 'يقرّرها المتصفح'}</b></div>
       <div class="save-kv"><span>نسخة احتياطية يومية</span><b>تلقائية ✓</b></div>
       ${sv.recovered ? '<div class="save-box warn">رجّعنا تقدمك من النسخة الاحتياطية بعد ما صار خلل في الحفظ.</div>' : ''}
+      <h3>العرض</h3>
+      <div class="save-btns"><button class="btn ${AMB.settings && AMB.settings.bigText() ? 'primary' : 'ghost'}" data-act="bigText">🔠 نص كبير: ${AMB.settings && AMB.settings.bigText() ? 'شغّال' : 'طافي'}</button></div>
       <h3>نقل التقدّم</h3>
       <p class="hint">الحفظ مربوط بهالمتصفح وهالرابط. لو فتحت اللعبة من رابط أو جهاز ثاني ما يطلع تقدمك، انقله بملف.</p>
       <div class="save-btns">
@@ -48,6 +50,7 @@
   function installActions() {
     const ui = UI(); if (!ui || ui.ACT.saveOpen) return;
     Object.assign(ui.ACT, {
+      bigText: () => { if (!AMB.settings) return; const on = AMB.settings.setBigText(!AMB.settings.bigText()); document.body.classList.toggle('big-text', on); ui.sfx('click'); if (AMB.SaveUI) AMB.SaveUI.open(); },
       saveOpen: () => open(),
       saveExport: () => {
         const blob = new Blob([AMB.save.exportJSON()], { type: 'application/json' });
@@ -72,6 +75,7 @@
     d.innerHTML = '<div class="sl-box"><h2>اللعبة مفتوحة في تبويب ثاني</h2><p>تقدمك انحفظ في التبويب الجديد. هذا التبويب ما يحفظ حتى ما يمسح عليه. حدّث الصفحة وكمّل.</p><button class="btn big primary" onclick="location.reload()">حدّث الصفحة</button></div>';
     document.body.appendChild(d);
   });
+  try { if (AMB.settings && AMB.settings.bigText()) document.body.classList.add('big-text'); } catch (e) { /* ignore */ }   // big-text mode from the save
   AMB.SaveUI = { open, installActions };
   if (UI()) installActions();
 })();

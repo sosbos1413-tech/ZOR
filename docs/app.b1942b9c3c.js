@@ -119,7 +119,7 @@
       summonAbilityDiscount: 1, // abilities cost less while the hero fights
       boardAtkPerRound: 5,      // summoned hero attack scales with the round
       boardPower: 0.22,            // overall strength of the summoned hero's own fighting (tuned so summoning is a real choice, not always best)
-      vanguardScale: 0.5,        // strength of each hero's summoned-form bonuses
+      vanguardScale: 0.4,        // strength of each hero's summoned-form bonuses
     },
 
     ai: {
@@ -522,7 +522,7 @@
     kagira: {
       id: 'kagira', name: 'كيرو', title: 'الجمر الهادئ', world: 'ember', style: 'هجومي: هادي وحسّابه، وإذا هجم ينفجر. ضغط من البداية وضرر قوي.',
       board: { atk: 85, as: 0.8, range: 1, def: 0.2, crit: 0.1 },
-      vanguard: { name: 'الهجوم الكاسح', text: 'لما ينزل الساحة: الفريق +11% هجوم، وهو يضرب أقوى (+5% هجوم، +3% فرصة حرجة).', allyAtk: 0.22, heroAtk: 0.1, heroCrit: 0.06 },
+      vanguard: { name: 'الهجوم الكاسح', text: 'لما ينزل الساحة: الفريق +8.8% هجوم، وهو يضرب أقوى (+4% هجوم، +2.4% فرصة حرجة).', allyAtk: 0.22, heroAtk: 0.1, heroCrit: 0.06 },
       passive: { id: 'blazing_will', name: 'إرادة متقدة', text: 'لما يسقط الصف الأمامي، الفريق ياخذ +45% هجوم.' },
       abilities: [
         { id: 'inferno_banner', name: 'أمر الهجوم', cost: 3, type: 'buffAllies', atkPct: 0.42, dur: 6,
@@ -534,7 +534,7 @@
     merin: {
       id: 'merin', name: 'ميران', title: 'حارس المدّ الصامت', world: 'tide', style: 'صمود: هادي ويحمي الفريق. دروع وعلاج ومعارك طويلة.',
       board: { atk: 86, as: 0.8, range: 3, def: 0.1, crit: 0.05 },
-      vanguard: { name: 'درع المدّ', text: 'لما ينزل الساحة: الفريق يتجدد 0.15% من صحته كل ثانية، وهو ياخذ درع حياة وحدة ويصمد أطول بحياة قبل ما ينسحب.', allyRegen: 0.003, heroShield: 1, knockoutBonus: 1 },
+      vanguard: { name: 'درع المدّ', text: 'لما ينزل الساحة: الفريق يتجدد 0.12% من صحته كل ثانية، وهو ياخذ درع حياة وحدة ويصمد أطول بحياة قبل ما ينسحب.', allyRegen: 0.003, heroShield: 1, knockoutBonus: 1 },
       passive: { id: 'deep_reserve', name: 'مخزون عميق', text: '+2 جوهرة زيادة كل جولة.' },
       abilities: [
         { id: 'tidal_ward', name: 'حاجز المدّ', cost: 3, type: 'shieldAllies', amount: 175, scale: 25,
@@ -546,11 +546,11 @@
     zerokai: {
       id: 'zerokai', name: 'زيرو-كاي', title: 'الظلّ المشفّر', world: 'neon', style: 'سرعة: غامض وسابق خصمه بخطوة. اقتصاد مرن وحركة سريعة.',
       board: { atk: 74, as: 0.85, range: 4, def: 0.05, crit: 0.15 },
-      vanguard: { name: 'نبض السرعة', text: 'لما ينزل الساحة: الفريق +10% سرعة هجوم، وهو أسرع بـ10%، وكل قدراته تتكلف نقطة أقل.', allyAs: 0.20, heroAs: 0.2, extraDiscount: 1 },
+      vanguard: { name: 'نبض السرعة', text: 'لما ينزل الساحة: الفريق +8% سرعة هجوم، وهو أسرع بـ8%، وكل قدراته تتكلف نقطة أقل.', allyAs: 0.20, heroAs: 0.2, extraDiscount: 1 },
       passive: { id: 'free_reroll', name: 'وصول خلفي', text: 'أول تحديث للمتجر في كل جولة مجاني.' },
       abilities: [
-        { id: 'overclock', name: 'كسر السرعة', cost: 3, type: 'buffAllies', asPct: 0.3, dur: 5,
-          text: '+30% سرعة هجوم لكل الفريق لمدة 5 ثواني.' },
+        { id: 'overclock', name: 'كسر السرعة', cost: 3, type: 'buffAllies', asPct: 0.35, dur: 5,
+          text: '+35% سرعة هجوم لكل الفريق لمدة 5 ثواني.' },
         { id: 'system_crash', name: 'انهيار النظام', cost: 5, type: 'stunEnemies', dur: 1.5,
           text: 'يوقف كل الأعداء لمدة 1.5 ثانية.' },
       ],
@@ -558,7 +558,7 @@
     orath: {
       id: 'orath', name: 'أوراث', title: 'الحارس المحلّل', world: 'sylvan', style: 'دفاعي: هادي ويحلل، ويقرأ المعركة قبل لا تبدأ. خط أمامي قوي وسيطرة.',
       board: { atk: 75, as: 0.65, range: 1, def: 0.3, crit: 0.05 },
-      vanguard: { name: 'الجدار الحي', text: 'لما ينزل الساحة: الصف الأمامي +11% صحة، وكل الفريق ياخذ ضرر أقل 2.5%، وهو أصلب (+7.5% دفاع).', frontHp: 0.22, allyDr: 0.05, heroDef: 0.15 },
+      vanguard: { name: 'الجدار الحي', text: 'لما ينزل الساحة: الصف الأمامي +8.8% صحة، وكل الفريق ياخذ ضرر أقل 2%، وهو أصلب (+6% دفاع).', frontHp: 0.22, allyDr: 0.05, heroDef: 0.15 },
       passive: { id: 'ancient_bark', name: 'لحاء صلب', text: 'وحدات الصف الأمامي تاخذ +6% صحة.' },
       abilities: [
         { id: 'thorn_wall', name: 'جدار الأشواك', cost: 3, type: 'frontDR', dr: 0.42, dur: 6,
@@ -570,7 +570,7 @@
     rika: {
       id: 'rika', name: 'ريكا', title: 'ملكة الأتون', world: 'ember', style: 'قوة: ضربات ثقيلة وخط أمامي ناري. تحمي وتضرب بنفس الوقت.',
       board: { atk: 86, as: 0.7, range: 1, def: 0.2, crit: 0.1 },
-      vanguard: { name: 'مطرقة الأتون', text: 'لما ينزل الساحة: الفريق +2% هجوم، والصف الأمامي +4% صحة، وهو أصلب (+5% دفاع) وأقوى بـ3%.', allyAtk: 0.04, frontHp: 0.08, heroDef: 0.1, heroAtk: 0.06 },
+      vanguard: { name: 'مطرقة الأتون', text: 'لما ينزل الساحة: الفريق +1.6% هجوم، والصف الأمامي +3.2% صحة، وهو أصلب (+4% دفاع) وأقوى بـ2.4%.', allyAtk: 0.04, frontHp: 0.08, heroDef: 0.1, heroAtk: 0.06 },
       passive: { id: 'forge_heart', name: 'قلب الأتون', text: 'وحدات الصف الأمامي تاخذ +4.5% هجوم.' },
       abilities: [
         { id: 'molten_hammer', name: 'مطرقة الحمم', cost: 4, type: 'damageCluster', dmg: 230, scale: 28, radius: 1.4,
@@ -582,7 +582,7 @@
     kairyu: {
       id: 'kairyu', name: 'كايريو', title: 'قبطان العاصفة', world: 'tide', style: 'قيادة: قبطان هادي يوزّع الأوامر. يقوّي الفريق ويثبّت الجبهة.',
       board: { atk: 80, as: 0.75, range: 2, def: 0.15, crit: 0.08 },
-      vanguard: { name: 'أمر القبطان', text: 'لما ينزل الساحة: الفريق ياخذ ضرر أقل 2% ويتجدد 0.2% كل ثانية، وهو ياخذ درع 2 حياة.', allyDr: 0.04, allyRegen: 0.004, heroShield: 2 },
+      vanguard: { name: 'أمر القبطان', text: 'لما ينزل الساحة: الفريق ياخذ ضرر أقل 1.6% ويتجدد 0.16% كل ثانية، وهو ياخذ درع 2 حياة.', allyDr: 0.04, allyRegen: 0.004, heroShield: 2 },
       passive: { id: 'sea_legs', name: 'ثبات البحّار', text: 'كل وحداتك تبدأ القتال بدرع 13% من صحتها.' },
       abilities: [
         { id: 'captains_order', name: 'أمر القبطان', cost: 3, type: 'buffAllies', atkPct: 0.1, asPct: 0.2, dur: 6,
@@ -594,19 +594,19 @@
     nayako: {
       id: 'nayako', name: 'ناياكو', title: 'نجمة الشبكة', world: 'neon', style: 'إيقاع: نجمة خفيفة تغيّر مجرى المعركة بنبضة. اقتصاد وتشويش.',
       board: { atk: 72, as: 0.9, range: 4, def: 0.05, crit: 0.18 },
-      vanguard: { name: 'نبضة الإيقاع', text: 'لما ينزل الساحة: الفريق +3% سرعة هجوم، وهو يضرب حرجة أكثر (+5%)، وقدراته أرخص بنقطة.', allyAs: 0.06, heroCrit: 0.10, extraDiscount: 1 },
+      vanguard: { name: 'نبضة الإيقاع', text: 'لما ينزل الساحة: الفريق +2.4% سرعة هجوم، وهو يضرب حرجة أكثر (+4%)، وقدراته أرخص بنقطة.', allyAs: 0.06, heroCrit: 0.10, extraDiscount: 1 },
       passive: { id: 'data_stream', name: 'تدفق البيانات', text: '+1 ذهب إضافي كل جولة، وكل وحداتك +2% سرعة هجوم.' },
       abilities: [
         { id: 'hologram_wall', name: 'جدار الهولوغرام', cost: 3, type: 'shieldAllies', amount: 150, scale: 25,
           text: 'درع لكل الفريق (150 + 25 مع كل جولة).' },
-        { id: 'glitch_pulse', name: 'نبضة تشويش', cost: 4, type: 'stunEnemies', dur: 1.3,
-          text: 'يوقف كل الأعداء لمدة 1.3 ثانية.' },
+        { id: 'glitch_pulse', name: 'نبضة تشويش', cost: 4, type: 'stunEnemies', dur: 1.15,
+          text: 'يوقف كل الأعداء لمدة 1.15 ثانية.' },
       ],
     },
     thora: {
       id: 'thora', name: 'ثورا', title: 'ملكة الدب', world: 'sylvan', style: 'صمود: قوية وكريمة، تتحمل وترجّع. جلد الدب يحميها وفريقها.',
       board: { atk: 78, as: 0.7, range: 1, def: 0.25, crit: 0.06 },
-      vanguard: { name: 'زئير الغابة', text: 'لما ينزل الساحة: الصف الأمامي +5% صحة، والفريق يتجدد 0.2% كل ثانية، وهي أصلب (+5% دفاع) وتصمد أطول بـ2 حياة.', frontHp: 0.1, allyRegen: 0.004, knockoutBonus: 2, heroDef: 0.1 },
+      vanguard: { name: 'زئير الغابة', text: 'لما ينزل الساحة: الصف الأمامي +4% صحة، والفريق يتجدد 0.16% كل ثانية، وهي أصلب (+4% دفاع) وتصمد أطول بـ2 حياة.', frontHp: 0.1, allyRegen: 0.004, knockoutBonus: 2, heroDef: 0.1 },
       passive: { id: 'bear_hide', name: 'جلد الدب', text: 'كل وحداتك +12% صحة.' },
       abilities: [
         { id: 'spring_bloom', name: 'ازدهار الربيع', cost: 4, type: 'healAllies', pct: 0.28,
@@ -699,13 +699,13 @@
    */
   const REWARDS = {
     unit:     { id: 'unit', icon: 'crown', name: 'مجنّد مجاني', tiers: [1, 2, 3], text: (v, st) => `وحدة فئة ${v.tiers[st]} مجانًا (من عالم بطلك غالبًا)` },
-    gold:     { id: 'gold', icon: 'coin', name: 'كنز', n: [6, 8, 10], text: (v, st) => `+${v.n[st]} ذهب فورًا` },
+    gold:     { id: 'gold', icon: 'coin', name: 'كنز', n: [5, 6, 8], text: (v, st) => `+${v.n[st]} ذهب فورًا` },
     xp:       { id: 'xp', icon: 'star', name: 'تدريب مكثّف', n: [6, 8, 10], text: (v, st) => `+${v.n[st]} خبرة` },
     essence:  { id: 'essence', icon: 'essence', name: 'جوهر نقي', n: [3, 3, 4], text: (v, st) => `+${v.n[st]} جوهر لقدرات البطل` },
-    item:     { id: 'item', icon: 'shield', name: 'غنيمة', text: () => 'معدة عشوائية تضعها على أي وحدة' },
-    bless_atk:{ id: 'bless_atk', icon: 'sword', name: 'بركة الغضب', pct: [0.08, 0.1, 0.12], text: (v, st) => `الفريق كله +${Math.round(v.pct[st] * 100)}% هجوم لبقية المباراة` },
-    bless_hp: { id: 'bless_hp', icon: 'heart', name: 'بركة الحجر', pct: [0.1, 0.12, 0.15], text: (v, st) => `الفريق كله +${Math.round(v.pct[st] * 100)}% صحة لبقية المباراة` },
-    bless_as: { id: 'bless_as', icon: 'wind', name: 'بركة الريح', pct: [0.08, 0.1, 0.12], text: (v, st) => `الفريق كله +${Math.round(v.pct[st] * 100)}% سرعة هجوم لبقية المباراة` },
+    item:     { id: 'item', icon: 'shield', name: 'غنيمة', text: () => 'معدتين عشوائيتين تضعها على وحداتك' },
+    bless_atk:{ id: 'bless_atk', icon: 'sword', name: 'بركة الغضب', pct: [0.12, 0.15, 0.18], text: (v, st) => `الفريق كله +${Math.round(v.pct[st] * 100)}% هجوم لبقية المباراة` },
+    bless_hp: { id: 'bless_hp', icon: 'heart', name: 'بركة الحجر', pct: [0.15, 0.18, 0.22], text: (v, st) => `الفريق كله +${Math.round(v.pct[st] * 100)}% صحة لبقية المباراة` },
+    bless_as: { id: 'bless_as', icon: 'wind', name: 'بركة الريح', pct: [0.12, 0.15, 0.18], text: (v, st) => `الفريق كله +${Math.round(v.pct[st] * 100)}% سرعة هجوم لبقية المباراة` },
     heal:     { id: 'heal', icon: 'cross', name: 'ماء الحياة', n: [10, 12, 15], text: (v, st) => `يستعيد بطلك ${v.n[st]} حياة` },
   };
   // which rewards can appear in each stage (one "unit" is always offered)
@@ -2030,7 +2030,7 @@
         case 'xp': this._gainXp(p, R.n[st]); break;
         case 'essence': p.essence = Math.min(AMB.CONFIG.economy.essenceMax + 3, p.essence + R.n[st]); break;
         case 'heal': p.life = Math.min(p.maxLife, p.life + R.n[st]); break;
-        case 'item': { const ids = Object.keys(AMB.DATA.ITEMS); const pick = this._rng(p).pick(ids); if (p.items.length < AMB.CONFIG.economy.itemBenchSize) p.items.push(pick); else p.gold += 3; out.item = pick; break; }
+        case 'item': { const ids = Object.keys(AMB.DATA.ITEMS); const pick = this._rng(p).pick(ids), pick2 = this._rng(p).pick(ids); this._stash(p, [pick, pick2]); out.item = pick; break; }
         case 'bless_atk': p.blessings.atkPct += R.pct[st]; break;
         case 'bless_hp': p.blessings.hpPct += R.pct[st]; break;
         case 'bless_as': p.blessings.asPct += R.pct[st]; break;
@@ -2618,7 +2618,7 @@
       stages: [{ n: 10 }, { n: 18 }, { n: 24, boss: true }],   // difficulty position (1..30, like tower floors)
       start: [{ gold: 10, level: 5 }, { gold: 12, level: 6 }, { gold: 14, level: 7 }],
       rewards: [{ shards: 40, passXp: 10 }, { shards: 60, passXp: 20, pack: 'basic' }, { shards: 100, passXp: 50, exclusive: true }],
-      power: { ember: [1.09, 1.44, 0.8], tide: [1.0, 1.16, 1.06], neon: [1.16, 1.21, 0.8], sylvan: [1.02, 1.42, 0.92] },
+      power: { ember: [1.06, 1.49, 0.8], tide: [0.97, 1.2, 1.11], neon: [1.15, 1.24, 0.8], sylvan: [0.98, 1.46, 0.92] },
     },
     // Guided first match: a fixed weak enemy (2 units, the 2nd joins in round 2), a little extra gold/level, a reward once
     tutorial: { start: { gold: 10, level: 4 }, enemy: [['thorn_fox', 1, 'f1', 1], ['pixel_sniper', 1, 'b1', 2], ['moss_warden', 1, 'f2', 3]], reward: { shards: 50 } },   // 3 rounds: 1 buy+place, 2 merge+refresh, 3 level up + send the hero
@@ -3057,13 +3057,13 @@
       F('l1f1', 'دورية الرماد', 1.82, [['ash_ronin', 1, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['pixel_sniper', 1, 'b1', 2]]),
       F('l1f2', 'حرّاس الأتون', 1.55, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 1, 'f2', 1], ['thorn_fox', 1, 'f3', 2], ['pixel_sniper', 1, 'b1', 1]]),
       F('l1f3', 'كمين الشرر', 1.26, [['ash_ronin', 1, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['spark_wraith', 1, 'b2', 1], ['pyre_archer', 1, 'b1', 2]]),
-      F('l1f4', 'رماة المحرقة', 1.28, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 1, 'f2', 1], ['coral_sentinel', 1, 'f3', 2], ['pyre_archer', 1, 'b1', 1], ['spark_wraith', 1, 'b2', 3]]),
-      F('l1boss', 'الزعيم: كيرو', 0.87, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 2, 'f2', 1], ['pyre_archer', 1, 'b0', 1], ['caldera_seer', 1, 'b2', 2], ['spark_wraith', 1, 'b3', 4], ['forge_bulwark', 2, 'f3', 6]], { boss: true }),
+      F('l1f4', 'رماة المحرقة', 1.3, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 1, 'f2', 1], ['coral_sentinel', 1, 'f3', 2], ['pyre_archer', 1, 'b1', 1], ['spark_wraith', 1, 'b2', 3]]),
+      F('l1boss', 'الزعيم: كيرو', 0.88, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 2, 'f2', 1], ['pyre_archer', 1, 'b0', 1], ['caldera_seer', 1, 'b2', 2], ['spark_wraith', 1, 'b3', 4], ['forge_bulwark', 2, 'f3', 6]], { boss: true }),
     ]),
     L('l2', 'tide', 'merin', 'سواحل المدّ القمري', { gold: 8, level: 5 }, [
       F('l2f1', 'حرس المرجان', 1.8, [['coral_sentinel', 1, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['wave_caller', 1, 'b1', 1], ['pixel_sniper', 1, 'b2', 2]]),
-      F('l2f2', 'سيوف القمر', 1.51, [['coral_sentinel', 1, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['lunar_blade', 1, 'f3', 2], ['wave_caller', 1, 'b1', 1], ['mist_witch', 1, 'b2', 3]]),
-      F('l2f3', 'ضباب الساحرات', 1.03, [['coral_sentinel', 2, 'f1', 1], ['moss_warden', 1, 'f2', 1], ['mist_witch', 1, 'b1', 1], ['wave_caller', 1, 'b2', 1], ['willow_eye', 1, 'b3', 2]]),
+      F('l2f2', 'سيوف القمر', 1.57, [['coral_sentinel', 1, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['lunar_blade', 1, 'f3', 2], ['wave_caller', 1, 'b1', 1], ['mist_witch', 1, 'b2', 3]]),
+      F('l2f3', 'ضباب الساحرات', 1.05, [['coral_sentinel', 2, 'f1', 1], ['moss_warden', 1, 'f2', 1], ['mist_witch', 1, 'b1', 1], ['wave_caller', 1, 'b2', 1], ['willow_eye', 1, 'b3', 2]]),
       F('l2f4', 'موجة المدّ', 0.96, [['coral_sentinel', 2, 'f1', 1], ['lunar_blade', 2, 'f2', 1], ['thorn_fox', 1, 'f3', 1], ['mist_witch', 1, 'b1', 1], ['wave_caller', 1, 'b2', 2], ['pixel_sniper', 1, 'b3', 3]]),
       F('l2boss', 'الزعيم: ميران', 0.92, [['coral_sentinel', 2, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['wave_caller', 1, 'b0', 1], ['mist_witch', 1, 'b2', 1], ['tide_priest', 1, 'b3', 2], ['coral_sentinel', 2, 'f0', 4], ['lunar_blade', 2, 'f3', 6]], { boss: true }),
     ]),
@@ -3079,24 +3079,24 @@
       F('l4f2', 'عيون الصفصاف', 0.87, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['coral_sentinel', 2, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['willow_eye', 1, 'b2', 1], ['spectral_coder', 1, 'b3', 2]]),
       F('l4f3', 'المتربّص', 0.9, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['wave_caller', 2, 'b3', 2]]),
       F('l4f4', 'شامان الجذور', 0.83, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['firewall_unit', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['tide_priest', 1, 'b3', 3]]),
-      F('l4boss', 'الزعيم: أوراث', 0.83, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b0', 1], ['root_shaman', 2, 'b2', 1], ['tide_priest', 1, 'b3', 2], ['wild_stalker', 2, 'f2', 5]], { boss: true }),
+      F('l4boss', 'الزعيم: أوراث', 0.87, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b0', 1], ['root_shaman', 2, 'b2', 1], ['tide_priest', 1, 'b3', 2], ['wild_stalker', 2, 'f2', 5]], { boss: true }),
     ]),
     L('l5', 'ember', 'rika', 'أتون الملكة', { gold: 12, level: 6 }, [
       F('l5f1', 'عمّال المطارق', 1.26, [['goka', 1, 'f1', 1], ['forge_bulwark', 2, 'f2', 1], ['ash_ronin', 2, 'f0', 1], ['pyre_archer', 1, 'b2', 1], ['natsuki', 1, 'b0', 2]]),
-      F('l5f2', 'حرس السندان', 0.94, [['kurenai', 1, 'f1', 1], ['godo', 2, 'f2', 1], ['akane', 1, 'b3', 2], ['pyre_archer', 2, 'b1', 1], ['momo', 1, 'b2', 1]]),
+      F('l5f2', 'حرس السندان', 0.92, [['kurenai', 1, 'f1', 1], ['godo', 2, 'f2', 1], ['akane', 1, 'b3', 2], ['pyre_archer', 2, 'b1', 1], ['momo', 1, 'b2', 1]]),
       F('l5f3', 'قنّاصة الجمر', 0.96, [['forge_bulwark', 2, 'f1', 1], ['goka', 1, 'f2', 1], ['yuta', 2, 'b0', 1], ['pyre_archer', 2, 'b1', 1], ['caldera_seer', 1, 'b2', 2], ['tsubaki', 2, 'b3', 1]]),
       F('l5f4', 'مصهر الأتون', 0.61, [['kurenai', 2, 'f1', 1], ['goka', 2, 'f2', 1], ['godo', 2, 'f3', 1], ['natsuki', 2, 'b1', 1], ['caldera_seer', 1, 'b2', 1], ['spark_wraith', 2, 'b3', 2]]),
-      F('l5boss', 'الزعيمة: ريكا', 0.63, [['kurenai', 2, 'f1', 1], ['goka', 2, 'f2', 1], ['godo', 2, 'f0', 1], ['caldera_seer', 2, 'b0', 1], ['momo', 2, 'b2', 2], ['akane', 2, 'b3', 4], ['natsuki', 2, 'f3', 6]], { boss: true }),
+      F('l5boss', 'الزعيمة: ريكا', 0.65, [['kurenai', 2, 'f1', 1], ['goka', 2, 'f2', 1], ['godo', 2, 'f0', 1], ['caldera_seer', 2, 'b0', 1], ['momo', 2, 'b2', 2], ['akane', 2, 'b3', 4], ['natsuki', 2, 'f3', 6]], { boss: true }),
     ]),
     L('l6', 'tide', 'kairyu', 'عاصفة القبطان', { gold: 12, level: 6 }, [
       F('l6f1', 'بحّارة العاصفة', 0.97, [['coral_sentinel', 2, 'f1', 1], ['ryujin', 1, 'f2', 1], ['tomoe', 2, 'f0', 1], ['kota', 2, 'b1', 1], ['wave_caller', 2, 'b2', 1]]),
       F('l6f2', 'سيوف الموج', 0.88, [['seiji', 2, 'f1', 1], ['lunar_blade', 2, 'f2', 1], ['daikai', 1, 'f3', 1], ['haruka', 2, 'b0', 1], ['miyuki', 1, 'b2', 1], ['mizuki', 2, 'b3', 2]]),
-      F('l6f3', 'ضباب الأرخبيل', 0.67, [['daikai', 2, 'f1', 1], ['ryujin', 1, 'f2', 1], ['coral_sentinel', 2, 'f3', 1], ['mist_witch', 2, 'b1', 1], ['haruka', 2, 'b2', 1], ['tide_priest', 1, 'b3', 2]]),
+      F('l6f3', 'ضباب الأرخبيل', 0.7, [['daikai', 2, 'f1', 1], ['ryujin', 1, 'f2', 1], ['coral_sentinel', 2, 'f3', 1], ['mist_witch', 2, 'b1', 1], ['haruka', 2, 'b2', 1], ['tide_priest', 1, 'b3', 2]]),
       F('l6f4', 'سفينة القمر', 0.78, [['daikai', 2, 'f1', 1], ['ryujin', 2, 'f2', 1], ['seiji', 2, 'f0', 1], ['mist_witch', 2, 'b1', 1], ['otohime', 1, 'b2', 1], ['kota', 2, 'b3', 2]]),
       F('l6boss', 'الزعيم: كايريو', 0.69, [['daikai', 2, 'f1', 1], ['ryujin', 2, 'f2', 1], ['seiji', 2, 'f0', 1], ['haruka', 2, 'b0', 1], ['otohime', 1, 'b2', 2], ['mizuki', 2, 'b3', 4], ['lunar_blade', 2, 'f3', 6]], { boss: true }),
     ]),
     L('l7', 'neon', 'nayako', 'مسرح الشبكة', { gold: 14, level: 6 }, [
-      F('l7f1', 'جمهور الهولوغرام', 1.08, [['firewall_unit', 2, 'f1', 1], ['juzo', 2, 'f2', 1], ['gantetsu', 2, 'f0', 1], ['pixel_sniper', 2, 'b1', 1], ['mitsuki', 2, 'b2', 1]]),
+      F('l7f1', 'جمهور الهولوغرام', 1.1, [['firewall_unit', 2, 'f1', 1], ['juzo', 2, 'f2', 1], ['gantetsu', 2, 'f0', 1], ['pixel_sniper', 2, 'b1', 1], ['mitsuki', 2, 'b2', 1]]),
       F('l7f2', 'كلاب الخوادم', 1.15, [['kogetsu', 1, 'f1', 1], ['tetsuya', 2, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['reiji', 2, 'b0', 1], ['spectral_coder', 2, 'b2', 1], ['nagi', 2, 'b3', 2]]),
       F('l7f3', 'عازفو البكسل', 0.97, [['chrome_ronin', 1, 'f1', 1], ['gantetsu', 2, 'f2', 1], ['firewall_unit', 2, 'f3', 1], ['mugen', 1, 'b1', 1], ['pixel_sniper', 2, 'b2', 1], ['yozora', 1, 'b3', 2]]),
       F('l7f4', 'قلب الشبكة', 0.88, [['kogetsu', 2, 'f1', 1], ['chrome_ronin', 2, 'f2', 1], ['firewall_unit', 2, 'f0', 1], ['mugen', 2, 'b1', 1], ['spectral_coder', 2, 'b2', 1], ['reiji', 2, 'b3', 2]]),
@@ -3107,7 +3107,7 @@
       F('l8f2', 'حرّاس الغصن', 0.87, [['genzo', 2, 'f1', 1], ['kaito', 2, 'f2', 1], ['daigo', 2, 'f3', 1], ['gensai', 2, 'b0', 1], ['takashi', 2, 'b2', 1], ['hayate', 2, 'b3', 2]]),
       F('l8f3', 'همس الغابة', 0.92, [['taiju', 2, 'f1', 1], ['kashiwagi', 1, 'f2', 1], ['genzo', 2, 'f3', 1], ['shirayuki', 1, 'b1', 1], ['ibara', 2, 'b2', 1], ['hisui', 1, 'b3', 2]]),
       F('l8f4', 'قبضة الجذور', 0.56, [['taiju', 2, 'f1', 1], ['kashiwagi', 2, 'f2', 1], ['genzo', 2, 'f0', 1], ['shirayuki', 2, 'b1', 1], ['root_shaman', 2, 'b2', 1], ['wild_stalker', 2, 'b3', 2]]),
-      F('l8boss', 'الزعيمة: ثورا', 0.65, [['taiju', 2, 'f1', 1], ['kashiwagi', 2, 'f2', 1], ['genzo', 2, 'f0', 1], ['shirayuki', 2, 'b0', 1], ['hisui', 2, 'b2', 2], ['wild_stalker', 2, 'b3', 4], ['kaito', 2, 'f3', 6]], { boss: true }),
+      F('l8boss', 'الزعيمة: ثورا', 0.67, [['taiju', 2, 'f1', 1], ['kashiwagi', 2, 'f2', 1], ['genzo', 2, 'f0', 1], ['shirayuki', 2, 'b0', 1], ['hisui', 2, 'b2', 2], ['wild_stalker', 2, 'b3', 4], ['kaito', 2, 'f3', 6]], { boss: true }),
     ]),
   ];
 
@@ -5058,7 +5058,7 @@ AMB.IMAGES = {
     document.body.classList.toggle('mirror-foe', mirror);
     if (mirror && S.mode === 'campaign') { const hn = HEROES[S.match.players[1].heroId].name, e = S.match.players[1]; if (e.name.includes(hn)) e.name = e.name.replace(hn, 'ظلّ ' + hn); }
     S.startTs = Date.now();
-    S.speed = 2;
+    S.speed = AMB.settings ? AMB.settings.speed() : 1;   // the last speed the player picked (1x for a new player)
     show('match');
     nextRound();
   }
@@ -6415,7 +6415,7 @@ AMB.IMAGES = {
       showResults();
     },
     abandon: () => { if (S.mode === 'practice') { endPractice(); return; } if (S.net) AMB.NetUI.leave(); closeModal(); closeOverlay(); S._resumeAfterMenu = false; S.paused = false; cancelAnimationFrame(S.raf); S.phase = 'idle'; S.match = null; show('menu'); },
-    speed: (d) => { S.speed = +d.v; renderCombatCtrl(); },
+    speed: (d) => { S.speed = +d.v; if (AMB.settings) AMB.settings.setSpeed(S.speed); renderCombatCtrl(); },
     skip: () => skipCombat(),
     nextRound: () => { closeOverlay(); if (S.match.isOver) showResults(); else nextRound(); },
     rewards: () => {
@@ -8642,6 +8642,8 @@ AMB.IMAGES = {
       <div class="save-kv"><span>الحماية من المسح التلقائي</span><b>${persisted === null ? 'غير معروفة' : persisted ? 'مفعّلة ✓' : 'يقرّرها المتصفح'}</b></div>
       <div class="save-kv"><span>نسخة احتياطية يومية</span><b>تلقائية ✓</b></div>
       ${sv.recovered ? '<div class="save-box warn">رجّعنا تقدمك من النسخة الاحتياطية بعد ما صار خلل في الحفظ.</div>' : ''}
+      <h3>العرض</h3>
+      <div class="save-btns"><button class="btn ${AMB.settings && AMB.settings.bigText() ? 'primary' : 'ghost'}" data-act="bigText">🔠 نص كبير: ${AMB.settings && AMB.settings.bigText() ? 'شغّال' : 'طافي'}</button></div>
       <h3>نقل التقدّم</h3>
       <p class="hint">الحفظ مربوط بهالمتصفح وهالرابط. لو فتحت اللعبة من رابط أو جهاز ثاني ما يطلع تقدمك، انقله بملف.</p>
       <div class="save-btns">
@@ -8666,6 +8668,7 @@ AMB.IMAGES = {
   function installActions() {
     const ui = UI(); if (!ui || ui.ACT.saveOpen) return;
     Object.assign(ui.ACT, {
+      bigText: () => { if (!AMB.settings) return; const on = AMB.settings.setBigText(!AMB.settings.bigText()); document.body.classList.toggle('big-text', on); ui.sfx('click'); if (AMB.SaveUI) AMB.SaveUI.open(); },
       saveOpen: () => open(),
       saveExport: () => {
         const blob = new Blob([AMB.save.exportJSON()], { type: 'application/json' });
@@ -8690,6 +8693,7 @@ AMB.IMAGES = {
     d.innerHTML = '<div class="sl-box"><h2>اللعبة مفتوحة في تبويب ثاني</h2><p>تقدمك انحفظ في التبويب الجديد. هذا التبويب ما يحفظ حتى ما يمسح عليه. حدّث الصفحة وكمّل.</p><button class="btn big primary" onclick="location.reload()">حدّث الصفحة</button></div>';
     document.body.appendChild(d);
   });
+  try { if (AMB.settings && AMB.settings.bigText()) document.body.classList.add('big-text'); } catch (e) { /* ignore */ }   // big-text mode from the save
   AMB.SaveUI = { open, installActions };
   if (UI()) installActions();
 })();

@@ -386,7 +386,7 @@
     kagira: {
       id: 'kagira', name: 'كيرو', title: 'الجمر الهادئ', world: 'ember', style: 'هجومي: هادي وحسّابه، وإذا هجم ينفجر. ضغط من البداية وضرر قوي.',
       board: { atk: 85, as: 0.8, range: 1, def: 0.2, crit: 0.1 },
-      vanguard: { name: 'الهجوم الكاسح', text: 'لما ينزل الساحة: الفريق +11% هجوم، وهو يضرب أقوى (+5% هجوم، +3% فرصة حرجة).', allyAtk: 0.22, heroAtk: 0.1, heroCrit: 0.06 },
+      vanguard: { name: 'الهجوم الكاسح', text: 'لما ينزل الساحة: الفريق +8.8% هجوم، وهو يضرب أقوى (+4% هجوم، +2.4% فرصة حرجة).', allyAtk: 0.22, heroAtk: 0.1, heroCrit: 0.06 },
       passive: { id: 'blazing_will', name: 'إرادة متقدة', text: 'لما يسقط الصف الأمامي، الفريق ياخذ +45% هجوم.' },
       abilities: [
         { id: 'inferno_banner', name: 'أمر الهجوم', cost: 3, type: 'buffAllies', atkPct: 0.42, dur: 6,
@@ -398,7 +398,7 @@
     merin: {
       id: 'merin', name: 'ميران', title: 'حارس المدّ الصامت', world: 'tide', style: 'صمود: هادي ويحمي الفريق. دروع وعلاج ومعارك طويلة.',
       board: { atk: 86, as: 0.8, range: 3, def: 0.1, crit: 0.05 },
-      vanguard: { name: 'درع المدّ', text: 'لما ينزل الساحة: الفريق يتجدد 0.15% من صحته كل ثانية، وهو ياخذ درع حياة وحدة ويصمد أطول بحياة قبل ما ينسحب.', allyRegen: 0.003, heroShield: 1, knockoutBonus: 1 },
+      vanguard: { name: 'درع المدّ', text: 'لما ينزل الساحة: الفريق يتجدد 0.12% من صحته كل ثانية، وهو ياخذ درع حياة وحدة ويصمد أطول بحياة قبل ما ينسحب.', allyRegen: 0.003, heroShield: 1, knockoutBonus: 1 },
       passive: { id: 'deep_reserve', name: 'مخزون عميق', text: '+2 جوهرة زيادة كل جولة.' },
       abilities: [
         { id: 'tidal_ward', name: 'حاجز المدّ', cost: 3, type: 'shieldAllies', amount: 175, scale: 25,
@@ -410,11 +410,11 @@
     zerokai: {
       id: 'zerokai', name: 'زيرو-كاي', title: 'الظلّ المشفّر', world: 'neon', style: 'سرعة: غامض وسابق خصمه بخطوة. اقتصاد مرن وحركة سريعة.',
       board: { atk: 74, as: 0.85, range: 4, def: 0.05, crit: 0.15 },
-      vanguard: { name: 'نبض السرعة', text: 'لما ينزل الساحة: الفريق +10% سرعة هجوم، وهو أسرع بـ10%، وكل قدراته تتكلف نقطة أقل.', allyAs: 0.20, heroAs: 0.2, extraDiscount: 1 },
+      vanguard: { name: 'نبض السرعة', text: 'لما ينزل الساحة: الفريق +8% سرعة هجوم، وهو أسرع بـ8%، وكل قدراته تتكلف نقطة أقل.', allyAs: 0.20, heroAs: 0.2, extraDiscount: 1 },
       passive: { id: 'free_reroll', name: 'وصول خلفي', text: 'أول تحديث للمتجر في كل جولة مجاني.' },
       abilities: [
-        { id: 'overclock', name: 'كسر السرعة', cost: 3, type: 'buffAllies', asPct: 0.3, dur: 5,
-          text: '+30% سرعة هجوم لكل الفريق لمدة 5 ثواني.' },
+        { id: 'overclock', name: 'كسر السرعة', cost: 3, type: 'buffAllies', asPct: 0.35, dur: 5,
+          text: '+35% سرعة هجوم لكل الفريق لمدة 5 ثواني.' },
         { id: 'system_crash', name: 'انهيار النظام', cost: 5, type: 'stunEnemies', dur: 1.5,
           text: 'يوقف كل الأعداء لمدة 1.5 ثانية.' },
       ],
@@ -422,7 +422,7 @@
     orath: {
       id: 'orath', name: 'أوراث', title: 'الحارس المحلّل', world: 'sylvan', style: 'دفاعي: هادي ويحلل، ويقرأ المعركة قبل لا تبدأ. خط أمامي قوي وسيطرة.',
       board: { atk: 75, as: 0.65, range: 1, def: 0.3, crit: 0.05 },
-      vanguard: { name: 'الجدار الحي', text: 'لما ينزل الساحة: الصف الأمامي +11% صحة، وكل الفريق ياخذ ضرر أقل 2.5%، وهو أصلب (+7.5% دفاع).', frontHp: 0.22, allyDr: 0.05, heroDef: 0.15 },
+      vanguard: { name: 'الجدار الحي', text: 'لما ينزل الساحة: الصف الأمامي +8.8% صحة، وكل الفريق ياخذ ضرر أقل 2%، وهو أصلب (+6% دفاع).', frontHp: 0.22, allyDr: 0.05, heroDef: 0.15 },
       passive: { id: 'ancient_bark', name: 'لحاء صلب', text: 'وحدات الصف الأمامي تاخذ +6% صحة.' },
       abilities: [
         { id: 'thorn_wall', name: 'جدار الأشواك', cost: 3, type: 'frontDR', dr: 0.42, dur: 6,
@@ -434,7 +434,7 @@
     rika: {
       id: 'rika', name: 'ريكا', title: 'ملكة الأتون', world: 'ember', style: 'قوة: ضربات ثقيلة وخط أمامي ناري. تحمي وتضرب بنفس الوقت.',
       board: { atk: 86, as: 0.7, range: 1, def: 0.2, crit: 0.1 },
-      vanguard: { name: 'مطرقة الأتون', text: 'لما ينزل الساحة: الفريق +2% هجوم، والصف الأمامي +4% صحة، وهو أصلب (+5% دفاع) وأقوى بـ3%.', allyAtk: 0.04, frontHp: 0.08, heroDef: 0.1, heroAtk: 0.06 },
+      vanguard: { name: 'مطرقة الأتون', text: 'لما ينزل الساحة: الفريق +1.6% هجوم، والصف الأمامي +3.2% صحة، وهو أصلب (+4% دفاع) وأقوى بـ2.4%.', allyAtk: 0.04, frontHp: 0.08, heroDef: 0.1, heroAtk: 0.06 },
       passive: { id: 'forge_heart', name: 'قلب الأتون', text: 'وحدات الصف الأمامي تاخذ +4.5% هجوم.' },
       abilities: [
         { id: 'molten_hammer', name: 'مطرقة الحمم', cost: 4, type: 'damageCluster', dmg: 230, scale: 28, radius: 1.4,
@@ -446,7 +446,7 @@
     kairyu: {
       id: 'kairyu', name: 'كايريو', title: 'قبطان العاصفة', world: 'tide', style: 'قيادة: قبطان هادي يوزّع الأوامر. يقوّي الفريق ويثبّت الجبهة.',
       board: { atk: 80, as: 0.75, range: 2, def: 0.15, crit: 0.08 },
-      vanguard: { name: 'أمر القبطان', text: 'لما ينزل الساحة: الفريق ياخذ ضرر أقل 2% ويتجدد 0.2% كل ثانية، وهو ياخذ درع 2 حياة.', allyDr: 0.04, allyRegen: 0.004, heroShield: 2 },
+      vanguard: { name: 'أمر القبطان', text: 'لما ينزل الساحة: الفريق ياخذ ضرر أقل 1.6% ويتجدد 0.16% كل ثانية، وهو ياخذ درع 2 حياة.', allyDr: 0.04, allyRegen: 0.004, heroShield: 2 },
       passive: { id: 'sea_legs', name: 'ثبات البحّار', text: 'كل وحداتك تبدأ القتال بدرع 13% من صحتها.' },
       abilities: [
         { id: 'captains_order', name: 'أمر القبطان', cost: 3, type: 'buffAllies', atkPct: 0.1, asPct: 0.2, dur: 6,
@@ -458,19 +458,19 @@
     nayako: {
       id: 'nayako', name: 'ناياكو', title: 'نجمة الشبكة', world: 'neon', style: 'إيقاع: نجمة خفيفة تغيّر مجرى المعركة بنبضة. اقتصاد وتشويش.',
       board: { atk: 72, as: 0.9, range: 4, def: 0.05, crit: 0.18 },
-      vanguard: { name: 'نبضة الإيقاع', text: 'لما ينزل الساحة: الفريق +3% سرعة هجوم، وهو يضرب حرجة أكثر (+5%)، وقدراته أرخص بنقطة.', allyAs: 0.06, heroCrit: 0.10, extraDiscount: 1 },
+      vanguard: { name: 'نبضة الإيقاع', text: 'لما ينزل الساحة: الفريق +2.4% سرعة هجوم، وهو يضرب حرجة أكثر (+4%)، وقدراته أرخص بنقطة.', allyAs: 0.06, heroCrit: 0.10, extraDiscount: 1 },
       passive: { id: 'data_stream', name: 'تدفق البيانات', text: '+1 ذهب إضافي كل جولة، وكل وحداتك +2% سرعة هجوم.' },
       abilities: [
         { id: 'hologram_wall', name: 'جدار الهولوغرام', cost: 3, type: 'shieldAllies', amount: 150, scale: 25,
           text: 'درع لكل الفريق (150 + 25 مع كل جولة).' },
-        { id: 'glitch_pulse', name: 'نبضة تشويش', cost: 4, type: 'stunEnemies', dur: 1.3,
-          text: 'يوقف كل الأعداء لمدة 1.3 ثانية.' },
+        { id: 'glitch_pulse', name: 'نبضة تشويش', cost: 4, type: 'stunEnemies', dur: 1.15,
+          text: 'يوقف كل الأعداء لمدة 1.15 ثانية.' },
       ],
     },
     thora: {
       id: 'thora', name: 'ثورا', title: 'ملكة الدب', world: 'sylvan', style: 'صمود: قوية وكريمة، تتحمل وترجّع. جلد الدب يحميها وفريقها.',
       board: { atk: 78, as: 0.7, range: 1, def: 0.25, crit: 0.06 },
-      vanguard: { name: 'زئير الغابة', text: 'لما ينزل الساحة: الصف الأمامي +5% صحة، والفريق يتجدد 0.2% كل ثانية، وهي أصلب (+5% دفاع) وتصمد أطول بـ2 حياة.', frontHp: 0.1, allyRegen: 0.004, knockoutBonus: 2, heroDef: 0.1 },
+      vanguard: { name: 'زئير الغابة', text: 'لما ينزل الساحة: الصف الأمامي +4% صحة، والفريق يتجدد 0.16% كل ثانية، وهي أصلب (+4% دفاع) وتصمد أطول بـ2 حياة.', frontHp: 0.1, allyRegen: 0.004, knockoutBonus: 2, heroDef: 0.1 },
       passive: { id: 'bear_hide', name: 'جلد الدب', text: 'كل وحداتك +12% صحة.' },
       abilities: [
         { id: 'spring_bloom', name: 'ازدهار الربيع', cost: 4, type: 'healAllies', pct: 0.28,
@@ -563,13 +563,13 @@
    */
   const REWARDS = {
     unit:     { id: 'unit', icon: 'crown', name: 'مجنّد مجاني', tiers: [1, 2, 3], text: (v, st) => `وحدة فئة ${v.tiers[st]} مجانًا (من عالم بطلك غالبًا)` },
-    gold:     { id: 'gold', icon: 'coin', name: 'كنز', n: [6, 8, 10], text: (v, st) => `+${v.n[st]} ذهب فورًا` },
+    gold:     { id: 'gold', icon: 'coin', name: 'كنز', n: [5, 6, 8], text: (v, st) => `+${v.n[st]} ذهب فورًا` },
     xp:       { id: 'xp', icon: 'star', name: 'تدريب مكثّف', n: [6, 8, 10], text: (v, st) => `+${v.n[st]} خبرة` },
     essence:  { id: 'essence', icon: 'essence', name: 'جوهر نقي', n: [3, 3, 4], text: (v, st) => `+${v.n[st]} جوهر لقدرات البطل` },
-    item:     { id: 'item', icon: 'shield', name: 'غنيمة', text: () => 'معدة عشوائية تضعها على أي وحدة' },
-    bless_atk:{ id: 'bless_atk', icon: 'sword', name: 'بركة الغضب', pct: [0.08, 0.1, 0.12], text: (v, st) => `الفريق كله +${Math.round(v.pct[st] * 100)}% هجوم لبقية المباراة` },
-    bless_hp: { id: 'bless_hp', icon: 'heart', name: 'بركة الحجر', pct: [0.1, 0.12, 0.15], text: (v, st) => `الفريق كله +${Math.round(v.pct[st] * 100)}% صحة لبقية المباراة` },
-    bless_as: { id: 'bless_as', icon: 'wind', name: 'بركة الريح', pct: [0.08, 0.1, 0.12], text: (v, st) => `الفريق كله +${Math.round(v.pct[st] * 100)}% سرعة هجوم لبقية المباراة` },
+    item:     { id: 'item', icon: 'shield', name: 'غنيمة', text: () => 'معدتين عشوائيتين تضعها على وحداتك' },
+    bless_atk:{ id: 'bless_atk', icon: 'sword', name: 'بركة الغضب', pct: [0.12, 0.15, 0.18], text: (v, st) => `الفريق كله +${Math.round(v.pct[st] * 100)}% هجوم لبقية المباراة` },
+    bless_hp: { id: 'bless_hp', icon: 'heart', name: 'بركة الحجر', pct: [0.15, 0.18, 0.22], text: (v, st) => `الفريق كله +${Math.round(v.pct[st] * 100)}% صحة لبقية المباراة` },
+    bless_as: { id: 'bless_as', icon: 'wind', name: 'بركة الريح', pct: [0.12, 0.15, 0.18], text: (v, st) => `الفريق كله +${Math.round(v.pct[st] * 100)}% سرعة هجوم لبقية المباراة` },
     heal:     { id: 'heal', icon: 'cross', name: 'ماء الحياة', n: [10, 12, 15], text: (v, st) => `يستعيد بطلك ${v.n[st]} حياة` },
   };
   // which rewards can appear in each stage (one "unit" is always offered)
