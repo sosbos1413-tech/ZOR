@@ -12,7 +12,7 @@
     version: '0.1.0',
 
     match: {
-      heroLifePerLevel: 1,   // +1 hero life per hero level above 1 (the profile's hero level; online, quick vs AI and progression fights)
+      heroLifePerLevel: 1,   // +1 hero life per hero level above 1 (the profile's hero level; quick vs AI and progression fights, never online/hotseat)
       heroLife: 100,            // life total of every hero
       prepSeconds: 40,          // prep timer (shop + formation) vs AI
       hotseatPrepSeconds: 45,   // prep timer per player in same-device PvP
@@ -110,7 +110,7 @@
 
     hero: {
       resonancePerAlly: 0.06,   // +6% hp/atk to every ally from the hero's world
-      summonAuraAtk: 0,         // summoned hero inspires allies
+      summonAuraAtk: 0,         // global +atk to allies while the hero is summoned (0 since audit phase 2: the per-hero vanguard bonuses do this job)
       summonAbilityDiscount: 1, // abilities cost less while the hero fights
       boardAtkPerRound: 5,      // summoned hero attack scales with the round
       boardPower: 0.22,            // overall strength of the summoned hero's own fighting (tuned so summoning is a real choice, not always best)
@@ -1426,7 +1426,7 @@
       blessings: { atkPct: 0, hpPct: 0, asPct: 0 }, rewardOffer: null, rewardLog: [],
       lineup: opts.lineup || null,   // scripted enemy (campaign): { units:[[defId,star,slot,fromRound]], summon, blessings, abilities }
       cardPower: opts.cardPower || null,
-      heroLevel: opts.heroLevel || 1,     // hero level from the profile (progression fights only)   // { defId: mult } from the collection — progression fights only
+      heroLevel: opts.heroLevel || 1,     // hero level from the profile (campaign, tower, events, quick vs AI; online and hotseat pass none = level 1)
       allowed: opts.allowedUnits ? new Set(opts.allowedUnits) : null,   // units this player owns — progression fights only
     };
   }
@@ -1436,7 +1436,7 @@
       this.mode = opts.mode || 'ai';
       this.seed = opts.seed || Math.floor(Math.random() * 2 ** 31);
       this.rng = AMB.util.RNG(this.seed);
-      // card levels/rarity and hero level count in every mode that passes them (campaign, tower, events, quick vs AI, online); same-device (hotseat) passes none, so it stays even. The deck limit is progression-only.
+      // card levels/rarity and hero level count in every mode that passes them (campaign, tower, events, quick vs AI); online and same-device (hotseat) pass none, so they stay even. The deck limit is progression-only.
       this.progression = !!opts.progression;
       this.rules = opts.rules || null;   // short-match rules (campaign): { maxRounds, winsNeeded, start: { gold, level } }
       this.players = opts.players.map((p, i) => newPlayer(i, this.progression ? p : Object.assign({}, p, { allowedUnits: null })));
@@ -3600,6 +3600,9 @@
  *   ...player plays...                                  // match.buy(myIndex, 2), match.move(...)
  *   const ops = rec.take();                             // -> [['buy', 2], ['move', 'u0_3', {...}], ...]  (send this)
  *   AMB.NetSync.replay(match, otherIndex, ops);         // the other phone applies them to the other player
+ *
+ * Checks: every incoming op is shape-checked (checkOp) before it touches the match; `hash` is compared after each prep and
+ * reward step, `combatPrint` after each fight. Room codes, the broker id, the relay topic and the relay signing key are here too.
  */
 (function () {
   const AMB = (globalThis.AMB = globalThis.AMB || {});
@@ -3630,13 +3633,45 @@
     return { take() { const o = ops.splice(0, ops.length); return o; }, peek: () => ops.slice() };
   }
 
+  // the shape of every op's arguments (after the player index). A friend's op is checked against this BEFORE it reaches the
+  // match, so a malformed or hostile message is a reported failure, never an exception or a strange coercion
+  // (e.g. disarmSpell('x') would act on slot 0, buy(1.5) reads shop[1.5]).  '?' = may be missing or null.
+  const ARGS = {
+    buy: ['int'], reroll: [], buyXp: [], toggleLock: [], sell: ['uid'], move: ['uid', 'dest'], buyItem: ['int'],
+    equip: ['int', 'uid'], unequip: ['uid'], sellItem: ['int'], armSpell: ['int'], disarmSpell: ['int'],
+    setAbility: ['id', 'trig?'], toggleSummon: ['slot?'], moveHero: ['slot'], autoArrange: [], claimReward: ['int'],
+  };
+  const isInt = (v) => Number.isInteger(v) && v >= -1000 && v <= 1000;
+  const isStr = (v, max) => typeof v === 'string' && v.length > 0 && v.length <= max;
+  const CHECK = {
+    int: isInt, uid: (v) => isStr(v, 32), id: (v) => isStr(v, 40), slot: (v) => isStr(v, 4),
+    trig: (v) => isStr(v, 20) && !!(AMB.DATA && Object.prototype.hasOwnProperty.call(AMB.DATA.ABILITY_TRIGGERS, v)),   // an ability trigger must be a known one
+    dest: (v) => !!v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 2
+      && (v.zone === 'board' ? isStr(v.slot, 4) : v.zone === 'bench' ? isInt(v.idx) : false),
+  };
+  /** null when the op is well formed, otherwise a short reason (the op is then never applied) */
+  function checkOp(op) {
+    if (!Array.isArray(op) || typeof op[0] !== 'string') return 'shape';
+    const name = op[0], spec = OPS.includes(name) && Object.prototype.hasOwnProperty.call(ARGS, name) ? ARGS[name] : null;
+    if (!spec) return 'unknown:' + name.slice(0, 20);
+    const args = op.slice(1);
+    if (args.length > spec.length) return name + ':args';
+    for (let i = 0; i < spec.length; i++) {
+      const t = spec[i], opt = t.endsWith('?'), v = args[i];
+      if (opt && v == null) continue;
+      if (!CHECK[opt ? t.slice(0, -1) : t](v)) return name + ':arg' + i;
+    }
+    return null;
+  }
+
   function replay(match, pi, ops) {
     const failed = [];
     if (!Array.isArray(ops) || ops.length > 200) return ['ops'];
     for (const op of ops) {
-      if (!Array.isArray(op) || typeof op[0] !== 'string') { failed.push('shape'); continue; }
+      const bad = checkOp(op);
+      if (bad) { failed.push(bad); continue; }
       const [name, ...args] = op;
-      const fn = OPS.includes(name) && match[name] && (match[name].__orig || match[name]);
+      const fn = match[name] && (match[name].__orig || match[name]);
       if (typeof fn !== 'function') { failed.push(name); continue; }
       try {
         const r = fn.call(match, pi, ...args);
@@ -3659,7 +3694,88 @@
     return (h >>> 0).toString(36);
   }
 
-  AMB.NetSync = { OPS, record, replay, hash };
+  // B7: a short fingerprint of one round's fight (round, winner, both lives after it, the fight length). Both phones compute it
+  // after every combat and compare: the prep hash proves both STARTED the fight the same, this proves both GOT the same result.
+  function combatPrint(report) {
+    if (!report || !Array.isArray(report.players)) return '';
+    const lives = report.players.map((p) => Math.round((Number(p.lifeAfter) || 0) * 10)).join('/');
+    return [report.round, report.winner == null ? 'd' : report.winner, lives, Math.round((Number(report.duration) || 0) * 10)].join('|');
+  }
+
+  // ------------------------------------------------------------------ room codes and relay message signing (4.3)
+  // Pure JS SHA-256 / HMAC-SHA256 (synchronous: messages stay in order, works on file:// and plain-http test pages where
+  // WebCrypto is missing, and Node can test it). Messages are tiny, so speed does not matter.
+  const K = new Uint32Array([0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2]);
+  const utf8 = (s) => (typeof s === 'string' ? new TextEncoder().encode(s) : s);
+  function sha256(data) {
+    const msg = utf8(data), len = msg.length, n = ((len + 9 + 63) >> 6) << 6, b = new Uint8Array(n);
+    b.set(msg); b[len] = 0x80;
+    const bits = len * 8; b[n - 4] = bits >>> 24; b[n - 3] = (bits >>> 16) & 255; b[n - 2] = (bits >>> 8) & 255; b[n - 1] = bits & 255;
+    b[n - 5] = Math.floor(len / 0x20000000) & 255;
+    const H = new Uint32Array([0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19]), W = new Uint32Array(64);
+    const rotr = (x, r) => (x >>> r) | (x << (32 - r));
+    for (let o = 0; o < n; o += 64) {
+      for (let i = 0; i < 16; i++) W[i] = (b[o + i * 4] << 24) | (b[o + i * 4 + 1] << 16) | (b[o + i * 4 + 2] << 8) | b[o + i * 4 + 3];
+      for (let i = 16; i < 64; i++) {
+        const s0 = rotr(W[i - 15], 7) ^ rotr(W[i - 15], 18) ^ (W[i - 15] >>> 3), s1 = rotr(W[i - 2], 17) ^ rotr(W[i - 2], 19) ^ (W[i - 2] >>> 10);
+        W[i] = (W[i - 16] + s0 + W[i - 7] + s1) | 0;
+      }
+      let [a, bb, c, d, e, f, g, h] = H;
+      for (let i = 0; i < 64; i++) {
+        const t1 = (h + (rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25)) + ((e & f) ^ (~e & g)) + K[i] + W[i]) | 0;
+        const t2 = ((rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22)) + ((a & bb) ^ (a & c) ^ (bb & c))) | 0;
+        h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = bb; bb = a; a = (t1 + t2) | 0;
+      }
+      H[0] += a; H[1] += bb; H[2] += c; H[3] += d; H[4] += e; H[5] += f; H[6] += g; H[7] += h;
+    }
+    const out = new Uint8Array(32);
+    for (let i = 0; i < 8; i++) { out[i * 4] = H[i] >>> 24; out[i * 4 + 1] = (H[i] >>> 16) & 255; out[i * 4 + 2] = (H[i] >>> 8) & 255; out[i * 4 + 3] = H[i] & 255; }
+    return out;
+  }
+  function hmac(key, data) {
+    let k = utf8(key); if (k.length > 64) k = sha256(k);
+    const ip = new Uint8Array(64), op = new Uint8Array(64);
+    for (let i = 0; i < 64; i++) { ip[i] = (k[i] || 0) ^ 0x36; op[i] = (k[i] || 0) ^ 0x5c; }
+    const m = utf8(data), inner = new Uint8Array(64 + m.length); inner.set(ip); inner.set(m, 64);
+    const outer = new Uint8Array(96); outer.set(op); outer.set(sha256(inner), 64);
+    return sha256(outer);
+  }
+  const hex = (u8) => Array.from(u8, (x) => x.toString(16).padStart(2, '0')).join('');
+
+  // room code: 10 characters from 32 easy-to-read ones (no I/O/0/1) = 50 bits, shown as XXXXX-XXXXX. 32 divides 256, so no bias.
+  const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', CODE_LEN = 10;
+  function newCode(randomBytes) {
+    const r = randomBytes ? randomBytes(CODE_LEN) : globalThis.crypto.getRandomValues(new Uint8Array(CODE_LEN));
+    return Array.from(r, (x) => CODE_CHARS[x & 31]).join('');
+  }
+  /** what the friend typed or pasted -> the canonical code, or null. Forgiving about spaces, dashes and lower case */
+  function normCode(text) {
+    const c = String(text || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    return c.length === CODE_LEN && [...c].every((ch) => CODE_CHARS.includes(ch)) ? c : null;
+  }
+  const showCode = (c) => c.slice(0, 5) + '-' + c.slice(5);
+  // everything the network sees is DERIVED from the code with one-way hashes: the broker id and the relay topic do not reveal the
+  // code, and the signing key cannot be computed from them. Someone who does not know the code cannot find, read the topic of,
+  // or inject into the room.
+  function room(code) {
+    return {
+      peerId: 'zor-' + hex(sha256('zor/peer/v2/' + code)).slice(0, 32),
+      topic: 'zor-' + hex(sha256('zor/topic/v2/' + code)).slice(0, 40),
+      key: sha256('zor/key/v2/' + code),
+    };
+  }
+  /** relay message body: 64 hex chars of HMAC, then the JSON payload (no extra escaping: relay messages must stay small) */
+  const seal = (key, obj) => { const p = JSON.stringify(obj); return hex(hmac(key, p)) + p; };
+  /** the payload object when the signature is right, otherwise null (the caller drops it silently) */
+  function open(key, body) {
+    if (typeof body !== 'string' || body.length < 66 || body.length > 60000) return null;
+    const sig = body.slice(0, 64), p = body.slice(64), want = hex(hmac(key, p));
+    let diff = 0; for (let i = 0; i < 64; i++) diff |= want.charCodeAt(i) ^ sig.charCodeAt(i);
+    if (diff) return null;
+    try { const o = JSON.parse(p); return o && typeof o === 'object' ? o : null; } catch (x) { return null; }
+  }
+
+  AMB.NetSync = { OPS, ARGS, checkOp, record, replay, hash, combatPrint, sha256, hmac, hex, newCode, normCode, showCode, room, seal, open, CODE_LEN };
 })();
 
 ;
@@ -5614,8 +5730,8 @@ AMB.IMAGES = {
     const armed = p.armedSpells.map((id, i) => `<span class="chip" data-act="disarm" data-idx="${i}">${icon(ITEMS[id].icon)} ✕</span>`).join('');
     AMB.TIPS.summon = () => ({ title: 'استدعاء البطل', html: `<p>${p.summoned ? 'بطلك الحين يقاتل في الساحة (اسحبه عشان تغيّر مكانه).' : 'بطلك الحين واقف خلف صفوفك.'}</p>
       ${h.vanguard ? `<p><b>👑 ${h.vanguard.name}:</b> ${h.vanguard.text}</p>` : ''}
-      <p><b>الفايدة:</b> يهجم بقوة ${h.board.atk + CFG.hero.boardAtkPerRound * m.round}، ${CFG.hero.summonAuraAtk ? `والحلفاء +${CFG.hero.summonAuraAtk * 100}% هجوم، ` : ''}${CFG.hero.summonAbilityDiscount ? `وقدراته أرخص بـ${CFG.hero.summonAbilityDiscount}.` : 'وتأثير القيادة الخاص بالبطل (انظر تفاصيله).'}</p>
-      <p><b>المخاطرة:</b> ياخذ الضرر كامل (حتى ضرر المنطقة)، وينسحب بعد ما تخسر ${CFG.combat.summonKnockout} حياة، وإذا وصلت حياته صفر تخسر المباراة على طول.</p>` });
+      <p><b>الفايدة:</b> يهجم بقوة ${Math.round((h.board.atk + CFG.hero.boardAtkPerRound * m.round) * (CFG.hero.boardPower == null ? 1 : CFG.hero.boardPower))}، ${CFG.hero.summonAuraAtk ? `والحلفاء +${CFG.hero.summonAuraAtk * 100}% هجوم، ` : ''}${CFG.hero.summonAbilityDiscount ? `وقدراته أرخص بـ${CFG.hero.summonAbilityDiscount}.` : 'وتأثير القيادة الخاص بالبطل (انظر تفاصيله).'}</p>
+      <p><b>المخاطرة:</b> ما ينضرب إلا لما تموت كل وحداتك، وبعدها ياخذ الضرر كامل بدون حماية مركز القيادة، وينسحب بعد ما تخسر ${CFG.combat.summonKnockout} حياة، وإذا وصلت حياته صفر تخسر المباراة على طول.</p>` });
     $('panel-right').innerHTML = `
       <section class="hero-card-mini">${portrait(h, { k: 'rh' })}
         <div class="hcm-r"><div class="lifebar-big"><i style="width:${(p.life / p.maxLife) * 100}%"></i></div><div class="hcm-n">${icon('heart')} <b>${lifeStr(p.life)}</b></div></div>
@@ -5728,7 +5844,7 @@ AMB.IMAGES = {
     const h = HEROES[id], W = WORLDS[h.world];
     modal(`<div class="detail-head">${portrait(h, { k: 'mh' })}<div><h2>${h.name}</h2><div class="hint">${h.title}</div>
       <span class="pill" style="--pc:${W.color}">${W.name}</span><div class="hint">${h.style}</div></div></div>
-      ${heroLevelHTML(id)}<div class="hint" style="margin:-2px 0 6px">كل مباراة تلعبها بالبطل تعطيه خبرة. قوته من المستوى تنحسب في كل الأطوار ما عدا «على نفس الجهاز».</div>
+      ${heroLevelHTML(id)}<div class="hint" style="margin:-2px 0 6px">كل مباراة تلعبها بالبطل تعطيه خبرة. قوته من المستوى تنحسب في كل الأطوار ما عدا «على نفس الجهاز» و«ضد صاحبك».</div>
       <div class="skillbox"><b>سلبية: ${h.passive.name}</b> — ${h.passive.text}</div>
       ${h.abilities.map((a) => `<div class="skillbox"><b>${a.name}</b> — <span style="color:var(--ess)">${a.cost} جوهر</span><br>${a.text}</div>`).join('')}
       ${h.vanguard ? `<div class="skillbox vg"><b>👑 ${h.vanguard.name}</b> (لما ينزل الساحة)<br>${h.vanguard.text}</div>` : ''}
@@ -7083,17 +7199,22 @@ AMB.IMAGES = {
 /* ui/net-ui.js */
 /*
  * Play against a friend, each on their own phone (ui side of core/netsync.js).
- *   host: "سوّ غرفة" -> a short room code -> the friend types it in "ادخل غرفة" -> both pick a hero -> same match, same seed.
- * The two phones talk directly (WebRTC through the free PeerJS broker, loaded only when you open a room).
+ *   host: "سوّ غرفة" -> a room code (XXXXX-XXXXX, 50 random bits) -> the friend types it in "ادخل غرفة" -> both pick a hero -> same match, same seed.
+ * The two phones talk directly (WebRTC through the free PeerJS broker, loaded only when you open a room); when that fails,
+ * through the ntfy.sh relay (topic and HMAC key derived from the code: strangers can neither find the room nor inject messages).
  * Only the moves of each prep round are sent; both phones replay them and get the identical fight.
  */
 (function () {
   const AMB = globalThis.AMB;
   const UI = () => globalThis.AMB_UI;
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  const randCode = () => Array.from({ length: 5 }, () => CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]).join('');
+  const N = AMB.NetSync;
+  // room codes: 10 characters (50 bits, crypto random) from an alphabet without I/O/0/1, shown as XXXXX-XXXXX. See core/netsync.js
+  const randCode = () => N.newCode();
   const PEER_SRC = 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
+  // Subresource Integrity of that exact file: sha384 of dist/peerjs.min.js inside the npm tarball peerjs-1.5.4.tgz (tarball checked
+  // against the registry's sha512 integrity; unpkg serves the tarball's files byte for byte). If it ever fails to load, play falls back to the relay.
+  const PEER_SRI = 'sha384-nlUQ8ZqCbvStErob+biJNzSgltf6urV3VGqhfIfzhmg9RXmpeRm76ELw0pYnKlTR';
   const useLocal = () => /[?&]nettest=1/.test(location.search);   // two tabs of the same browser (for testing without internet)
 
   // ------------------------------------------------------------------ transports: both give a "link" { send(obj), onmessage, onclose, close() }
@@ -7101,7 +7222,7 @@ AMB.IMAGES = {
   function loadPeerJS() {
     return new Promise((res, rej) => {
       if (globalThis.Peer) return res();
-      const s = document.createElement('script'); s.src = PEER_SRC; s.onload = () => res(); s.onerror = () => rej(Object.assign(new Error('load'), { type: 'load' }));
+      const s = document.createElement('script'); s.src = PEER_SRC; s.integrity = PEER_SRI; s.crossOrigin = 'anonymous'; s.onload = () => res(); s.onerror = () => rej(Object.assign(new Error('load'), { type: 'load' }));
       document.head.appendChild(s); setTimeout(() => rej(Object.assign(new Error('load'), { type: 'load' })), 15000);
     });
   }
@@ -7134,7 +7255,7 @@ AMB.IMAGES = {
       for (let i = 0; i < 6; i++) {
         const code = randCode();
         try {
-          const peer = await openPeer('zor-' + code);
+          const peer = await openPeer(N.room(code).peerId);   // a one-way hash of the code: the broker never sees the code itself
           const linked = new Promise((res) => peer.on('connection', (c) => { c.on('open', () => res(wrapConn(c))); }));
           return { code, linked, close: () => { try { peer.destroy(); } catch (e) { /* ignore */ } } };
         } catch (e) { if (!e || e.type !== 'unavailable-id') throw e; }
@@ -7146,7 +7267,7 @@ AMB.IMAGES = {
       await loadPeerJS(); step('٢/٣ الاتصال بخدمة الغرف…');
       const peer = await openPeer(); step('٣/٣ أبحث عن الغرفة وأربط الجوالين… (قد تاخذ نص دقيقة)');
       return new Promise((res, rej) => {
-        const conn = peer.connect('zor-' + code, { reliable: true });
+        const conn = peer.connect(N.room(code).peerId, { reliable: true });
         const to = setTimeout(() => rej(Object.assign(new Error('connect'), { type: 'connect' })), ms || 25000);   // found the room but cannot link the two phones
         peer.on('error', (e) => { clearTimeout(to); rej(e); });
         conn.on('error', () => { clearTimeout(to); rej(Object.assign(new Error('connect'), { type: 'connect' })); });
@@ -7180,52 +7301,56 @@ AMB.IMAGES = {
   // that can open a web page (mobile carriers often block direct phone-to-phone links). Messages are tiny: only each player's moves.
   // the relay may be changed from the link only to ntfy itself or a local test server (a shared link must not be able to redirect every game message to a stranger's server)
   const RELAY = (() => { const m = /[?&]relay=([^&]+)/.exec(location.search); if (!m) return 'https://ntfy.sh'; try { const u = new URL(decodeURIComponent(m[1])); return (/(^|\.)ntfy\.sh$/.test(u.hostname) && u.protocol === 'https:') || /^(localhost|127\.0\.0\.1)$/.test(u.hostname) ? u.origin : 'https://ntfy.sh'; } catch (e) { return 'https://ntfy.sh'; } })();
-  function relayTopic(code) { return 'zor-room-' + code.toLowerCase(); }
+  // Security (4.3): the topic is a one-way hash of the room code (unguessable, does not reveal the code), and every message is
+  // signed with HMAC-SHA256 under a key also derived from the code. A message that fails the check (a stranger, an old build,
+  // a tampered relay) is dropped without a word. Both phones run the same build anyway (version handshake on the hero step).
+  const relayGet = (R, ev) => { try { return N.open(R.key, JSON.parse(ev.data).message); } catch (e) { return null; } };
+  const relayPost = (R, obj) => fetch(`${RELAY}/${R.topic}`, { method: 'POST', body: N.seal(R.key, obj) });
   function relayLink(code, me, other) {
-    const topic = relayTopic(code), link = makeLink(null), seen = new Set(), pending = []; let seq = 0, sending = false, closed = false, es = null;
+    const R = N.room(code), link = makeLink(null), seen = new Set(), pending = []; let seq = 0, sending = false, closed = false, es = null;
     const open = () => {
-      es = new EventSource(`${RELAY}/${topic}/sse?since=10m`);
+      es = new EventSource(`${RELAY}/${R.topic}/sse?since=10m`);
       es.onmessage = (ev) => {
-        let m; try { m = JSON.parse(JSON.parse(ev.data).message); } catch (e) { return; }
+        const m = relayGet(R, ev);
         if (!m || m.to !== me || m.from !== other || (m.t !== 'msg' && m.t !== 'bye') || seen.has(m.seq)) return;   // only my friend's messages, each once (a reconnect replays recent ones)
         seen.add(m.seq); if (m.t === 'bye') { link.onclose && link.onclose(); return; }
-        link.onmessage && link.onmessage(JSON.parse(m.d));
+        link.onmessage && link.onmessage(m.o);
       };
     };
     const flush = async () => {
       if (sending) return; sending = true;
-      while (pending.length && !closed) { const body = pending[0]; try { const r = await fetch(`${RELAY}/${topic}`, { method: 'POST', body }); if (!r.ok) throw new Error('http ' + r.status); pending.shift(); } catch (e) { await new Promise((res) => setTimeout(res, 1500)); } }
+      while (pending.length && !closed) { try { const r = await relayPost(R, pending[0]); if (!r.ok) throw new Error('http ' + r.status); pending.shift(); } catch (e) { await new Promise((res) => setTimeout(res, 1500)); } }
       sending = false;
     };
-    link.send = (o) => { pending.push(JSON.stringify({ t: 'msg', from: me, to: other, seq: ++seq, d: JSON.stringify(o) })); flush(); };
-    link.close = () => { pending.push(JSON.stringify({ t: 'bye', from: me, to: other, seq: ++seq })); flush(); closed = true; setTimeout(() => { try { es && es.close(); } catch (e) { /* ignore */ } }, 1500); };
+    link.send = (o) => { pending.push({ t: 'msg', from: me, to: other, seq: ++seq, o }); flush(); };
+    link.close = () => { pending.push({ t: 'bye', from: me, to: other, seq: ++seq }); flush(); closed = true; setTimeout(() => { try { es && es.close(); } catch (e) { /* ignore */ } }, 1500); };
     link.start = open; link.kind = 'relay';
     return link;
   }
   const Relays = {
     async host(code) {
-      const topic = relayTopic(code), id = 'h' + Math.random().toString(36).slice(2, 8);
+      const R = N.room(code), id = 'h' + N.newCode().slice(0, 8);
       let es; const linked = new Promise((res, rej) => {
-        es = new EventSource(`${RELAY}/${topic}/sse?since=10m`);
+        es = new EventSource(`${RELAY}/${R.topic}/sse?since=10m`);
         es.onmessage = async (ev) => {
-          let m; try { m = JSON.parse(JSON.parse(ev.data).message); } catch (e) { return; }
-          if (!m || m.t !== 'hello') return;
+          const m = relayGet(R, ev);
+          if (!m || m.t !== 'hello' || typeof m.id !== 'string') return;
           es.close(); const link = relayLink(code, id, m.id); link.start();
-          await fetch(`${RELAY}/${topic}`, { method: 'POST', body: JSON.stringify({ t: 'welcome', from: id, to: m.id }) }).catch(() => {});
+          await relayPost(R, { t: 'welcome', from: id, to: m.id }).catch(() => {});
           res(link);
         };
       });
       return { code, linked, close: () => { try { es.close(); } catch (e) { /* ignore */ } } };
     },
     async join(code, step) {
-      const topic = relayTopic(code), id = 'g' + Math.random().toString(36).slice(2, 8);
+      const R = N.room(code), id = 'g' + N.newCode().slice(0, 8);
       step && step('أتصل عن طريق الخدمة الاحتياطية…');
       return new Promise((res, rej) => {
-        const es = new EventSource(`${RELAY}/${topic}/sse?since=1m`); let tries = 0;
-        const hello = () => fetch(`${RELAY}/${topic}`, { method: 'POST', body: JSON.stringify({ t: 'hello', id }) }).catch(() => {});
+        const es = new EventSource(`${RELAY}/${R.topic}/sse?since=1m`); let tries = 0;
+        const hello = () => relayPost(R, { t: 'hello', id }).catch(() => {});
         es.onopen = () => hello();
         const iv = setInterval(() => { if (++tries > 8) { clearInterval(iv); es.close(); rej(Object.assign(new Error('relay'), { type: 'relay' })); } else hello(); }, 5000);
-        es.onmessage = (ev) => { let m; try { m = JSON.parse(JSON.parse(ev.data).message); } catch (e) { return; } if (m && m.t === 'welcome' && m.to === id) { clearInterval(iv); es.close(); const link = relayLink(code, id, m.from); link.start(); res(link); } };
+        es.onmessage = (ev) => { const m = relayGet(R, ev); if (m && m.t === 'welcome' && m.to === id && typeof m.from === 'string') { clearInterval(iv); es.close(); const link = relayLink(code, id, m.from); link.start(); res(link); } };
         es.onerror = () => { /* EventSource retries by itself; the tries counter ends the wait */ };
       });
     },
@@ -7265,7 +7390,7 @@ AMB.IMAGES = {
     } catch (e) { ui().modal(`<h2>ما قدرت أسوّي الغرفة</h2><p class="hint">${explain(e)}</p><div class="net-btns"><button class="btn" data-act="closeModal">تمام</button></div>`); return; }
     const code = room.code; keepAwake();
     ui().modal(`<h2>غرفتك جاهزة</h2><p class="hint">أعطِ صاحبك هالرمز، وخلّه يضغط «ادخل غرفة»:</p>
-      <div class="net-code" dir="ltr">${code}</div>
+      <div class="net-code" dir="ltr">${N.showCode(code)}</div>
       <div class="net-btns"><button class="btn" data-act="netCopy">نسخ الرمز</button><button class="btn" data-act="netShare">إرسال</button><button class="btn ghost" data-act="netCancel">إلغاء</button></div>
       <div class="net-btns"><button class="btn small" data-act="netDiag">فحص الاتصال</button></div><div class="hint" id="net-diag" dir="rtl" style="text-align:right"></div>
       <p class="hint" id="net-status">ينتظر صاحبك… <b>لا تطفّي الشاشة ولا تطلع من اللعبة</b> لين يدخل</p>`);
@@ -7274,15 +7399,15 @@ AMB.IMAGES = {
   }
   function joinForm() {
     ui().modal(`<h2>ادخل غرفة</h2><p class="hint">اكتب الرمز اللي عطاك إياه صاحبك:</p>
-      <input id="net-in" class="net-input" dir="ltr" maxlength="5" autocapitalize="characters" autocomplete="off" placeholder="XXXXX">
+      <input id="net-in" class="net-input" dir="ltr" maxlength="16" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="XXXXX-XXXXX">
       <div class="net-btns"><button class="btn primary big" data-act="netJoinGo">دخول</button><button class="btn ghost" data-act="closeModal">إلغاء</button></div><p class="hint" id="net-status"></p>
       <div class="net-btns"><button class="btn small" data-act="netDiag">فحص الاتصال</button></div><div class="hint" id="net-diag" dir="rtl" style="text-align:right"></div>`);
     setTimeout(() => { const i = document.getElementById('net-in'); if (i) i.focus(); }, 100);
   }
   async function join() {
-    const input = document.getElementById('net-in'), code = (input && input.value || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const input = document.getElementById('net-in'), code = N.normCode(input && input.value);
     const st = document.getElementById('net-status');
-    if (code.length < 4) { if (st) st.textContent = 'اكتب الرمز كامل'; return; }
+    if (!code) { if (st) st.textContent = 'الرمز ١٠ حروف وأرقام (مثل ABCDE-23456). تأكد منه واكتبه كامل'; return; }
     const step = (t) => { const e = document.getElementById('net-status'); if (e) e.textContent = t; };
     step('١/٣ تحميل خدمة الاتصال…');
     try { const link = await transport().join(code, step); connected(1, link); }
@@ -7366,6 +7491,9 @@ AMB.IMAGES = {
     const m = new AMB.Match({ mode: 'online', seed: n.seed, isolated: true, players });
     n.rec = AMB.NetSync.record(m, i);
     n.sentReady = false; n.peerReady = null; n.iClaimed = false; n.peerReward = null; n.over = false;
+    // B7: after every fight both phones compare who won, both lives and the fight length (same channel as the state hash)
+    const resolve = m.resolveCombat;
+    m.resolveCombat = function (result) { const rep = resolve.call(this, result); if (S.net === n) shareValue('c' + rep.round, AMB.NetSync.combatPrint(rep)); return rep; };
     return m;
   }
 
@@ -7403,16 +7531,23 @@ AMB.IMAGES = {
   }
   const buildOf = () => { const m = document.querySelector('meta[name="zor-build"]'); return m ? m.content : 'dev'; };
   // desync check: after both phones applied everybody's moves they must hold the SAME state; each sends a fingerprint and compares it with the other's
+  // keys: 'p<round>' after prep, 'r<round>' after the reward draft (state hash), 'c<round>' after the fight (combat fingerprint)
   function shareHash(key) {
-    const S = ui().S, n = S.net, m = S.match; if (!n || !m) return;
+    const S = ui().S, m = S.match; if (!S.net || !m) return;
+    shareValue(key, AMB.NetSync.hash(m));
+  }
+  function shareValue(key, h) {
+    const n = ui().S.net; if (!n) return;
     n.myHash = n.myHash || {}; n.peerHash = n.peerHash || {};
-    n.myHash[key] = AMB.NetSync.hash(m);
-    try { n.link.send({ t: 'sync', key, h: n.myHash[key] }); } catch (e) { /* ignore */ }
+    n.myHash[key] = h;
+    try { n.link.send({ t: 'sync', key, h }); } catch (e) { /* ignore */ }
     checkHash(key);
   }
   function checkHash(key) {
     const n = ui().S.net; if (!n || !n.myHash || !n.peerHash) return;
-    if (n.myHash[key] != null && n.peerHash[key] != null && n.myHash[key] !== n.peerHash[key]) netProblem('حالة اللعبة ما تطابقت بين الجوالين (غالبًا نسختين مختلفتين). حدّثوا الاثنين وابدأوا من جديد.');
+    if (n.myHash[key] == null || n.peerHash[key] == null || n.myHash[key] === n.peerHash[key]) return;
+    if (key[0] === 'c') { console.warn('online: fight result differs', n.myHash[key], n.peerHash[key]); netProblem('نتيجة القتال طلعت غير عند صاحبك. غالبًا النسختين مختلفتين، حدّثوا الاثنين وابدأوا من جديد.'); }
+    else netProblem('حالة اللعبة ما تطابقت بين الجوالين (غالبًا نسختين مختلفتين). حدّثوا الاثنين وابدأوا من جديد.');
   }
   function pump() {
     try { pumpInner(); } catch (e) { netProblem('صار خطأ في الاتصال. جرّبوا مباراة جديدة وتأكدوا إن الاثنين على آخر نسخة.'); }
@@ -7437,16 +7572,19 @@ AMB.IMAGES = {
       ui().afterReward();
     }
   }
+  const isHero = (h) => typeof h === 'string' && Object.prototype.hasOwnProperty.call(AMB.DATA.HEROES, h);
   function onMessage(msg) {
     const S = ui().S, n = S.net; if (!n || !msg) return;
     switch (msg.t) {
-      case 'hero': if (!AMB.DATA.HEROES[msg.hero]) { netProblem('البطل اللي وصلنا من صاحبك مو معروف عندي. حدّثوا الاثنين.'); break; }
+      case 'hero': if (!isHero(msg.hero)) { netProblem('البطل اللي وصلنا من صاحبك مو معروف عندي. حدّثوا الاثنين.'); break; }
         if (msg.ver && buildOf() !== 'dev' && msg.ver !== 'dev' && msg.ver !== buildOf()) { netProblem('نسخة اللعبة عندك مختلفة عن صاحبك. حدّثوا الصفحة عند الاثنين وجرّبوا من جديد.'); break; }
         n.theirHero = msg.hero; tryStart(); break;
-      case 'start': n.theirStart = msg; tryStart(); break;
+      case 'start': if (!Number.isInteger(msg.seed) || !Array.isArray(msg.heroes) || msg.heroes.length !== 2 || !msg.heroes.every(isHero)) { netProblem('بداية المباراة اللي وصلت من صاحبك مو مفهومة. حدّثوا الاثنين.'); break; }
+        n.theirStart = msg; tryStart(); break;
       case 'ready': n.peerReady = msg; pump(); break;
       case 'reward': n.peerReward = msg; pump(); break;
-      case 'sync': n.peerHash = n.peerHash || {}; n.peerHash[String(msg.key)] = msg.h; checkHash(String(msg.key)); break;
+      case 'sync': if (typeof msg.key !== 'string' || !/^[prc]\d{1,3}$/.test(msg.key) || typeof msg.h !== 'string' || msg.h.length > 80) break;
+        n.peerHash = n.peerHash || {}; n.peerHash[msg.key] = msg.h; checkHash(msg.key); break;
       case 'leave': peerLeft(); break;
       default: break;
     }
@@ -7492,8 +7630,8 @@ AMB.IMAGES = {
       netJoinGo: () => join(),
       netCancel: () => cancelRoom(),
       netDiag: () => { const o = document.getElementById('net-diag'); if (o) { o.textContent = 'جاري الفحص…'; diagnose(o); } },
-      netCopy: () => { const c = room && room.code; if (!c) return; try { navigator.clipboard.writeText(c); u.toast('نسخت الرمز', 'good'); } catch (e) { u.toast('الرمز: ' + c, ''); } },
-      netShare: () => { const c = room && room.code; if (!c) return; const text = `تعال العب ضدي في ZOR! ادخل «ادخل غرفة» واكتب الرمز: ${c}\n${location.href.split('?')[0]}`; if (navigator.share) navigator.share({ text }).catch(() => {}); else { try { navigator.clipboard.writeText(text); u.toast('نسخت الدعوة', 'good'); } catch (e) { u.toast('الرمز: ' + c, ''); } } },
+      netCopy: () => { const c = room && N.showCode(room.code); if (!c) return; try { navigator.clipboard.writeText(c); u.toast('نسخت الرمز', 'good'); } catch (e) { u.toast('الرمز: ' + c, ''); } },
+      netShare: () => { const c = room && N.showCode(room.code); if (!c) return; const text = `تعال العب ضدي في ZOR! ادخل «ادخل غرفة» واكتب الرمز: ${c}\n${location.href.split('?')[0]}`; if (navigator.share) navigator.share({ text }).catch(() => {}); else { try { navigator.clipboard.writeText(text); u.toast('نسخت الدعوة', 'good'); } catch (e) { u.toast('الرمز: ' + c, ''); } } },
       netLeave: () => { leave(); u.ACT.abandon(); },
     });
   }
