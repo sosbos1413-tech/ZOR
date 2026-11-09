@@ -3651,7 +3651,7 @@
           mode: 'tutorial', seed: seed || 4242, progression: false,
           rules: { maxRounds: 3, winsNeeded: 3, start: T().start },   // always three rounds: the third teaches levelling up and sending the hero
           players: [{ heroId, name: 'أنت' },
-            { heroId: enemyHero, name: '', isAI: true, lineup: { units: T().enemy, summon: null, blessings: { atkPct: -0.15, hpPct: -0.15, asPct: 0 }, abilities: [] } }],
+            { heroId: enemyHero, name: 'دمية التدريب', isAI: true, lineup: { units: T().enemy, summon: null, blessings: { atkPct: -0.15, hpPct: -0.15, asPct: 0 }, abilities: [] } }],
         };
       },
       /** put the scripted shop in place (call right after match.startRound()) */
@@ -5089,6 +5089,16 @@ AMB.IMAGES = {
       S.aiFirst = m.round % 2 === 0;       // alternate first pick from the shared pool
       if (S.aiFirst) AMB.AI.prep(m, 1);
       beginPrep(0);
+      // first quick match ever: two short lines on what decides matches (shown once; the modal pauses the prep timer)
+      const ST = AMB.settings;
+      if (S.mode === 'ai' && m.round === 1 && ST && !ST.seen('qmTips')) setTimeout(function qm() {
+        if (S.screen !== 'match' || S.mode !== 'ai') return;
+        if (S.phase !== 'prep') { setTimeout(qm, 200); return; }   // wait for the prep timer to run, so opening the modal pauses it
+        ST.markSeen('qmTips');
+        modal(`<h2>قبل ما تبدأ</h2><p>${icon('crown')} <b>المستوى = عدد وحداتك في الساحة</b> (مستوى ٣ = ٣ وحدات). اشترِ خبرة ${icon('up')} عشان تنزّل أكثر.</p>
+          <p>${icon('sword')} <b>نزّل البطل</b> 👑 لما تكون حياتك زينة: يقاتل معك ويقوّي فريقك.</p>
+          <div style="text-align:center;margin-top:10px"><button class="btn primary big" data-act="closeModal">فهمت</button></div>`);
+      }, 300);
     }
   }
 
@@ -5255,8 +5265,13 @@ AMB.IMAGES = {
       : over ? (rep.winner === mi ? 'فزت بالمباراة! 🎉' : 'خسرت المباراة')
       : `الجولة ${m.round}: ${rep.winner === mi ? 'فزت' : 'خسرت'}`;
     const whyTxt = S.mode !== 'hotseat' && rep.winner === 1 - mi ? (me0.exposed ? 'سقط خط الدفاع عندك' : 'العدو كان أقوى هالجولة') : '';
+    let whyNums = '';
+    if (S.mode !== 'hotseat' && rep.winner === 1 - mi && S.combat) {   // "ليش خسرت؟" in three numbers: units on each side, when your front row fell, gold left unspent
+      const sd = S.combat.sides, mine = (sd[mi].spec.units || []).length, theirs = (sd[1 - mi].spec.units || []).length, fd = sd[mi].frontDownAt, gold = m.players[mi].gold;
+      whyNums = `<div class="rr-nums"><span>${icon('shield')} <b>${mine}</b> ضد <b>${theirs}</b></span>${mine ? `<span>${icon('warn')} ${fd != null ? `سقط الصف الأمامي <b>${fd.toFixed(1)}ث</b>` : 'الصف الأمامي صمد'}</span>` : ''}${gold > 0 ? `<span>${icon('gold')} <b>${gold}</b> ذهب ما صرفته</span>` : ''}</div>`;
+    }
     overlay(`<div class="ov-card rr ${cls}"><div class="rr-title">${title}</div><div class="rr-big">${icon(rep.winner === null ? 'swap' : cls === 'lose' ? 'skull' : 'crown')}</div>
-      <div class="rr-row">${side(0)}<div class="rr-vs">${icon('sword')}</div>${side(1)}</div>${why}${whyTxt ? `<div class="rr-note">${whyTxt}</div>` : ''}${rep.finale ? `<div class="rr-why">${icon('flame')} ×${CFG.match.finaleLossMult}</div>` : ''}
+      <div class="rr-row">${side(0)}<div class="rr-vs">${icon('sword')}</div>${side(1)}</div>${why}${whyTxt ? `<div class="rr-note">${whyTxt}</div>` : ''}${whyNums}${rep.finale ? `<div class="rr-why">${icon('flame')} ×${CFG.match.finaleLossMult}</div>` : ''}
       <button class="btn primary big rr-go" data-act="${over ? 'toResults' : m.rewardPending ? 'rewards' : 'nextRound'}">${over ? 'النتيجة' : m.rewardPending ? 'اختر مكافأتك' : 'الجولة الجاية'}</button></div>`);
   }
 
@@ -5928,7 +5943,7 @@ AMB.IMAGES = {
       const cost = m.abilityCost(p, a);
       const trig = p.abilities[a.id] || '';
       const fired = S.combat && S.phase !== 'prep' && S.combat.sides[S.v] && S.combat.sides[S.v].abilities.find((x) => x.def.id === a.id && x.fired);
-      const trigs = Object.values(ABILITY_TRIGGERS).map((t) => `<button class="trg ${trig === t.id ? 'on' : ''}" data-act="abTrig" data-ab="${a.id}" data-t="${t.id}" ${prep ? '' : 'disabled'}>${TR[t.id] || '•'}</button>`).join('');
+      const trigs = Object.values(ABILITY_TRIGGERS).map((t) => `<button class="trg ${trig === t.id ? 'on' : ''}" title="${esc(t.name)}" aria-label="${esc(t.name)}" data-act="abTrig" data-ab="${a.id}" data-t="${t.id}" ${prep ? '' : 'disabled'}>${TR[t.id] || '•'}</button>`).join('');
       return `<div class="ab ${trig ? 'armed' : ''} ${fired ? 'fired' : ''}"><button class="ab-ic" data-act="info" data-k="hero" data-id="${h.id}">${icon(ABILITY_ICON[a.type] || 'burst')}<span class="ab-cost">${icon('essence')}${cost}</span></button><div class="ab-trg">${trigs}</div></div>`;
     }).join('');
     const bag = [];
@@ -6435,7 +6450,7 @@ AMB.IMAGES = {
       afterReward();
     },
     toResults: () => showResults(),
-    abTrig: (d) => { if (!prepActive()) return; const cur = S.match.players[S.v].abilities[d.ab]; res(S.match.setAbility(S.v, d.ab, cur === d.t ? null : d.t)); renderMatch(); },
+    abTrig: (d) => { if (!prepActive()) return; const cur = S.match.players[S.v].abilities[d.ab]; if (cur !== d.t && ABILITY_TRIGGERS[d.t]) toast('⏵ ' + ABILITY_TRIGGERS[d.t].name); res(S.match.setAbility(S.v, d.ab, cur === d.t ? null : d.t)); renderMatch(); },
     info: (d, el, e) => { if (e) e.stopPropagation(); if (d.k === 'hero') { heroDetail(d.id); return; } const t = AMB.TIPS[d.k]; if (!t) return; const x = t(); modal(`<h2>${x.title}</h2><div class="tip-body">${x.html}</div>`); },
     again: () => { if (S.mode === 'online') { if (S.net) AMB.NetUI.leave(); show('menu'); return; } if (S.mode === 'tutorial') { AMB.TutorialUI.start(); return; } if (S.mode === 'practice') { startMatch(); return; } if (S.mode === 'campaign' || S.mode === 'tower' || S.mode === 'event') { startMatch(); return; } S.picks = [S.picks[0], S.picks[1]]; S.pickIdx = 0; renderHeroSelect(); show('hero'); },
     statsExport: () => {

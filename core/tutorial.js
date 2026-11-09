@@ -42,7 +42,7 @@
           mode: 'tutorial', seed: seed || 4242, progression: false,
           rules: { maxRounds: 3, winsNeeded: 3, start: T().start },   // always three rounds: the third teaches levelling up and sending the hero
           players: [{ heroId, name: 'أنت' },
-            { heroId: enemyHero, name: '', isAI: true, lineup: { units: T().enemy, summon: null, blessings: { atkPct: -0.15, hpPct: -0.15, asPct: 0 }, abilities: [] } }],
+            { heroId: enemyHero, name: 'دمية التدريب', isAI: true, lineup: { units: T().enemy, summon: null, blessings: { atkPct: -0.15, hpPct: -0.15, asPct: 0 }, abilities: [] } }],
         };
       },
       /** put the scripted shop in place (call right after match.startRound()) */
