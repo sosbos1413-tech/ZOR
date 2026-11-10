@@ -98,9 +98,8 @@
     }
     // manga-panel frame: cut corners for units, octagon for heroes
     const imgSrc = AMB.IMAGES && AMB.IMAGES[def.id];
-    const hasChar = (AMB.chars && AMB.chars.has(def.id)) || !!imgSrc;
+    const hasChar = !!imgSrc;
     const art = imgSrc ? `<image href="${imgSrc}" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMin slice"/>`
-      : hasChar ? AMB.chars.draw(def.id)
       : `<g transform="translate(26 24) scale(2.0)" color="#fff" style="filter:drop-shadow(2px 2px 0 #000)">${ICONS[ROLE_ICON[role]]}</g>`;
     // small role badge (units only) so the role stays readable now that the art is a face
     const badge = !isHero && hasChar
