@@ -1646,7 +1646,9 @@
       const odds = E.shopOdds[lvl];
       const rng = this._rng(p);
       let rank = rng.weighted(odds.map((w, i) => [i + 1, w]).filter((e) => e[1] > 0 && e[0] <= lvl));
-      for (let r = rank; r >= 1; r--) {   // that star is sold out (or none owned): the next lower star
+      // that star is sold out, or you own no card of it (progression decks are small): try the lower stars, then the higher ones up to the shop level. Never above the level.
+      const order = []; for (let r = rank; r >= 1; r--) order.push(r); for (let r = rank + 1; r <= lvl; r++) order.push(r);
+      for (const r of order) {
         const list = this._cardsOfRank(p, r, true);
         if (list.length) return rng.weighted(list.map((u) => [u.id, this._pool(p)[u.id]]));
       }

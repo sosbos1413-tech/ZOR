@@ -1696,5 +1696,12 @@ t('shop: the first time a star shows up it is flagged (new-star frame); the merg
   eq(p.shopNew.length, 5); p.level = 5; p.shownRanks = []; let flagged = 0; for (let i = 0; i < 6; i++) { m._rollShop(p); flagged += p.shopNew.filter(Boolean).length; } ok(flagged >= 3 && flagged <= 4, 'each new star is flagged once (got ' + flagged + ')');
   eq(AMB.NetSync.checkOp(['claimMerge', 1]), null); eq(AMB.NetSync.checkOp(['claimMerge', 'x']), 'claimMerge:arg0');
 });
+t('a small owned deck never leaves shop slots empty (only ★2 cards owned at shop level 2 -> every slot is filled)', () => {
+  const owned = Object.values(AMB.DATA.UNITS).filter((u) => u.tier === 2).slice(0, 4).map((u) => u.id);
+  const m = new AMB.Match({ seed: 3, progression: true, players: [{ heroId: 'orath', allowedUnits: owned }, { heroId: 'merin', isAI: true }] });
+  m.startRound(); const p = m.players[0]; p.level = 2;
+  for (let i = 0; i < 40; i++) { m._rollShop(p); p.shop.forEach((id) => { ok(id && owned.includes(id), 'empty or foreign slot'); }); }
+  p.level = 1; m._rollShop(p); ok(p.shop.every((id) => !id), 'at level 1 nothing owned is sold (no card above the level)');
+});
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
