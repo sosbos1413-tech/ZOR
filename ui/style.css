@@ -2746,14 +2746,14 @@ body.big-text #bnav button span, body.big-text #bnav button small { display: rev
 /* ===================== new arena layout (phones, portrait): ruins battlefield, round bench, leather shop drawer ===================== */
 .shop-toggle, .shop-drawer, .bmed { display: none; }
 @media (max-width: 860px) and (orientation: portrait) {
-  #scr-match.prep-focus .field { background: url(../assets/ui/arena/bg.webp) center / cover no-repeat; border-radius: 10px; }
-  #scr-match.prep-focus .field .cell.mine { border: 0; background: url(../assets/ui/arena/slot.webp) center / 100% 100% no-repeat; opacity: .92; }
+  #scr-match.prep-focus .field { background: none center / cover no-repeat; border-radius: 10px; }
+  #scr-match.prep-focus .field .cell.mine { border: 0; background: none center / 100% 100% no-repeat; opacity: .92; }
   #scr-match.prep-focus .field .cell.mine:has(.tcard) { background: none; opacity: 1; }
   #scr-match.prep-focus .field .cell.mine .rowic { opacity: .45; }
   /* bench: six round medallions */
   #scr-match.prep-focus #bench { display: flex; justify-content: center; gap: 8px; padding: 4px 0; background: none; border: 0; }
   #scr-match.prep-focus #bench .lbl { display: none; }
-  #scr-match.prep-focus #bench .bslot { width: 50px; height: 50px; min-width: 50px; flex: none; border: 0; border-radius: 50%; background: url(../assets/ui/arena/btn.webp) center / 100% 100% no-repeat; display: grid; place-items: center; padding: 0; }
+  #scr-match.prep-focus #bench .bslot { width: 50px; height: 50px; min-width: 50px; flex: none; border: 0; border-radius: 50%; background: none center / 100% 100% no-repeat; display: grid; place-items: center; padding: 0; }
   #scr-match.prep-focus #bench .bslot > .tcard { display: none; }
   #scr-match.prep-focus #bench .bmed { display: block; position: relative; width: 40px; height: 40px; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 2px #c9a04a; }
   #scr-match.prep-focus #bench .bmed.sel { box-shadow: 0 0 0 3px #ffd24a, 0 0 12px #ffd24a; }
@@ -2761,10 +2761,10 @@ body.big-text #bnav button span, body.big-text #bnav button small { display: rev
   #scr-match.prep-focus #bench .bm-st { position: absolute; bottom: -1px; left: 0; right: 0; text-align: center; font-size: 9px; color: #ffd24a; text-shadow: 0 1px 2px #000; font-style: normal; }
   /* the old shop row and round dock buttons move into the drawer */
   #scr-match.prep-focus #shopbar .shop-row, #scr-match.prep-focus #shopbar .sb-ic { display: none !important; }
-  #scr-match.prep-focus .shop-toggle { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-width: 64px; min-height: 52px; border-radius: 14px; border: 2px solid #c9a04a; background: url(../assets/ui/arena/eq.webp) center / 100% 100%; color: #ffd24a; font-size: 22px; }
+  #scr-match.prep-focus .shop-toggle { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-width: 64px; min-height: 52px; border-radius: 14px; border: 2px solid #c9a04a; background: none center / 100% 100%; color: #ffd24a; font-size: 22px; }
   #scr-match.prep-focus .shop-toggle span { font-size: 11px; font-weight: 700; color: #f3ead6; }
   #scr-match.prep-focus .shop-drawer { display: block; position: fixed; left: 0; right: 0; bottom: 74px; z-index: 40; height: min(64vh, 540px);
-    background: url(../assets/ui/arena/drawer.webp) center / 100% 100% no-repeat; padding: 30px 12px 10px; transform: translateY(calc(100% + 80px)); transition: transform .25s ease; }
+    background: none center / 100% 100% no-repeat; padding: 30px 12px 10px; transform: translateY(calc(100% + 80px)); transition: transform .25s ease; }
   #scr-match.prep-focus .shop-drawer.open { transform: none; }
   .sd-handle { position: absolute; top: 0; left: 25%; right: 25%; height: 32px; background: none; border: 0; }
   .sd-cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 8px; }
@@ -2773,7 +2773,7 @@ body.big-text #bnav button span, body.big-text #bnav button small { display: rev
   .sc.empty { opacity: .35; }
   .sc-art { position: absolute; left: 17.5%; right: 19.3%; top: 20.4%; bottom: 11.5%; overflow: hidden; border-radius: 6px; background: var(--wc); }
   .sc-art .portrait { width: 100%; height: 100%; }
-  .sc-frame { position: absolute; inset: 0; background: url(../assets/ui/arena/card.webp) center / 100% 100% no-repeat; pointer-events: none; }
+  .sc-frame { position: absolute; inset: 0; background: none center / 100% 100% no-repeat; pointer-events: none; }
   .sc-gem { position: absolute; left: 50%; top: 2.2%; width: 9%; aspect-ratio: 1; transform: translateX(-50%) rotate(45deg); background: var(--rc); box-shadow: 0 0 8px var(--rc); border-radius: 2px; }
   .sc-cost, .sc-hp, .sc-atk { position: absolute; width: 17%; aspect-ratio: 1; display: grid; place-items: center; border-radius: 50%; font-size: clamp(10px, 3.2vw, 14px); font-weight: 900; color: #fff; text-shadow: 0 1px 2px #000; }
   .sc-cost { left: 6.5%; top: 14.5%; background: radial-gradient(#f2c94c, #a87a12); color: #2a1a00; text-shadow: none; }
@@ -2787,10 +2787,10 @@ body.big-text #bnav button span, body.big-text #bnav button small { display: rev
   .sc-info::after { content: ''; position: absolute; inset: -11px; }
   .sd-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 20px; }
   .sd-items { display: flex; gap: 6px; margin-inline-end: auto; }
-  .sd-eq { position: relative; width: 46px; height: 46px; border: 0; background: url(../assets/ui/arena/eq.webp) center / 100% 100%; color: #ffd24a; display: grid; place-items: center; }
+  .sd-eq { position: relative; width: 46px; height: 46px; border: 0; background: none center / 100% 100%; color: #ffd24a; display: grid; place-items: center; }
   .sd-eq svg { width: 22px; height: 22px; } .sd-eq b { position: absolute; bottom: -4px; left: -4px; background: #c9a04a; color: #2a1a00; border-radius: 999px; font-size: 10px; padding: 0 5px; }
   .sd-eq.cant { filter: grayscale(.8) brightness(.7); } .sd-eq.empty { opacity: .35; }
-  .sd-btn { position: relative; width: 52px; height: 52px; border: 0; border-radius: 50%; background: url(../assets/ui/arena/btn.webp) center / 100% 100%; color: #ffd24a; display: grid; place-items: center; }
+  .sd-btn { position: relative; width: 52px; height: 52px; border: 0; border-radius: 50%; background: none center / 100% 100%; color: #ffd24a; display: grid; place-items: center; }
   .sd-btn svg { width: 22px; height: 22px; } .sd-btn.on { box-shadow: 0 0 0 2px #ffd24a; }
   .sd-btn b { position: absolute; bottom: -2px; left: -4px; background: radial-gradient(#f2c94c, #a87a12); color: #2a1a00; border-radius: 999px; font-size: 10px; padding: 0 5px; }
   .sd-btn small { position: absolute; bottom: -14px; font-size: 10px; color: #f3ead6; white-space: nowrap; }
@@ -2798,7 +2798,7 @@ body.big-text #bnav button span, body.big-text #bnav button small { display: rev
 }
 
 @media (max-width: 860px) and (orientation: portrait) {
-  .sd-handle { top: -18px; left: 50%; right: auto; width: min(70vw, 300px); height: 40px; transform: translateX(-50%); background: url(../assets/ui/arena/handle.webp) center / contain no-repeat; }
+  .sd-handle { top: -18px; left: 50%; right: auto; width: min(70vw, 300px); height: 40px; transform: translateX(-50%); background: none center / contain no-repeat; }
   .sd-handle i { display: none; }
   #scr-match.prep-focus .shop-drawer { padding-top: 28px; border-radius: 14px; }
   #scr-match.prep-focus .shop-toggle { min-width: 58px; min-height: 48px; font-size: 20px; }
@@ -2969,7 +2969,7 @@ body.reduce-motion .lv-flash, body.reduce-motion .merge-flash, body.reduce-motio
 /* ===== phone prep layout v3: the shop is ALWAYS visible (five compact cards above the dock), like the reference: buy, see it land on the field, no drawer to open ===== */
 @media (max-width: 860px) and (orientation: portrait) {
   #scr-match.prep-focus #shopbar { display: flex; flex-direction: column; }
-  #scr-match.prep-focus .shop-drawer { order: -1; position: static; transform: none !important; height: auto; width: 100%; padding: 6px 6px 8px; border-radius: 0; background: url(../assets/ui/arena/drawer.webp) center / 100% 100% no-repeat; box-sizing: border-box; }
+  #scr-match.prep-focus .shop-drawer { order: -1; position: static; transform: none !important; height: auto; width: 100%; padding: 6px 6px 8px; border-radius: 0; background: none center / 100% 100% no-repeat; box-sizing: border-box; }
   #scr-match.prep-focus .sd-handle, #scr-match.prep-focus .shop-toggle { display: none !important; }
   #scr-match.prep-focus .sd-head { display: flex; align-items: center; gap: 6px; margin: 2px 2px 8px; }
   #scr-match.prep-focus .sd-title { flex: 1; text-align: center; color: #f3ead6; line-height: 1.1; }
@@ -3011,21 +3011,21 @@ body.reduce-motion .lv-flash, body.reduce-motion .merge-flash, body.reduce-motio
   #scr-match.prep-focus .field .cell.mine { border: 1.5px solid #d6b074; background: linear-gradient(#41307acc, #170e36e6); box-shadow: inset 0 0 16px #a98cff66, 0 0 9px #f0c98066; }
   #scr-match.prep-focus .field .cell.mine:has(.tcard) { background: none; box-shadow: 0 0 9px #f0c98055; }
   #scr-match.prep-focus .field .cell .rowic { opacity: .3; }
-  #scr-match.prep-focus .shop-drawer { background: #2a1a12 url(../assets/ui/arena2/wood.webp) center / cover; border-top: 2px solid #d6b074; border-bottom: 2px solid #7a5a2c; box-shadow: inset 0 0 0 2px #0006, inset 0 10px 18px #0005, 0 -6px 16px #0008; }
+  #scr-match.prep-focus .shop-drawer { background: #2a1a12 none center / cover; border-top: 2px solid #d6b074; border-bottom: 2px solid #7a5a2c; box-shadow: inset 0 0 0 2px #0006, inset 0 10px 18px #0005, 0 -6px 16px #0008; }
   #scr-match.prep-focus .sd-head .sd-btn, #scr-match.prep-focus .sd-head .sd-btn.up { background: center / contain no-repeat; border-radius: 50%; filter: drop-shadow(0 3px 3px #0009); }
-  #scr-match.prep-focus .sd-head .sd-btn.up { background-image: url(../assets/ui/arena2/up.webp); width: 50px; height: 46px; }
-  #scr-match.prep-focus .sd-head .sd-btn.rr { background-image: url(../assets/ui/arena2/refresh.webp); }
-  #scr-match.prep-focus .sd-head .sd-btn.lk { background-image: url(../assets/ui/arena2/lock.webp); }
-  #scr-match.prep-focus .sd-head .sd-btn[disabled] { background-image: url(../assets/ui/arena2/off.webp); }
+  #scr-match.prep-focus .sd-head .sd-btn.up { background-image: none; width: 50px; height: 46px; }
+  #scr-match.prep-focus .sd-head .sd-btn.rr { background-image: none; }
+  #scr-match.prep-focus .sd-head .sd-btn.lk { background-image: none; }
+  #scr-match.prep-focus .sd-head .sd-btn[disabled] { background-image: none; }
   #scr-match.prep-focus .sd-head .sd-btn svg { display: none; }
   #scr-match.prep-focus .sd-head .sd-btn.lk:not(.on) { filter: drop-shadow(0 3px 3px #0009) saturate(.55) brightness(.9); }
   #scr-match.prep-focus .sd-head .sd-btn.on { box-shadow: 0 0 0 2px #ffd24a, 0 0 12px #ffd24a; }
   #scr-match.prep-focus .sd-head .sd-btn b { background: linear-gradient(#f6d66a, #b9851a); border: 1px solid #5b3d06; bottom: -8px; }
-  #scr-match.prep-focus .sd-head .sd-eq { background: url(../assets/ui/arena2/eq.webp) center / contain no-repeat; filter: drop-shadow(0 2px 3px #0009); }
+  #scr-match.prep-focus .sd-head .sd-eq { background: none center / contain no-repeat; filter: drop-shadow(0 2px 3px #0009); }
   #scr-match.prep-focus .sd-title b { color: #f6e3b0; text-shadow: 0 1px 0 #000, 0 0 8px #d6b07466; }
   #scr-match.prep-focus .sd-stars { color: #ffd24a; text-shadow: 0 0 6px #ffd24a88; }
-  #scr-match.prep-focus #bench .bslot { background: url(../assets/ui/arena2/bsock.webp) center / 100% 100% no-repeat; }
-  #scr-match.prep-focus #shopbar .ready-btn { background: url(../assets/ui/arena2/ready.webp) center / 100% 100% no-repeat !important; border: 0 !important; box-shadow: none !important; color: #fff; text-shadow: 0 2px 0 #5a1203, 0 0 8px #ff8a3c88; filter: drop-shadow(0 3px 3px #0009); }
+  #scr-match.prep-focus #bench .bslot { background: none center / 100% 100% no-repeat; }
+  #scr-match.prep-focus #shopbar .ready-btn { background: none center / 100% 100% no-repeat !important; border: 0 !important; box-shadow: none !important; color: #fff; text-shadow: 0 2px 0 #5a1203, 0 0 8px #ff8a3c88; filter: drop-shadow(0 3px 3px #0009); }
   #scr-match.prep-focus #shopbar .ready-btn:active { transform: translateY(1px) scale(.98); }
   #scr-match.prep-focus #shopbar .shop-dock { background: linear-gradient(#1c1233, #0e0820); border-top: 1px solid #d6b07466; }
   #scr-match.prep-focus .dock-hero { box-shadow: 0 0 0 2px #d6b074, 0 0 10px #d6b07488; }
@@ -3038,10 +3038,10 @@ body.reduce-motion .lv-flash, body.reduce-motion .merge-flash, body.reduce-motio
 
 /* ===== card frame v5 (approved sheet, model B): gold rim + rarity-coloured side strip. Field/bench cards (.fr4) and shop cards (.sc) on phones ===== */
 @media (max-width: 860px) and (orientation: portrait) {
-  .tcard.fr4.r-common, .sc.rc-common { --fr5: url(../assets/ui/arena2/frame_common.webp); }
-  .tcard.fr4.r-rare, .sc.rc-rare { --fr5: url(../assets/ui/arena2/frame_rare.webp); }
-  .tcard.fr4.r-epic, .sc.rc-epic { --fr5: url(../assets/ui/arena2/frame_epic.webp); }
-  .tcard.fr4.r-legendary, .sc.rc-legendary { --fr5: url(../assets/ui/arena2/frame_legendary.webp); }
+  .tcard.fr4.r-common, .sc.rc-common { --fr5: none; }
+  .tcard.fr4.r-rare, .sc.rc-rare { --fr5: none; }
+  .tcard.fr4.r-epic, .sc.rc-epic { --fr5: none; }
+  .tcard.fr4.r-legendary, .sc.rc-legendary { --fr5: none; }
   /* field / bench mini cards */
   .tcard.hc.cv3.mini.fr4 { aspect-ratio: .615; filter: drop-shadow(0 2px 3px #000a); }
   .tcard.hc.cv3.mini.fr4.r-legendary { filter: drop-shadow(0 0 6px #ff9f1a99) drop-shadow(0 2px 3px #000a); }
