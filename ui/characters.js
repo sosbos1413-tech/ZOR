@@ -47,7 +47,6 @@
     // ---- Elder Grove
     moss_warden: S({ skin: '#8d5a3b', hair: '#4a7a2a', hs: 'hood', eye: '#d8ff6a', eyeStyle: 'narrow', brow: 'calm', mouth: 'calm', outfit: '#3a4a2a', trim: '#8ccf5a', collar: 'armor', extra: ['leaves'], prop: 'shield' }),
     thorn_fox: S({ hair: '#e8832a', hs: 'wild', eye: '#ffd24a', outfit: '#3a5a2a', trim: '#8ccf5a', extra: ['foxears', 'markings'], prop: 'daggers' }),
-    willow_eye: S({ skin: '#e8b98f', hair: '#6aa84a', hs: 'long', eye: '#e8ff8a', brow: 'calm', mouth: 'calm', outfit: '#2a4a2a', trim: '#b8e07a', collar: 'scarf', extra: ['leaves'], prop: 'bow' }),
     root_shaman: S({ skin: '#c98e63', hair: '#2a1a10', hs: 'long', eye: '#9cff6a', eyeStyle: 'glow', brow: 'calm', mouth: 'calm', outfit: '#4a2a1a', trim: '#6bd07a', collar: 'robe', extra: ['antlers', 'markings'], prop: 'staff', top: 'leaf' }),
     wild_stalker: S({ skin: '#c98e63', hair: '#1f4a22', hs: 'wild', eye: '#ffee55', eyeStyle: 'glow', outfit: '#2a3a1a', trim: '#8ccf5a', extra: ['mask', 'scar'], prop: 'daggers', mouth: 'none' }),
   };

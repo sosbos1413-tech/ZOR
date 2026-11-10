@@ -77,7 +77,7 @@
     5: mk('perk', 'prep5', { sec: 5 }), 6: mk('arena', 'gambler', { shards: 40 }), 7: mk('avatar', 'mitsuki'), 8: mk('title', 't_junior'),
     9: mk('frame', 'silver', { shards: 40 }), 10: mk('arena', 'temple'), 11: mk('avatar', 'kinoko'), 12: mk('fx', 'petals', { shards: 50 }),
     13: mk('arena', 'stardust'), 14: mk('avatar', 'mizuki'), 15: mk('perk', 'prep10', { sec: 5 , shards: 50}), 16: mk('frame', 'forest'),
-    17: mk('arena', 'dungeon'), 18: mk('title', 't_stars', { shards: 60 }), 19: mk('avatar', 'akane'), 20: mk('fx', 'goldrain'),
+    17: mk('arena', 'dungeon'), 18: mk('title', 't_stars', { shards: 60 }), 19: mk('avatar', 'hayate'), 20: mk('fx', 'goldrain'),
     21: mk('frame', 'ember', { shards: 60 }), 22: mk('title', 't_stages'), 23: mk('avatar', 'miyuki'), 24: mk('arena', 'forge', { shards: 70 }),
     25: mk('fx', 'lightning'), 26: mk('fx', 'inferno'), 27: mk('frame', 'gold', { shards: 70 }), 28: mk('arena', 'warmap'),
     29: mk('arena', 'riftgold'), 30: mk('avatar', 'rika', { big: true , shards: 80}),
@@ -88,7 +88,7 @@
     11: mk('avatar', 'yozora'), 12: mk('fx', 'violet'), 13: mk('title', 't_finale'), 14: mk('avatar', 'kurenai'), 15: mk('avatar', 'shirayuki'),
     16: mk('frame', 'aurora'), 17: mk('arena', 'storm'), 18: mk('avatar', 'ryujin'), 19: mk('fx', 'crystal'), 20: mk('avatar', 'zerokai', { big: true }),
     21: mk('avatar', 'juzo'), 22: mk('arena', 'frost'), 23: mk('avatar', 'natsuki'), 24: mk('title', 't_legend'), 25: mk('avatar', 'seiji'),
-    26: mk('avatar', 'ibara'), 27: mk('avatar', 'tetsuya'), 28: mk('title', 't_rift'), 29: mk('avatar', 'ryuji'), 30: mk('avatar', 'orath', { big: true }),
+    26: mk('avatar', 'ibara'), 27: mk('avatar', 'thorn_fox'), 28: mk('title', 't_rift'), 29: mk('avatar', 'ryuji'), 30: mk('avatar', 'orath', { big: true }),
   };
 
   function rewardName(r) {

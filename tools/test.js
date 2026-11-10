@@ -82,7 +82,7 @@ t('summoned hero with low life can die => instant match loss', () => {
   ok(m.isOver); eq(m.winner, 1);
 });
 t('combat is deterministic for a seed', () => {
-  const mk = () => new AMB.Combat([side([U('ash_ronin', 'f1'), U('pyre_archer', 'b1')]), side([U('thorn_fox', 'f1'), U('willow_eye', 'b2', 2)])], { seed: 99, round: 2, record: false }).runToEnd();
+  const mk = () => new AMB.Combat([side([U('ash_ronin', 'f1'), U('pyre_archer', 'b1')]), side([U('thorn_fox', 'f1'), U('kazehaya', 'b2', 2)])], { seed: 99, round: 2, record: false }).runToEnd();
   const a = mk(), b = mk();
   eq(JSON.stringify(a), JSON.stringify(b));
 });
@@ -571,7 +571,7 @@ t('new player: the 8 starter units owned, no hero, everything else locked until 
   Object.values(AMB.DATA.UNITS).forEach((u) => eq(C.owned(u.id), !!u.starter, u.id));
   eq(Object.values(AMB.DATA.UNITS).filter((u) => u.starter).length, 8, 'starter roster = 8 basic units');
   eq(new Set(Object.values(AMB.DATA.UNITS).filter((u) => u.starter).map((u) => u.role)).size, 6, 'every role is covered');
-  eq(AMB.DATA.LEGACY_STARTERS.length, 20);
+  eq(AMB.DATA.LEGACY_STARTERS.length, 19);
   eq(C.ownedHeroes().length, 0); ok(C.needsStarter());
   ok(C.chooseStarter('merin')); ok(!C.chooseStarter('orath'), 'starter is one-time');
   eq(C.ownedHeroes().join(), 'merin'); ok(!C.needsStarter()); eq(C.level('merin'), 1); eq(C.copies('merin'), 0);
@@ -803,8 +803,8 @@ console.log('album');
 t('album: 5 units per world, progress counts owned units, starters count', () => {
   const prof = AMB.Profile.boot(MEM()), A = prof.album;
   eq(A.worlds().length, 4);
-  eq(A.units('ember').length, 15); eq(A.units('tide').length, 15); eq(A.units('neon').length, 14); eq(A.units('sylvan').length, 21);
-  eq(A.total().total, 65); eq(A.total().owned, 8, 'the 8 starter units');
+  eq(A.units('ember').length, 14); eq(A.units('tide').length, 15); eq(A.units('neon').length, 11); eq(A.units('sylvan').length, 20);
+  eq(A.total().total, 60); eq(A.total().owned, 8, 'the 8 starter units');
   eq(A.progress('ember').owned, 3, 'ash_ronin, forge_bulwark, shiro');
   eq(A.state('ember'), 'locked');
 });
@@ -1053,7 +1053,7 @@ t('album: all 65 units = free packs + grand title; saved across reloads', () => 
 });
 t('album: exclusive (event) cards are not part of any set', () => {
   AMB.DATA.UNITS.thorn_fox.exclusive = true;
-  try { const A = AMB.Profile.boot(MEM()).album; eq(A.units('sylvan').length, 20); eq(A.total().total, 64); } finally { delete AMB.DATA.UNITS.thorn_fox.exclusive; }
+  try { const A = AMB.Profile.boot(MEM()).album; eq(A.units('sylvan').length, 19); eq(A.total().total, 59); } finally { delete AMB.DATA.UNITS.thorn_fox.exclusive; }
 });
 
 console.log('challenge tower');
@@ -1653,7 +1653,7 @@ t('shop settings: 5 levels, every odds row sums to 100, no star above the level,
   }
   const c = [2, 3, 4, 5].map((l) => SH.upgradeCost[l]); ok(c.every((x, i) => i === 0 || x > c[i - 1]), 'each level costs more');
   const cnt = {}; Object.values(AMB.DATA.UNITS).forEach((u) => { cnt[u.tier] = (cnt[u.tier] || 0) + 1; eq(u.cost, u.tier); });
-  eq([1, 2, 3, 4, 5].map((k) => cnt[k]).join(), '23,24,6,7,9', 'cards per star');
+  eq([1, 2, 3, 4, 5].map((k) => cnt[k]).join(), '21,21,6,7,9', 'cards per star');
 });
 t('shop never shows a card above the shop level (20 AI matches, every roll), and the upgraded board follows the level', () => {
   for (let s = 1; s <= 20; s++) {

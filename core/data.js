@@ -137,9 +137,6 @@
   unit('thorn_fox', 'ثعلب الأشواك', 'Thorn Fox', 'sylvan', 'fighter', 1, 70,
     { type: 'stunStrike', name: 'وخزة شائكة', dmg: [140, 240, 410], stun: [1.3, 1.5, 1.8],
       text: 'يضرب الهدف ويوقفه لحظات.' });
-  unit('willow_eye', 'عين الصفصاف', 'Willow Eye', 'sylvan', 'marksman', 2, 80,
-    { type: 'multishot', name: 'وابل الأوراق', dmg: [130, 220, 380], count: 3,
-      text: 'ترمي ثلاثة سهام على أقرب ثلاثة أعداء.' });
   unit('root_shaman', 'شامان الجذور', 'Root Shaman', 'sylvan', 'mage', 3, 90,
     { type: 'stunAoe', name: 'قبضة الجذور', dmg: [220, 370, 650], stun: [1.2, 1.5, 2], radius: 1.6,
       text: 'جذور تمسك الأعداء في المنطقة وتضرّهم.' });
@@ -201,12 +198,6 @@
       text: 'يحرق الهدف ويضره كل ثانية لمدة 4 ثواني.' });
 
   // ---- new roster: Neon-9
-  unit('gantetsu', 'غانتيتسو', 'Gantetsu', 'neon', 'guardian', 2, 80,
-    { type: 'shieldSelf', name: 'جلد الحجر', shield: [460, 740, 1200],
-      text: 'ياخذ درع قوي.' });
-  unit('tetsuya', 'تيتسويا', 'Tetsuya', 'neon', 'guardian', 1, 90,
-    { type: 'taunt', name: 'تحدّي الفولاذ', shield: [200, 350, 600], radius: 2.2, dur: 3,
-      text: 'يخلّي الأعداء القريبين منه يهجمون عليه هو، ويجيه درع.' });
   unit('reiji', 'ريجي', 'Reiji', 'neon', 'mage', 2, 90,
     { type: 'aoe', name: 'ختم الرموز', dmg: [280, 460, 780], radius: 1.6,
       text: 'انفجار يضرب المنطقة حول الهدف.' });
@@ -225,9 +216,6 @@
   unit('yozora', 'يوزورا', 'Yozora', 'neon', 'support', 3, 70,
     { type: 'healAll', name: 'مطر النجوم', heal: [215, 360, 640],
       text: 'يعالج كل الفريق.' });
-  unit('nagi', 'ناغي', 'Nagi', 'neon', 'assassin', 1, 60,
-    { type: 'nuke', name: 'خنجرا الظلام', dmg: [150, 260, 450],
-      text: 'طعنة سريعة بضرر عالي على الهدف.' });
 
   // ---- new roster: Emberreach
   unit('goka', 'غوكا', 'Goka', 'ember', 'fighter', 3, 70,
@@ -236,9 +224,6 @@
   unit('ryuji', 'ريوجي', 'Ryuji', 'ember', 'fighter', 1, 70,
     { type: 'stunStrike', name: 'قبضة الجمر', dmg: [140, 240, 410], stun: [1.3, 1.5, 1.8],
       text: 'يضرب الهدف ويوقفه لحظات.' });
-  unit('akane', 'أكاني', 'Akane', 'ember', 'assassin', 2, 60,
-    { type: 'nuke', name: 'نصلا اللهب', dmg: [180, 310, 540],
-      text: 'طعنة سريعة بضرر عالي على الهدف.' });
   unit('natsuki', 'ناتسوكي', 'Natsuki', 'ember', 'mage', 2, 80,
     { type: 'aoe', name: 'موجة الحمم', dmg: [280, 460, 780], radius: 1.6,
       text: 'انفجار يضرب المنطقة حول الهدف.' });
@@ -310,8 +295,8 @@
    * and ~7% less base power to pay for it. Text is added to the skill description automatically.
    */
   const TWISTS = {
-    daigo: 'thorns', tetsuya: 'chill', kinoko: 'haste', mitsuki: 'barrier', tsubaki: 'cleanse', tomoe: 'thorns', ibara: 'sunder',
-    kagemaru: 'bleed', nagi: 'slow', mizuki: 'vampiric', kota: 'sunder', kaminari: 'rally', ryuji: 'bleed',
+    daigo: 'thorns', kinoko: 'haste', mitsuki: 'barrier', tsubaki: 'cleanse', tomoe: 'thorns', ibara: 'sunder',
+    kagemaru: 'bleed', mizuki: 'vampiric', kota: 'sunder', kaminari: 'rally', ryuji: 'bleed',
     kogetsu: 'sunder', goka: 'rally', ryujin: 'vampiric', mugen: 'slow', juzo: 'bleed', momo: 'bolster',
     reiji: 'bleed', natsuki: 'sunder', haruka: 'charge', yozora: 'barrier', otohime: 'bolster', kodama: 'cleanse',
     yuta: 'slow', godo: 'wall', daikai: 'bash',

@@ -326,9 +326,6 @@
   unit('thorn_fox', 'ثعلب الأشواك', 'Thorn Fox', 'sylvan', 'fighter', 1, 70,
     { type: 'stunStrike', name: 'وخزة شائكة', dmg: [140, 240, 410], stun: [1.3, 1.5, 1.8],
       text: 'يضرب الهدف ويوقفه لحظات.' });
-  unit('willow_eye', 'عين الصفصاف', 'Willow Eye', 'sylvan', 'marksman', 2, 80,
-    { type: 'multishot', name: 'وابل الأوراق', dmg: [130, 220, 380], count: 3,
-      text: 'ترمي ثلاثة سهام على أقرب ثلاثة أعداء.' });
   unit('root_shaman', 'شامان الجذور', 'Root Shaman', 'sylvan', 'mage', 3, 90,
     { type: 'stunAoe', name: 'قبضة الجذور', dmg: [220, 370, 650], stun: [1.2, 1.5, 2], radius: 1.6,
       text: 'جذور تمسك الأعداء في المنطقة وتضرّهم.' });
@@ -390,12 +387,6 @@
       text: 'يحرق الهدف ويضره كل ثانية لمدة 4 ثواني.' });
 
   // ---- new roster: Neon-9
-  unit('gantetsu', 'غانتيتسو', 'Gantetsu', 'neon', 'guardian', 2, 80,
-    { type: 'shieldSelf', name: 'جلد الحجر', shield: [460, 740, 1200],
-      text: 'ياخذ درع قوي.' });
-  unit('tetsuya', 'تيتسويا', 'Tetsuya', 'neon', 'guardian', 1, 90,
-    { type: 'taunt', name: 'تحدّي الفولاذ', shield: [200, 350, 600], radius: 2.2, dur: 3,
-      text: 'يخلّي الأعداء القريبين منه يهجمون عليه هو، ويجيه درع.' });
   unit('reiji', 'ريجي', 'Reiji', 'neon', 'mage', 2, 90,
     { type: 'aoe', name: 'ختم الرموز', dmg: [280, 460, 780], radius: 1.6,
       text: 'انفجار يضرب المنطقة حول الهدف.' });
@@ -414,9 +405,6 @@
   unit('yozora', 'يوزورا', 'Yozora', 'neon', 'support', 3, 70,
     { type: 'healAll', name: 'مطر النجوم', heal: [215, 360, 640],
       text: 'يعالج كل الفريق.' });
-  unit('nagi', 'ناغي', 'Nagi', 'neon', 'assassin', 1, 60,
-    { type: 'nuke', name: 'خنجرا الظلام', dmg: [150, 260, 450],
-      text: 'طعنة سريعة بضرر عالي على الهدف.' });
 
   // ---- new roster: Emberreach
   unit('goka', 'غوكا', 'Goka', 'ember', 'fighter', 3, 70,
@@ -425,9 +413,6 @@
   unit('ryuji', 'ريوجي', 'Ryuji', 'ember', 'fighter', 1, 70,
     { type: 'stunStrike', name: 'قبضة الجمر', dmg: [140, 240, 410], stun: [1.3, 1.5, 1.8],
       text: 'يضرب الهدف ويوقفه لحظات.' });
-  unit('akane', 'أكاني', 'Akane', 'ember', 'assassin', 2, 60,
-    { type: 'nuke', name: 'نصلا اللهب', dmg: [180, 310, 540],
-      text: 'طعنة سريعة بضرر عالي على الهدف.' });
   unit('natsuki', 'ناتسوكي', 'Natsuki', 'ember', 'mage', 2, 80,
     { type: 'aoe', name: 'موجة الحمم', dmg: [280, 460, 780], radius: 1.6,
       text: 'انفجار يضرب المنطقة حول الهدف.' });
@@ -499,8 +484,8 @@
    * and ~7% less base power to pay for it. Text is added to the skill description automatically.
    */
   const TWISTS = {
-    daigo: 'thorns', tetsuya: 'chill', kinoko: 'haste', mitsuki: 'barrier', tsubaki: 'cleanse', tomoe: 'thorns', ibara: 'sunder',
-    kagemaru: 'bleed', nagi: 'slow', mizuki: 'vampiric', kota: 'sunder', kaminari: 'rally', ryuji: 'bleed',
+    daigo: 'thorns', kinoko: 'haste', mitsuki: 'barrier', tsubaki: 'cleanse', tomoe: 'thorns', ibara: 'sunder',
+    kagemaru: 'bleed', mizuki: 'vampiric', kota: 'sunder', kaminari: 'rally', ryuji: 'bleed',
     kogetsu: 'sunder', goka: 'rally', ryujin: 'vampiric', mugen: 'slow', juzo: 'bleed', momo: 'bolster',
     reiji: 'bleed', natsuki: 'sunder', haruka: 'charge', yozora: 'barrier', otohime: 'bolster', kodama: 'cleanse',
     yuta: 'slow', godo: 'wall', daikai: 'bash',
@@ -3245,7 +3230,7 @@
     L('l2', 'tide', 'merin', 'سواحل المدّ القمري', { gold: 8, level: 3 }, [
       F('l2f1', 'حرس المرجان', 2.32, [['coral_sentinel', 1, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['wave_caller', 1, 'b1', 1], ['pixel_sniper', 1, 'b2', 2]]),
       F('l2f2', 'سيوف القمر', 1.82, [['coral_sentinel', 1, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['lunar_blade', 1, 'f3', 2], ['wave_caller', 1, 'b1', 1], ['mist_witch', 1, 'b2', 3]]),
-      F('l2f3', 'ضباب الساحرات', 1.28, [['coral_sentinel', 2, 'f1', 1], ['moss_warden', 1, 'f2', 1], ['mist_witch', 1, 'b1', 1], ['wave_caller', 1, 'b2', 1], ['willow_eye', 1, 'b3', 2]]),
+      F('l2f3', 'ضباب الساحرات', 1.28, [['coral_sentinel', 2, 'f1', 1], ['moss_warden', 1, 'f2', 1], ['mist_witch', 1, 'b1', 1], ['wave_caller', 1, 'b2', 1], ['kazehaya', 1, 'b3', 2]]),
       F('l2f4', 'موجة المدّ', 1.12, [['coral_sentinel', 2, 'f1', 1], ['lunar_blade', 2, 'f2', 1], ['thorn_fox', 1, 'f3', 1], ['mist_witch', 1, 'b1', 1], ['wave_caller', 1, 'b2', 2], ['pixel_sniper', 1, 'b3', 3]]),
       F('l2boss', 'الزعيم: ميران', 1.05, [['coral_sentinel', 2, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['wave_caller', 1, 'b0', 1], ['mist_witch', 1, 'b2', 1], ['tide_priest', 1, 'b3', 2], ['coral_sentinel', 2, 'f0', 4], ['lunar_blade', 2, 'f3', 6]], { boss: true }),
     ]),
@@ -3257,18 +3242,18 @@
       F('l3boss', 'الزعيم: زيرو-كاي', 0.85, [['firewall_unit', 2, 'f1', 1], ['chrome_ronin', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 2, 'b0', 1], ['spectral_coder', 1, 'b2', 2], ['pixel_sniper', 2, 'b3', 4], ['firewall_unit', 2, 'f0', 6]], { boss: true }),
     ]),
     L('l4', 'sylvan', 'orath', 'قلب الغابة الأزلية', { gold: 12, level: 4 }, [
-      F('l4f1', 'ثعالب الأشواك', 1.71, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['thorn_fox', 1, 'f3', 1], ['willow_eye', 1, 'b1', 1], ['wave_caller', 1, 'b2', 1], ['root_shaman', 1, 'b3', 3]]),
-      F('l4f2', 'عيون الصفصاف', 0.99, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['coral_sentinel', 2, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['willow_eye', 1, 'b2', 1], ['spectral_coder', 1, 'b3', 2]]),
-      F('l4f3', 'المتربّص', 1.15, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['wave_caller', 2, 'b3', 2]]),
-      F('l4f4', 'شامان الجذور', 1.01, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['firewall_unit', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['tide_priest', 1, 'b3', 3]]),
-      F('l4boss', 'الزعيم: أوراث', 0.85, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b0', 1], ['root_shaman', 2, 'b2', 1], ['tide_priest', 1, 'b3', 2], ['wild_stalker', 2, 'f2', 5]], { boss: true }),
+      F('l4f1', 'ثعالب الأشواك', 1.71, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['thorn_fox', 1, 'f3', 1], ['kazehaya', 1, 'b1', 1], ['wave_caller', 1, 'b2', 1], ['root_shaman', 1, 'b3', 3]]),
+      F('l4f2', 'عيون الصفصاف', 0.99, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['coral_sentinel', 2, 'f3', 1], ['kazehaya', 2, 'b1', 1], ['kazehaya', 1, 'b2', 1], ['spectral_coder', 1, 'b3', 2]]),
+      F('l4f3', 'المتربّص', 1.15, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['kazehaya', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['wave_caller', 2, 'b3', 2]]),
+      F('l4f4', 'شامان الجذور', 1.01, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['firewall_unit', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['kazehaya', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['tide_priest', 1, 'b3', 3]]),
+      F('l4boss', 'الزعيم: أوراث', 0.85, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['wild_stalker', 1, 'f3', 1], ['kazehaya', 2, 'b0', 1], ['root_shaman', 2, 'b2', 1], ['tide_priest', 1, 'b3', 2], ['wild_stalker', 2, 'f2', 5]], { boss: true }),
     ]),
     L('l5', 'ember', 'rika', 'أتون الملكة', { gold: 12, level: 4 }, [
       F('l5f1', 'عمّال المطارق', 1.49, [['goka', 1, 'f1', 1], ['forge_bulwark', 2, 'f2', 1], ['ash_ronin', 2, 'f0', 1], ['pyre_archer', 1, 'b2', 1], ['natsuki', 1, 'b0', 2]]),
-      F('l5f2', 'حرس السندان', 1.23, [['kurenai', 1, 'f1', 1], ['godo', 2, 'f2', 1], ['akane', 1, 'b3', 2], ['pyre_archer', 2, 'b1', 1], ['momo', 1, 'b2', 1]]),
+      F('l5f2', 'حرس السندان', 1.23, [['kurenai', 1, 'f1', 1], ['godo', 2, 'f2', 1], ['spark_wraith', 1, 'b3', 2], ['pyre_archer', 2, 'b1', 1], ['momo', 1, 'b2', 1]]),
       F('l5f3', 'قنّاصة الجمر', 1.14, [['forge_bulwark', 2, 'f1', 1], ['goka', 1, 'f2', 1], ['yuta', 2, 'b0', 1], ['pyre_archer', 2, 'b1', 1], ['caldera_seer', 1, 'b2', 2], ['tsubaki', 2, 'b3', 1]]),
       F('l5f4', 'مصهر الأتون', 0.72, [['kurenai', 2, 'f1', 1], ['goka', 2, 'f2', 1], ['godo', 2, 'f3', 1], ['natsuki', 2, 'b1', 1], ['caldera_seer', 1, 'b2', 1], ['spark_wraith', 2, 'b3', 2]]),
-      F('l5boss', 'الزعيمة: ريكا', 0.61, [['kurenai', 2, 'f1', 1], ['goka', 2, 'f2', 1], ['godo', 2, 'f0', 1], ['caldera_seer', 2, 'b0', 1], ['momo', 2, 'b2', 2], ['akane', 2, 'b3', 4], ['natsuki', 2, 'f3', 6]], { boss: true }),
+      F('l5boss', 'الزعيمة: ريكا', 0.61, [['kurenai', 2, 'f1', 1], ['goka', 2, 'f2', 1], ['godo', 2, 'f0', 1], ['caldera_seer', 2, 'b0', 1], ['momo', 2, 'b2', 2], ['spark_wraith', 2, 'b3', 4], ['natsuki', 2, 'f3', 6]], { boss: true }),
     ]),
     L('l6', 'tide', 'kairyu', 'عاصفة القبطان', { gold: 12, level: 4 }, [
       F('l6f1', 'بحّارة العاصفة', 1.14, [['coral_sentinel', 2, 'f1', 1], ['ryujin', 1, 'f2', 1], ['tomoe', 2, 'f0', 1], ['kota', 2, 'b1', 1], ['wave_caller', 2, 'b2', 1]]),
@@ -3278,11 +3263,11 @@
       F('l6boss', 'الزعيم: كايريو', 0.65, [['daikai', 2, 'f1', 1], ['ryujin', 2, 'f2', 1], ['seiji', 2, 'f0', 1], ['haruka', 2, 'b0', 1], ['otohime', 1, 'b2', 2], ['mizuki', 2, 'b3', 4], ['lunar_blade', 2, 'f3', 6]], { boss: true }),
     ]),
     L('l7', 'neon', 'nayako', 'مسرح الشبكة', { gold: 14, level: 4 }, [
-      F('l7f1', 'جمهور الهولوغرام', 1.14, [['firewall_unit', 2, 'f1', 1], ['juzo', 2, 'f2', 1], ['gantetsu', 2, 'f0', 1], ['pixel_sniper', 2, 'b1', 1], ['mitsuki', 2, 'b2', 1]]),
-      F('l7f2', 'كلاب الخوادم', 1.19, [['kogetsu', 1, 'f1', 1], ['tetsuya', 2, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['reiji', 2, 'b0', 1], ['spectral_coder', 2, 'b2', 1], ['nagi', 2, 'b3', 2]]),
-      F('l7f3', 'عازفو البكسل', 1.1, [['chrome_ronin', 1, 'f1', 1], ['gantetsu', 2, 'f2', 1], ['firewall_unit', 2, 'f3', 1], ['mugen', 1, 'b1', 1], ['pixel_sniper', 2, 'b2', 1], ['yozora', 1, 'b3', 2]]),
+      F('l7f1', 'جمهور الهولوغرام', 1.14, [['firewall_unit', 2, 'f1', 1], ['juzo', 2, 'f2', 1], ['firewall_unit', 2, 'f0', 1], ['pixel_sniper', 2, 'b1', 1], ['mitsuki', 2, 'b2', 1]]),
+      F('l7f2', 'كلاب الخوادم', 1.19, [['kogetsu', 1, 'f1', 1], ['firewall_unit', 2, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['reiji', 2, 'b0', 1], ['spectral_coder', 2, 'b2', 1], ['grid_hound', 2, 'b3', 2]]),
+      F('l7f3', 'عازفو البكسل', 1.1, [['chrome_ronin', 1, 'f1', 1], ['firewall_unit', 2, 'f2', 1], ['firewall_unit', 2, 'f3', 1], ['mugen', 1, 'b1', 1], ['pixel_sniper', 2, 'b2', 1], ['yozora', 1, 'b3', 2]]),
       F('l7f4', 'قلب الشبكة', 0.94, [['kogetsu', 2, 'f1', 1], ['chrome_ronin', 2, 'f2', 1], ['firewall_unit', 2, 'f0', 1], ['mugen', 2, 'b1', 1], ['spectral_coder', 2, 'b2', 1], ['reiji', 2, 'b3', 2]]),
-      F('l7boss', 'الزعيمة: ناياكو', 0.69, [['kogetsu', 2, 'f1', 1], ['chrome_ronin', 2, 'f2', 1], ['gantetsu', 2, 'f0', 1], ['mugen', 2, 'b0', 1], ['yozora', 2, 'b2', 2], ['nagi', 2, 'b3', 4], ['juzo', 2, 'f3', 6]], { boss: true }),
+      F('l7boss', 'الزعيمة: ناياكو', 0.69, [['kogetsu', 2, 'f1', 1], ['chrome_ronin', 2, 'f2', 1], ['firewall_unit', 2, 'f0', 1], ['mugen', 2, 'b0', 1], ['yozora', 2, 'b2', 2], ['grid_hound', 2, 'b3', 4], ['juzo', 2, 'f3', 6]], { boss: true }),
     ]),
     L('l8', 'sylvan', 'thora', 'عرين الدب الأزلي', { gold: 14, level: 5 }, [
       F('l8f1', 'صيّادو اللحاء', 1.26, [['taiju', 1, 'f1', 1], ['kashiwagi', 1, 'f2', 1], ['genzo', 2, 'f0', 1], ['kazehaya', 2, 'b1', 1], ['yoshino', 2, 'b2', 1]]),
@@ -4380,7 +4365,7 @@
     5: mk('perk', 'prep5', { sec: 5 }), 6: mk('arena', 'gambler', { shards: 40 }), 7: mk('avatar', 'mitsuki'), 8: mk('title', 't_junior'),
     9: mk('frame', 'silver', { shards: 40 }), 10: mk('arena', 'temple'), 11: mk('avatar', 'kinoko'), 12: mk('fx', 'petals', { shards: 50 }),
     13: mk('arena', 'stardust'), 14: mk('avatar', 'mizuki'), 15: mk('perk', 'prep10', { sec: 5 , shards: 50}), 16: mk('frame', 'forest'),
-    17: mk('arena', 'dungeon'), 18: mk('title', 't_stars', { shards: 60 }), 19: mk('avatar', 'akane'), 20: mk('fx', 'goldrain'),
+    17: mk('arena', 'dungeon'), 18: mk('title', 't_stars', { shards: 60 }), 19: mk('avatar', 'hayate'), 20: mk('fx', 'goldrain'),
     21: mk('frame', 'ember', { shards: 60 }), 22: mk('title', 't_stages'), 23: mk('avatar', 'miyuki'), 24: mk('arena', 'forge', { shards: 70 }),
     25: mk('fx', 'lightning'), 26: mk('fx', 'inferno'), 27: mk('frame', 'gold', { shards: 70 }), 28: mk('arena', 'warmap'),
     29: mk('arena', 'riftgold'), 30: mk('avatar', 'rika', { big: true , shards: 80}),
@@ -4391,7 +4376,7 @@
     11: mk('avatar', 'yozora'), 12: mk('fx', 'violet'), 13: mk('title', 't_finale'), 14: mk('avatar', 'kurenai'), 15: mk('avatar', 'shirayuki'),
     16: mk('frame', 'aurora'), 17: mk('arena', 'storm'), 18: mk('avatar', 'ryujin'), 19: mk('fx', 'crystal'), 20: mk('avatar', 'zerokai', { big: true }),
     21: mk('avatar', 'juzo'), 22: mk('arena', 'frost'), 23: mk('avatar', 'natsuki'), 24: mk('title', 't_legend'), 25: mk('avatar', 'seiji'),
-    26: mk('avatar', 'ibara'), 27: mk('avatar', 'tetsuya'), 28: mk('title', 't_rift'), 29: mk('avatar', 'ryuji'), 30: mk('avatar', 'orath', { big: true }),
+    26: mk('avatar', 'ibara'), 27: mk('avatar', 'thorn_fox'), 28: mk('title', 't_rift'), 29: mk('avatar', 'ryuji'), 30: mk('avatar', 'orath', { big: true }),
   };
 
   function rewardName(r) {
@@ -4593,15 +4578,14 @@
 
 ;
 /* core/meta.js */
-/* generated by tools/meta-snapshot.js on 2026-11-09: AI-vs-AI win rates (hero: 1000 games x2 seeds; synergy: 1500 games x2 seeds) */
-(function () { globalThis.AMB = globalThis.AMB || {}; AMB.META = {"date":"2026-11-09","heroes":{"nayako":52,"kairyu":52.8,"kagira":49.9,"thora":50.7,"orath":50.7,"zerokai":49.3,"merin":49,"rika":48.4},"synergies":{"marksman":54.7,"guardian":51,"neon":51.1,"mage":51.9,"assassin":50.6,"convergence":49.8,"tide":50.2,"sylvan":48.6,"support":46.4,"ember":46.9,"fighter":46.4}}; })();
+/* generated by tools/meta-snapshot.js on 2026-11-10: AI-vs-AI win rates (hero: 1000 games x2 seeds; synergy: 1500 games x2 seeds) */
+(function () { globalThis.AMB = globalThis.AMB || {}; AMB.META = {"date":"2026-11-10","heroes":{"zerokai":59.2,"kagira":52.2,"kairyu":52.8,"rika":51,"orath":48.7,"nayako":46.2,"merin":48.2,"thora":44.8},"synergies":{"mage":53.2,"neon":51.1,"guardian":51,"marksman":51.7,"convergence":50.1,"ember":49.2,"fighter":48.9,"tide":49.6,"sylvan":49.4,"assassin":47,"support":47.7}}; })();
 
 ;
 /* assets/characters/manifest.js */
 /* Generated by tools/scan-images.js — maps character id -> image file. Empty = built-in SVG art is used. */
 globalThis.AMB = globalThis.AMB || {};
 AMB.IMAGES = {
-  "akane": "assets/characters/akane.bbf0a43d84.jpg",
   "ash_ronin": "assets/characters/ash_ronin.b91304d25a.jpg",
   "caldera_seer": "assets/characters/caldera_seer.8efcbc0994.jpg",
   "chrome_ronin": "assets/characters/chrome_ronin.91da853ee1.jpg",
@@ -4610,7 +4594,6 @@ AMB.IMAGES = {
   "daikai": "assets/characters/daikai.e1c7f0112b.webp",
   "firewall_unit": "assets/characters/firewall_unit.2394f02d73.jpg",
   "forge_bulwark": "assets/characters/forge_bulwark.39dc9480d6.jpg",
-  "gantetsu": "assets/characters/gantetsu.8bc4bab926.jpg",
   "gensai": "assets/characters/gensai.408f19856a.webp",
   "genzo": "assets/characters/genzo.1f7f86d06c.webp",
   "godo": "assets/characters/godo.3fe19dfc28.jpg",
@@ -4644,7 +4627,6 @@ AMB.IMAGES = {
   "momo": "assets/characters/momo.b3e2674318.jpg",
   "moss_warden": "assets/characters/moss_warden.e168290347.jpg",
   "mugen": "assets/characters/mugen.14f10aad71.jpg",
-  "nagi": "assets/characters/nagi.a536de25cb.jpg",
   "natsuki": "assets/characters/natsuki.dc70bd05f2.jpg",
   "nayako": "assets/characters/nayako.a5739a8a64.webp",
   "orath": "assets/characters/orath.6416dc3076.jpg",
@@ -4664,7 +4646,6 @@ AMB.IMAGES = {
   "spectral_coder": "assets/characters/spectral_coder.6e74c78da5.jpg",
   "taiju": "assets/characters/taiju.83b72a2264.webp",
   "takashi": "assets/characters/takashi.6919365abc.webp",
-  "tetsuya": "assets/characters/tetsuya.df0f387efe.jpg",
   "thora": "assets/characters/thora.901bdb8770.webp",
   "thorn_fox": "assets/characters/thorn_fox.5596e5dee5.jpg",
   "tide_priest": "assets/characters/tide_priest.d374228355.jpg",
@@ -4673,7 +4654,6 @@ AMB.IMAGES = {
   "wakaba": "assets/characters/wakaba.3a96f9a22b.webp",
   "wave_caller": "assets/characters/wave_caller.10d7340319.jpg",
   "wild_stalker": "assets/characters/wild_stalker.a68ac5344e.jpg",
-  "willow_eye": "assets/characters/willow_eye.8664842b97.jpg",
   "yoshino": "assets/characters/yoshino.d1b870251e.webp",
   "yozora": "assets/characters/yozora.b0d62df4b3.jpg",
   "yuta": "assets/characters/yuta.fb57d5b062.jpg",
@@ -4731,7 +4711,6 @@ AMB.IMAGES = {
     // ---- Elder Grove
     moss_warden: S({ skin: '#8d5a3b', hair: '#4a7a2a', hs: 'hood', eye: '#d8ff6a', eyeStyle: 'narrow', brow: 'calm', mouth: 'calm', outfit: '#3a4a2a', trim: '#8ccf5a', collar: 'armor', extra: ['leaves'], prop: 'shield' }),
     thorn_fox: S({ hair: '#e8832a', hs: 'wild', eye: '#ffd24a', outfit: '#3a5a2a', trim: '#8ccf5a', extra: ['foxears', 'markings'], prop: 'daggers' }),
-    willow_eye: S({ skin: '#e8b98f', hair: '#6aa84a', hs: 'long', eye: '#e8ff8a', brow: 'calm', mouth: 'calm', outfit: '#2a4a2a', trim: '#b8e07a', collar: 'scarf', extra: ['leaves'], prop: 'bow' }),
     root_shaman: S({ skin: '#c98e63', hair: '#2a1a10', hs: 'long', eye: '#9cff6a', eyeStyle: 'glow', brow: 'calm', mouth: 'calm', outfit: '#4a2a1a', trim: '#6bd07a', collar: 'robe', extra: ['antlers', 'markings'], prop: 'staff', top: 'leaf' }),
     wild_stalker: S({ skin: '#c98e63', hair: '#1f4a22', hs: 'wild', eye: '#ffee55', eyeStyle: 'glow', outfit: '#2a3a1a', trim: '#8ccf5a', extra: ['mask', 'scar'], prop: 'daggers', mouth: 'none' }),
   };
