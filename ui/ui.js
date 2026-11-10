@@ -1079,6 +1079,23 @@
     return cardHTML(HEROES[p.heroId], { size: 'mini', life: lifeStr(p.life), sel, k: 'hb', attrs: `draggable="true" data-drag="hero" title="البطل ${esc(HEROES[p.heroId].name)} — في الساحة"` });
   }
 
+  // a bench unit shows its real numbers (with card level power) so you can judge it before putting it on the field
+  function benchStats(u) {
+    const d = UNITS[u.defId], p = me(), st = cardStats(d, u.star), pw = (p.cardPower && p.cardPower[u.defId]) || 1;
+    return `<span class="bm-n"><b class="a">${Math.round(st.atk * pw)}</b><b class="h">${Math.round(st.hp * pw)}</b></span>`;
+  }
+  // after a purchase the unit goes straight to the field when there is room (its own role's slot first); nothing to hunt for
+  function autoPlace(uid) {
+    const m = S.match, p = me(); if (!m || m.boardCount(p) >= m.boardCap(p)) return false;
+    const u = m.findUnit(p, uid); if (!u || m.players[S.v].bench.indexOf(u) < 0) return false;
+    const role = UNITS[u.defId].role, side = ROLES[role].side;
+    const FR = ['f1', 'f2', 'f0', 'f3'], BK = ['b1', 'b2', 'b0', 'b3'], free = (x) => !p.board[x] && !(p.summoned && p.heroSlot === x);
+    const own = Object.keys(AMB.DATA.SLOT_ROLES).filter((x) => AMB.DATA.SLOT_ROLES[x].includes(role) && free(x));
+    const fc = Object.keys(p.board).filter((x) => x[0] === 'f').length, bc = Object.keys(p.board).length - fc;
+    const order = side === 'front' ? FR.concat(BK) : side === 'back' ? BK.concat(FR) : (fc <= bc ? FR.concat(BK) : BK.concat(FR));
+    const slot = own[0] || order.find(free); if (!slot) return false;
+    return m.move(S.v, uid, { zone: 'board', slot }).ok;
+  }
   function renderBench() {
     const p = me();
     const lbl = `<span class="lbl">${icon('box')}</span>`;
@@ -1087,7 +1104,7 @@
       return;
     }
     $('bench').innerHTML = lbl + p.bench.map((u, i) =>
-      `<div class="bslot" data-act="bench" data-idx="${i}" data-drop="bench:${i}">${u ? `<span class="bmed ${S.sel && S.sel.kind === 'unit' && S.sel.uid === u.uid ? 'sel' : ''}" draggable="true" data-drag="unit:${u.uid}" title="${esc(UNITS[u.defId].name)}">${portrait(UNITS[u.defId], { bare: true, k: 'bm' + u.uid })}<i class="bm-st">${'★'.repeat(u.star)}</i></span>` + pieceHTML(u, { sel: S.sel && S.sel.kind === 'unit' && S.sel.uid === u.uid }) : ''}</div>`).join('');
+      `<div class="bslot" data-act="bench" data-idx="${i}" data-drop="bench:${i}">${u ? `<span class="bmed ${S.sel && S.sel.kind === 'unit' && S.sel.uid === u.uid ? 'sel' : ''}" draggable="true" data-drag="unit:${u.uid}" title="${esc(UNITS[u.defId].name)}">${portrait(UNITS[u.defId], { bare: true, k: 'bm' + u.uid })}<i class="bm-st">${'★'.repeat(u.star)}</i></span>${benchStats(u)}` + pieceHTML(u, { sel: S.sel && S.sel.kind === 'unit' && S.sel.uid === u.uid }) : ''}</div>`).join('');
   }
 
   function renderShop() {
@@ -1164,7 +1181,7 @@
       // the drawer never covers the dock and leaves a strip of the arena visible; the cards shrink to fit two rows in whatever height is left
       const drawerH = Math.max(260, Math.min(Math.round(vh * 0.62), vh - dockH - 110));
       sm.style.setProperty('--drawerH', drawerH + 'px');
-      const cardH = (drawerH - 30 - 78 - 40) / 2, cardW = Math.min((innerWidth - 52) / 3, 150, cardH * 507 / 793);
+      const cardH = (drawerH - 30 - 78 - 74) / 2, cardW = Math.min((innerWidth - 52) / 3, 150, cardH * 507 / 793);
       sm.style.setProperty('--scw', Math.max(64, Math.floor(cardW)) + 'px');
       if (dr) dr.dataset.fit = '1';
     });
@@ -1695,6 +1712,7 @@
           mergeFx(r.merged[r.merged.length - 1].uid, r.merged);
         } else {
           S.pop = { uid: r.unit.uid };
+          if (S.mode !== 'tutorial' && autoPlace(r.unit.uid)) { if (!S._autoHint) { S._autoHint = 1; toast('نزلت الوحدة الساحة تلقائي. اسحبها أو اضغطها لتغيير مكانها', 'good'); } }
           const have = m0.allUnits(m0.players[S.v]).filter((x) => x.defId === r.unit.defId && x.star === 1).length;
           if (have === 2) toast(`عندك نسختين من «${UNITS[r.unit.defId].name}»: اشتر ثالثة وتتطور ★ لحالها`, 'good');
         }
