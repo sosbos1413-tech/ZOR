@@ -3114,3 +3114,22 @@ body.reduce-motion .lv-flash, body.reduce-motion .merge-flash, body.reduce-motio
   .fr4 .fr4-pw, .fr4 .fr4-st { font-size: 8.4cqw; }
   #scr-match.prep-focus .sc .sc-info { right: 20%; }
 }
+
+/* ===== frame v7: the window is exactly square (frame re-cut), so the square portrait fills it edge to edge: nothing cropped, no filler ===== */
+@media (max-width: 860px) and (orientation: portrait) {
+  #scr-match.prep-focus .field .cell { aspect-ratio: 1; }
+  .tcard.hc.cv3.mini.fr4 { aspect-ratio: 1; }
+  #scr-match.prep-focus .sd-cards .sc { aspect-ratio: 1; }
+  .tcard.hc.cv3.mini.fr4 .hc-art, #scr-match.prep-focus .sc .sc-art { left: 7.9%; right: 15.5%; top: 8.65%; bottom: 14.5%; border-radius: 7%; background: #120b26; }
+  .tcard.hc.cv3.mini.fr4 .hc-art::before, #scr-match.prep-focus .sc .sc-art::before { display: none; }
+  .tcard.hc.cv3.mini.fr4 .hc-art svg.portrait, #scr-match.prep-focus .sc .sc-art svg.portrait { top: 0; left: 0; transform: none; width: 100%; height: 100%; aspect-ratio: auto; }
+  .fr4 .fr4-pw, #scr-match.prep-focus .sc .sc-pw { left: 6.65%; width: 29.1%; }
+  .tcard.hc.cv3.mini.fr4 .hc-hp, #scr-match.prep-focus .sc .sc-hp { left: 7.2%; width: 35%; }
+  .tcard.hc.cv3.mini.fr4 .hc-atk, #scr-match.prep-focus .sc .sc-atk { left: 46.9%; width: 35.6%; }
+  .fr4 .fr4-role, #scr-match.prep-focus .sc .sc-role { left: 91.8%; width: 8.5%; }
+  .fr4 .fr4-st, #scr-match.prep-focus .sc .sc-cost { left: 91.8%; width: 9.1%; }
+  .fr4 .fr4-rar { left: 85.6%; right: 1.2%; font-size: 5.6cqw; }
+  .tcard.hc.cv3.mini.fr4 .hc-hp b, .tcard.hc.cv3.mini.fr4 .hc-atk b { font-size: 8cqw; line-height: 1; } .tcard.hc.cv3.mini.fr4 .hc-hp b.sm, .tcard.hc.cv3.mini.fr4 .hc-atk b.sm { font-size: 7cqw; }
+  .fr4 .fr4-pw, .fr4 .fr4-st { font-size: 7.4cqw; line-height: 1; }
+  #scr-match.prep-focus .sc .sc-info { right: 17%; top: 10%; }
+}
