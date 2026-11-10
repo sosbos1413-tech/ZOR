@@ -1184,8 +1184,8 @@
           <button class="sd-btn up ${!maxed && p.gold >= upC ? 'can' : ''}" data-act="xp" ${maxed ? 'disabled' : ''} aria-label="ترقية المتجر">${icon('up')}${maxed ? '' : `<b>${upC}</b>`}</button>
           <div class="sd-title"><b>المتجر</b><span class="sd-lv">مستوى ${p.level}</span><span class="sd-stars">${'◆'.repeat(p.level)}<i>${'◇'.repeat(E.maxLevel - p.level)}</i></span></div>
           <div class="sd-items">${p.itemShop.map((id, i) => id ? `<button class="sd-eq ${p.gold >= ITEMS[id].cost ? '' : 'cant'}" data-act="buyItem" data-idx="${i}" title="${esc(ITEMS[id].name)}: ${esc(ITEMS[id].text)}">${icon(ITEMS[id].icon)}<b>${ITEMS[id].cost}</b></button>` : '<span class="sd-eq empty"></span>').join('')}</div>
-          <button class="sd-btn ${p.shopLocked ? 'on' : ''}" data-act="lock" aria-label="تثبيت المتجر">${icon(p.shopLocked ? 'lock' : 'unlock')}</button>
-          <button class="sd-btn" data-act="reroll" aria-label="تحديث المتجر">${icon('refresh')}<b>${rCost}</b></button>
+          <button class="sd-btn lk ${p.shopLocked ? 'on' : ''}" data-act="lock" aria-label="تثبيت المتجر">${icon(p.shopLocked ? 'lock' : 'unlock')}</button>
+          <button class="sd-btn rr" data-act="reroll" aria-label="تحديث المتجر">${icon('refresh')}<b>${rCost}</b></button>
         </div>
         <div class="sd-cards">${bigCards}</div>
       </div>`;
