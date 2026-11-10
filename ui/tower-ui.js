@@ -31,7 +31,7 @@
     if (!TW.unlocked()) { root.innerHTML = `<div class="cam-note">🔒 البرج يفتح بعد ما تخلّص <b>المستوى الأول من الحملة</b> (${CAM.progress('l1').cleared}/${CAM.progress('l1').total}).</div>`; return; }
     const best = TW.best(), N = TW.floors();
     const floors = []; for (let n = N; n >= 1; n--) floors.push(row(n));
-    root.innerHTML = `<div class="tw-head"><div class="tw-best"><small>أعلى طابق</small><b>${best}</b><span>/ ${N}</span></div>
+    root.innerHTML = `<div class="tw-head"><div class="tw-best"><small>أعلى طابق</small><b><bdi dir="ltr">${best}</bdi></b><span><bdi dir="ltr">/ ${N}</bdi></span></div>
         <div class="tw-prog"><i style="width:${(100 * best) / N}%"></i></div>
         <div class="hint">${TW.done() ? '🏆 أكملت البرج!' : `الجاي: الطابق ${TW.next()}`} <button class="ibtn" data-act="info" data-k="towinfo" title="شرح">ⓘ</button></div></div>
       <div class="twlist">${floors.join('')}</div>`;
@@ -77,7 +77,7 @@
         <div class="res-hero">${ui.portrait(won ? AMB.DATA.HEROES[m.players[0].heroId] : AMB.DATA.HEROES[L.heroId], { bare: true, k: 'twrh' })}<i class="sheen"></i></div>
         <div class="res-hname">${esc(L.name)}</div></div>
       <div class="res-banner"><h1>${won ? (L.boss ? 'هزمت الزعيم!' : 'فوز!') : 'خسارة'}</h1><p class="hint">النتيجة ${score} · ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')} دقيقة</p>
-        ${won ? `<p class="cam-pay">${r.first ? pay : 'تدريب: بدون جائزة'}</p>${r.first ? `<p class="hint">أعلى طابق: ${r.best} من ${TW.floors()}</p>` : ''}` : '<p class="hint">ما خسرت شي. طوّر بطاقاتك وجرّب نفس الطابق مرة ثانية</p>'}</div>
+        ${won ? `<p class="cam-pay">${r.first ? pay : 'تدريب: بدون جائزة'}</p>${r.first ? `<p class="hint">أعلى طابق: <bdi dir="ltr">${r.best}</bdi> من <bdi dir="ltr">${TW.floors()}</bdi></p>` : ''}` : '<p class="hint">ما خسرت شي. طوّر بطاقاتك وجرّب نفس الطابق مرة ثانية</p>'}</div>
       ${gift}
       <div class="cam-btns">
         ${next ? `<button class="btn primary big" data-act="towGo" data-n="${next}">الطابق التالي ${next}</button>` : ''}

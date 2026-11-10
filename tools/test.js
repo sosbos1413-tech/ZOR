@@ -905,6 +905,13 @@ t('adult #22-#28, senior #39: short match mode, daily quick-match shards cap, wi
   ok(m.buy(0, 0).ok); ok(p0.gold < g0);
   m.restore(0, snap); eq(p0.gold, g0); eq(p0.shop[0], id0); eq(m._pool(p0)[id0], pool0); ok(!p0.bench.some(Boolean), 'bench back to empty');
 });
+t('undo in a progression match (allowed-units Set, scripted lineup) never breaks the next round', () => {
+  const m = new AMB.Match({ mode: 'campaign', seed: 11, progression: true, rules: { maxRounds: 3, winsNeeded: 2, start: { gold: 10, level: 3 } },
+    players: [{ heroId: 'orath', name: 'a', allowedUnits: new Set(Object.keys(AMB.DATA.UNITS).slice(0, 20)) }, { heroId: 'merin', name: 'b', isAI: true }] });
+  m.startRound(); const snap = m.snapshot(0); for (let i = 0; i < 5; i++) if (m.canBuy(0, i).ok) { m.buy(0, i); break; }
+  m.restore(0, snap); ok(m.players[0].allowed instanceof Set, 'the allowed-units Set survives an undo');
+  AMB.AI.prep(m, 1); m.resolveCombat(m.createCombat(false).runToEnd()); if (!m.isOver) m.startRound(); ok(true, 'next round starts');
+});
 t('online safety: a friend cannot send an impossible slot/index or a malformed op (nothing throws, nothing is duplicated)', () => {
   const m = new AMB.Match({ mode: 'online', seed: 5, isolated: true, players: [{ heroId: 'orath', name: 'a' }, { heroId: 'merin', name: 'b' }] });
   m.startRound(); const p = m.players[1]; p.gold = 50;

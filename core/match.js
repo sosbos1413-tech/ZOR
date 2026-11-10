@@ -63,10 +63,12 @@
     _pool(p) { return this.isolated ? p.pool : this.pool; }
 
     /** senior #39: undo. snapshot() before a move, restore() to take it back. Only for moves that use no randomness (a reroll clears the history). */
-    snapshot(pi) { const p = this.players[pi]; return JSON.stringify({ p, pool: this._pool(p), uidN: this._uidN || 0 }); }
+    // fields that are fixed for the whole match (a Set, a random stream, the scripted line-up...) are never snapshotted or restored: JSON would turn a Set into {}
+    static get FIXED() { return ['allowed', 'rng', 'pool', 'lineup', 'cardPower']; }
+    snapshot(pi) { const p = this.players[pi], fixed = Match.FIXED, copy = {}; Object.keys(p).forEach((k) => { if (!fixed.includes(k)) copy[k] = p[k]; }); return JSON.stringify({ p: copy, pool: this._pool(p), uidN: this._uidN || 0 }); }
     restore(pi, snap) {
-      const o = JSON.parse(snap), p = this.players[pi];
-      Object.keys(p).forEach((k) => { if (!(k in o.p)) delete p[k]; }); Object.assign(p, o.p);
+      const o = JSON.parse(snap), p = this.players[pi], fixed = Match.FIXED;
+      Object.keys(p).forEach((k) => { if (!fixed.includes(k) && !(k in o.p)) delete p[k]; }); Object.assign(p, o.p);
       const pool = this._pool(p); Object.keys(pool).forEach((k) => delete pool[k]); Object.assign(pool, o.pool);
       this._uidN = o.uidN; return true;
     }

@@ -1516,10 +1516,12 @@
     _pool(p) { return this.isolated ? p.pool : this.pool; }
 
     /** senior #39: undo. snapshot() before a move, restore() to take it back. Only for moves that use no randomness (a reroll clears the history). */
-    snapshot(pi) { const p = this.players[pi]; return JSON.stringify({ p, pool: this._pool(p), uidN: this._uidN || 0 }); }
+    // fields that are fixed for the whole match (a Set, a random stream, the scripted line-up...) are never snapshotted or restored: JSON would turn a Set into {}
+    static get FIXED() { return ['allowed', 'rng', 'pool', 'lineup', 'cardPower']; }
+    snapshot(pi) { const p = this.players[pi], fixed = Match.FIXED, copy = {}; Object.keys(p).forEach((k) => { if (!fixed.includes(k)) copy[k] = p[k]; }); return JSON.stringify({ p: copy, pool: this._pool(p), uidN: this._uidN || 0 }); }
     restore(pi, snap) {
-      const o = JSON.parse(snap), p = this.players[pi];
-      Object.keys(p).forEach((k) => { if (!(k in o.p)) delete p[k]; }); Object.assign(p, o.p);
+      const o = JSON.parse(snap), p = this.players[pi], fixed = Match.FIXED;
+      Object.keys(p).forEach((k) => { if (!fixed.includes(k) && !(k in o.p)) delete p[k]; }); Object.assign(p, o.p);
       const pool = this._pool(p); Object.keys(pool).forEach((k) => delete pool[k]); Object.assign(pool, o.pool);
       this._uidN = o.uidN; return true;
     }
@@ -7554,7 +7556,9 @@ AMB.IMAGES = {
 
   function chestsHTML() {
     const tot = CAM.totalStars(), max = CAM.maxStars();
-    const items = CAM.chests().map((c) => `<button class="chest ${c.state}" style="--at:${(100 * c.need) / max}%" ${c.state === 'ready' ? `data-act="camChest" data-id="${c.id}"` : 'disabled'} title="${esc(c.name)}: ${rewardText(c.reward)}">
+    // chests keep a minimum gap so the low thresholds (10★, 25★) never overlap: position = the real share, pushed right just enough
+    let lastAt = -100; const MIN = 12;
+    const items = CAM.chests().map((c) => { let at = (100 * c.need) / max; if (at < lastAt + MIN) at = lastAt + MIN; lastAt = at; c._at = Math.min(at, 100); return c; }).map((c) => `<button class="chest ${c.state}" style="--at:${c._at}%" ${c.state === 'ready' ? `data-act="camChest" data-id="${c.id}"` : 'disabled'} title="${esc(c.name)}: ${rewardText(c.reward)}">
         <span class="ch-ic">${c.state === 'claimed' ? '✓' : '🎁'}</span><b>${c.need}★</b></button>`).join('');
     return `<div class="cam-chests"><div class="cc-top"><span class="cc-total">★ <bdi dir="ltr">${tot}<small>/${max}</small></bdi></span>
         <span class="hint">${LV.CAMPAIGN.stars.rules.map((r) => '★'.repeat(r.n)).join(' · ')} <button class="ibtn" data-act="info" data-k="caminfo" title="شرح">ⓘ</button></span></div>
@@ -8966,7 +8970,7 @@ AMB.IMAGES = {
     if (!TW.unlocked()) { root.innerHTML = `<div class="cam-note">🔒 البرج يفتح بعد ما تخلّص <b>المستوى الأول من الحملة</b> (${CAM.progress('l1').cleared}/${CAM.progress('l1').total}).</div>`; return; }
     const best = TW.best(), N = TW.floors();
     const floors = []; for (let n = N; n >= 1; n--) floors.push(row(n));
-    root.innerHTML = `<div class="tw-head"><div class="tw-best"><small>أعلى طابق</small><b>${best}</b><span>/ ${N}</span></div>
+    root.innerHTML = `<div class="tw-head"><div class="tw-best"><small>أعلى طابق</small><b><bdi dir="ltr">${best}</bdi></b><span><bdi dir="ltr">/ ${N}</bdi></span></div>
         <div class="tw-prog"><i style="width:${(100 * best) / N}%"></i></div>
         <div class="hint">${TW.done() ? '🏆 أكملت البرج!' : `الجاي: الطابق ${TW.next()}`} <button class="ibtn" data-act="info" data-k="towinfo" title="شرح">ⓘ</button></div></div>
       <div class="twlist">${floors.join('')}</div>`;
@@ -9012,7 +9016,7 @@ AMB.IMAGES = {
         <div class="res-hero">${ui.portrait(won ? AMB.DATA.HEROES[m.players[0].heroId] : AMB.DATA.HEROES[L.heroId], { bare: true, k: 'twrh' })}<i class="sheen"></i></div>
         <div class="res-hname">${esc(L.name)}</div></div>
       <div class="res-banner"><h1>${won ? (L.boss ? 'هزمت الزعيم!' : 'فوز!') : 'خسارة'}</h1><p class="hint">النتيجة ${score} · ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')} دقيقة</p>
-        ${won ? `<p class="cam-pay">${r.first ? pay : 'تدريب: بدون جائزة'}</p>${r.first ? `<p class="hint">أعلى طابق: ${r.best} من ${TW.floors()}</p>` : ''}` : '<p class="hint">ما خسرت شي. طوّر بطاقاتك وجرّب نفس الطابق مرة ثانية</p>'}</div>
+        ${won ? `<p class="cam-pay">${r.first ? pay : 'تدريب: بدون جائزة'}</p>${r.first ? `<p class="hint">أعلى طابق: <bdi dir="ltr">${r.best}</bdi> من <bdi dir="ltr">${TW.floors()}</bdi></p>` : ''}` : '<p class="hint">ما خسرت شي. طوّر بطاقاتك وجرّب نفس الطابق مرة ثانية</p>'}</div>
       ${gift}
       <div class="cam-btns">
         ${next ? `<button class="btn primary big" data-act="towGo" data-n="${next}">الطابق التالي ${next}</button>` : ''}

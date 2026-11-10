@@ -2900,3 +2900,17 @@ body.tut-on .tut-bar .tg-dots { order: 3; width: 100%; justify-content: center; 
   .sd-eq { width: 54px; height: 54px; } .sd-eq small { position: absolute; bottom: -13px; left: -6px; right: -6px; font-size: 9px; color: #f3ead6; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sd-items { margin-bottom: 14px; }
 }
+
+/* QA round 2 */
+.modal h2 { padding-inline-end: 44px; overflow-wrap: anywhere; }
+.modal > .x { z-index: 3; }
+.pb.sel { max-width: 100%; overflow-x: auto; scrollbar-width: none; flex-wrap: nowrap; } .pb.sel > * { flex: none; } .pb.sel .pb-btns { flex-wrap: nowrap; }
+@media (max-width: 380px), (max-height: 680px) {
+  #scr-match.prep-focus #bench { gap: 4px; padding: 2px 4px; }
+  #scr-match.prep-focus #bench .bslot { width: 44px; height: 44px; min-width: 44px; }
+  #scr-match.prep-focus #bench .bmed { width: 36px; height: 36px; }
+  #scr-match.prep-focus .field .cell { aspect-ratio: .5; }
+  #opp-panel { position: relative; z-index: 1; }
+  .tcard.merged, .tcard.pop.merged { transform-origin: center; } .pop.merged { animation-duration: .4s; }
+}
+.event-cap, .ev-en { display: none; }

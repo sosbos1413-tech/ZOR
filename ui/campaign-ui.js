@@ -25,7 +25,9 @@
 
   function chestsHTML() {
     const tot = CAM.totalStars(), max = CAM.maxStars();
-    const items = CAM.chests().map((c) => `<button class="chest ${c.state}" style="--at:${(100 * c.need) / max}%" ${c.state === 'ready' ? `data-act="camChest" data-id="${c.id}"` : 'disabled'} title="${esc(c.name)}: ${rewardText(c.reward)}">
+    // chests keep a minimum gap so the low thresholds (10★, 25★) never overlap: position = the real share, pushed right just enough
+    let lastAt = -100; const MIN = 12;
+    const items = CAM.chests().map((c) => { let at = (100 * c.need) / max; if (at < lastAt + MIN) at = lastAt + MIN; lastAt = at; c._at = Math.min(at, 100); return c; }).map((c) => `<button class="chest ${c.state}" style="--at:${c._at}%" ${c.state === 'ready' ? `data-act="camChest" data-id="${c.id}"` : 'disabled'} title="${esc(c.name)}: ${rewardText(c.reward)}">
         <span class="ch-ic">${c.state === 'claimed' ? '✓' : '🎁'}</span><b>${c.need}★</b></button>`).join('');
     return `<div class="cam-chests"><div class="cc-top"><span class="cc-total">★ <bdi dir="ltr">${tot}<small>/${max}</small></bdi></span>
         <span class="hint">${LV.CAMPAIGN.stars.rules.map((r) => '★'.repeat(r.n)).join(' · ')} <button class="ibtn" data-act="info" data-k="caminfo" title="شرح">ⓘ</button></span></div>
