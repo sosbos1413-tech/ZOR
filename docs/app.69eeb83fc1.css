@@ -2976,3 +2976,41 @@ body.reduce-motion .lv-flash, body.reduce-motion .merge-flash, body.reduce-motio
   #scr-match.prep-focus .shop-drawer { padding-bottom: 26px; }
 }
 .bm-n { display: none; }
+
+/* ===== phone prep layout v3: the shop is ALWAYS visible (five compact cards above the dock), like the reference: buy, see it land on the field, no drawer to open ===== */
+@media (max-width: 860px) and (orientation: portrait) {
+  #scr-match.prep-focus #shopbar { display: flex; flex-direction: column; }
+  #scr-match.prep-focus .shop-drawer { order: -1; position: static; transform: none !important; height: auto; width: 100%; padding: 6px 6px 8px; border-radius: 0; background: url(assets/ui/arena/drawer.b0073b6f97.webp) center / 100% 100% no-repeat; box-sizing: border-box; }
+  #scr-match.prep-focus .sd-handle, #scr-match.prep-focus .shop-toggle { display: none !important; }
+  #scr-match.prep-focus .sd-head { display: flex; align-items: center; gap: 6px; margin: 2px 2px 8px; }
+  #scr-match.prep-focus .sd-title { flex: 1; text-align: center; color: #f3ead6; line-height: 1.1; }
+  #scr-match.prep-focus .sd-title b { display: block; font-size: 15px; letter-spacing: 1px; }
+  #scr-match.prep-focus .sd-lv { font-size: 10px; opacity: .8; margin-inline-end: 6px; }
+  #scr-match.prep-focus .sd-stars { font-size: 12px; color: #ffd24a; } #scr-match.prep-focus .sd-stars i { font-style: normal; opacity: .3; }
+  #scr-match.prep-focus .sd-head .sd-btn { width: 42px; height: 42px; flex: none; }
+  #scr-match.prep-focus .sd-head .sd-btn.up { width: 46px; height: 46px; }
+  #scr-match.prep-focus .sd-head .sd-btn b { bottom: -6px; left: 50%; transform: translateX(-50%); }
+  #scr-match.prep-focus .sd-head .sd-eq { width: 36px; height: 36px; }
+  #scr-match.prep-focus .sd-head .sd-eq svg { width: 18px; height: 18px; }
+  #scr-match.prep-focus .sd-head .sd-items { margin: 0; gap: 4px; }
+  #scr-match.prep-focus .sd-cards { display: flex; flex-wrap: nowrap; justify-content: center; gap: 4px; row-gap: 4px; }
+  #scr-match.prep-focus .sd-cards .sc { width: var(--scw, 70px); max-width: none; flex: none; }
+  #scr-match.prep-focus .sc-name, #scr-match.prep-focus .sc-dots { display: none; }
+  #scr-match.prep-focus .sc-info { width: 16px; height: 16px; font-size: 9px; right: 2%; top: 1%; }
+  #scr-match.prep-focus .sc-cost, #scr-match.prep-focus .sc-hp, #scr-match.prep-focus .sc-atk { font-size: 9.5px; }
+  #scr-match.prep-focus .sc-role { display: none; }
+  #scr-match.prep-focus .sc-stars { font-size: 8px; top: 1.5%; }
+  #scr-match.prep-focus .sc.owned::after { border-radius: 6px; }
+  #scr-match.prep-focus .sc-new { font-size: 8px; padding: 0 4px; top: -8px; }
+  #scr-match.prep-focus #shopbar .shop-dock { order: 2; flex: 0 0 auto; padding: 6px 8px 8px; box-sizing: border-box; }
+  #scr-match.prep-focus #shopbar .sb-ic[data-act="upgrades"] { display: flex !important; }
+}
+@media (max-width: 860px) and (orientation: portrait) and (max-height: 700px) {
+  #scr-match.prep-focus #bench { padding: 2px 0; gap: 6px; }
+  #scr-match.prep-focus #bench .bslot { width: 42px; height: 42px; min-width: 42px; }
+  #scr-match.prep-focus #bench .bmed { width: 34px; height: 34px; }
+  #scr-match.prep-focus #bench .bm-n { display: none !important; }
+  #scr-match.prep-focus .sd-head { margin-bottom: 4px; } #scr-match.prep-focus .sd-lv { display: none; }
+  #scr-match.prep-focus #shopbar .shop-dock { padding: 3px 8px 5px; }
+  #scr-match.prep-focus #shopbar .sb-ic[data-act="upgrades"] { transform: scale(.8); }
+}

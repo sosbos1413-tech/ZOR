@@ -884,13 +884,20 @@
     if (shop.scrollHeight > shop.clientHeight + 1) shop.style.height = shop.scrollHeight + 2 + 'px';   // the cards are taller than the shop box: grow the box, never cut a card
     const scr = $('scr-match'), vv = (globalThis.visualViewport && visualViewport.height) || innerHeight;
     const vh = Math.min(vv, innerHeight, scr ? scr.getBoundingClientRect().bottom : 1e5);   // whichever ends first: the window or the match screen itself
-    let over = shop.getBoundingClientRect().bottom - (vh - 2);
+    const overlap = () => Math.max(shop.getBoundingClientRect().bottom - (vh - 2), sm_prep ? $('bench').getBoundingClientRect().bottom - shop.getBoundingClientRect().top + 6 : -1);   // prep layout: the field + bench must end above the always-visible shop strip
+    const sm_prep = scr && scr.classList.contains('prep-focus');
+    let over = overlap();
     if (over <= 0) return;
     let cw = fw.querySelector('#slots') ? fw.querySelector('#slots .cell').getBoundingClientRect().width : 80;
+    if (sm_prep) {   // bisection: the biggest cell width whose field + bench still end above the shop strip
+      let lo = 34, hi = Math.min(150, (Math.min(innerWidth, 520) - 30) / 4);
+      for (let i = 0; i < 8; i++) { const mid = (lo + hi) / 2; fw.style.setProperty('--cwv', mid + 'px'); if (overlap() > 0) hi = mid; else lo = mid; }
+      fw.style.setProperty('--cwv', Math.floor(lo) + 'px'); return;
+    }
     for (let i = 0; i < 4 && over > 0; i++) {
-      cw = Math.max(44, cw - over / 4.4 - 0.5);
+      cw = Math.max(44, cw - over / (sm_prep ? 3.4 : 4.4) - 0.5);
       fw.style.setProperty('--cwv', cw + 'px');
-      over = shop.getBoundingClientRect().bottom - (vh - 2);
+      over = overlap();
     }
   }
   // the visible height changes while the page is open (Chrome's address bar hides, the phone rotates, the app comes back from the background):
@@ -1107,6 +1114,13 @@
       `<div class="bslot" data-act="bench" data-idx="${i}" data-drop="bench:${i}">${u ? `<span class="bmed ${S.sel && S.sel.kind === 'unit' && S.sel.uid === u.uid ? 'sel' : ''}" draggable="true" data-drag="unit:${u.uid}" title="${esc(UNITS[u.defId].name)}">${portrait(UNITS[u.defId], { bare: true, k: 'bm' + u.uid })}<i class="bm-st">${'★'.repeat(u.star)}</i></span>${benchStats(u)}` + pieceHTML(u, { sel: S.sel && S.sel.kind === 'unit' && S.sel.uid === u.uid }) : ''}</div>`).join('');
   }
 
+  function fitPrep() {
+    const sm = $('scr-match'), fw = document.querySelector('#scr-match .field-wrap'), grid = document.querySelector('#scr-match .match-grid'), opp = $('opp-panel'), side = $('side');
+    if (!sm || !fw || !grid || !sm.classList.contains('prep-focus')) return;
+    const w = Math.min(innerWidth, 520), scw = Math.max(56, Math.min(86, Math.floor((w - 14 - 4 * 4) / 5)));
+    sm.style.setProperty('--scw', scw + 'px');
+    fitMatch();   // the shrink-to-fit of the field lives there
+  }
   function renderShop() {
     const m = S.match, p = me();
     const prep = S.phase === 'prep' || S.phase === 'resources';
@@ -1164,27 +1178,19 @@
       </div>
       <div class="shop-row">${lvStrip}<div class="shop-cards">${cards}</div>
       <div class="item-cards">${items}</div></div>
-      <div class="shop-drawer ${S.shopOpen ? 'open' : ''}">
+      <div class="shop-drawer open">
         <button class="sd-handle" data-act="shopToggle" aria-label="سكّر المتجر"><i></i></button>
-        ${lvStrip}<div class="sd-cards">${bigCards}</div>
-        <div class="sd-row"><div class="sd-items">${p.itemShop.map((id, i) => id ? `<button class="sd-eq ${p.gold >= ITEMS[id].cost ? '' : 'cant'}" data-act="buyItem" data-idx="${i}" title="${esc(ITEMS[id].name)}: ${esc(ITEMS[id].text)}">${icon(ITEMS[id].icon)}<b>${ITEMS[id].cost}</b><small>${esc(ITEMS[id].name)}</small></button>` : '<span class="sd-eq empty"></span>').join('')}</div>
-          <button class="sd-btn" data-act="reroll" aria-label="تحديث المتجر">${icon('refresh')}<b>${rCost}</b><small>تحديث</small></button>
-          <button class="sd-btn ${p.shopLocked ? 'on' : ''}" data-act="lock" aria-label="تثبيت المتجر">${icon(p.shopLocked ? 'lock' : 'unlock')}<small>تثبيت</small></button>
-          <button class="sd-btn ${!maxed && p.gold >= upC ? 'can' : ''}" data-act="xp" ${maxed ? 'disabled' : ''} aria-label="ترقية المتجر">${icon('up')}${maxed ? '' : `<b>${upC}</b>`}<small>${maxed ? 'الأعلى' : 'ترقية'}</small></button>
-          <button class="sd-btn" data-act="upgrades" aria-label="شاشة التطوير">${icon('star')}<small>تطوير</small></button></div>
+        <div class="sd-head">
+          <button class="sd-btn up ${!maxed && p.gold >= upC ? 'can' : ''}" data-act="xp" ${maxed ? 'disabled' : ''} aria-label="ترقية المتجر">${icon('up')}${maxed ? '' : `<b>${upC}</b>`}</button>
+          <div class="sd-title"><b>المتجر</b><span class="sd-lv">مستوى ${p.level}</span><span class="sd-stars">${'◆'.repeat(p.level)}<i>${'◇'.repeat(E.maxLevel - p.level)}</i></span></div>
+          <div class="sd-items">${p.itemShop.map((id, i) => id ? `<button class="sd-eq ${p.gold >= ITEMS[id].cost ? '' : 'cant'}" data-act="buyItem" data-idx="${i}" title="${esc(ITEMS[id].name)}: ${esc(ITEMS[id].text)}">${icon(ITEMS[id].icon)}<b>${ITEMS[id].cost}</b></button>` : '<span class="sd-eq empty"></span>').join('')}</div>
+          <button class="sd-btn ${p.shopLocked ? 'on' : ''}" data-act="lock" aria-label="تثبيت المتجر">${icon(p.shopLocked ? 'lock' : 'unlock')}</button>
+          <button class="sd-btn" data-act="reroll" aria-label="تحديث المتجر">${icon('refresh')}<b>${rCost}</b></button>
+        </div>
+        <div class="sd-cards">${bigCards}</div>
       </div>`;
-    // the drawer sits right above the dock (its height depends on the phone)
-    requestAnimationFrame(() => {
-      const dk = document.querySelector('#shopbar .shop-dock'), sm = $('scr-match'), dr = document.querySelector('.shop-drawer'); if (!dk || !sm || dk.getBoundingClientRect().height <= 0) return;
-      const vh = (globalThis.visualViewport && visualViewport.height) || innerHeight, dockH = Math.max(0, Math.round(vh - dk.getBoundingClientRect().top + 4));
-      sm.style.setProperty('--dockH', dockH + 'px');
-      // the drawer never covers the dock and leaves a strip of the arena visible; the cards shrink to fit two rows in whatever height is left
-      const drawerH = Math.max(260, Math.min(Math.round(vh * 0.62), vh - dockH - 110));
-      sm.style.setProperty('--drawerH', drawerH + 'px');
-      const cardH = (drawerH - 30 - 78 - 74) / 2, cardW = Math.min((innerWidth - 52) / 3, 150, cardH * 507 / 793);
-      sm.style.setProperty('--scw', Math.max(64, Math.floor(cardW)) + 'px');
-      if (dr) dr.dataset.fit = '1';
-    });
+    // the shop strip sits above the dock; five cards share the width, and the field takes whatever height is left
+    requestAnimationFrame(fitPrep); setTimeout(fitPrep, 350);
   }
 
   const SYN_ICON = (s) => (s.kind === 'world' ? ART.WORLD_ICON[s.id] : s.kind === 'special' ? 'star' : ART.ROLE_ICON[s.id]);
