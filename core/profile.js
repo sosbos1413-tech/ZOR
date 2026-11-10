@@ -65,8 +65,27 @@
     const dayPay = DayPay(save, wallet, nowFn);
     return { save, events, wallet, collection, packs, campaign, login, album, tower, weekly, tutorial, heroes, settings, dayPay };
   }
-  AMB.Profile = { boot };
+  /**
+   * A one-time reset for everyone: when RESET_ID changes, every browser starts as a brand-new player on its next visit.
+   * The old save is NOT deleted: it is moved to 'zor_before_reset' (the daily backups and resume data are dropped), so it can be brought back by hand.
+   * Returns true when a reset happened.
+   */
+  const RESET_ID = 'fresh-2026-11-10';
+  function resetOnce(storage, id) {
+    id = id || RESET_ID;
+    try {
+      if (!storage || storage.__mem || storage.getItem('zor_reset_id') === id) return false;
+      const main = storage.getItem(AMB.Save.KEY);
+      if (main) storage.setItem('zor_before_reset', main);   // kept, never read by the game
+      [AMB.Save.KEY, AMB.Save.KEY + '_bak', AMB.Save.KEY + '_preimport', AMB.Save.KEY + '_corrupt', AMB.Save.KEY + '_prerestore', 'amb_pass_v1', 'zor_resume_v1', 'amb_played', 'amb_tut', 'amb_telemetry_v1'].forEach((k) => storage.removeItem(k));
+      Object.keys(storage).filter((k) => /^amb_(telemetry|tele)/.test(k)).forEach((k) => storage.removeItem(k));
+      storage.setItem('zor_reset_id', id);
+      return !!main;
+    } catch (e) { return false; }
+  }
+  AMB.Profile = { boot, resetOnce, RESET_ID };
   if (typeof document !== 'undefined' && !AMB.save) {
+    try { AMB.didReset = resetOnce(AMB.Save.browserStorage()); } catch (e) { AMB.didReset = false; }   // before anything reads the save
     const p = boot();
     AMB.save = p.save; AMB.events = p.events; AMB.wallet = p.wallet; AMB.collection = p.collection; AMB.packs = p.packs; AMB.campaign = p.campaign; AMB.login = p.login; AMB.album = p.album; AMB.tower = p.tower; AMB.weekly = p.weekly; AMB.tutorial = p.tutorial; AMB.settings = p.settings; AMB.dayPay = p.dayPay;
   }

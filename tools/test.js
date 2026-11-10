@@ -912,6 +912,15 @@ t('undo in a progression match (allowed-units Set, scripted lineup) never breaks
   m.restore(0, snap); ok(m.players[0].allowed instanceof Set, 'the allowed-units Set survives an undo');
   AMB.AI.prep(m, 1); m.resolveCombat(m.createCombat(false).runToEnd()); if (!m.isOver) m.startRound(); ok(true, 'next round starts');
 });
+t('one-time reset: an old player starts from zero once, the old save is kept aside, a fresh visitor and a second visit are untouched', () => {
+  const mem = () => { const m = {}; return { getItem: (k) => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v); }, removeItem: (k) => { delete m[k]; }, key: (i) => Object.keys(m)[i], get length() { return Object.keys(m).length; }, _m: m }; };
+  const st = mem(), p0 = AMB.Profile.boot(st); p0.collection.chooseStarter('kagira'); p0.wallet.add('shards', 777, 't');
+  eq(AMB.Profile.resetOnce(st, 'r-test'), true, 'an old player is reset');
+  ok(st.getItem('zor_before_reset') && JSON.parse(st.getItem('zor_before_reset')).systems.wallet, 'the old save is kept aside');
+  const p1 = AMB.Profile.boot(st); const fresh = AMB.Profile.boot(mem()).wallet.balance('shards'); eq(p1.wallet.balance('shards'), fresh, 'balance back to a new player\'s'); ok(fresh !== 777); ok(p1.collection.needsStarter(), 'needs a starter again');
+  p1.wallet.add('shards', 5, 't'); eq(AMB.Profile.resetOnce(st, 'r-test'), false, 'a second visit does not reset again'); eq(AMB.Profile.boot(st).wallet.balance('shards'), fresh + 5);
+  eq(AMB.Profile.resetOnce(mem(), 'r-test'), false, 'a brand-new visitor has nothing to reset');
+});
 t('online safety: a friend cannot send an impossible slot/index or a malformed op (nothing throws, nothing is duplicated)', () => {
   const m = new AMB.Match({ mode: 'online', seed: 5, isolated: true, players: [{ heroId: 'orath', name: 'a' }, { heroId: 'merin', name: 'b' }] });
   m.startRound(); const p = m.players[1]; p.gold = 50;
