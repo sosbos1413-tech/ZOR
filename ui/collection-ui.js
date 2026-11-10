@@ -19,6 +19,7 @@
     const P = AMB.Pass; let src = '';
     if (P) for (const [lv, r] of Object.entries(P.FREE)) if (!src && r.type === 'avatar' && r.id === id) src = `الباتل باس: مستوى ${lv}`;   // the premium track is not available yet, so it is not advertised
     if (AMB.DATA.UNITS[id] && AMB.DATA.UNITS[id].exclusive) return 'حصرية: الحدث الأسبوعي';
+    if (AMB.DATA.HEROES[id] && AMB.LEVELS) { const li = AMB.LEVELS.LEVELS.findIndex((l) => l.hero === id); if (li >= 0) return `الحملة: خلّص المستوى ${li + 1} بالثلاث صعوبات`; }
     return src ? `باكجات · ${src}` : 'من الباكجات';
   }
   function tile(id) {

@@ -889,12 +889,10 @@ t('adult #22-#28, senior #39: short match mode, daily quick-match shards cap, wi
   let paid = 0; for (let i = 0; i < 10; i++) paid += dp.quickMatch(true);
   eq(paid, 60, 'daily cap'); eq(dp.quickLeft(), 0);
   ok(dp.onlineCounts() && dp.onlineCounts() && dp.onlineCounts() && !dp.onlineCounts(), 'first 3 friend matches a day count');
-  // wish: the guarantee brings the wished hero
-  const P = prof.packs, wish = Object.keys(AMB.DATA.HEROES).find((h) => !prof.collection.owned(h));
-  eq(P.setWish(wish), true); eq(P.wish(), wish);
-  prof.wallet.add('shards', 100000, 'test'); let got = false;
-  for (let i = 0; i < 40 && !got; i++) { const r = P.open(); if (r && r.forced && r.cards.some((c) => c.id === wish)) got = true; if (prof.collection.owned(wish)) got = true; }
-  ok(got, 'the wished hero arrives at the latest with the guarantee');
+  // heroes are not in packs any more (campaign prizes only)
+  const P = prof.packs; prof.wallet.add('shards', 100000, 'test'); let sawHero = false;
+  for (let i = 0; i < 80; i++) { const r = P.open(); if (r && r.cards.some((c) => AMB.DATA.HEROES[c.id])) sawHero = true; }
+  ok(!sawHero, 'no pack ever contains a hero'); eq(P.setWish('rika'), false);
   // mission swap: once a day
   const pass = mkPass(); const d0 = pass.dailyMissions(); const sw = pass.swapMission(d0[0].id);
   ok(sw && sw.id !== d0[0].id, 'swapped'); ok(!pass.canSwap() && pass.swapMission(d0[1].id) === null, 'once a day');
@@ -920,6 +918,17 @@ t('one-time reset: an old player starts from zero once, the old save is kept asi
   const p1 = AMB.Profile.boot(st); const fresh = AMB.Profile.boot(mem()).wallet.balance('shards'); eq(p1.wallet.balance('shards'), fresh, 'balance back to a new player\'s'); ok(fresh !== 777); ok(p1.collection.needsStarter(), 'needs a starter again');
   p1.wallet.add('shards', 5, 't'); eq(AMB.Profile.resetOnce(st, 'r-test'), false, 'a second visit does not reset again'); eq(AMB.Profile.boot(st).wallet.balance('shards'), fresh + 5);
   eq(AMB.Profile.resetOnce(mem(), 'r-test'), false, 'a brand-new visitor has nothing to reset');
+});
+t('campaign heroes: a level gives its hero only after ALL its fights are won on easy, medium and hard', () => {
+  const prof = AMB.Profile.boot(AMB.Save.memoryStorage()), C = prof.campaign, L = AMB.LEVELS.LEVELS[4];   // level 5 -> Rika
+  const win = (id, d) => C.recordResult(id, { won: true, roundsLost: 0, lifeLeft: 100, maxLife: 100 }, d);
+  [AMB.LEVELS.LEVELS[0], AMB.LEVELS.LEVELS[1], AMB.LEVELS.LEVELS[2], AMB.LEVELS.LEVELS[3], L].forEach((l) => ['easy', 'normal', 'hard'].forEach((d) => l.fights.forEach((f) => { if (C.isUnlocked(f.id, d)) win(f.id, d); })));
+  ok(C.levelAll(L.id), 'level 5 finished on all three'); ok(prof.collection.owned(L.hero), 'its hero (' + L.hero + ') is owned now');
+  const prof2 = AMB.Profile.boot(AMB.Save.memoryStorage()), L1 = AMB.LEVELS.LEVELS[0];
+  ['easy', 'normal'].forEach((d) => L1.fights.forEach((f) => { if (prof2.campaign.isUnlocked(f.id, d)) prof2.campaign.recordResult(f.id, { won: true, roundsLost: 0, lifeLeft: 100, maxLife: 100 }, d); }));
+  ok(prof2.campaign.levelDone(L1.id, 'normal') && !prof2.campaign.levelAll(L1.id), 'two difficulties are not enough');
+  ok(!prof2.collection.owned('rika') && !prof2.collection.owned('kairyu'), 'other heroes stay locked');
+  const g = prof2.collection.grantRandom('legendary'); ok(!AMB.DATA.HEROES[g.id], 'random grants never give a hero');
 });
 t('online safety: a friend cannot send an impossible slot/index or a malformed op (nothing throws, nothing is duplicated)', () => {
   const m = new AMB.Match({ mode: 'online', seed: 5, isolated: true, players: [{ heroId: 'orath', name: 'a' }, { heroId: 'merin', name: 'b' }] });

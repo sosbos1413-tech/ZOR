@@ -2903,3 +2903,10 @@ body.tut-on .tut-bar .tg-dots { order: 3; width: 100%; justify-content: center; 
   .tcard.merged, .tcard.pop.merged { transform-origin: center; } .pop.merged { animation-duration: .4s; }
 }
 .event-cap, .ev-en { display: none; }
+
+/* campaign heroes: the prize shown on each level */
+.cl-hero { display: flex; align-items: center; gap: 10px; margin: 6px 0; padding: 6px 8px; border-radius: 12px; border: 2px dashed var(--wc, #c9a04a); background: #0004; color: #f3ead6; }
+.cl-hero.got { border-style: solid; background: #12331a99; }
+.cl-hero .clh-p .portrait { width: 44px; height: 44px; } .cl-hero > div { flex: 1; min-width: 0; } .cl-hero b { display: block; } .cl-hero small { display: block; font-size: 11px; opacity: .85; }
+.clh-d { display: flex; flex-direction: column; gap: 2px; } .clh-d i { font-style: normal; font-size: 11px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--dc); color: var(--dc); white-space: nowrap; } .clh-d i.on { background: var(--dc); color: #111; font-weight: 700; }
+.hero-win { border-color: #ffd24a !important; box-shadow: 0 0 20px #ffd24a66; }

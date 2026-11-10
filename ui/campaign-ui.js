@@ -51,7 +51,7 @@
     if (C.needsStarter()) {   // brand-new player: pick the first hero right here (same picker as the quick match), then straight to fight 1
       const ui = UI(), list = AMB.DATA.HERO_STARTERS.filter((id) => AMB.DATA.HEROES[id]);
       if (!list.includes(starterSel)) starterSel = null;
-      root.innerHTML = `<div class="cam-starter"><h3>اختر بطلك الأول</h3><p class="hint">اضغط «جرّب» وشوف كل بطل يقاتل قبل لا تختار. والباقين تفتحهم بعدين من الباكجات 🎁</p>
+      root.innerHTML = `<div class="cam-starter"><h3>اختر بطلك الأول</h3><p class="hint">اضغط «جرّب» وشوف كل بطل يقاتل قبل لا تختار. والباقين تفتحهم بعدين من الحملة 🎁</p>
         <div class="hero-grid hp-grid">${list.map((id) => ui.heroPickHTML(AMB.DATA.HEROES[id], { act: 'camPick', sel: starterSel === id, trial: true, k: 'cst' })).join('')}</div>
         <div class="hero-foot cam-foot" ${starterSel ? '' : 'hidden'}><button class="btn primary big" data-act="camStarter" data-id="${starterSel || ''}" ${starterSel ? '' : 'disabled'}>${starterSel ? `خذ ${esc(AMB.DATA.HEROES[starterSel].name)} بطلي الأول` : 'اختر بطل'}</button></div></div>`;
       return;
@@ -94,6 +94,7 @@
         return `<section class="cam-level ${unlocked ? '' : 'locked'} ${CAM.levelDone(l.id, cd) ? 'done' : ''}" style="--wc:${W(l.world).color}">
           <header><span class="cl-n">${li + 1}</span><div><h3>${esc(l.name)}</h3><small>${W(l.world).name} · ${pr.cleared}/${pr.total} · ★ ${CAM.levelStars(l.id)}/${l.fights.length * 3}${CAM.levelDone(l.id, cd) ? ' · ✓ مكتمل' : ''}</small></div>
           ${unlocked ? '' : `<span class="cl-lock">${lockMsg}</span>`}</header>
+          ${(() => { const hd = AMB.DATA.HEROES[l.hero], dd = CAM.levelDiffs(l.id), has = AMB.collection && AMB.collection.owned(l.hero); return hd ? `<div class="cl-hero ${has ? 'got' : ''}" style="--wc:${W(l.world).color}"><span class="clh-p">${UI().portrait(hd, { k: 'clh' + l.id })}</span><div><b>${has ? '✓ ' : '🔒 '}${esc(hd.name)}</b><small>${has ? 'عندك هذا البطل' : 'جائزة المستوى: خلّص كل قتالاته على الثلاث صعوبات'}</small></div><span class="clh-d">${CAM.DIFFS.map((x) => `<i class="${dd[x] ? 'on' : ''}" style="--dc:${LV.DIFFICULTY[x].color}" title="${LV.DIFFICULTY[x].name}">${LV.DIFFICULTY[x].name}${dd[x] ? ' ✓' : ''}</i>`).join('')}</span></div>` : ''; })()}
           <div class="cpath">${l.fights.map((f, i) => node(l, f, i)).join('<i class="cline"></i>')}</div></section>`;
       }).join('')}</div>`;
     refreshMenu();
@@ -161,6 +162,7 @@
     const bossPrizes = won && r.boss && r.prizes && r.prizes.length ? `<div class="cam-pack"><b>🏆 جوائز النجوم:</b>${r.prizes.map((p) => `<div class="bp paid"><span class="bp-s">${'★'.repeat(p.star)}</span><span>${[p.shards ? `${icon('gem')} ${p.shards}` : '', p.passXp ? `+${p.passXp} خبرة` : '', p.packs ? '📦 باكج مجاني' : '', p.card ? '🃏 بطاقة ' + AMB.ECONOMY.rarities[p.card].name + ' أو أندر' : ''].filter(Boolean).join(' · ')}</span></div>`).join('')}
       <div class="cam-pack-row">${(r.packs || []).map((pk) => pk.cards.map((c, i) => `<div class="cu">${ui.portrait(C.def(c.id), { k: 'bpk' + i + c.id })}<small class="r-${c.rarity}">${c.isNew ? 'جديدة!' : c.refund ? '+' + c.refund + ' شظية' : '+1 نسخة'}</small></div>`).join('')).join('')}${r.card ? `<div class="cu">${ui.portrait(C.def(r.card.id), { k: 'bcd' + r.card.id })}<small class="r-${r.card.rarity}">${r.card.isNew ? 'جديدة!' : '+1 نسخة'}</small></div>` : ''}</div></div>` : '';
     const lp = r.levelPacks || [];
+    const heroWon = (r.heroes || []).map((id) => AMB.DATA.HEROES[id]).filter(Boolean).map((h) => `<div class="cam-pack hero-win"><b>👑 فتحت بطل جديد!</b><div class="cam-pack-row"><div class="cu">${ui.portrait(h, { k: 'hw' + h.id })}<small>${esc(h.name)}</small></div></div><p class="hint">لقيته في «ابدأ المباراة» وفي مجموعتي.</p></div>`).join('');
     const pack = lp.length || r.levelShards ? `<div class="cam-pack"><b>🎁 خلّصت المستوى!${lp.length ? ` ${lp.length === 1 ? 'باكج مجاني' : lp.length + ' باكجات مجانية'}` : ''}${r.levelShards ? ` · ${icon('gem')} +${r.levelShards} شظية` : ''}</b><div class="cam-pack-row">${lp.map((pk) => pk.cards.map((c, i) => `<div class="cu">${ui.portrait(C.def(c.id), { k: 'crp' + i + c.id })}<small class="r-${c.rarity}">${c.isNew ? 'جديدة!' : c.refund ? '+' + c.refund + ' شظية' : '+1 نسخة'}</small></div>`).join('')).join('')}</div></div>` : '';
     $('results').innerHTML = `<div class="res-stage ${won ? 'victory' : 'defeat'}" style="--wc:${W(x.level.world).color}"><div class="res-rays"></div>
         <div class="res-hero">${ui.portrait(AMB.DATA.HEROES[m.players[0].heroId], { bare: true, k: 'crh' })}<i class="sheen"></i></div>
@@ -170,7 +172,7 @@
           <p class="hint">${r.newBest ? (r.prevStars ? `رقم جديد! من ${r.prevStars} لين ${r.stars} نجوم` : `${r.stars} من 3 نجوم`) : `أفضل نتيجة لك هنا: ${CAM.stars(fightId)} نجوم`}${r.stars < 3 ? ' · ' + LV.CAMPAIGN.stars.rules[r.stars].text + ' = ★' : ''}</p>${whyNo3}` : ''}
         ${r.chestsReady > r.chestsBefore ? '<button class="btn primary" data-act="go" data-to="campaign">🎁 صندوق نجوم جاهز! افتحه من خريطة الحملة</button>' : ''}
         ${won ? `<p class="cam-pay">${r.first ? pay : `إعادة: ${pay || 'بدون جائزة'}`}</p>` : `<p class="res-tip">💡 ${UI().lossTip ? UI().lossTip(m) : 'طوّر بطاقاتك وجرّب مرة ثانية'}</p>`}</div>
-      ${bossPrizes}${pack}
+      ${heroWon}${bossPrizes}${pack}
       ${r.first && fightId === 'l1f1' ? '<div class="cam-unlock">🔓 انفتح: الباكجات · مجموعتي · الممر · الدخول اليومي</div>' : ''}
       <div class="cam-btns">
         ${won && nx ? `<button class="btn primary big" data-act="camGo" data-id="${next}">القتال التالي: ${esc(nx.fight.name)}</button>` : ''}

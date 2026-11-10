@@ -46,7 +46,7 @@
           <button class="btn primary big" data-act="packOpen" ${W.canAfford(d.cost) ? '' : 'disabled'}>افتح · ${icon('gem')} ${cost}</button>
           ${W.canAfford({ shards: cost * 2 }) ? `<button class="btn" data-act="packOpen5">افتح ×${Math.min(5, Math.floor(W.balance ? W.balance('shards') / cost : 5))} مرة وحدة</button>` : ''}
           ${W.canAfford(d.cost) ? '' : `<div class="hint">تحتاج ${cost - W.balance('shards')} شظية إضافية</div>`}</div>
-        <div class="pk-side">${wishHTML()}${pityHTML()}
+        <div class="pk-side">${pityHTML()}
           <div class="pk-odds"><b>نسبة ظهور كل بطاقة</b><ul>${odds}</ul>
             <button class="ibtn" data-act="info" data-k="odds" title="شرح">ⓘ</button></div>
           <div class="pk-stats hint">فتحت ${st.opened} باكج · ${Object.keys(RAR).map((r) => `${RAR[r].name}: ${st.found[r] || 0}`).join(' · ')}</div>

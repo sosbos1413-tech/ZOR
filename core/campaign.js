@@ -72,6 +72,16 @@
       difficulty: (d) => LV().DIFFICULTY[dd(d)],
       /** hard needs the level finished on medium (and the previous hard level); easy and medium follow their own chain */
       isCleared: (fightId, d) => (d ? !!P(d).cleared[fightId] : anyDiff((x) => !!P(x).cleared[fightId])),   // no difficulty = on ANY difficulty (used by the other systems' unlocks)
+      /** the hero of a level is a prize: finish ALL fights of that level on easy, medium AND hard */
+      heroOf: (levelId) => { const l = levels().find((x) => x.id === levelId); return l ? l.hero : null; },
+      levelDiffs: (levelId) => Object.fromEntries(DIFFS.map((x) => [x, !!P(x).levelsDone[levelId]])),
+      levelAll: (levelId) => DIFFS.every((x) => !!P(x).levelsDone[levelId]),
+      /** grants every hero whose level is finished on all three difficulties (safe to call any time). Returns the newly granted hero ids. */
+      syncHeroes() {
+        const got = [];
+        levels().forEach((l) => { if (l.hero && api.levelAll(l.id) && deps.collection && !deps.collection.owned(l.hero)) { deps.collection.add(l.hero, 1); got.push(l.hero); } });
+        return got;
+      },
       levelDone: (levelId, d) => (d ? !!P(d).levelsDone[levelId] : anyDiff((x) => !!P(x).levelsDone[levelId])),
       progress(levelId, d) { const l = levels().find((x) => x.id === levelId); return { cleared: l.fights.filter((f) => P(d).cleared[f.id]).length, total: l.fights.length }; },
       levelUnlocked(li, d) {
@@ -190,6 +200,7 @@
           }
         }
         out.chestsReady = api.readyChests(d);
+        out.heroes = won ? api.syncHeroes() : [];   // a level finished on all three difficulties gives its hero
         if (deps.events) deps.events.emit('fightEnd', Object.assign({}, out, { summary: res }));
         return out;
       },

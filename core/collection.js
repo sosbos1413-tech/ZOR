@@ -56,7 +56,7 @@
       ownedHeroes: () => Object.keys(AMB.DATA.HEROES).filter((id) => api.owned(id)),
       ownedUnits: () => Object.keys(AMB.DATA.UNITS).filter((id) => api.owned(id)),
       /** battle-pass character rewards give the card (unlock or +1 copy) */
-      grantPassReward(r) { if (r && r.type === 'avatar' && defOf(r.id)) return api.add(r.id, 1); return null; },
+      grantPassReward(r) { if (r && r.type === 'avatar' && defOf(r.id) && !AMB.DATA.HEROES[r.id]) return api.add(r.id, 1); return null; },   // a hero avatar from the pass is only a portrait: the hero itself is a campaign prize
       level: (id) => (st().cards[id] && st().cards[id].level) || 1,
       copies: (id) => (st().cards[id] && st().cards[id].copies) || 0,
       /** copies needed for the next level, or 0 when maxed */
@@ -131,7 +131,7 @@
       /** one random card of `minRarity` or rarer: prefers cards you don't own, then ones not at max level */
       grantRandom(minRarity, rng) {
         const R = EC().rarities; rng = rng || AMB.util.RNG(Math.floor(Math.random() * 2 ** 31));
-        const all = allIds().filter((id) => !defOf(id).exclusive && R[defOf(id).rarity].order >= R[minRarity].order);
+        const all = allIds().filter((id) => !AMB.DATA.HEROES[id] && !defOf(id).exclusive && R[defOf(id).rarity].order >= R[minRarity].order);   // heroes come ONLY from finishing a campaign level on all three difficulties
         const pool = [all.filter((id) => !api.owned(id)), all.filter((id) => !api.isMax(id)), all].find((t) => t.length);
         const id = pool[rng.int(pool.length)];
         const res = api.add(id, 1);

@@ -113,7 +113,7 @@
     const first = starterPick();
     const who = first ? 'اختر بطلك الأول'
       : S.mode === 'hotseat' ? `اللاعب ${S.pickIdx + 1}: اختر بطلك` : 'اختر بطلك';
-    const sub = first ? 'ما تقدر تغيّره بعدين. جرّب أي واحد بقتال تدريب قبل لا تختار، والباقين تفتحهم من الباكجات والممر.'
+    const sub = first ? 'ما تقدر تغيّره بعدين. جرّب أي واحد بقتال تدريب قبل لا تختار، والباقين تفتحهم من الحملة (كل بطل بمستواه، بالثلاث صعوبات).'
       : S.mode === 'hotseat' && S.pickIdx === 1 ? 'ضيف: كل الأبطال متاحين' : '';
     $('hero-title').textContent = who;
     if (S.picks[S.pickIdx] && heroLocked(S.picks[S.pickIdx])) S.picks[S.pickIdx] = null;
@@ -1639,7 +1639,7 @@
     pickHero: (d, el, e) => {
       if (e.target.closest('[data-act="heroInfo"], [data-act="heroTry"]')) return;
       if (S.mode === 'online' && AMB.NetUI && AMB.NetUI.usedInSeries(d.id)) { toast('لعبت بهالبطل في السلسلة، اختر غيره', 'err'); return; }
-      if (heroLocked(d.id)) { toast('هذا البطل مقفل: تفتحه من الباكجات (أسطوري) أو الباتل باس', 'err'); return; }
+      if (heroLocked(d.id)) { toast('هذا البطل مقفل: تفتحه لما تخلّص مستواه في الحملة بالثلاث صعوبات', 'err'); return; }
       S.picks[S.pickIdx] = d.id; renderHeroSelect();
     },
     heroInfo: (d, el, e) => { e.stopPropagation(); heroDetail(d.id); },
@@ -1649,7 +1649,7 @@
       if (!S.picks[S.pickIdx] || heroLocked(S.picks[S.pickIdx])) return;
       if (starterPick()) {   // one-time starter choice, then continue to the match as usual
         if (!AMB.collection.chooseStarter(S.picks[0])) return;
-        sfx('merge'); toast(`${HEROES[S.picks[0]].name} صار بطلك! الباقين تفتحهم من الباكجات أو الباتل باس`, 'good');
+        sfx('merge'); toast(`${HEROES[S.picks[0]].name} صار بطلك! الباقين تفتحهم من الحملة`, 'good');
         renderHeroSelect(); return;
       }
       if (S.mode === 'hotseat' && S.pickIdx === 0) { S.pickIdx = 1; renderHeroSelect(); return; }
