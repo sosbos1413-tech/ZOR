@@ -2953,3 +2953,4 @@ body.reduce-motion .lv-flash, body.reduce-motion .merge-flash, body.reduce-motio
 .mp-row { gap: 14px; padding: 10px 0 6px; }
 .mp-card .tcard { transform: scale(1.2); transform-origin: center; margin: 8px 10px; }
 .mp-card:active .tcard, .mp-card:hover .tcard { transform: scale(1.28); }
+.shop-row > .lv-strip { display: none; }   /* the classic row (tutorial, desktop) has no room: the level shows in the top bar and on the upgrade button */
