@@ -3133,3 +3133,24 @@ body.reduce-motion .lv-flash, body.reduce-motion .merge-flash, body.reduce-motio
   .fr4 .fr4-pw, .fr4 .fr4-st { font-size: 7.4cqw; line-height: 1; }
   #scr-match.prep-focus .sc .sc-info { right: 17%; top: 10%; }
 }
+
+/* ===== frame v8: the natively square frame sheet at full resolution (no re-cut): square window, pill above it, taller number plates ===== */
+@media (max-width: 860px) and (orientation: portrait) {
+  #scr-match.prep-focus .field .cell, .tcard.hc.cv3.mini.fr4, #scr-match.prep-focus .sd-cards .sc { aspect-ratio: .98; }
+  .tcard.hc.cv3.mini.fr4 .hc-art, #scr-match.prep-focus .sc .sc-art { left: 8.6%; right: 28.5%; top: 18.8%; bottom: 20.5%; border-radius: 9%; }
+  .fr4 .fr4-pw, #scr-match.prep-focus .sc .sc-pw { left: 6.5%; top: 5.6%; width: 38.5%; height: 8.4%; }
+  .tcard.hc.cv3.mini.fr4 .hc-hp, .tcard.hc.cv3.mini.fr4 .hc-atk, #scr-match.prep-focus .sc .sc-hp, #scr-match.prep-focus .sc .sc-atk { top: 84.2%; height: 9.8%; }
+  .tcard.hc.cv3.mini.fr4 .hc-hp, #scr-match.prep-focus .sc .sc-hp { left: 7.2%; width: 30.8%; }
+  .tcard.hc.cv3.mini.fr4 .hc-atk, #scr-match.prep-focus .sc .sc-atk { left: 41.6%; width: 31.1%; }
+  .fr4 .fr4-role, #scr-match.prep-focus .sc .sc-role { left: 87.1%; top: 12.6%; width: 12%; }
+  .fr4 .fr4-st, #scr-match.prep-focus .sc .sc-cost { left: 87.1%; top: 87.9%; width: 13%; }
+  .fr4 .fr4-rar { left: 79%; right: 4.5%; top: 24%; bottom: 24%; font-size: 7cqw; }
+  .tcard.hc.cv3.mini.fr4 .hc-hp b, .tcard.hc.cv3.mini.fr4 .hc-atk b { font-size: 10cqw; line-height: 1; } .tcard.hc.cv3.mini.fr4 .hc-hp b.sm, .tcard.hc.cv3.mini.fr4 .hc-atk b.sm { font-size: 8.4cqw; }
+  .fr4 .fr4-pw { font-size: 8.6cqw; } .fr4 .fr4-st { font-size: 8cqw; color: #3a2500; }
+  #scr-match.prep-focus .sc .sc-pw, #scr-match.prep-focus .sc .sc-hp, #scr-match.prep-focus .sc .sc-atk { font-size: 8.5px; }
+  #scr-match.prep-focus .sc .sc-info { right: 30%; top: 20%; }
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  #scr-match.prep-focus .sc .sc-info { right: 29.5%; top: 19.5%; width: 15px; height: 15px; font-size: 9px; }
+  #scr-match.prep-focus .sc .sc-info::after { inset: -4px; }
+}
