@@ -3165,3 +3165,51 @@ body.reduce-motion .lv-flash, body.reduce-motion .merge-flash, body.reduce-motio
   #scr-match.prep-focus .sc .sc-info { right: 29.5%; top: 19.5%; width: 15px; height: 15px; font-size: 9px; }
   #scr-match.prep-focus .sc .sc-info::after { inset: -4px; }
 }
+
+/* ===== frame v9: the neon outline frames (tall, ratio .6), cut at full resolution with their glow as real transparency. Art fills the card; numbers sit on a dark fade ===== */
+@media (max-width: 860px) and (orientation: portrait) {
+  .tcard.fr4.r-common, .sc.rc-common { --fr5: url(assets/ui/arena2/neon_common.6c86180bec.webp); --nc: #ffffff; }
+  .tcard.fr4.r-rare, .sc.rc-rare { --fr5: url(assets/ui/arena2/neon_rare.e6cbe2fc47.webp); --nc: #4aa8ff; }
+  .tcard.fr4.r-epic, .sc.rc-epic { --fr5: url(assets/ui/arena2/neon_epic.dbbda528e2.webp); --nc: #f29bff; }
+  .tcard.fr4.r-legendary, .sc.rc-legendary { --fr5: url(assets/ui/arena2/neon_legendary.5974525cae.webp); --nc: #ff9d42; }
+  #scr-match.prep-focus .field .cell, .tcard.hc.cv3.mini.fr4, #scr-match.prep-focus .sd-cards .sc { aspect-ratio: .6; }
+  .tcard.hc.cv3.mini.fr4, .tcard.hc.cv3.mini.fr4.r-legendary { filter: none; }
+  .tcard.hc.cv3.mini.fr4.s2 { filter: drop-shadow(0 0 6px #ffd24a); }
+  /* the frame image carries a glow margin around the tube: 9.4% of the width, 5.65% of the height */
+  .fr4 .fr4-img, #scr-match.prep-focus .sc .sc-frame { position: absolute; inset: -5.65% -9.4%; background: var(--fr5) center / 100% 100% no-repeat; border: 0; border-image: none; filter: none; pointer-events: none; }
+  .tcard.hc.cv3.mini.fr4 .hc-art, #scr-match.prep-focus .sc .sc-art { left: 1.4%; right: 1.4%; top: .85%; bottom: .85%; border-radius: 6.5% / 3.9%; background: #07040f; overflow: hidden; }
+  .tcard.hc.cv3.mini.fr4 .hc-art svg.portrait, #scr-match.prep-focus .sc .sc-art svg.portrait { position: absolute; inset: 0; top: 0; left: 0; transform: none; width: 100%; height: 100%; aspect-ratio: auto; }
+  .tcard.hc.cv3.mini.fr4 .hc-art::after, #scr-match.prep-focus .sc .sc-art::after { content: ''; display: block; position: absolute; inset: 0; z-index: 2; background: linear-gradient(180deg, #000a 0, transparent 17%, transparent 68%, #000d 100%); pointer-events: none; }
+  /* power: next to the top-left capsule */
+  .fr4 .fr4-pw, #scr-match.prep-focus .sc .sc-pw { left: 21%; top: 4.3%; width: 42%; height: 6.6%; display: flex; align-items: center; justify-content: flex-start; font: 900 11.5cqw var(--display); color: #fff; text-shadow: 0 0 2px #000, 0 1px 2px #000, 0 0 7px var(--nc); background: none; }
+  /* role icon: inside the big ring */
+  .fr4 .fr4-role, #scr-match.prep-focus .sc .sc-role { left: 88.5%; top: 6.3%; width: 9%; color: var(--nc); background: none; }
+  .fr4 .fr4-role svg, #scr-match.prep-focus .sc .sc-role svg { width: 100%; height: 100%; color: var(--nc); filter: drop-shadow(0 0 2px #000); }
+  /* star level: inside the star */
+  .fr4 .fr4-st, #scr-match.prep-focus .sc .sc-cost { left: 87.3%; top: 93.1%; width: 9%; font: 900 6.6cqw var(--display); color: #fff; text-shadow: 0 0 2px #000, 0 0 4px var(--nc); background: none; }
+  .fr4.s2 .fr4-st { color: #ffd24a; }
+  /* health and attack: bottom row, between the small capsule and the star */
+  .tcard.hc.cv3.mini.fr4 .hc-hp, .tcard.hc.cv3.mini.fr4 .hc-atk, #scr-match.prep-focus .sc .sc-hp, #scr-match.prep-focus .sc .sc-atk { top: 89.6%; height: 7.4%; bottom: auto; background: none; border: 0; display: flex; align-items: center; justify-content: center; gap: 1.5cqw; }
+  .tcard.hc.cv3.mini.fr4 .hc-hp, #scr-match.prep-focus .sc .sc-hp { left: 17%; width: 31%; }
+  .tcard.hc.cv3.mini.fr4 .hc-atk, #scr-match.prep-focus .sc .sc-atk { left: 49%; width: 28%; }
+  .tcard.hc.cv3.mini.fr4 .hc-hp .ic, .tcard.hc.cv3.mini.fr4 .hc-atk .ic { display: block; width: 8cqw; height: 8cqw; }
+  .tcard.hc.cv3.mini.fr4 .hc-hp .ic { color: #ff6b7a; } .tcard.hc.cv3.mini.fr4 .hc-atk .ic { color: #ffd24a; }
+  .tcard.hc.cv3.mini.fr4 .hc-hp b, .tcard.hc.cv3.mini.fr4 .hc-atk b { font-size: 11.5cqw; line-height: 1; text-shadow: 0 0 2px #000, 0 1px 2px #000; }
+  .tcard.hc.cv3.mini.fr4 .hc-hp b.sm, .tcard.hc.cv3.mini.fr4 .hc-atk b.sm { font-size: 9.6cqw; }
+  .tcard.hc.cv3.mini.fr4 .hc-hp b { color: #ffb3bb; } .tcard.hc.cv3.mini.fr4 .hc-atk b { color: #ffe08a; }
+  .fr4 .fr4-rar { display: none !important; }
+  #scr-match.prep-focus .sc .sc-pw { font-size: 9.5px; } #scr-match.prep-focus .sc .sc-cost { font-size: 6.5px; }
+  #scr-match.prep-focus .sc .sc-hp, #scr-match.prep-focus .sc .sc-atk { font-size: 9.5px; font-weight: 900; text-shadow: 0 0 2px #000, 0 1px 2px #000; }
+  #scr-match.prep-focus .sc .sc-hp { color: #ffb3bb; } #scr-match.prep-focus .sc .sc-atk { color: #ffe08a; }
+  #scr-match.prep-focus .sc .sc-info { right: 6%; top: 16%; }
+  #scr-match.prep-focus .sc.owned::after { border-radius: 6.5% / 3.9%; }
+  #scr-match.prep-focus .sd-cards { gap: 9px; padding: 6px 4px; }
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  #scr-match.prep-focus .sd-cards { gap: 4px; padding: 6px 0 4px; }
+  #scr-match.prep-focus .sc .sc-info { right: 5%; top: 15%; opacity: .8; }
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  .fr4 .fr4-pw, #scr-match.prep-focus .sc .sc-pw { direction: ltr; }
+  .fr4 .fr4-role svg, #scr-match.prep-focus .sc .sc-role svg { color: var(--nc) !important; }
+}
