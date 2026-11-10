@@ -3049,10 +3049,10 @@ body.reduce-motion .lv-flash, body.reduce-motion .merge-flash, body.reduce-motio
 
 /* ===== card frame v5 (approved sheet, model B): gold rim + rarity-coloured side strip. Field/bench cards (.fr4) and shop cards (.sc) on phones ===== */
 @media (max-width: 860px) and (orientation: portrait) {
-  .tcard.fr4.r-common, .sc.rc-common { --fr5: url(assets/ui/arena2/frame_common.cdf7ea4c98.webp); }
-  .tcard.fr4.r-rare, .sc.rc-rare { --fr5: url(assets/ui/arena2/frame_rare.dbda3ee207.webp); }
-  .tcard.fr4.r-epic, .sc.rc-epic { --fr5: url(assets/ui/arena2/frame_epic.84fa1dc0fa.webp); }
-  .tcard.fr4.r-legendary, .sc.rc-legendary { --fr5: url(assets/ui/arena2/frame_legendary.3a08ace7a9.webp); }
+  .tcard.fr4.r-common, .sc.rc-common { --fr5: url(assets/ui/arena2/frame_common.1371b58bdf.webp); }
+  .tcard.fr4.r-rare, .sc.rc-rare { --fr5: url(assets/ui/arena2/frame_rare.46d3c32cb8.webp); }
+  .tcard.fr4.r-epic, .sc.rc-epic { --fr5: url(assets/ui/arena2/frame_epic.ca8e4f70ea.webp); }
+  .tcard.fr4.r-legendary, .sc.rc-legendary { --fr5: url(assets/ui/arena2/frame_legendary.2f128577cc.webp); }
   /* field / bench mini cards */
   .tcard.hc.cv3.mini.fr4 { aspect-ratio: .615; filter: drop-shadow(0 2px 3px #000a); }
   .tcard.hc.cv3.mini.fr4.r-legendary { filter: drop-shadow(0 0 6px #ff9f1a99) drop-shadow(0 2px 3px #000a); }
@@ -3106,4 +3106,22 @@ body.reduce-motion .lv-flash, body.reduce-motion .merge-flash, body.reduce-motio
   .tcard.hc.cv3.mini.fr4 .hc-art::after { display: none; }
   .tcard.hc.cv3.mini.fr4 .hc-art svg.portrait, #scr-match.prep-focus .sc .sc-art svg.portrait { position: absolute; left: 0; top: 34%; transform: translateY(-50%); width: 100%; height: auto; aspect-ratio: 1; z-index: 1; }
   #scr-match.prep-focus .sc .sc-art .portrait { height: auto; }
+}
+
+/* ===== frame v6: wider window (frame re-cut: side strip kept, middle widened) so the whole square portrait fits ===== */
+@media (max-width: 860px) and (orientation: portrait) {
+  #scr-match.prep-focus .field .cell { aspect-ratio: .805; }
+  .tcard.hc.cv3.mini.fr4 { aspect-ratio: .805; }
+  #scr-match.prep-focus .sd-cards .sc { aspect-ratio: .805; }
+  .tcard.hc.cv3.mini.fr4 .hc-art, #scr-match.prep-focus .sc .sc-art { left: 7.3%; right: 18.4%; top: 8%; bottom: 14%; }
+  .tcard.hc.cv3.mini.fr4 .hc-art svg.portrait, #scr-match.prep-focus .sc .sc-art svg.portrait { top: 40%; }
+  .fr4 .fr4-pw, #scr-match.prep-focus .sc .sc-pw { left: 7.3%; width: 27.4%; }
+  .tcard.hc.cv3.mini.fr4 .hc-hp, #scr-match.prep-focus .sc .sc-hp { left: 7.8%; width: 33%; }
+  .tcard.hc.cv3.mini.fr4 .hc-atk, #scr-match.prep-focus .sc .sc-atk { left: 45.2%; width: 34%; }
+  .fr4 .fr4-role, #scr-match.prep-focus .sc .sc-role { left: 89.8%; width: 10.6%; }
+  .fr4 .fr4-st, #scr-match.prep-focus .sc .sc-cost { left: 89.8%; width: 11.3%; }
+  .fr4 .fr4-rar { left: 82.6%; right: 1.5%; font-size: 6.4cqw; }
+  .tcard.hc.cv3.mini.fr4 .hc-hp b, .tcard.hc.cv3.mini.fr4 .hc-atk b { font-size: 9cqw; } .tcard.hc.cv3.mini.fr4 .hc-hp b.sm, .tcard.hc.cv3.mini.fr4 .hc-atk b.sm { font-size: 7.2cqw; }
+  .fr4 .fr4-pw, .fr4 .fr4-st { font-size: 8.4cqw; }
+  #scr-match.prep-focus .sc .sc-info { right: 20%; }
 }
