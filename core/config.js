@@ -7,6 +7,65 @@
 (function () {
   const AMB = (globalThis.AMB = globalThis.AMB || {});
 
+  // ======================================================================================
+  //  THE SHOP — every number of the 5-level shop lives in THIS ONE BLOCK. Edit freely, then run
+  //  `node tools/test.js` and `node tools/simulate.js`.
+  //   - level N sells cards of 1..N stars only (a card's price in gold = its stars)
+  //   - upgrading costs more at every level; the price falls by `upgradeDecay` for each round you skip upgrading (never below `upgradeMin`)
+  //   - 3 copies of one card (team or bench) merge into ONE upgraded card (stats x mult, gold frame); it never merges again
+  //   - merge reward: pick 1 of 3 cards, each one star above your shop level (max 5)
+  // ======================================================================================
+  AMB.SHOP = {
+    rounds: 8,                    // length of a normal match (rounds)
+    levels: 5,                    // shop levels (= highest card star)
+    startLevel: 1,
+
+    // units allowed on the board at each shop level (index 0 = level 1)
+    boardSize: [3, 4, 5, 6, 7],
+
+    // shop odds (%) by shop level: [1 star, 2, 3, 4, 5]. Each upgrade adds one star above and lowers the lowest one step by step.
+    odds: {
+      1: [100, 0, 0, 0, 0],
+      2: [75, 25, 0, 0, 0],
+      3: [55, 33, 12, 0, 0],
+      4: [38, 32, 22, 8, 0],
+      5: [24, 28, 24, 16, 8],
+    },
+
+    // price to buy level N (key = the level you are buying)
+    upgradeCost: { 2: 7, 3: 10, 4: 13, 5: 16 },
+    upgradeDecay: 1,              // price drops by this much for every round that passes without an upgrade
+    upgradeMin: 3,                // ...but never below this
+
+    // base gold at the start of each round (index 0 = round 1); interest / streak / win bonuses come on top
+    income: [6, 6, 7, 8, 8, 9, 9, 10],
+    interestPer: 10,              // +1 gold per 10 banked
+    interestMax: 2,
+    winBonus: 1,
+
+    // copies of each card in the shared pool, by the card's stars
+    pool: { 1: 12, 2: 10, 3: 8, 4: 7, 5: 6 },
+
+    shopSlots: 5,
+    rerollCost: 1,
+
+    merge: {
+      copies: 3,                  // identical cards that merge
+      mult: 2,                    // the upgraded card: hp and attack x this
+      choices: 3,                 // cards offered as the merge reward
+    },
+
+    // card stars (1-5) by rarity; list a card id in `override` to place it by hand.
+    // common 1 / rare 2 / epic 3 (lighter ones) or 4 / shop legendary 5. Heroes are never sold.
+    rankByRarity: { common: 1, rare: 2, epic: 3, legendary: 5 },
+    override: {
+      chrome_ronin: 4, daikai: 4, kashiwagi: 4, kogetsu: 4, kurenai: 4, ryujin: 4, shirayuki: 4,
+    },
+    // hp & attack multiplier for a card's stars (1 star = baseline)
+    statMult: { 1: 1, 2: 1.2, 3: 1.4, 4: 1.62, 5: 1.85 },
+  };
+
+  const SH = AMB.SHOP;
   AMB.CONFIG = {
     version: '0.1.0',
 
@@ -15,16 +74,16 @@
       heroLife: 100,            // life total of every hero
       prepSeconds: 40,          // prep timer (shop + formation) vs AI
       hotseatPrepSeconds: 45,   // prep timer per player in same-device PvP
-      maxRounds: 7,             // the whole match: 7 rounds in 4 stages. After round 7 the higher hero life wins
+      maxRounds: SH.rounds,     // the whole match (see AMB.SHOP.rounds). After the last round the higher hero life wins
       collapseStartRound: 99,   // unused now (the finale replaces rift collapse); kept so old tuning still loads
       collapseDamage: [3, 6, 10, 15, 21, 28, 36, 45],
       roundResultSeconds: 2.5,
       // stages: the 7 rounds are grouped; a reward draft follows every stage except the last
       stages: [
         { id: 'spark', name: 'الشرارة', rounds: [1, 2] },
-        { id: 'blaze', name: 'الاشتعال', rounds: [3, 4] },
-        { id: 'rift', name: 'الصدع', rounds: [5, 6] },
-        { id: 'finale', name: 'الحسم', rounds: [7, 7] },
+        { id: 'blaze', name: 'الاشتعال', rounds: [3, 5] },
+        { id: 'rift', name: 'الصدع', rounds: [6, 7] },
+        { id: 'finale', name: 'الحسم', rounds: [SH.rounds, SH.rounds] },
       ],
       catchUpGap: 20,           // trailing by this much life (or more) at a reward draft => a 4th option
       catchUpExtraGold: 0,
@@ -33,34 +92,25 @@
     },
 
     economy: {
-      baseIncome: 5,
-      interestPer: 10,          // +1 gold per 10 banked
-      interestMax: 3,
-      winBonus: 1,
+      baseIncome: SH.income[0],
+      income: SH.income,
+      interestPer: SH.interestPer,
+      interestMax: SH.interestMax,
+      winBonus: SH.winBonus,
       catchUp: { gap: 10, gold: 3 },   // behind by this much life (round 3+, PvP-style modes): +gold per round
       streakBonus: [[2, 1], [4, 2]], // [minStreak, bonus] win OR loss streak
-      rerollCost: 1,
-      xpCost: 4,
-      xpPerBuy: 4,
-      xpPerRound: 3,
-      startLevel: 3,            // level == max units on the board
-      maxLevel: 8,
-      xpToLevel: { 3: 4, 4: 8, 5: 12, 6: 18, 7: 24 },
-      shopSlots: 5,
+      rerollCost: SH.rerollCost,
+      startLevel: SH.startLevel,       // shop level (1-5); it also sets the board size
+      maxLevel: SH.levels,
+      boardSize: SH.boardSize,
+      upgradeCost: SH.upgradeCost, upgradeDecay: SH.upgradeDecay, upgradeMin: SH.upgradeMin,
+      shopSlots: SH.shopSlots,
       itemShopSlots: 2,
       benchSize: 6,
       itemBenchSize: 6,
       sellRefund: 1.0,          // fraction of total copies' cost returned
-      // shop tier odds (%) by player level: [tier1, tier2, tier3]
-      tierOdds: {
-        3: [80, 20, 0],
-        4: [65, 30, 5],
-        5: [50, 38, 12],
-        6: [38, 40, 22],
-        7: [28, 40, 32],
-        8: [20, 38, 42],
-      },
-      poolSize: { 1: 10, 2: 8, 3: 6 }, // copies per unit shared by both players
+      shopOdds: SH.odds,
+      poolSize: SH.pool, // copies per card shared by both players, by the card's stars
       essenceStart: 2,
       essencePerRound: 2,
       essenceMax: 10,
@@ -69,16 +119,16 @@
     },
 
     stars: {
-      // stat multiplier per star (hp & attack). Capped at 3 stars on purpose:
-      // a 3-star is strong but still loses to a well-built team (see DESIGN.md).
-      mult: { 1: 1, 2: 1.8, 3: 3.0 },
-      copiesPerStar: 3,
-      copiesTo: { 2: 3, 3: 2 },   // same-star units that merge into the next star: 3×★ = ★★, 2×★★ = ★★★ (6 copies, reachable in a 7-round match)
+      // a card is upgraded ONCE: 3 copies -> 1 upgraded card (stats x mult, gold frame). The upgraded card never merges again.
+      mult: { 1: 1, 2: SH.merge.mult, 3: SH.merge.mult },
+      copiesPerStar: SH.merge.copies,
+      copiesTo: { 2: SH.merge.copies },
+      mergeChoices: SH.merge.choices,
       rewardHeldWeight: 10,        // the free-recruit reward favours units you already hold (weight per copy held)
-      ownedShopWeight: 8,         // shop focus: a unit you hold (below ★★★) is this many times likelier to show up in your shop
-      focusMinCopies: 2,          // ...once you hold at least this many copies of it
-      focusFreshOnly: true,       // true: the focus only shapes the free shop at the start of a round (not paid rerolls)
-      maxStar: 3,
+      ownedShopWeight: 1,         // 1 = no shop bias toward owned cards (the odds table decides)
+      focusMinCopies: 2,
+      focusFreshOnly: true,
+      maxStar: 2,
     },
 
     combat: {
@@ -125,7 +175,7 @@
     ai: {
       // difficulty knobs used by core/ai.js
       // easy holds its level at 5 and never summons; hard levels hard, keeps a small bank only and summons from round 2
-      easy: { mistakes: 0.35, rerollGreed: 0.4, levelAggro: 0.6, maxLevel: 5, noSummon: true },
+      easy: { mistakes: 0.35, rerollGreed: 0.4, levelAggro: 0.6, maxLevel: 4, noSummon: true },
       normal: { mistakes: 0.12, rerollGreed: 0.7, levelAggro: 1.0 },
       hard: { mistakes: 0.0, rerollGreed: 1.0, levelAggro: 1.6, reserveCap: 10, summonFrom: 2, summonMinLife: 40 },
       // teen #14: expert plays the strongest known plan (fast levels, early hero, its world) and adapts: it levels harder against a greedy opponent

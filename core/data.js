@@ -65,7 +65,7 @@
    */
   const U = [];
   // collectible rarity (see AMB.ECONOMY.rarities). Units follow their tier, heroes are legendary.
-  const TIER_RARITY = { 1: 'common', 2: 'rare', 3: 'epic' };
+  const TIER_RARITY = { 1: 'common', 2: 'rare', 3: 'epic', 4: 'epic', 5: 'legendary' };
   function unit(id, name, en, world, role, tier, mana, skill, over) {
     const base = ROLE_BASE[role];
     const m = TIER_MULT[tier];
@@ -332,6 +332,14 @@
     ['dmg', 'heal', 'shield', 'dps'].forEach((k) => { if (Array.isArray(sk[k])) sk[k] = sk[k].map((v) => Math.round(v * 0.93)); });
   });
   const UNITS = {};
+  // card stars (1-5): from core/shopconfig.js. `tier` == stars == gold price == the lowest shop level that sells the card; stats follow the stars.
+  const SH = AMB.SHOP;
+  U.forEach((u) => {
+    const rank = SH.override[u.id] || SH.rankByRarity[u.rarity];
+    u.tier = rank; u.cost = rank;
+    const base = ROLE_BASE[u.role], m = SH.statMult[rank];
+    u.hp = Math.round(base.hp * m); u.atk = Math.round(base.atk * m);
+  });
   U.forEach((u) => { if (u.exclusive) { u.hp = Math.round(u.hp * EXCLUSIVE_NERF); u.atk = Math.round(u.atk * EXCLUSIVE_NERF); } UNITS[u.id] = u; });
   // ---- rarity ladder: common = the role's plain job · rare = +1 trait · epic = +2 traits · legendary = +2 traits and a signature mechanic of its own (core/combat.js)
   const TRAITS = {
@@ -565,16 +573,16 @@
    * values are per stage [stage 1, stage 2, stage 3]. kind -> effect in core/match.js (claimReward).
    */
   const REWARDS = {
-    unit:     { id: 'unit', icon: 'crown', name: 'مجنّد مجاني', tiers: [1, 2, 3], text: (v, st) => `وحدة فئة ${v.tiers[st]} مجانًا (من عالم بطلك غالبًا)` },
+    unit:     { id: 'unit', icon: 'crown', name: 'مجنّد مجاني', tiers: [2, 3, 4], text: (v, st) => `وحدة ${v.tiers[st]} نجوم مجانًا (من عالم بطلك غالبًا)` },
     gold:     { id: 'gold', icon: 'coin', name: 'كنز', n: [5, 6, 8], text: (v, st) => `+${v.n[st]} ذهب فورًا` },
-    xp:       { id: 'xp', icon: 'star', name: 'تدريب مكثّف', n: [7, 9, 11], text: (v, st) => `+${v.n[st]} خبرة` },
+    xp:       { id: 'xp', icon: 'star', name: 'تخفيض الترقية', n: [2, 3, 4], text: (v, st) => `ترقية المتجر القادمة أرخص بـ${v.n[st]} ذهب` },
     essence:  { id: 'essence', icon: 'essence', name: 'جوهر نقي', n: [4, 4, 5], text: (v, st) => `+${v.n[st]} جوهر لقدرات البطل` },
     item:     { id: 'item', icon: 'shield', name: 'غنيمة', text: () => 'معدتين عشوائيتين تضعها على وحداتك' },
     bless_atk:{ id: 'bless_atk', icon: 'sword', name: 'بركة الغضب', pct: [0.12, 0.15, 0.18], text: (v, st) => `الفريق كله +${Math.round(v.pct[st] * 100)}% هجوم لبقية المباراة` },
     bless_hp: { id: 'bless_hp', icon: 'heart', name: 'بركة الحجر', pct: [0.15, 0.18, 0.22], text: (v, st) => `الفريق كله +${Math.round(v.pct[st] * 100)}% صحة لبقية المباراة` },
     bless_as: { id: 'bless_as', icon: 'wind', name: 'بركة الريح', pct: [0.14, 0.17, 0.2], text: (v, st) => `الفريق كله +${Math.round(v.pct[st] * 100)}% سرعة هجوم لبقية المباراة` },
     // teen #12: the slow plan that pays: gold now locked, paid back bigger at the start of the finale (round 7)
-    invest:   { id: 'invest', icon: 'coin', name: 'استثمار الصدع', n: [12, 15, 0], text: (v, st) => `+${v.n[st]} ذهب يوصلك في جولة الحسم (الجولة 7)` },
+    invest:   { id: 'invest', icon: 'coin', name: 'استثمار الصدع', n: [12, 15, 0], text: (v, st) => `+${v.n[st]} ذهب يوصلك في جولة الحسم (الجولة ${AMB.SHOP.rounds})` },
     heal:     { id: 'heal', icon: 'cross', name: 'ماء الحياة', n: [10, 12, 15], text: (v, st) => `يستعيد بطلك ${v.n[st]} حياة` },
   };
   // which rewards can appear in each stage (one "unit" is always offered)

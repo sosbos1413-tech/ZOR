@@ -121,28 +121,28 @@ t('if both heroes fall in the same round, the round winner takes the match', () 
 
 console.log('stages & rewards');
 const sim1 = (seed) => new AMB.Match({ seed, players: [{ heroId: 'kagira' }, { heroId: 'merin' }] });
-t('7 rounds in 4 stages: rounds map to the right stage', () => {
+t('8 rounds in 4 stages: rounds map to the right stage', () => {
   const m = sim1(31);
-  eq(AMB.CONFIG.match.maxRounds, 7);
-  eq([1, 2, 3, 4, 5, 6, 7].map((r) => m.stageIndex(r)).join(''), '0011223');
-  ok(m.isFinale(7) && !m.isFinale(6));
+  eq(AMB.CONFIG.match.maxRounds, 8); eq(AMB.SHOP.rounds, 8);
+  eq([1, 2, 3, 4, 5, 6, 7, 8].map((r) => m.stageIndex(r)).join(''), '00111223');
+  ok(m.isFinale(8) && !m.isFinale(7));
 });
-t('reward drafts appear only after rounds 2, 4 and 6, with 3 distinct options incl. a unit', () => {
+t('reward drafts appear only after rounds 2, 5 and 7, with 3 distinct options incl. a unit', () => {
   const m = sim1(32); const seen = [];
   while (!m.isOver) {
     m.startRound(); AMB.AI.prep(m, 0); AMB.AI.prep(m, 1);
     m.resolveCombat(m.createCombat(false).runToEnd());
     if (m.rewardPending) { seen.push(m.round); m.players.forEach((p) => { const o = p.rewardOffer.options; ok(o.length >= 3 && o.length <= 4); eq(new Set(o).size, o.length, 'options must be distinct'); ok(o.includes('unit')); }); AMB.AI.claimRewards(m); }
   }
-  ok(seen.every((r) => [2, 4, 6].includes(r)), 'drafts at ' + seen);
-  ok(m.round <= 7);
+  ok(seen.every((r) => [2, 5, 7].includes(r)), 'drafts at ' + seen);
+  ok(m.round <= AMB.CONFIG.match.maxRounds);
 });
 t('claiming: gold, xp, heal (capped), unit (bench + shared pool) and blessing', () => {
   const m = sim1(33); m.startRound();
   const p = m.players[0];
   const give = (id) => { p.rewardOffer = { stage: 0, options: [id], claimed: false }; return m.claimReward(0, 0); };
   const g0 = p.gold; ok(give('gold').ok); eq(p.gold, g0 + AMB.DATA.REWARDS.gold.n[0]);
-  const x0 = p.xp; give('xp'); ok(p.xp > x0 || p.level > 3);
+  const c0 = m.upgradeCost(p); give('xp'); ok(m.upgradeCost(p) < c0 || m.upgradeCost(p) === AMB.CONFIG.economy.upgradeMin, 'the xp reward makes the next shop upgrade cheaper');
   p.life = 95; give('heal'); eq(p.life, 100, 'heal is capped at max life');
   const pool0 = Object.values(m.pool).reduce((a, b) => a + b, 0); const n0 = m.allUnits(p).length; give('unit');
   eq(m.allUnits(p).length, n0 + 1); eq(Object.values(m.pool).reduce((a, b) => a + b, 0), pool0 - 1);
@@ -163,14 +163,14 @@ t('the finale multiplies the life lost by the loser of the round', () => {
     return rep.players[0].backlash;
   };
   const mult = AMB.CONFIG.match.finaleLossMult;
-  AMB.CONFIG.match.finaleLossMult = 1; const plain = run(7);
-  AMB.CONFIG.match.finaleLossMult = mult; const finale = run(7);
+  AMB.CONFIG.match.finaleLossMult = 1; const plain = run(8);
+  AMB.CONFIG.match.finaleLossMult = mult; const finale = run(8);
   ok(finale > plain, `finale backlash ${finale} should exceed ${plain}`);
   ok(Math.abs(finale - Math.round(plain * mult)) <= 1, 'should be about x' + mult);
-  const r6 = run(6); ok(r6 <= plain, 'round 6 is not multiplied');
+  const r6 = run(7); ok(r6 <= plain, 'round 7 is not multiplied');
 });
-t('after round 7 the higher hero life wins (tie -> rounds won)', () => {
-  const m = sim1(35); m.startRound(); m.round = 7; m.players[0].life = 60; m.players[1].life = 40;
+t('after the last round the higher hero life wins (tie -> rounds won)', () => {
+  const m = sim1(35); m.startRound(); m.round = AMB.CONFIG.match.maxRounds; m.players[0].life = 60; m.players[1].life = 40;
   const sd = { heroLife: 0, heroKilled: false, survivors: [], abilitiesFired: [], exposed: false };
   m.players[0].life = 60; m.players[1].life = 40;
   m.resolveCombat({ winner: null, duration: 30, sides: [Object.assign({}, sd, { heroLife: 60 }), Object.assign({}, sd, { heroLife: 40 })], unitDamage: {} });
@@ -179,12 +179,12 @@ t('after round 7 the higher hero life wins (tie -> rounds won)', () => {
 
 t('autoArrange: guardians/fighters in front, ranged behind, level cap respected, nothing lost', () => {
   const m = new AMB.Match({ seed: 41, players: [{ heroId: 'kagira' }, { heroId: 'orath' }] }); m.startRound();
-  const p = m.players[0]; p.level = 5;
+  const p = m.players[0]; p.level = 4;
   const defs = ['moss_warden', 'ash_ronin', 'pixel_sniper', 'mist_witch', 'wave_caller', 'grid_hound', 'tide_priest'];
   defs.forEach((d, i) => (p.bench[i % 6] = p.bench[i % 6] || { uid: 'z' + i, defId: d, star: 1 + (i % 2), items: [] }));
   const before = m.allUnits(p).length;
   m.autoArrange(0);
-  eq(Object.keys(p.board).length, Math.min(5, before));
+  eq(Object.keys(p.board).length, Math.min(m.boardCap(p), before));
   eq(m.allUnits(p).length, before, 'no unit may disappear');
   Object.entries(p.board).forEach(([slot, u]) => { const side = AMB.DATA.ROLES[AMB.DATA.UNITS[u.defId].role].side; if (side === 'front') ok(slot[0] === 'f', u.defId + ' should be in front'); if (side === 'back') ok(slot[0] === 'b', u.defId + ' should be behind'); });
   ok(Object.keys(p.board).some((s) => s[0] === 'f'), 'a front line must exist');
@@ -314,14 +314,14 @@ t('interest and streak income', () => {
   p.gold = 25; p.winStreak = 2; p.lastWon = true;
   m.startRound();
   const E = AMB.CONFIG.economy;
-  eq(p.lastIncome.total, E.baseIncome + 2 + 1 + E.winBonus);
+  eq(p.lastIncome.total, p.lastIncome.base + 2 + 1 + E.winBonus);
   // a drawn round keeps the streak but does not pay the win bonus (A8)
   p.gold = 25; p.winStreak = 2; p.lastWon = false; m.startRound();
-  eq(p.lastIncome.total, E.baseIncome + 2 + 1, 'no win bonus after a draw');
+  eq(p.lastIncome.total, p.lastIncome.base + 2 + 1, 'no win bonus after a draw');
 });
-t('A10/A11: levels 1-2 never level up for free or crash the shop; the item bag cannot exceed its limit', () => {
+t('A10/A11: the shop rolls at level 1 and never upgrades for free; the item bag cannot exceed its limit', () => {
   const m = new AMB.Match({ seed: 33, players: [{ heroId: 'kagira' }, { heroId: 'orath' }] }); m.startRound();
-  const p = m.players[0]; p.level = 1; p.xp = 0; m._gainXp(p, 2);
+  const p = m.players[0]; p.level = 1; p.gold = 0; ok(!m.upgradeShop(0).ok, 'no gold, no upgrade');
   eq(p.level, 1, 'no free level-up'); p._t = 1; m._rollShop(p); ok(p.shop.length > 0, 'the shop rolls at level 1');
   const cap = AMB.CONFIG.economy.itemBenchSize; p.items = ['sword', 'sword', 'sword', 'sword', 'sword', 'sword'].slice(0, cap);
   const g = p.gold; m._stash(p, ['a', 'b']); eq(p.items.length, cap); eq(p.gold, g + 6, 'overflow items turn into +3 gold each');
@@ -444,7 +444,7 @@ t('events: a throwing listener does not stop the others', () => {
 console.log('rarity, collection, card upgrades');
 const RAR = () => AMB.ECONOMY.rarities;
 t('every card has a valid rarity; units follow tier, heroes are legendary', () => {
-  Object.values(AMB.DATA.UNITS).forEach((u) => { ok(RAR()[u.rarity], u.id); if (u.rarity === 'legendary') eq(u.tier, 3, 'legendary units use tier-3 stats ' + u.id); else eq(u.rarity, AMB.DATA.TIER_RARITY[u.tier], u.id); });
+  Object.values(AMB.DATA.UNITS).forEach((u) => { ok(RAR()[u.rarity], u.id); if (u.rarity === 'legendary') eq(u.tier, 5, 'a legendary unit is a 5-star card ' + u.id); else eq(u.rarity, AMB.DATA.TIER_RARITY[u.tier], u.id); });
   Object.values(AMB.DATA.HEROES).forEach((h) => eq(h.rarity, 'legendary', h.id));
 });
 t('rarer = stronger and needs more copies at every level', () => {
@@ -608,7 +608,7 @@ t('progression shop only offers owned units; quick matches offer everything', ()
     for (let s = 1; s <= 6; s++) {
       const m = new AMB.Match({ seed: s, progression: prog, players: [{ heroId: 'orath', allowedUnits: owned }, { heroId: 'merin', isAI: true }] });
       while (!m.isOver && m.round < 7) {
-        m.startRound();
+        m.startRound(); m.players[0].level = 5;
         for (let k = 0; k < 6; k++) { m.players[0].shop.forEach((id) => id && ids.add(id)); m.players[0].gold += 2; m.reroll(0); }
         (m.players[0].rewardOffer ? [m.players[0].rewardOffer] : []).forEach(() => { const r = m.claimReward(0, 0); if (r && r.unit) ids.add(r.unit); });
         AMB.AI.prep(m, 1); m.resolveCombat(m.createCombat(false).runToEnd());
@@ -844,7 +844,7 @@ t('teen #12/#15/#19/#13: invest pays at the finale, wager only in the finale, we
   eq(m.setWager(0, true).ok, false, 'no wager before the finale');
   p.invest = 15; const g0 = p.gold;
   eq(m.setHunt(0, 'weak').ok, true); eq(m.buildCombatSpec(0).hunt, 'weak'); eq(m.setHunt(0, 'nope').ok, false);
-  while (m.round < 6) { m.resolveCombat(m.createCombat(false).runToEnd()); if (!m.isOver) m.startRound(); }
+  while (m.round < AMB.CONFIG.match.maxRounds - 1) { m.resolveCombat(m.createCombat(false).runToEnd()); if (!m.isOver) m.startRound(); }
   ok(p.invest === 15, 'not paid before the finale');
   m.resolveCombat(m.createCombat(false).runToEnd()); if (!m.isOver) m.startRound();
   ok(m.isFinale(m.round) && p.invest === 0, 'paid at the start of the finale');
@@ -881,7 +881,7 @@ t('adult #21: a quick match rebuilt from its recorded moves is identical (contin
 });
 t('adult #22-#28, senior #39: short match mode, daily quick-match shards cap, wish hero from the guarantee, mission swap, undo snapshot', () => {
   // short match: 4 rounds, its own pass mode
-  const sh = new AMB.Match({ mode: 'short', players: [{ heroId: 'orath', name: 'a', isAI: true, difficulty: 'normal' }, { heroId: 'merin', name: 'b', isAI: true, difficulty: 'normal' }], rules: { maxRounds: 4, winsNeeded: 3, start: { gold: 8, level: 4 } } });
+  const sh = new AMB.Match({ mode: 'short', players: [{ heroId: 'orath', name: 'a', isAI: true, difficulty: 'normal' }, { heroId: 'merin', name: 'b', isAI: true, difficulty: 'normal' }], rules: { maxRounds: 4, winsNeeded: 3, start: { gold: 8, level: 2 } } });
   while (!sh.isOver) { sh.startRound(); AMB.AI.prep(sh, 0); AMB.AI.prep(sh, 1); sh.resolveCombat(sh.createCombat(false).runToEnd()); }
   ok(sh.round <= 4, 'over within 4 rounds'); eq(sh.summary(0).mode, 'short');
   // quick-match shards: +10/+5, 60 a day
@@ -904,7 +904,7 @@ t('adult #22-#28, senior #39: short match mode, daily quick-match shards cap, wi
   m.restore(0, snap); eq(p0.gold, g0); eq(p0.shop[0], id0); eq(m._pool(p0)[id0], pool0); ok(!p0.bench.some(Boolean), 'bench back to empty');
 });
 t('undo in a progression match (allowed-units Set, scripted lineup) never breaks the next round', () => {
-  const m = new AMB.Match({ mode: 'campaign', seed: 11, progression: true, rules: { maxRounds: 3, winsNeeded: 2, start: { gold: 10, level: 3 } },
+  const m = new AMB.Match({ mode: 'campaign', seed: 11, progression: true, rules: { maxRounds: 3, winsNeeded: 2, start: { gold: 10, level: 1 } },
     players: [{ heroId: 'orath', name: 'a', allowedUnits: new Set(Object.keys(AMB.DATA.UNITS).slice(0, 20)) }, { heroId: 'merin', name: 'b', isAI: true }] });
   m.startRound(); const snap = m.snapshot(0); for (let i = 0; i < 5; i++) if (m.canBuy(0, i).ok) { m.buy(0, i); break; }
   m.restore(0, snap); ok(m.players[0].allowed instanceof Set, 'the allowed-units Set survives an undo');
@@ -1177,7 +1177,7 @@ t('event: a fight is credited to the week it started in (the week may change mid
   const r = W.recordResult(1, { won: true }, startWeek); eq(r.week, startWeek); eq(W.current().stage, 0, 'the new week is untouched'); eq(AMB.Profile.boot(prof.save.exportJSON && MEM(), () => TH).weekly.current().stage, 0);
 });
 t('event: exclusive cards never drop from packs, are not in album sets, but still exist as real units', () => {
-  const ex = Object.values(AMB.DATA.UNITS).filter((u) => u.exclusive); eq(ex.length, 4); ex.forEach((u) => { eq(u.rarity, 'legendary'); eq(u.tier, 3); ok(AMB.WEEKLY.some((e) => e.exclusive === u.id)); });
+  const ex = Object.values(AMB.DATA.UNITS).filter((u) => u.exclusive); eq(ex.length, 4); ex.forEach((u) => { eq(u.rarity, 'legendary'); eq(u.tier, 5); ok(AMB.WEEKLY.some((e) => e.exclusive === u.id)); });
   const p = AMB.Profile.boot(MEM(), null, AMB.util.RNG(8)); p.wallet.add('shards', 1e6);
   const ids = new Set(); for (let i = 0; i < 1500; i++) p.packs.open('basic', { free: true }).cards.forEach((c) => ids.add(c.id));
   ex.forEach((u) => ok(!ids.has(u.id), 'dropped from a pack: ' + u.id));
@@ -1528,9 +1528,9 @@ t('auto-arrange: never loses a unit, however often it is pressed, with or withou
   const heroes = Object.keys(AMB.DATA.HEROES);
   for (let g = 0; g < 40; g++) {
     const m = new AMB.Match({ mode: 'ai', seed: 500 + g, players: [{ heroId: heroes[g % 8], name: 'a' }, { heroId: heroes[(g + 1) % 8], name: 'b' }] });
-    m.startRound(); const p = m.players[0]; p.gold = 99; p.level = 3 + (g % 6);
+    m.startRound(); const p = m.players[0]; p.gold = 99; p.level = 1 + (g % 5);
     for (let i = 0; i < 12; i++) { m.buy(0, i % 5); if (i % 5 === 4) m.reroll(0); }
-    m.allUnits(p).slice(0, p.level).forEach((u) => { if (!Object.values(p.board).includes(u)) m.move(0, u.uid, { zone: 'board', slot: ['f0', 'f1', 'f2', 'f3', 'b0', 'b1', 'b2', 'b3'].find((x) => !p.board[x]) }); });
+    m.allUnits(p).slice(0, m.boardCap(p)).forEach((u) => { if (!Object.values(p.board).includes(u)) m.move(0, u.uid, { zone: 'board', slot: ['f0', 'f1', 'f2', 'f3', 'b0', 'b1', 'b2', 'b3'].find((x) => !p.board[x]) }); });
     if (g % 2) { const r = m.toggleSummon(0, ['f1', 'b1', 'f3', 'b3'][g % 4]); }
     const total = m.allUnits(p).length, ids = m.allUnits(p).map((u) => u.uid).sort().join();
     for (let k = 0; k < 6; k++) {
@@ -1539,7 +1539,7 @@ t('auto-arrange: never loses a unit, however often it is pressed, with or withou
       eq(m.allUnits(p).map((u) => u.uid).sort().join(), ids, 'same units');
       ok(!('undefined' in p.board), 'no undefined slot');
       if (p.summoned) ok(!p.board[p.heroSlot], 'hero slot stays free');
-      ok(Object.keys(p.board).length <= p.level, 'board within the level');
+      ok(Object.keys(p.board).length <= m.boardCap(p), 'board within the level');
     }
   }
 });
@@ -1639,6 +1639,62 @@ t('settings: big text off and 1x speed for a new player; speed choice and one-ti
 t('every ui/*.js file parses (a syntax error there would break the whole game in the browser)', () => {
   const fs = require('fs'), path = require('path'), dir = path.join(__dirname, '..', 'ui');
   fs.readdirSync(dir).filter((f) => f.endsWith('.js')).forEach((f) => { try { new Function(fs.readFileSync(path.join(dir, f), 'utf8')); } catch (e) { throw new Error(f + ': ' + e.message); } });
+});
+
+console.log('5-level shop');
+t('shop settings: 5 levels, every odds row sums to 100, no star above the level, the lowest star falls with each upgrade, costs rise per level', () => {
+  const SH = AMB.SHOP; eq(SH.levels, 5); eq(SH.rounds, 8);
+  let prevLow = 101;
+  for (let l = 1; l <= 5; l++) {
+    const row = SH.odds[l]; eq(row.reduce((a, b) => a + b, 0), 100, 'odds of level ' + l);
+    row.forEach((w, i) => { if (i + 1 > l) eq(w, 0, `level ${l} must not sell ${i + 1} stars`); });
+    ok(row[0] < prevLow, 'the 1-star share falls at every upgrade'); prevLow = row[0];
+    if (l > 1) ok(row[l - 1] > 0, 'each upgrade adds the new star');
+  }
+  const c = [2, 3, 4, 5].map((l) => SH.upgradeCost[l]); ok(c.every((x, i) => i === 0 || x > c[i - 1]), 'each level costs more');
+  const cnt = {}; Object.values(AMB.DATA.UNITS).forEach((u) => { cnt[u.tier] = (cnt[u.tier] || 0) + 1; eq(u.cost, u.tier); });
+  eq([1, 2, 3, 4, 5].map((k) => cnt[k]).join(), '23,24,6,7,9', 'cards per star');
+});
+t('shop never shows a card above the shop level (20 AI matches, every roll), and the upgraded board follows the level', () => {
+  for (let s = 1; s <= 20; s++) {
+    const m = new AMB.Match({ mode: 'sim', seed: s, players: [{ heroId: 'orath', isAI: true, difficulty: 'normal' }, { heroId: 'merin', isAI: true, difficulty: 'hard' }] });
+    while (!m.isOver) {
+      m.startRound();
+      m.players.forEach((p) => { p.shop.forEach((id) => id && ok(AMB.DATA.UNITS[id].tier <= p.level, `${id} in a level ${p.level} shop`)); ok(p.level >= 1 && p.level <= 5); });
+      AMB.AI.prep(m, 0); AMB.AI.prep(m, 1);
+      m.players.forEach((p) => ok(Object.keys(p.board).length <= m.boardCap(p), 'board within the level'));
+      m.resolveCombat(m.createCombat(false).runToEnd());
+    }
+    ok(m.round <= 8);
+  }
+});
+t('upgrade cost: falls by 1 per round without upgrading, never below the minimum, resets after an upgrade, none at level 5', () => {
+  const m = new AMB.Match({ seed: 6, players: [{ heroId: 'orath' }, { heroId: 'merin' }] }); m.startRound(); const p = m.players[0], SH = AMB.SHOP;
+  eq(m.upgradeCost(p), SH.upgradeCost[2]); m.startRound(); eq(m.upgradeCost(p), SH.upgradeCost[2] - SH.upgradeDecay);
+  for (let i = 0; i < 8; i++) m.startRound(); eq(m.upgradeCost(p), SH.upgradeMin);
+  p.gold = 0; ok(!m.upgradeShop(0).ok); p.gold = 99; const g = p.gold, c = m.upgradeCost(p); ok(m.upgradeShop(0).ok); eq(p.gold, g - c); eq(p.level, 2);
+  eq(m.upgradeCost(p), SH.upgradeCost[3], 'a fresh upgrade price after buying a level');
+  while (p.level < 5) ok(m.upgradeShop(0).ok); eq(m.upgradeCost(p), null); ok(!m.upgradeShop(0).ok);
+});
+t('merge: 3 copies from the bench or the team become ONE upgraded card (x2 stats); it never merges again; reward = 3 cards one star above the level', () => {
+  const mk = (lvl) => { const m = new AMB.Match({ seed: 5, players: [{ heroId: 'orath' }, { heroId: 'merin' }] }); m.startRound(); const p = m.players[0]; p.gold = 99; p.level = lvl; return [m, p]; };
+  let [m, p] = mk(2);
+  for (let i = 0; i < 3; i++) { p.shop[0] = 'ash_ronin'; const r = m.buy(0, 0); if (i === 2) eq(r.merged.length, 1); }
+  const ups = m.allUnits(p).filter((u) => u.defId === 'ash_ronin'); eq(ups.length, 1); eq(ups[0].star, 2); eq(AMB.CONFIG.stars.mult[2], 2);
+  ok(p.mergePick && p.mergePick.options.length === 3 && p.mergePick.options.every((id) => AMB.DATA.UNITS[id].tier === 3), 'reward cards are 3 stars at shop level 2');
+  const n0 = m.allUnits(p).length; ok(m.claimMerge(0, 0).ok); eq(m.allUnits(p).length, n0 + 1); eq(p.mergePick, null);
+  for (let i = 0; i < 3; i++) { p.shop[0] = 'ash_ronin'; m.buy(0, 0); } m.autoPickMerge(0);
+  const again = m.allUnits(p).filter((u) => u.defId === 'ash_ronin'); ok(again.length === 2 && again.every((u) => u.star === 2), 'a second trio makes a second upgraded card, never a third star');
+  [m, p] = mk(2); p.shop[0] = 'ash_ronin'; m.buy(0, 0); p.shop[0] = 'ash_ronin'; m.buy(0, 0);
+  m.allUnits(p).forEach((u, i) => ok(m.move(0, u.uid, { zone: 'board', slot: ['f0', 'f1'][i] }).ok));
+  p.shop[0] = 'ash_ronin'; ok(m.buy(0, 0).merged.length === 1, 'two on the team + one on the bench merge'); eq(Object.values(p.board).filter((u) => u.star === 2).length, 1);
+  [m, p] = mk(5); for (let i = 0; i < 3; i++) { p.shop[0] = 'ash_ronin'; m.buy(0, 0); } ok(p.mergePick.options.every((id) => AMB.DATA.UNITS[id].tier === 5), 'the reward is capped at 5 stars');
+  [m, p] = mk(2); for (let i = 0; i < 3; i++) { p.shop[0] = 'ash_ronin'; m.buy(0, 0); } m.startRound(); eq(p.mergePick, null, 'an unpicked reward is picked for the player when the round ends');
+});
+t('shop: the first time a star shows up it is flagged (new-star frame); the merge reward op is checked and part of the online hash', () => {
+  const m = new AMB.Match({ seed: 8, players: [{ heroId: 'orath' }, { heroId: 'merin' }] }); m.startRound(); const p = m.players[0];
+  eq(p.shopNew.length, 5); p.level = 5; p.shownRanks = []; let flagged = 0; for (let i = 0; i < 6; i++) { m._rollShop(p); flagged += p.shopNew.filter(Boolean).length; } ok(flagged >= 3 && flagged <= 4, 'each new star is flagged once (got ' + flagged + ')');
+  eq(AMB.NetSync.checkOp(['claimMerge', 1]), null); eq(AMB.NetSync.checkOp(['claimMerge', 'x']), 'claimMerge:arg0');
 });
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

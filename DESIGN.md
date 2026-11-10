@@ -302,7 +302,7 @@ ZOR/   (مختصر: core/ و ui/ فيها ملفات أكثر اليوم، ان�
 ### كائنات المباراة (`core/match.js`)
 ```js
 Player = {
-  heroId, life, maxLife, gold, xp, level, essence,
+  heroId, life, maxLife, gold, level (مستوى المتجر 1–5), idle, mergePick, essence,
   bench: [Unit|null ×6],
   board: { 'f0'..'f3', 'b0'..'b3' → Unit },   // f = أمامي، b = خلفي
   items: [itemId], armedSpells: [itemId],
@@ -316,7 +316,7 @@ Match.history = [ تقرير كل جولة ]              // للإحصائيا�
 ```
 
 ### واجهة Match (يستخدمها البشر والذكاء الاصطناعي والمحاكي)
-`startRound · buy · sell · reroll · buyXp · toggleLock · move · buyItem · equip · unequip · armSpell · setAbility · toggleSummon · moveHero · autoFill · createCombat · resolveCombat`
+`startRound · buy · sell · reroll · upgradeShop (buyXp اسم قديم) · claimMerge · toggleLock · move · buyItem · equip · unequip · armSpell · setAbility · toggleSummon · moveHero · autoFill · createCombat · resolveCombat`
 
 كل عملية تعيد `{ ok, reason }`؛ والواجهة لا تحتوي أي قاعدة لعب.
 

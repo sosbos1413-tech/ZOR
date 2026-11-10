@@ -8,6 +8,65 @@
 (function () {
   const AMB = (globalThis.AMB = globalThis.AMB || {});
 
+  // ======================================================================================
+  //  THE SHOP — every number of the 5-level shop lives in THIS ONE BLOCK. Edit freely, then run
+  //  `node tools/test.js` and `node tools/simulate.js`.
+  //   - level N sells cards of 1..N stars only (a card's price in gold = its stars)
+  //   - upgrading costs more at every level; the price falls by `upgradeDecay` for each round you skip upgrading (never below `upgradeMin`)
+  //   - 3 copies of one card (team or bench) merge into ONE upgraded card (stats x mult, gold frame); it never merges again
+  //   - merge reward: pick 1 of 3 cards, each one star above your shop level (max 5)
+  // ======================================================================================
+  AMB.SHOP = {
+    rounds: 8,                    // length of a normal match (rounds)
+    levels: 5,                    // shop levels (= highest card star)
+    startLevel: 1,
+
+    // units allowed on the board at each shop level (index 0 = level 1)
+    boardSize: [3, 4, 5, 6, 7],
+
+    // shop odds (%) by shop level: [1 star, 2, 3, 4, 5]. Each upgrade adds one star above and lowers the lowest one step by step.
+    odds: {
+      1: [100, 0, 0, 0, 0],
+      2: [75, 25, 0, 0, 0],
+      3: [55, 33, 12, 0, 0],
+      4: [38, 32, 22, 8, 0],
+      5: [24, 28, 24, 16, 8],
+    },
+
+    // price to buy level N (key = the level you are buying)
+    upgradeCost: { 2: 7, 3: 10, 4: 13, 5: 16 },
+    upgradeDecay: 1,              // price drops by this much for every round that passes without an upgrade
+    upgradeMin: 3,                // ...but never below this
+
+    // base gold at the start of each round (index 0 = round 1); interest / streak / win bonuses come on top
+    income: [6, 6, 7, 8, 8, 9, 9, 10],
+    interestPer: 10,              // +1 gold per 10 banked
+    interestMax: 2,
+    winBonus: 1,
+
+    // copies of each card in the shared pool, by the card's stars
+    pool: { 1: 12, 2: 10, 3: 8, 4: 7, 5: 6 },
+
+    shopSlots: 5,
+    rerollCost: 1,
+
+    merge: {
+      copies: 3,                  // identical cards that merge
+      mult: 2,                    // the upgraded card: hp and attack x this
+      choices: 3,                 // cards offered as the merge reward
+    },
+
+    // card stars (1-5) by rarity; list a card id in `override` to place it by hand.
+    // common 1 / rare 2 / epic 3 (lighter ones) or 4 / shop legendary 5. Heroes are never sold.
+    rankByRarity: { common: 1, rare: 2, epic: 3, legendary: 5 },
+    override: {
+      chrome_ronin: 4, daikai: 4, kashiwagi: 4, kogetsu: 4, kurenai: 4, ryujin: 4, shirayuki: 4,
+    },
+    // hp & attack multiplier for a card's stars (1 star = baseline)
+    statMult: { 1: 1, 2: 1.2, 3: 1.4, 4: 1.62, 5: 1.85 },
+  };
+
+  const SH = AMB.SHOP;
   AMB.CONFIG = {
     version: '0.1.0',
 
@@ -16,16 +75,16 @@
       heroLife: 100,            // life total of every hero
       prepSeconds: 40,          // prep timer (shop + formation) vs AI
       hotseatPrepSeconds: 45,   // prep timer per player in same-device PvP
-      maxRounds: 7,             // the whole match: 7 rounds in 4 stages. After round 7 the higher hero life wins
+      maxRounds: SH.rounds,     // the whole match (see AMB.SHOP.rounds). After the last round the higher hero life wins
       collapseStartRound: 99,   // unused now (the finale replaces rift collapse); kept so old tuning still loads
       collapseDamage: [3, 6, 10, 15, 21, 28, 36, 45],
       roundResultSeconds: 2.5,
       // stages: the 7 rounds are grouped; a reward draft follows every stage except the last
       stages: [
         { id: 'spark', name: 'الشرارة', rounds: [1, 2] },
-        { id: 'blaze', name: 'الاشتعال', rounds: [3, 4] },
-        { id: 'rift', name: 'الصدع', rounds: [5, 6] },
-        { id: 'finale', name: 'الحسم', rounds: [7, 7] },
+        { id: 'blaze', name: 'الاشتعال', rounds: [3, 5] },
+        { id: 'rift', name: 'الصدع', rounds: [6, 7] },
+        { id: 'finale', name: 'الحسم', rounds: [SH.rounds, SH.rounds] },
       ],
       catchUpGap: 20,           // trailing by this much life (or more) at a reward draft => a 4th option
       catchUpExtraGold: 0,
@@ -34,34 +93,25 @@
     },
 
     economy: {
-      baseIncome: 5,
-      interestPer: 10,          // +1 gold per 10 banked
-      interestMax: 3,
-      winBonus: 1,
+      baseIncome: SH.income[0],
+      income: SH.income,
+      interestPer: SH.interestPer,
+      interestMax: SH.interestMax,
+      winBonus: SH.winBonus,
       catchUp: { gap: 10, gold: 3 },   // behind by this much life (round 3+, PvP-style modes): +gold per round
       streakBonus: [[2, 1], [4, 2]], // [minStreak, bonus] win OR loss streak
-      rerollCost: 1,
-      xpCost: 4,
-      xpPerBuy: 4,
-      xpPerRound: 3,
-      startLevel: 3,            // level == max units on the board
-      maxLevel: 8,
-      xpToLevel: { 3: 4, 4: 8, 5: 12, 6: 18, 7: 24 },
-      shopSlots: 5,
+      rerollCost: SH.rerollCost,
+      startLevel: SH.startLevel,       // shop level (1-5); it also sets the board size
+      maxLevel: SH.levels,
+      boardSize: SH.boardSize,
+      upgradeCost: SH.upgradeCost, upgradeDecay: SH.upgradeDecay, upgradeMin: SH.upgradeMin,
+      shopSlots: SH.shopSlots,
       itemShopSlots: 2,
       benchSize: 6,
       itemBenchSize: 6,
       sellRefund: 1.0,          // fraction of total copies' cost returned
-      // shop tier odds (%) by player level: [tier1, tier2, tier3]
-      tierOdds: {
-        3: [80, 20, 0],
-        4: [65, 30, 5],
-        5: [50, 38, 12],
-        6: [38, 40, 22],
-        7: [28, 40, 32],
-        8: [20, 38, 42],
-      },
-      poolSize: { 1: 10, 2: 8, 3: 6 }, // copies per unit shared by both players
+      shopOdds: SH.odds,
+      poolSize: SH.pool, // copies per card shared by both players, by the card's stars
       essenceStart: 2,
       essencePerRound: 2,
       essenceMax: 10,
@@ -70,16 +120,16 @@
     },
 
     stars: {
-      // stat multiplier per star (hp & attack). Capped at 3 stars on purpose:
-      // a 3-star is strong but still loses to a well-built team (see DESIGN.md).
-      mult: { 1: 1, 2: 1.8, 3: 3.0 },
-      copiesPerStar: 3,
-      copiesTo: { 2: 3, 3: 2 },   // same-star units that merge into the next star: 3×★ = ★★, 2×★★ = ★★★ (6 copies, reachable in a 7-round match)
+      // a card is upgraded ONCE: 3 copies -> 1 upgraded card (stats x mult, gold frame). The upgraded card never merges again.
+      mult: { 1: 1, 2: SH.merge.mult, 3: SH.merge.mult },
+      copiesPerStar: SH.merge.copies,
+      copiesTo: { 2: SH.merge.copies },
+      mergeChoices: SH.merge.choices,
       rewardHeldWeight: 10,        // the free-recruit reward favours units you already hold (weight per copy held)
-      ownedShopWeight: 8,         // shop focus: a unit you hold (below ★★★) is this many times likelier to show up in your shop
-      focusMinCopies: 2,          // ...once you hold at least this many copies of it
-      focusFreshOnly: true,       // true: the focus only shapes the free shop at the start of a round (not paid rerolls)
-      maxStar: 3,
+      ownedShopWeight: 1,         // 1 = no shop bias toward owned cards (the odds table decides)
+      focusMinCopies: 2,
+      focusFreshOnly: true,
+      maxStar: 2,
     },
 
     combat: {
@@ -126,7 +176,7 @@
     ai: {
       // difficulty knobs used by core/ai.js
       // easy holds its level at 5 and never summons; hard levels hard, keeps a small bank only and summons from round 2
-      easy: { mistakes: 0.35, rerollGreed: 0.4, levelAggro: 0.6, maxLevel: 5, noSummon: true },
+      easy: { mistakes: 0.35, rerollGreed: 0.4, levelAggro: 0.6, maxLevel: 4, noSummon: true },
       normal: { mistakes: 0.12, rerollGreed: 0.7, levelAggro: 1.0 },
       hard: { mistakes: 0.0, rerollGreed: 1.0, levelAggro: 1.6, reserveCap: 10, summonFrom: 2, summonMinLife: 40 },
       // teen #14: expert plays the strongest known plan (fast levels, early hero, its world) and adapts: it levels harder against a greedy opponent
@@ -204,7 +254,7 @@
    */
   const U = [];
   // collectible rarity (see AMB.ECONOMY.rarities). Units follow their tier, heroes are legendary.
-  const TIER_RARITY = { 1: 'common', 2: 'rare', 3: 'epic' };
+  const TIER_RARITY = { 1: 'common', 2: 'rare', 3: 'epic', 4: 'epic', 5: 'legendary' };
   function unit(id, name, en, world, role, tier, mana, skill, over) {
     const base = ROLE_BASE[role];
     const m = TIER_MULT[tier];
@@ -471,6 +521,14 @@
     ['dmg', 'heal', 'shield', 'dps'].forEach((k) => { if (Array.isArray(sk[k])) sk[k] = sk[k].map((v) => Math.round(v * 0.93)); });
   });
   const UNITS = {};
+  // card stars (1-5): from core/shopconfig.js. `tier` == stars == gold price == the lowest shop level that sells the card; stats follow the stars.
+  const SH = AMB.SHOP;
+  U.forEach((u) => {
+    const rank = SH.override[u.id] || SH.rankByRarity[u.rarity];
+    u.tier = rank; u.cost = rank;
+    const base = ROLE_BASE[u.role], m = SH.statMult[rank];
+    u.hp = Math.round(base.hp * m); u.atk = Math.round(base.atk * m);
+  });
   U.forEach((u) => { if (u.exclusive) { u.hp = Math.round(u.hp * EXCLUSIVE_NERF); u.atk = Math.round(u.atk * EXCLUSIVE_NERF); } UNITS[u.id] = u; });
   // ---- rarity ladder: common = the role's plain job · rare = +1 trait · epic = +2 traits · legendary = +2 traits and a signature mechanic of its own (core/combat.js)
   const TRAITS = {
@@ -704,16 +762,16 @@
    * values are per stage [stage 1, stage 2, stage 3]. kind -> effect in core/match.js (claimReward).
    */
   const REWARDS = {
-    unit:     { id: 'unit', icon: 'crown', name: 'مجنّد مجاني', tiers: [1, 2, 3], text: (v, st) => `وحدة فئة ${v.tiers[st]} مجانًا (من عالم بطلك غالبًا)` },
+    unit:     { id: 'unit', icon: 'crown', name: 'مجنّد مجاني', tiers: [2, 3, 4], text: (v, st) => `وحدة ${v.tiers[st]} نجوم مجانًا (من عالم بطلك غالبًا)` },
     gold:     { id: 'gold', icon: 'coin', name: 'كنز', n: [5, 6, 8], text: (v, st) => `+${v.n[st]} ذهب فورًا` },
-    xp:       { id: 'xp', icon: 'star', name: 'تدريب مكثّف', n: [7, 9, 11], text: (v, st) => `+${v.n[st]} خبرة` },
+    xp:       { id: 'xp', icon: 'star', name: 'تخفيض الترقية', n: [2, 3, 4], text: (v, st) => `ترقية المتجر القادمة أرخص بـ${v.n[st]} ذهب` },
     essence:  { id: 'essence', icon: 'essence', name: 'جوهر نقي', n: [4, 4, 5], text: (v, st) => `+${v.n[st]} جوهر لقدرات البطل` },
     item:     { id: 'item', icon: 'shield', name: 'غنيمة', text: () => 'معدتين عشوائيتين تضعها على وحداتك' },
     bless_atk:{ id: 'bless_atk', icon: 'sword', name: 'بركة الغضب', pct: [0.12, 0.15, 0.18], text: (v, st) => `الفريق كله +${Math.round(v.pct[st] * 100)}% هجوم لبقية المباراة` },
     bless_hp: { id: 'bless_hp', icon: 'heart', name: 'بركة الحجر', pct: [0.15, 0.18, 0.22], text: (v, st) => `الفريق كله +${Math.round(v.pct[st] * 100)}% صحة لبقية المباراة` },
     bless_as: { id: 'bless_as', icon: 'wind', name: 'بركة الريح', pct: [0.14, 0.17, 0.2], text: (v, st) => `الفريق كله +${Math.round(v.pct[st] * 100)}% سرعة هجوم لبقية المباراة` },
     // teen #12: the slow plan that pays: gold now locked, paid back bigger at the start of the finale (round 7)
-    invest:   { id: 'invest', icon: 'coin', name: 'استثمار الصدع', n: [12, 15, 0], text: (v, st) => `+${v.n[st]} ذهب يوصلك في جولة الحسم (الجولة 7)` },
+    invest:   { id: 'invest', icon: 'coin', name: 'استثمار الصدع', n: [12, 15, 0], text: (v, st) => `+${v.n[st]} ذهب يوصلك في جولة الحسم (الجولة ${AMB.SHOP.rounds})` },
     heal:     { id: 'heal', icon: 'cross', name: 'ماء الحياة', n: [10, 12, 15], text: (v, st) => `يستعيد بطلك ${v.n[st]} حياة` },
   };
   // which rewards can appear in each stage (one "unit" is always offered)
@@ -1469,7 +1527,7 @@
       index: i, name: opts.name || `لاعب ${i + 1}`, heroId: hero.id, isAI: !!opts.isAI,
       aiStyle: opts.aiStyle || 'balanced', difficulty: opts.difficulty || 'normal',
       life: AMB.CONFIG.match.heroLife + Math.max(0, (opts.heroLevel || 1) - 1) * (AMB.CONFIG.match.heroLifePerLevel || 0), maxLife: AMB.CONFIG.match.heroLife + Math.max(0, (opts.heroLevel || 1) - 1) * (AMB.CONFIG.match.heroLifePerLevel || 0),
-      gold: 0, xp: 0, level: E.startLevel, essence: E.essenceStart,
+      gold: 0, level: E.startLevel, idle: 0, upgradeDiscount: 0, shownRanks: [], shopNew: [], mergePick: null, essence: E.essenceStart,
       bench: new Array(E.benchSize).fill(null),
       board: {},            // slot -> unit
       items: [],            // owned item ids (equipment not yet equipped + unarmed spells)
@@ -1531,6 +1589,7 @@
     startRound() {
       const E = AMB.CONFIG.economy;
       if (this.rewardPending && AMB.AI && AMB.AI.claimRewards) AMB.AI.claimRewards(this);   // never leave a draft open
+      this.players.forEach((_, i) => this.autoPickMerge(i));   // a merge reward nobody picked is picked for them
       this.round++;
       this.phase = 'resources';
       // short-match start gold/level go in BEFORE the first shop is rolled (the first shop used to be rolled at level 3 whatever the start level was)
@@ -1547,10 +1606,11 @@
         // catch-up (PvP-style modes only; campaign/tower/events are tuned separately): far behind on life -> a little extra gold, so a bad start is not a lost game
         const foe = this.players[1 - this.players.indexOf(p)], cu = E.catchUp;
         const help = cu && foe && ['ai', 'hotseat', 'online', 'sim'].includes(this.mode) && this.round > 2 && foe.life - p.life >= cu.gap ? cu.gold : 0;
-        const income = (this.round === 1 ? E.baseIncome : E.baseIncome + interest + streakBonus + win + help) + dataStream;
-        p.lastIncome = { base: E.baseIncome, interest: this.round === 1 ? 0 : interest, streak: this.round === 1 ? 0 : streakBonus, win, help, total: income };
+        const base = E.income[Math.min(this.round, E.income.length) - 1];
+        const income = (this.round === 1 ? base : base + interest + streakBonus + win + help) + dataStream;
+        p.lastIncome = { base, interest: this.round === 1 ? 0 : interest, streak: this.round === 1 ? 0 : streakBonus, win, help, total: income };
         p.gold += income;
-        if (this.round > 1) this._gainXp(p, E.xpPerRound);
+        if (this.round > 1) p.idle++;   // one more round without a shop upgrade: the next upgrade gets cheaper
         const essGain = E.essencePerRound + (AMB.DATA.HEROES[p.heroId].passive.id === 'deep_reserve' ? 2 : 0);
         if (this.round > 1) p.essence = Math.max(p.essence, Math.min(E.essenceMax, p.essence + essGain));   // a 'pure essence' reward above the cap is kept (never clamped away)
         p.freeRerolls = (AMB.DATA.HEROES[p.heroId].passive.id === 'free_reroll' ? 1 : 0) + (this.weekly === 'freeReroll' ? 1 : 0);
@@ -1565,36 +1625,43 @@
     // ================================================================ economy
     /** put items into the bag; the bag holds itemBenchSize (6): the rest turns into gold (+3 each, like the 'item' reward) so the limit can never be bypassed */
     _stash(p, items) { const cap = AMB.CONFIG.economy.itemBenchSize; items.forEach((it) => { if (p.items.length < cap) p.items.push(it); else p.gold += 3; }); }
-    xpNeeded(p) { return AMB.CONFIG.economy.xpToLevel[Math.max(3, p.level)] || null; }   // levels 1-2 (scripted line-ups) use the level-3 cost; null never means "free level-up"
-    _gainXp(p, n) {
+    /** board size at the player's shop level */
+    boardCap(p) { return AMB.CONFIG.economy.boardSize[Math.max(1, Math.min(p.level, AMB.CONFIG.economy.boardSize.length)) - 1]; }
+    /** price of the next shop upgrade (null at the top level): the level's base price, minus 1 per round without an upgrade, never below the minimum */
+    upgradeCost(p) {
       const E = AMB.CONFIG.economy;
-      if (p.level >= E.maxLevel) return;
-      p.xp += n;
-      while (p.level < E.maxLevel && this.xpNeeded(p) != null && p.xp >= this.xpNeeded(p)) { p.xp -= this.xpNeeded(p); p.level++; }
-      if (p.level >= E.maxLevel) p.xp = 0;
+      if (p.level >= E.maxLevel) return null;
+      const base = E.upgradeCost[p.level + 1];
+      return Math.max(E.upgradeMin, base - (p.idle || 0) * E.upgradeDecay - (p.upgradeDiscount || 0));
     }
+    xpNeeded() { return null; }
 
-    _drawUnit(p, fresh) {
-      const odds = AMB.CONFIG.economy.tierOdds[Math.max(3, p.level)];
-      const tier = this._rng(p).weighted(odds.map((w, i) => [i + 1, w]).filter((e) => e[1] > 0));
-      const mine = (u) => !p.allowed || p.allowed.has(u.id);   // progression: only units the player owns
-      // shop focus: a unit you already hold (and can still upgrade) shows up more often, so stars are a goal you can chase
-      const SC = AMB.CONFIG.stars, focus = (fresh || !SC.focusFreshOnly ? SC.ownedShopWeight : 1) || 1, held = {};
-      if (focus !== 1) this.allUnits(p).forEach((u) => { if (u.star < AMB.CONFIG.stars.maxStar) held[u.defId] = (held[u.defId] || 0) + this.copiesOf(u); });
-      const minHeld = AMB.CONFIG.stars.focusMinCopies || 1;
-      let entries = Object.values(AMB.DATA.UNITS).filter((u) => u.tier === tier && mine(u)).map((u) => [u.id, this._pool(p)[u.id] * (held[u.id] >= minHeld ? focus : 1)]);
-      let pick = this._rng(p).weighted(entries);
-      if (!pick) { // tier exhausted (or none owned in it): fall back to any available unit you own
-        entries = Object.values(AMB.DATA.UNITS).filter(mine).map((u) => [u.id, this._pool(p)[u.id]]);
-        pick = this._rng(p).weighted(entries);
+    _cardsOfRank(p, rank, needPool) {
+      const mine = (u) => !p.allowed || p.allowed.has(u.id);   // progression: only cards the player owns
+      return Object.values(AMB.DATA.UNITS).filter((u) => u.tier === rank && mine(u) && (!needPool || this._pool(p)[u.id] > 0));
+    }
+    /** draw a card for the shop: first the star by the level's odds, then a card of that star. Never a card above the shop level. */
+    _drawUnit(p) {
+      const E = AMB.CONFIG.economy, lvl = Math.max(1, Math.min(p.level, E.maxLevel));
+      const odds = E.shopOdds[lvl];
+      const rng = this._rng(p);
+      let rank = rng.weighted(odds.map((w, i) => [i + 1, w]).filter((e) => e[1] > 0 && e[0] <= lvl));
+      for (let r = rank; r >= 1; r--) {   // that star is sold out (or none owned): the next lower star
+        const list = this._cardsOfRank(p, r, true);
+        if (list.length) return rng.weighted(list.map((u) => [u.id, this._pool(p)[u.id]]));
       }
-      return pick;
+      return null;
     }
 
     _rollShop(p, fresh) {
       const E = AMB.CONFIG.economy;
-      p.shop = [];
-      for (let i = 0; i < E.shopSlots; i++) p.shop.push(this._drawUnit(p, fresh));
+      p.shop = []; p.shopNew = [];
+      for (let i = 0; i < E.shopSlots; i++) {
+        const id = this._drawUnit(p, fresh); p.shop.push(id);
+        const r = id ? AMB.DATA.UNITS[id].tier : 0;
+        p.shopNew.push(!!(r > 1 && !p.shownRanks.includes(r)));   // the first time a star shows up in this player's shop it gets a special frame
+        if (r && !p.shownRanks.includes(r)) p.shownRanks.push(r);
+      }
       const items = Object.keys(AMB.DATA.ITEMS);
       p.itemShop = [];
       for (let i = 0; i < E.itemShopSlots; i++) p.itemShop.push(this._rng(p).pick(items));
@@ -1611,15 +1678,16 @@
       return { ok: true };
     }
 
-    buyXp(pi) {
-      const p = this.players[pi];
-      const E = AMB.CONFIG.economy;
-      if (p.level >= E.maxLevel) return this._fail('وصلت لأعلى مستوى');
-      if (p.gold < E.xpCost) return this._fail('ما عندك ذهب يكفي');
-      p.gold -= E.xpCost; p.stats.goldSpent += E.xpCost;
-      this._gainXp(p, E.xpPerBuy);
-      return { ok: true };
+    /** buy the next shop level: more card stars in the shop, a bigger board */
+    upgradeShop(pi) {
+      const p = this.players[pi], cost = this.upgradeCost(p);
+      if (cost == null) return this._fail('المتجر وصل لأعلى مستوى');
+      if (p.gold < cost) return this._fail('ما عندك ذهب يكفي للترقية');
+      p.gold -= cost; p.stats.goldSpent += cost;
+      p.level++; p.idle = 0; p.upgradeDiscount = 0;
+      return { ok: true, level: p.level, cost };
     }
+    buyXp(pi) { return this.upgradeShop(pi); }   // old name (online move log, UI shortcut)
 
     toggleLock(pi) { const p = this.players[pi]; p.shopLocked = !p.shopLocked; return { ok: true }; }
 
@@ -1692,7 +1760,41 @@
       if (p._overflow) { // could not merge after all — refund
         p.gold += AMB.DATA.UNITS[p._overflow.defId].cost; this._pool(p)[p._overflow.defId]++; p._overflow = null;
       }
+      if (merges.length && !p.lineup) this._offerMerge(p);
       return merges;
+    }
+
+    /** the merge reward: 3 cards, each one star above the shop level (max 5). The player picks one with claimMerge. */
+    _offerMerge(p) {
+      if (p.mergePick) return;   // one reward at a time
+      const E = AMB.CONFIG.economy, want = AMB.CONFIG.stars.mergeChoices || 3, rank = Math.min(E.maxLevel, p.level + 1), rng = this._rng(p);
+      const options = [];
+      for (let r = rank; r >= 1 && options.length < want; r--) {
+        const list = this._cardsOfRank(p, r, true).filter((u) => !options.includes(u.id));
+        while (list.length && options.length < want) options.push(list.splice(rng.int(list.length), 1)[0].id);
+      }
+      if (options.length) p.mergePick = { rank, options };
+    }
+    claimMerge(pi, idx) {
+      const p = this.players[pi], mp = p.mergePick;
+      if (!mp) return this._fail('ما فيه مكافأة دمج');
+      const defId = mp.options[idx];
+      if (!defId) return this._fail('هذا الخيار مو صحيح');
+      p.mergePick = null;
+      this._pool(p)[defId]--;
+      const unit = { uid: this._uid(p), defId, star: 1, items: [] };
+      const bi = p.bench.indexOf(null);
+      if (bi >= 0) p.bench[bi] = unit; else this._placeAnywhere(p, unit);
+      const merged = this._merge(p, unit);
+      return { ok: true, unit, merged, defId };
+    }
+    /** when nobody picked (timer, AI, a new round): the first option is taken */
+    autoPickMerge(pi) {
+      const p = this.players[pi]; let guard = 0;
+      while (p.mergePick && guard++ < 4) {
+        const o = p.mergePick.options, W = AMB.AI && AMB.AI.pickMerge ? AMB.AI.pickMerge(this, pi) : 0;
+        this.claimMerge(pi, W >= 0 && W < o.length ? W : 0);
+      }
     }
 
     _placeAnywhere(p, u) {
@@ -1754,7 +1856,7 @@
           p.heroSlot = from.slot; delete p.board[from.slot]; p.board[dest.slot] = u; return { ok: true };
         }
         const other = p.board[dest.slot] || null;
-        if (from.zone === 'bench' && !other && this.boardCount(p) >= p.level) return this._fail(`الساحة ممتلئة (${p.level}/${p.level}). بدّل مع وحدة في الساحة، أو بع وحدة، أو ارفع مستواك بزر «خبرة»`);
+        if (from.zone === 'bench' && !other && this.boardCount(p) >= this.boardCap(p)) return this._fail(`الساحة ممتلئة (${this.boardCap(p)}/${this.boardCap(p)}). بدّل مع وحدة في الساحة، أو بع وحدة، أو ارفع مستوى المتجر`);
         this._remove(p, u);
         if (other) { this._remove(p, other); this._put(p, other, from); }
         p.board[dest.slot] = u;
@@ -1899,7 +2001,7 @@
       const p = this.players[pi], U = AMB.DATA.UNITS, R = AMB.DATA.ROLES;
       const pw = (u) => (AMB.AI && AMB.AI.power ? AMB.AI.power(u) : U[u.defId].tier * AMB.CONFIG.stars.mult[u.star]);
       const all = this.allUnits(p).slice().sort((a, b) => pw(b) - pw(a));
-      const want = all.slice(0, p.level);
+      const want = all.slice(0, this.boardCap(p));
       let front = want.filter((u) => R[U[u.defId].role].side === 'front');
       let back = want.filter((u) => R[U[u.defId].role].side === 'back');
       const any = want.filter((u) => R[U[u.defId].role].side === 'any');
@@ -1930,7 +2032,7 @@
       const bench = p.bench.map((u, i) => [u, i]).filter((e) => e[0]);
       bench.sort((a, b) => b[0].star - a[0].star || AMB.DATA.UNITS[b[0].defId].tier - AMB.DATA.UNITS[a[0].defId].tier);
       for (const [u] of bench) {
-        if (this.boardCount(p) >= p.level) break;
+        if (this.boardCount(p) >= this.boardCap(p)) break;
         const role = AMB.DATA.UNITS[u.defId].role;
         const pref = ['guardian', 'fighter'].includes(role) ? 'f' : 'b';
         const fs = free();
@@ -1939,7 +2041,7 @@
         this.move(pi, u.uid, { zone: 'board', slot });
       }
       // too many units on board (e.g. never possible, but be safe)
-      while (this.boardCount(p) > p.level) {
+      while (this.boardCount(p) > this.boardCap(p)) {
         const s = Object.keys(p.board).pop();
         const bi = p.bench.indexOf(null);
         if (bi < 0) { this.sell(pi, p.board[s].uid); } else this.move(pi, p.board[s].uid, { zone: 'bench', idx: bi });
@@ -1970,7 +2072,7 @@
 
     createCombat(record) {
       this.phase = 'combat';
-      this.players.forEach((_, i) => this.autoFill(i));
+      this.players.forEach((_, i) => { this.autoPickMerge(i); this.autoFill(i); });
       const specs = [this.buildCombatSpec(0), this.buildCombatSpec(1)];
       this.scout = specs.map((s) => JSON.parse(JSON.stringify(s)));
       this._combatSpecs = specs;
@@ -2084,7 +2186,7 @@
       switch (id) {
         case 'gold': p.gold += R.n[st]; break;
         case 'invest': p.invest = (p.invest || 0) + R.n[st]; break;
-        case 'xp': this._gainXp(p, R.n[st]); break;
+        case 'xp': p.upgradeDiscount = (p.upgradeDiscount || 0) + R.n[st]; break;
         case 'essence': p.essence = Math.min(AMB.CONFIG.economy.essenceMax + 3, p.essence + R.n[st]); break;
         case 'heal': p.life = Math.min(p.maxLife, p.life + R.n[st]); break;
         case 'item': { const ids = Object.keys(AMB.DATA.ITEMS); const pick = this._rng(p).pick(ids), pick2 = this._rng(p).pick(ids); this._stash(p, [pick, pick2]); out.item = pick; break; }
@@ -2137,9 +2239,9 @@
       p.board = {}; p.bench = p.bench.map(() => null); p.shop = []; p.itemShop = [];
       L.units.forEach(([defId, star, slot, from], k) => {
         if ((from || 1) > this.round) return;
-        p.board[slot] = { uid: 'e' + k + defId, defId, star: star || 1, items: [] };
+        p.board[slot] = { uid: 'e' + k + defId, defId, star: Math.min(star || 1, AMB.CONFIG.stars.maxStar), items: [] };
       });
-      p.level = Math.max(1, Object.keys(p.board).length);
+      { const n = Object.keys(p.board).length, bs = AMB.CONFIG.economy.boardSize; p.level = Math.max(1, bs.findIndex((x) => x >= n) + 1 || bs.length); }
       p.summoned = !!L.summon; if (L.summon) p.heroSlot = L.summon;
       p.blessings = Object.assign({ atkPct: 0, hpPct: 0, asPct: 0 }, L.blessings || {});
       p.essence = 99; p.abilities = {};
@@ -2175,7 +2277,7 @@
 
   function power(u) {
     const def = AMB.DATA.UNITS[u.defId];
-    return (1 + (def.tier - 1) * 0.5) * AMB.CONFIG.stars.mult[u.star] + u.items.length * 0.35;
+    return AMB.SHOP.statMult[def.tier] * AMB.CONFIG.stars.mult[u.star] + u.items.length * 0.35;
   }
 
   function wantScore(match, p, defId) {
@@ -2187,7 +2289,7 @@
     const sameStar1 = owned.filter((u) => u.defId === defId && u.star === 1).length;
     const sameAny = owned.filter((u) => u.defId === defId).length;
     const sameStar2 = owned.filter((u) => u.defId === defId && u.star === 2).length;
-    s += sameStar1 * 2.6 + sameStar2 * 2.4 + (sameAny - sameStar1 - sameStar2) * 0.3;   // a copy toward ★★★ is worth chasing too
+    s += sameStar1 * 2.6 + (sameAny - sameStar1 - sameStar2) * 0.3;   // copies toward the 3-card merge are worth chasing
     const style = p.aiStyle;
     if (def.world === hero.world) s += style === 'mono' ? 3 : style === 'balanced' ? 1.4 : 0.4;
     const roles = {};
@@ -2196,7 +2298,7 @@
     if (!roles[def.role]) s += style === 'mixed' ? 2 : 1;
     if (def.role === 'guardian' && (roles.guardian || 0) < 2) s += 1.2;
     if (style === 'mixed' && !worlds.has(def.world)) s += 1.2;
-    s += def.tier * (p.level >= 6 ? 0.9 : 0.5);
+    s += def.tier * 0.55;
     if (match.round <= 3) s += 1.5; // early: any body helps
     return s;
   }
@@ -2216,11 +2318,11 @@
     const chosen = [];
     const seen = new Set();
     for (const u of ranked) {
-      if (chosen.length >= p.level) break;
+      if (chosen.length >= match.boardCap(p)) break;
       if (seen.has(u.defId) && ranked.some((x) => !seen.has(x.defId) && !chosen.includes(x) && power(x) >= power(u) * 0.7)) continue;
       chosen.push(u); seen.add(u.defId);
     }
-    for (const u of ranked) { if (chosen.length >= p.level) break; if (!chosen.includes(u)) chosen.push(u); }
+    for (const u of ranked) { if (chosen.length >= match.boardCap(p)) break; if (!chosen.includes(u)) chosen.push(u); }
 
     const front = chosen.filter((u) => ['guardian', 'fighter', 'assassin'].includes(UNITS[u.defId].role));
     const back = chosen.filter((u) => !front.includes(u));
@@ -2279,11 +2381,11 @@
     // --- leveling
     const reserve = cfg.reserveCap && match.round > 4 ? Math.min(cfg.reserveCap, reserveTarget(match, p)) : reserveTarget(match, p);
     let guard = 0;
-    while (guard++ < 6 && p.level < (cfg.maxLevel || E.maxLevel) && match.round >= 2) {
-      const boardFull = match.boardCount(p) >= p.level || match.allUnits(p).length > p.level;
-      const surplus = p.gold - E.xpCost - reserve * (1 / cfg.levelAggro);
-      const almost = match.xpNeeded(p) - p.xp <= E.xpPerBuy;
-      if (boardFull && (surplus >= 0 || (almost && p.gold - E.xpCost >= reserve * 0.5))) match.buyXp(pi); else break;
+    // the AI follows a level plan by round (levelAggro stretches it): it buys the next shop level when the plan says so and the price leaves it a little reserve
+    const want = Math.min(cfg.maxLevel || E.maxLevel, 1 + Math.floor((match.round - 1) * 0.62 * cfg.levelAggro + 0.5));
+    while (guard++ < 4 && p.level < (cfg.maxLevel || E.maxLevel) && match.round >= 2) {
+      const cost = match.upgradeCost(p);
+      if (p.level < want && p.gold - cost >= Math.min(2, reserve * 0.2)) match.buyXp(pi); else break;
     }
 
     // --- equipment first: it stays on the unit (and moves with it on a merge), so one piece every other round is a sound buy
@@ -2309,19 +2411,21 @@
         const sc = wantScore(match, p, id) + rng.next() * 0.5;
         if (sc > bestScore) { bestScore = sc; best = i; }
       });
-      const roomForMore = match.allUnits(p).length < p.level + E.benchSize - 1;
+      const roomForMore = match.allUnits(p).length < match.boardCap(p) + E.benchSize - 1;
       const threshold = match.round <= 2 ? 1 : 3.2;
       if (best >= 0 && bestScore >= threshold && roomForMore) {
         const cost = AMB.DATA.UNITS[p.shop[best]].cost;
         const mustHave = bestScore >= 5.5;
         if (p.gold - cost >= reserve || mustHave) {
-          if (rng.chance(cfg.mistakes * 0.3)) { p.shop[best] = p.shop[best]; } else { match.buy(pi, best); continue; }
+          if (rng.chance(cfg.mistakes * 0.3)) { p.shop[best] = p.shop[best]; } else { match.buy(pi, best); match.autoPickMerge(pi); continue; }
         }
       }
       const canReroll = p.freeRerolls > 0 || p.gold - E.rerollCost >= reserve + 2;
       if (canReroll && rerolls < 6 && rng.chance(cfg.rerollGreed) && match.round >= 2) { match.reroll(pi); rerolls++; continue; }
       break;
     }
+
+    match.autoPickMerge(pi);
 
     // --- items: spells only with spare gold (they last one combat)
     const foe = match.players[1 - pi], hasAssassin = match.allUnits(p).some((u) => AMB.DATA.UNITS[u.defId].role === 'assassin');
@@ -2338,7 +2442,7 @@
     // --- hero summon decision (before arranging so a slot is kept)
     const aggressive = hero.id === 'kagira';
     const wantSummon = !cfg.noSummon && match.round >= (cfg.summonFrom || (aggressive ? 3 : 5)) && p.life - AMB.CONFIG.combat.summonKnockout >= (cfg.summonMinLife ? cfg.summonMinLife - AMB.CONFIG.combat.summonKnockout : aggressive ? 30 : 45);
-    p.summoned = wantSummon && match.allUnits(p).length >= Math.min(p.level, 3) && p.level < 8;
+    p.summoned = wantSummon && match.allUnits(p).length >= Math.min(match.boardCap(p), 3);
 
     arrange(match, p, rng, cfg);
 
@@ -2393,9 +2497,16 @@
     o.options.forEach((id, i) => { const sc = score(id); if (sc > bs) { bs = sc; best = i; } });
     return match.claimReward(pi, best);
   }
+  /** the merge reward: the AI takes the card it wants most */
+  function pickMerge(match, pi) {
+    const p = match.players[pi]; if (!p.mergePick) return 0;
+    let best = 0, bs = -Infinity;
+    p.mergePick.options.forEach((id, i) => { const sc = wantScore(match, p, id) + AMB.DATA.UNITS[id].tier * 0.4; if (sc > bs) { bs = sc; best = i; } });
+    return best;
+  }
   function claimRewards(match) { match.players.forEach((_, i) => { if (match.players[i].rewardOffer && !match.players[i].rewardOffer.claimed) claimReward(match, i); }); }
 
-  AMB.AI = { prep, power, claimReward, claimRewards };
+  AMB.AI = { prep, power, claimReward, claimRewards, pickMerge };
 })();
 
 ;
@@ -2671,8 +2782,8 @@
     tower: {
       floors: 30, bossEvery: 5,
       unlock: { campaignLevel: 'l1' },                 // finish campaign level 1 first
-      power: [1.18,1.31,1.36,1.34,0.97,1.28,1.24,0.98,1.08,0.88,1.04,1.02,1.28,0.81,1.26,1.73,0.82,1.09,1.23,0.63,1.27,0.96,1.04,1.18,0.82,1.01,0.64,1.16,1.31,0.99],   // per floor, from tools/tune-tower.js
-      start: [{ from: 1, gold: 8, level: 5 }, { from: 15, gold: 12, level: 6 }, { from: 25, gold: 14, level: 7 }],
+      power: [1.52,1.63,1.73,1.67,1.28,1.74,1.61,1.83,1.41,1.14,1.36,1.36,1.73,1.57,1.29,1.87,1.16,1.21,1.38,1.37,1.52,1.22,1.18,1.02,0.87,1.31,0.99,0.97,1.18,1.59],   // per floor, from tools/tune-tower.js
+      start: [{ from: 1, gold: 8, level: 3 }, { from: 15, gold: 12, level: 4 }, { from: 25, gold: 14, level: 5 }],
       rewards: { shardsFirst: 20, shardsLast: 50, passXp: 10, passXpBoss: 30, bossPack: 'basic', finalCard: 'epic' },   // first clear only
     },
     // Weekly event: a special 3-stage level (best-of-3 fights vs generated line-ups, the last is the event boss) that
@@ -2683,12 +2794,12 @@
       epoch: [2026, 0, 5],                                   // a Monday: week 0
       unlock: { campaignLevel: 'l1' },
       stages: [{ n: 10 }, { n: 18 }, { n: 24, boss: true }],   // difficulty position (1..30, like tower floors)
-      start: [{ gold: 10, level: 5 }, { gold: 12, level: 6 }, { gold: 14, level: 7 }],
+      start: [{ gold: 10, level: 3 }, { gold: 12, level: 4 }, { gold: 14, level: 5 }],
       rewards: [{ shards: 40, passXp: 10 }, { shards: 60, passXp: 20, pack: 'basic' }, { shards: 100, passXp: 50, exclusive: true }],
-      power: { ember: [1.04, 1.52, 0.8], tide: [0.95, 1.22, 1.14], neon: [1.14, 1.25, 0.8], sylvan: [0.96, 1.48, 0.92] },
+      power: {ember: [1.41, 1.21, 0.93], tide: [1.38, 1.34, 1.34], neon: [1.64, 1.57, 0.97], sylvan: [1.18, 1.58, 1.03]},
     },
     // Guided first match: a fixed weak enemy (2 units, the 2nd joins in round 2), a little extra gold/level, a reward once
-    tutorial: { start: { gold: 10, level: 4 }, enemy: [['thorn_fox', 1, 'f1', 1], ['pixel_sniper', 1, 'b1', 2], ['moss_warden', 1, 'f2', 3]], reward: { shards: 50 } },   // 3 rounds: 1 buy+place, 2 merge+refresh, 3 level up + send the hero
+    tutorial: { start: { gold: 10, level: 1 }, enemy: [['thorn_fox', 1, 'f1', 1], ['pixel_sniper', 1, 'b1', 2], ['moss_warden', 1, 'f2', 3]], reward: { shards: 50 } },   // 3 rounds: 1 buy+place, 2 merge+refresh, 3 level up + send the hero
     // album: own all 5 units of a world -> its reward (once); own all 20 -> the grand reward
     album: {
       worlds: {
@@ -3122,61 +3233,61 @@
   const F = (id, name, power, units, extra) => Object.assign({ id, name, power, units }, extra || {});
 
   const LEVELS = [
-    L('l1', 'ember', 'kagira', 'أطراف مملكة الجمر', { gold: 6, level: 4 }, [
-      F('l1f1', 'دورية الرماد', 1.82, [['ash_ronin', 1, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['pixel_sniper', 1, 'b1', 2]]),
-      F('l1f2', 'حرّاس الأتون', 1.55, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 1, 'f2', 1], ['thorn_fox', 1, 'f3', 2], ['pixel_sniper', 1, 'b1', 1]]),
-      F('l1f3', 'كمين الشرر', 1.26, [['ash_ronin', 1, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['spark_wraith', 1, 'b2', 1], ['pyre_archer', 1, 'b1', 2]]),
-      F('l1f4', 'رماة المحرقة', 1.3, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 1, 'f2', 1], ['coral_sentinel', 1, 'f3', 2], ['pyre_archer', 1, 'b1', 1], ['spark_wraith', 1, 'b2', 3]]),
-      F('l1boss', 'الزعيم: كيرو', 0.88, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 2, 'f2', 1], ['pyre_archer', 1, 'b0', 1], ['caldera_seer', 1, 'b2', 2], ['spark_wraith', 1, 'b3', 4], ['forge_bulwark', 2, 'f3', 6]], { boss: true }),
+    L('l1', 'ember', 'kagira', 'أطراف مملكة الجمر', { gold: 6, level: 2 }, [
+      F('l1f1', 'دورية الرماد', 2.07, [['ash_ronin', 1, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['pixel_sniper', 1, 'b1', 2]]),
+      F('l1f2', 'حرّاس الأتون', 1.76, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 1, 'f2', 1], ['thorn_fox', 1, 'f3', 2], ['pixel_sniper', 1, 'b1', 1]]),
+      F('l1f3', 'كمين الشرر', 1.48, [['ash_ronin', 1, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['spark_wraith', 1, 'b2', 1], ['pyre_archer', 1, 'b1', 2]]),
+      F('l1f4', 'رماة المحرقة', 1.48, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 1, 'f2', 1], ['coral_sentinel', 1, 'f3', 2], ['pyre_archer', 1, 'b1', 1], ['spark_wraith', 1, 'b2', 3]]),
+      F('l1boss', 'الزعيم: كيرو', 1.06, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 2, 'f2', 1], ['pyre_archer', 1, 'b0', 1], ['caldera_seer', 1, 'b2', 2], ['spark_wraith', 1, 'b3', 4], ['forge_bulwark', 2, 'f3', 6]], { boss: true }),
     ]),
-    L('l2', 'tide', 'merin', 'سواحل المدّ القمري', { gold: 8, level: 5 }, [
-      F('l2f1', 'حرس المرجان', 1.8, [['coral_sentinel', 1, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['wave_caller', 1, 'b1', 1], ['pixel_sniper', 1, 'b2', 2]]),
-      F('l2f2', 'سيوف القمر', 1.57, [['coral_sentinel', 1, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['lunar_blade', 1, 'f3', 2], ['wave_caller', 1, 'b1', 1], ['mist_witch', 1, 'b2', 3]]),
-      F('l2f3', 'ضباب الساحرات', 1.05, [['coral_sentinel', 2, 'f1', 1], ['moss_warden', 1, 'f2', 1], ['mist_witch', 1, 'b1', 1], ['wave_caller', 1, 'b2', 1], ['willow_eye', 1, 'b3', 2]]),
-      F('l2f4', 'موجة المدّ', 0.96, [['coral_sentinel', 2, 'f1', 1], ['lunar_blade', 2, 'f2', 1], ['thorn_fox', 1, 'f3', 1], ['mist_witch', 1, 'b1', 1], ['wave_caller', 1, 'b2', 2], ['pixel_sniper', 1, 'b3', 3]]),
-      F('l2boss', 'الزعيم: ميران', 0.92, [['coral_sentinel', 2, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['wave_caller', 1, 'b0', 1], ['mist_witch', 1, 'b2', 1], ['tide_priest', 1, 'b3', 2], ['coral_sentinel', 2, 'f0', 4], ['lunar_blade', 2, 'f3', 6]], { boss: true }),
+    L('l2', 'tide', 'merin', 'سواحل المدّ القمري', { gold: 8, level: 3 }, [
+      F('l2f1', 'حرس المرجان', 2.32, [['coral_sentinel', 1, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['wave_caller', 1, 'b1', 1], ['pixel_sniper', 1, 'b2', 2]]),
+      F('l2f2', 'سيوف القمر', 1.82, [['coral_sentinel', 1, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['lunar_blade', 1, 'f3', 2], ['wave_caller', 1, 'b1', 1], ['mist_witch', 1, 'b2', 3]]),
+      F('l2f3', 'ضباب الساحرات', 1.28, [['coral_sentinel', 2, 'f1', 1], ['moss_warden', 1, 'f2', 1], ['mist_witch', 1, 'b1', 1], ['wave_caller', 1, 'b2', 1], ['willow_eye', 1, 'b3', 2]]),
+      F('l2f4', 'موجة المدّ', 1.12, [['coral_sentinel', 2, 'f1', 1], ['lunar_blade', 2, 'f2', 1], ['thorn_fox', 1, 'f3', 1], ['mist_witch', 1, 'b1', 1], ['wave_caller', 1, 'b2', 2], ['pixel_sniper', 1, 'b3', 3]]),
+      F('l2boss', 'الزعيم: ميران', 1.05, [['coral_sentinel', 2, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['wave_caller', 1, 'b0', 1], ['mist_witch', 1, 'b2', 1], ['tide_priest', 1, 'b3', 2], ['coral_sentinel', 2, 'f0', 4], ['lunar_blade', 2, 'f3', 6]], { boss: true }),
     ]),
-    L('l3', 'neon', 'zerokai', 'شوارع نيون-٩', { gold: 10, level: 5 }, [
-      F('l3f1', 'كلاب الشبكة', 1.37, [['firewall_unit', 1, 'f1', 1], ['grid_hound', 2, 'f2', 1], ['grid_hound', 1, 'f3', 1], ['pixel_sniper', 1, 'b1', 1], ['spectral_coder', 1, 'b2', 2]]),
-      F('l3f2', 'قنّاصو البكسل', 1.15, [['firewall_unit', 1, 'f1', 1], ['chrome_ronin', 1, 'f2', 2], ['pixel_sniper', 2, 'b1', 1], ['pixel_sniper', 1, 'b2', 1], ['spectral_coder', 1, 'b3', 1]]),
-      F('l3f3', 'جدار النار', 0.99, [['firewall_unit', 2, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 1, 'b1', 1], ['spectral_coder', 1, 'b2', 2], ['spark_wraith', 1, 'b3', 3]]),
-      F('l3f4', 'المبرمجة الطيفية', 0.92, [['firewall_unit', 2, 'f1', 1], ['chrome_ronin', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 2, 'b1', 1], ['spectral_coder', 1, 'b2', 1], ['mist_witch', 1, 'b3', 2]]),
-      F('l3boss', 'الزعيم: زيرو-كاي', 0.78, [['firewall_unit', 2, 'f1', 1], ['chrome_ronin', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 2, 'b0', 1], ['spectral_coder', 1, 'b2', 2], ['pixel_sniper', 2, 'b3', 4], ['firewall_unit', 2, 'f0', 6]], { boss: true }),
+    L('l3', 'neon', 'zerokai', 'شوارع نيون-٩', { gold: 10, level: 3 }, [
+      F('l3f1', 'كلاب الشبكة', 1.32, [['firewall_unit', 1, 'f1', 1], ['grid_hound', 2, 'f2', 1], ['grid_hound', 1, 'f3', 1], ['pixel_sniper', 1, 'b1', 1], ['spectral_coder', 1, 'b2', 2]]),
+      F('l3f2', 'قنّاصو البكسل', 1.23, [['firewall_unit', 1, 'f1', 1], ['chrome_ronin', 1, 'f2', 2], ['pixel_sniper', 2, 'b1', 1], ['pixel_sniper', 1, 'b2', 1], ['spectral_coder', 1, 'b3', 1]]),
+      F('l3f3', 'جدار النار', 0.96, [['firewall_unit', 2, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 1, 'b1', 1], ['spectral_coder', 1, 'b2', 2], ['spark_wraith', 1, 'b3', 3]]),
+      F('l3f4', 'المبرمجة الطيفية', 1.08, [['firewall_unit', 2, 'f1', 1], ['chrome_ronin', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 2, 'b1', 1], ['spectral_coder', 1, 'b2', 1], ['mist_witch', 1, 'b3', 2]]),
+      F('l3boss', 'الزعيم: زيرو-كاي', 0.85, [['firewall_unit', 2, 'f1', 1], ['chrome_ronin', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 2, 'b0', 1], ['spectral_coder', 1, 'b2', 2], ['pixel_sniper', 2, 'b3', 4], ['firewall_unit', 2, 'f0', 6]], { boss: true }),
     ]),
-    L('l4', 'sylvan', 'orath', 'قلب الغابة الأزلية', { gold: 12, level: 6 }, [
-      F('l4f1', 'ثعالب الأشواك', 1.35, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['thorn_fox', 1, 'f3', 1], ['willow_eye', 1, 'b1', 1], ['wave_caller', 1, 'b2', 1], ['root_shaman', 1, 'b3', 3]]),
-      F('l4f2', 'عيون الصفصاف', 0.87, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['coral_sentinel', 2, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['willow_eye', 1, 'b2', 1], ['spectral_coder', 1, 'b3', 2]]),
-      F('l4f3', 'المتربّص', 0.9, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['wave_caller', 2, 'b3', 2]]),
-      F('l4f4', 'شامان الجذور', 0.83, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['firewall_unit', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['tide_priest', 1, 'b3', 3]]),
-      F('l4boss', 'الزعيم: أوراث', 0.87, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b0', 1], ['root_shaman', 2, 'b2', 1], ['tide_priest', 1, 'b3', 2], ['wild_stalker', 2, 'f2', 5]], { boss: true }),
+    L('l4', 'sylvan', 'orath', 'قلب الغابة الأزلية', { gold: 12, level: 4 }, [
+      F('l4f1', 'ثعالب الأشواك', 1.71, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['thorn_fox', 1, 'f3', 1], ['willow_eye', 1, 'b1', 1], ['wave_caller', 1, 'b2', 1], ['root_shaman', 1, 'b3', 3]]),
+      F('l4f2', 'عيون الصفصاف', 0.99, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['coral_sentinel', 2, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['willow_eye', 1, 'b2', 1], ['spectral_coder', 1, 'b3', 2]]),
+      F('l4f3', 'المتربّص', 1.15, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['wave_caller', 2, 'b3', 2]]),
+      F('l4f4', 'شامان الجذور', 1.01, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['firewall_unit', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['tide_priest', 1, 'b3', 3]]),
+      F('l4boss', 'الزعيم: أوراث', 0.85, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['wild_stalker', 1, 'f3', 1], ['willow_eye', 2, 'b0', 1], ['root_shaman', 2, 'b2', 1], ['tide_priest', 1, 'b3', 2], ['wild_stalker', 2, 'f2', 5]], { boss: true }),
     ]),
-    L('l5', 'ember', 'rika', 'أتون الملكة', { gold: 12, level: 6 }, [
-      F('l5f1', 'عمّال المطارق', 1.26, [['goka', 1, 'f1', 1], ['forge_bulwark', 2, 'f2', 1], ['ash_ronin', 2, 'f0', 1], ['pyre_archer', 1, 'b2', 1], ['natsuki', 1, 'b0', 2]]),
-      F('l5f2', 'حرس السندان', 0.92, [['kurenai', 1, 'f1', 1], ['godo', 2, 'f2', 1], ['akane', 1, 'b3', 2], ['pyre_archer', 2, 'b1', 1], ['momo', 1, 'b2', 1]]),
-      F('l5f3', 'قنّاصة الجمر', 0.96, [['forge_bulwark', 2, 'f1', 1], ['goka', 1, 'f2', 1], ['yuta', 2, 'b0', 1], ['pyre_archer', 2, 'b1', 1], ['caldera_seer', 1, 'b2', 2], ['tsubaki', 2, 'b3', 1]]),
-      F('l5f4', 'مصهر الأتون', 0.61, [['kurenai', 2, 'f1', 1], ['goka', 2, 'f2', 1], ['godo', 2, 'f3', 1], ['natsuki', 2, 'b1', 1], ['caldera_seer', 1, 'b2', 1], ['spark_wraith', 2, 'b3', 2]]),
-      F('l5boss', 'الزعيمة: ريكا', 0.65, [['kurenai', 2, 'f1', 1], ['goka', 2, 'f2', 1], ['godo', 2, 'f0', 1], ['caldera_seer', 2, 'b0', 1], ['momo', 2, 'b2', 2], ['akane', 2, 'b3', 4], ['natsuki', 2, 'f3', 6]], { boss: true }),
+    L('l5', 'ember', 'rika', 'أتون الملكة', { gold: 12, level: 4 }, [
+      F('l5f1', 'عمّال المطارق', 1.49, [['goka', 1, 'f1', 1], ['forge_bulwark', 2, 'f2', 1], ['ash_ronin', 2, 'f0', 1], ['pyre_archer', 1, 'b2', 1], ['natsuki', 1, 'b0', 2]]),
+      F('l5f2', 'حرس السندان', 1.23, [['kurenai', 1, 'f1', 1], ['godo', 2, 'f2', 1], ['akane', 1, 'b3', 2], ['pyre_archer', 2, 'b1', 1], ['momo', 1, 'b2', 1]]),
+      F('l5f3', 'قنّاصة الجمر', 1.14, [['forge_bulwark', 2, 'f1', 1], ['goka', 1, 'f2', 1], ['yuta', 2, 'b0', 1], ['pyre_archer', 2, 'b1', 1], ['caldera_seer', 1, 'b2', 2], ['tsubaki', 2, 'b3', 1]]),
+      F('l5f4', 'مصهر الأتون', 0.72, [['kurenai', 2, 'f1', 1], ['goka', 2, 'f2', 1], ['godo', 2, 'f3', 1], ['natsuki', 2, 'b1', 1], ['caldera_seer', 1, 'b2', 1], ['spark_wraith', 2, 'b3', 2]]),
+      F('l5boss', 'الزعيمة: ريكا', 0.61, [['kurenai', 2, 'f1', 1], ['goka', 2, 'f2', 1], ['godo', 2, 'f0', 1], ['caldera_seer', 2, 'b0', 1], ['momo', 2, 'b2', 2], ['akane', 2, 'b3', 4], ['natsuki', 2, 'f3', 6]], { boss: true }),
     ]),
-    L('l6', 'tide', 'kairyu', 'عاصفة القبطان', { gold: 12, level: 6 }, [
-      F('l6f1', 'بحّارة العاصفة', 0.97, [['coral_sentinel', 2, 'f1', 1], ['ryujin', 1, 'f2', 1], ['tomoe', 2, 'f0', 1], ['kota', 2, 'b1', 1], ['wave_caller', 2, 'b2', 1]]),
-      F('l6f2', 'سيوف الموج', 0.88, [['seiji', 2, 'f1', 1], ['lunar_blade', 2, 'f2', 1], ['daikai', 1, 'f3', 1], ['haruka', 2, 'b0', 1], ['miyuki', 1, 'b2', 1], ['mizuki', 2, 'b3', 2]]),
-      F('l6f3', 'ضباب الأرخبيل', 0.7, [['daikai', 2, 'f1', 1], ['ryujin', 1, 'f2', 1], ['coral_sentinel', 2, 'f3', 1], ['mist_witch', 2, 'b1', 1], ['haruka', 2, 'b2', 1], ['tide_priest', 1, 'b3', 2]]),
-      F('l6f4', 'سفينة القمر', 0.78, [['daikai', 2, 'f1', 1], ['ryujin', 2, 'f2', 1], ['seiji', 2, 'f0', 1], ['mist_witch', 2, 'b1', 1], ['otohime', 1, 'b2', 1], ['kota', 2, 'b3', 2]]),
-      F('l6boss', 'الزعيم: كايريو', 0.69, [['daikai', 2, 'f1', 1], ['ryujin', 2, 'f2', 1], ['seiji', 2, 'f0', 1], ['haruka', 2, 'b0', 1], ['otohime', 1, 'b2', 2], ['mizuki', 2, 'b3', 4], ['lunar_blade', 2, 'f3', 6]], { boss: true }),
+    L('l6', 'tide', 'kairyu', 'عاصفة القبطان', { gold: 12, level: 4 }, [
+      F('l6f1', 'بحّارة العاصفة', 1.14, [['coral_sentinel', 2, 'f1', 1], ['ryujin', 1, 'f2', 1], ['tomoe', 2, 'f0', 1], ['kota', 2, 'b1', 1], ['wave_caller', 2, 'b2', 1]]),
+      F('l6f2', 'سيوف الموج', 1.05, [['seiji', 2, 'f1', 1], ['lunar_blade', 2, 'f2', 1], ['daikai', 1, 'f3', 1], ['haruka', 2, 'b0', 1], ['miyuki', 1, 'b2', 1], ['mizuki', 2, 'b3', 2]]),
+      F('l6f3', 'ضباب الأرخبيل', 0.83, [['daikai', 2, 'f1', 1], ['ryujin', 1, 'f2', 1], ['coral_sentinel', 2, 'f3', 1], ['mist_witch', 2, 'b1', 1], ['haruka', 2, 'b2', 1], ['tide_priest', 1, 'b3', 2]]),
+      F('l6f4', 'سفينة القمر', 0.88, [['daikai', 2, 'f1', 1], ['ryujin', 2, 'f2', 1], ['seiji', 2, 'f0', 1], ['mist_witch', 2, 'b1', 1], ['otohime', 1, 'b2', 1], ['kota', 2, 'b3', 2]]),
+      F('l6boss', 'الزعيم: كايريو', 0.65, [['daikai', 2, 'f1', 1], ['ryujin', 2, 'f2', 1], ['seiji', 2, 'f0', 1], ['haruka', 2, 'b0', 1], ['otohime', 1, 'b2', 2], ['mizuki', 2, 'b3', 4], ['lunar_blade', 2, 'f3', 6]], { boss: true }),
     ]),
-    L('l7', 'neon', 'nayako', 'مسرح الشبكة', { gold: 14, level: 6 }, [
-      F('l7f1', 'جمهور الهولوغرام', 1.1, [['firewall_unit', 2, 'f1', 1], ['juzo', 2, 'f2', 1], ['gantetsu', 2, 'f0', 1], ['pixel_sniper', 2, 'b1', 1], ['mitsuki', 2, 'b2', 1]]),
-      F('l7f2', 'كلاب الخوادم', 1.15, [['kogetsu', 1, 'f1', 1], ['tetsuya', 2, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['reiji', 2, 'b0', 1], ['spectral_coder', 2, 'b2', 1], ['nagi', 2, 'b3', 2]]),
-      F('l7f3', 'عازفو البكسل', 0.97, [['chrome_ronin', 1, 'f1', 1], ['gantetsu', 2, 'f2', 1], ['firewall_unit', 2, 'f3', 1], ['mugen', 1, 'b1', 1], ['pixel_sniper', 2, 'b2', 1], ['yozora', 1, 'b3', 2]]),
-      F('l7f4', 'قلب الشبكة', 0.88, [['kogetsu', 2, 'f1', 1], ['chrome_ronin', 2, 'f2', 1], ['firewall_unit', 2, 'f0', 1], ['mugen', 2, 'b1', 1], ['spectral_coder', 2, 'b2', 1], ['reiji', 2, 'b3', 2]]),
-      F('l7boss', 'الزعيمة: ناياكو', 0.72, [['kogetsu', 2, 'f1', 1], ['chrome_ronin', 2, 'f2', 1], ['gantetsu', 2, 'f0', 1], ['mugen', 2, 'b0', 1], ['yozora', 2, 'b2', 2], ['nagi', 2, 'b3', 4], ['juzo', 2, 'f3', 6]], { boss: true }),
+    L('l7', 'neon', 'nayako', 'مسرح الشبكة', { gold: 14, level: 4 }, [
+      F('l7f1', 'جمهور الهولوغرام', 1.14, [['firewall_unit', 2, 'f1', 1], ['juzo', 2, 'f2', 1], ['gantetsu', 2, 'f0', 1], ['pixel_sniper', 2, 'b1', 1], ['mitsuki', 2, 'b2', 1]]),
+      F('l7f2', 'كلاب الخوادم', 1.19, [['kogetsu', 1, 'f1', 1], ['tetsuya', 2, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['reiji', 2, 'b0', 1], ['spectral_coder', 2, 'b2', 1], ['nagi', 2, 'b3', 2]]),
+      F('l7f3', 'عازفو البكسل', 1.1, [['chrome_ronin', 1, 'f1', 1], ['gantetsu', 2, 'f2', 1], ['firewall_unit', 2, 'f3', 1], ['mugen', 1, 'b1', 1], ['pixel_sniper', 2, 'b2', 1], ['yozora', 1, 'b3', 2]]),
+      F('l7f4', 'قلب الشبكة', 0.94, [['kogetsu', 2, 'f1', 1], ['chrome_ronin', 2, 'f2', 1], ['firewall_unit', 2, 'f0', 1], ['mugen', 2, 'b1', 1], ['spectral_coder', 2, 'b2', 1], ['reiji', 2, 'b3', 2]]),
+      F('l7boss', 'الزعيمة: ناياكو', 0.69, [['kogetsu', 2, 'f1', 1], ['chrome_ronin', 2, 'f2', 1], ['gantetsu', 2, 'f0', 1], ['mugen', 2, 'b0', 1], ['yozora', 2, 'b2', 2], ['nagi', 2, 'b3', 4], ['juzo', 2, 'f3', 6]], { boss: true }),
     ]),
-    L('l8', 'sylvan', 'thora', 'عرين الدب الأزلي', { gold: 14, level: 7 }, [
-      F('l8f1', 'صيّادو اللحاء', 1.08, [['taiju', 1, 'f1', 1], ['kashiwagi', 1, 'f2', 1], ['genzo', 2, 'f0', 1], ['kazehaya', 2, 'b1', 1], ['yoshino', 2, 'b2', 1]]),
-      F('l8f2', 'حرّاس الغصن', 0.87, [['genzo', 2, 'f1', 1], ['kaito', 2, 'f2', 1], ['daigo', 2, 'f3', 1], ['gensai', 2, 'b0', 1], ['takashi', 2, 'b2', 1], ['hayate', 2, 'b3', 2]]),
-      F('l8f3', 'همس الغابة', 0.92, [['taiju', 2, 'f1', 1], ['kashiwagi', 1, 'f2', 1], ['genzo', 2, 'f3', 1], ['shirayuki', 1, 'b1', 1], ['ibara', 2, 'b2', 1], ['hisui', 1, 'b3', 2]]),
-      F('l8f4', 'قبضة الجذور', 0.56, [['taiju', 2, 'f1', 1], ['kashiwagi', 2, 'f2', 1], ['genzo', 2, 'f0', 1], ['shirayuki', 2, 'b1', 1], ['root_shaman', 2, 'b2', 1], ['wild_stalker', 2, 'b3', 2]]),
-      F('l8boss', 'الزعيمة: ثورا', 0.67, [['taiju', 2, 'f1', 1], ['kashiwagi', 2, 'f2', 1], ['genzo', 2, 'f0', 1], ['shirayuki', 2, 'b0', 1], ['hisui', 2, 'b2', 2], ['wild_stalker', 2, 'b3', 4], ['kaito', 2, 'f3', 6]], { boss: true }),
+    L('l8', 'sylvan', 'thora', 'عرين الدب الأزلي', { gold: 14, level: 5 }, [
+      F('l8f1', 'صيّادو اللحاء', 1.26, [['taiju', 1, 'f1', 1], ['kashiwagi', 1, 'f2', 1], ['genzo', 2, 'f0', 1], ['kazehaya', 2, 'b1', 1], ['yoshino', 2, 'b2', 1]]),
+      F('l8f2', 'حرّاس الغصن', 1.1, [['genzo', 2, 'f1', 1], ['kaito', 2, 'f2', 1], ['daigo', 2, 'f3', 1], ['gensai', 2, 'b0', 1], ['takashi', 2, 'b2', 1], ['hayate', 2, 'b3', 2]]),
+      F('l8f3', 'همس الغابة', 1.06, [['taiju', 2, 'f1', 1], ['kashiwagi', 1, 'f2', 1], ['genzo', 2, 'f3', 1], ['shirayuki', 1, 'b1', 1], ['ibara', 2, 'b2', 1], ['hisui', 1, 'b3', 2]]),
+      F('l8f4', 'قبضة الجذور', 0.63, [['taiju', 2, 'f1', 1], ['kashiwagi', 2, 'f2', 1], ['genzo', 2, 'f0', 1], ['shirayuki', 2, 'b1', 1], ['root_shaman', 2, 'b2', 1], ['wild_stalker', 2, 'b3', 2]]),
+      F('l8boss', 'الزعيمة: ثورا', 0.74, [['taiju', 2, 'f1', 1], ['kashiwagi', 2, 'f2', 1], ['genzo', 2, 'f0', 1], ['shirayuki', 2, 'b0', 1], ['hisui', 2, 'b2', 2], ['wild_stalker', 2, 'b3', 4], ['kaito', 2, 'f3', 6]], { boss: true }),
     ]),
   ];
 
@@ -3777,7 +3888,7 @@
 (function () {
   const AMB = (globalThis.AMB = globalThis.AMB || {});
   // every call a player can make during prep or the reward draft
-  const OPS = ['buy', 'reroll', 'buyXp', 'toggleLock', 'sell', 'move', 'buyItem', 'equip', 'unequip', 'sellItem', 'armSpell', 'disarmSpell', 'setAbility', 'toggleSummon', 'moveHero', 'autoArrange', 'claimReward', 'setWager', 'setHunt'];
+  const OPS = ['buy', 'reroll', 'buyXp', 'toggleLock', 'sell', 'move', 'buyItem', 'equip', 'unequip', 'sellItem', 'armSpell', 'disarmSpell', 'setAbility', 'toggleSummon', 'moveHero', 'autoArrange', 'claimReward', 'claimMerge', 'setWager', 'setHunt'];
 
   function record(match, idx) {
     const ops = []; let depth = 0;
@@ -3809,7 +3920,7 @@
   const ARGS = {
     buy: ['int'], reroll: [], buyXp: [], toggleLock: [], sell: ['uid'], move: ['uid', 'dest'], buyItem: ['int'],
     equip: ['int', 'uid'], unequip: ['uid'], sellItem: ['int'], armSpell: ['int'], disarmSpell: ['int'],
-    setAbility: ['id', 'trig?'], toggleSummon: ['slot?'], moveHero: ['slot'], autoArrange: [], claimReward: ['int'], setWager: ['bool'], setHunt: ['id'],
+    setAbility: ['id', 'trig?'], toggleSummon: ['slot?'], moveHero: ['slot'], autoArrange: [], claimReward: ['int'], claimMerge: ['int'], setWager: ['bool'], setHunt: ['id'],
   };
   const isInt = (v) => Number.isInteger(v) && v >= -1000 && v <= 1000;
   const isStr = (v, max) => typeof v === 'string' && v.length > 0 && v.length <= max;
@@ -3854,7 +3965,7 @@
   // a short fingerprint of everything that matters, to check both phones are still identical
   function hash(match) {
     const snap = match.players.map((p) => ({
-      g: p.gold, l: p.life, lv: p.level, xp: p.xp, ess: p.essence, shop: p.shop, bench: p.bench.map((u) => u && [u.uid, u.defId, u.star, u.items]),
+      g: p.gold, l: p.life, lv: p.level, idle: p.idle, mp: p.mergePick && p.mergePick.options, ess: p.essence, shop: p.shop, bench: p.bench.map((u) => u && [u.uid, u.defId, u.star, u.items]),
       board: Object.keys(p.board).sort().map((k) => [k, p.board[k].uid, p.board[k].defId, p.board[k].star, p.board[k].items]), items: p.items,
       spells: p.armedSpells, ab: p.abilities, sum: p.summoned, hs: p.heroSlot, bl: p.blessings,
       pool: match.isolated ? p.pool : null,   // each phone's own unit pool (online): a pool drift changes future shops, so it must be part of the fingerprint
@@ -5209,8 +5320,8 @@ AMB.IMAGES = {
       : S.mode === 'tutorial' ? new AMB.Match(AMB.tutorial.matchOptions(S.picks[0]))
       : S.mode === 'practice' ? new AMB.Match(AMB.Tutorial.practiceOptions(S.picks[0]))
       : S.mode === 'online' ? AMB.NetUI.makeMatch()
-      // adult #22: a short match: 4 rounds, first to 3 round wins, starts at level 4 with more gold (about 3 minutes)
-      : S.mode === 'short' ? new AMB.Match({ mode: 'short', players, rules: { maxRounds: 4, winsNeeded: 3, start: { gold: 8, level: 4 } } })
+      // adult #22: a short match: 4 rounds, first to 3 round wins, starts at shop level 2 with more gold (about 3 minutes)
+      : S.mode === 'short' ? new AMB.Match({ mode: 'short', players, rules: { maxRounds: 4, winsNeeded: 3, start: { gold: 8, level: 2 } } })
       : new AMB.Match({ mode: S.mode, players, seed: S.mode === 'ai' && S.challenge ? S.challenge.s : undefined, weekly: S.mode === 'ai' && S.challenge ? (AMB.Match.WEEKLY[S.challenge.w] ? S.challenge.w : null) : S.mode === 'ai' || S.mode === 'hotseat' ? AMB.Match.weeklyNow() : null });
     // same hero on both sides (e.g. your Kiro vs the Ember boss Kiro): the enemy becomes its "shadow"
     const mirror = S.match.players[0].heroId === S.match.players[1].heroId;
@@ -5261,7 +5372,7 @@ AMB.IMAGES = {
         if (S.screen !== 'match' || S.mode !== 'ai') return;
         if (S.phase !== 'prep') { setTimeout(qm, 200); return; }   // wait for the prep timer to run, so opening the modal pauses it
         ST.markSeen('qmTips');
-        modal(`<h2>قبل ما تبدأ</h2><p>${icon('crown')} <b>المستوى = عدد وحداتك في الساحة</b> (مستوى ٣ = ٣ وحدات). اشترِ خبرة ${icon('up')} عشان تنزّل أكثر.</p>
+        modal(`<h2>قبل ما تبدأ</h2><p>${icon('crown')} <b>مستوى المتجر ١–٥</b>: كل مستوى يفتح بطاقات بنجمة زيادة ويكبّر الساحة. ارفعه بزر الترقية ${icon('up')} (سعره ينزل 1 كل جولة ما رقّيت فيها). ٣ نسخ من نفس البطاقة تندمج في وحدة مطوّرة.</p>
           <p>${icon('sword')} <b>نزّل البطل</b> 👑 لما تكون حياتك زينة: يقاتل معك ويقوّي فريقك.</p>
           <div style="text-align:center;margin-top:10px"><button class="btn primary big" data-act="closeModal">فهمت</button></div>`);
       }, 300);
@@ -5380,6 +5491,7 @@ AMB.IMAGES = {
       };
     });
     const rr = m.reroll; m.reroll = function (...a) { const r = rr.apply(this, a); if (r && r.ok !== false) S.undo = []; return r; };   // randomness: no going back past a reroll
+    ['buy', 'claimMerge'].forEach((n) => { const f = m[n]; m[n] = function (...a) { const r = f.apply(this, a); if (r && r.ok !== false && ((r.merged && r.merged.length) || this.players[0].mergePick)) S.undo = []; return r; }; });   // a merge draws its reward cards at random: no going back past it
     const sr = m.startRound; m.startRound = function (...a) { S.undo = []; return sr.apply(this, a); };
   }
   // ---- adult #21: continue an unfinished quick match after a reload (the match is rebuilt by replaying the recorded moves; it is deterministic)
@@ -5516,6 +5628,27 @@ AMB.IMAGES = {
   const sv = (ic, v, cls) => `<span class="sv ${cls || ''}">${icon(ic)}<b>${v}</b></span>`;
 
   /** Fantasy-card look. 'full' = shop/codex card; 'mini' = board minion (oval portrait + attack/health discs). */
+  // ---- merge: a clear moment (flash + burst + sound) and the reward pick (1 of 3, one star above the shop level)
+  function mergeFx(uid, merged) {
+    sfx('merge');
+    if (merged && !(S.match.players[S.v] && S.match.players[S.v].mergePick)) merged.forEach((u) => toast(`🎉 اندمجت! ${UNITS[u.defId].name}: بطاقة مطوّرة ×${CFG.stars.mult[2]}`, 'good'));
+    S.pop = { uid, merged: true };
+    setTimeout(() => {
+      const el = document.querySelector(`[data-drag="unit:${uid}"]`);
+      const fl = document.createElement('div'); fl.className = 'merge-flash'; document.body.appendChild(fl); setTimeout(() => fl.remove(), 1000);
+      if (el) { burst(el, '#ffd24a', 30, { r: 80, s: 8 }); burst(el, '#ffffff', 14, { r: 50 }); burst(el, '#ff5aa0', 10, { r: 100, s: 6 }); el.classList.add('merge-boom'); setTimeout(() => el.classList.remove('merge-boom'), 1100); }
+      banner(`${icon('star')}${icon('up')}`, 'merge');
+    }, 60);
+    setTimeout(() => { S.pop = null; }, 900);
+  }
+  function mergePickIfAny() {
+    const p = S.match && S.match.players[S.v];
+    if (!p || !p.mergePick || !prepActive()) return;
+    const mp = p.mergePick;
+    const cards = mp.options.map((id, i) => `<button class="mp-card" data-act="pickMerge" data-idx="${i}">${cardHTML(UNITS[id], { k: 'mp' + i })}<span class="mp-st">${'★'.repeat(UNITS[id].tier)}</span></button>`).join('');
+    modal(`<h2>🎉 دمج! اختر هديتك</h2><p class="mp-sub">اختر بطاقة وحدة من ${mp.options.length}، نجومها ${'★'.repeat(mp.rank)} (أعلى من مستوى متجرك بنجمة)</p><div class="mp-row">${cards}</div>`);
+    const x = document.querySelector('#modal .x'); if (x) x.style.display = 'none';   // the choice is part of the merge: no closing without picking
+  }
   function cardHTML(def, o) {
     o = o || {};
     const W = WORLDS[def.world];
@@ -5674,6 +5807,7 @@ AMB.IMAGES = {
     cast: (c) => { tone(c, { f: 300, to: 900, d: 0.3, v: 0.1, type: 'sawtooth' }); tone(c, { f: 600, to: 1800, d: 0.3, v: 0.05, type: 'triangle', at: 0.04 }); },
     heal: (c) => { tone(c, { f: 660, d: 0.12, v: 0.08 }); tone(c, { f: 880, d: 0.16, v: 0.08, at: 0.09 }); tone(c, { f: 1320, d: 0.2, v: 0.06, at: 0.18 }); },
     death: (c) => { noise(c, 0.3, 0.14, 300); tone(c, { f: 220, to: 40, d: 0.35, v: 0.16, type: 'sawtooth' }); },
+    levelup: (c) => { [392, 523, 659, 784, 1047].forEach((f, i) => tone(c, { f, d: 0.16, v: 0.1, type: 'square', at: i * 0.06 })); tone(c, { f: 196, to: 392, d: 0.3, v: 0.08, type: 'sawtooth' }); noise(c, 0.2, 0.05, 3000); },
     merge: (c) => { [523, 659, 784, 1047].forEach((f, i) => tone(c, { f, d: 0.22, v: 0.12, type: 'triangle', at: i * 0.07 })); noise(c, 0.25, 0.06, 4000); },
     v_fighter: (c) => { swoosh(c, { d: 0.14, f1: 900, f2: 3200, q: 1.6, v: 0.13 }); clang(c, { f: 640, d: 0.3, v: 0.07, at: 0.1 }); thud(c, { f: 150, v: 0.1, at: 0.1 }); },
     v_assassin: (c) => { swoosh(c, { d: 0.09, f1: 2600, f2: 7000, q: 2.8, v: 0.1, sharp: 3 }); swoosh(c, { d: 0.08, f1: 2200, f2: 6200, q: 2.8, v: 0.08, at: 0.07, sharp: 3 }); tone(c, { f: 3300, to: 2400, d: 0.1, v: 0.025, type: 'sine', at: 0.05 }); },
@@ -5906,20 +6040,19 @@ AMB.IMAGES = {
   function renderTop() {
     const m = S.match, p = me(), o = opp();
     const ph = S.phase;
-    const need = m.xpNeeded(p);
     const left = ph === 'prep' ? (S.mode === 'tutorial' ? '∞' : Math.ceil(Math.max(0, S.deadline - Date.now()) / 1000) + 'ث') : '—';
     const avail = p.essence - m.reservedEssence(p);
     const lc = (pl, hid, k, me) => `<span class="lifechip ${me ? 'me' : ''}">${portrait(hid, { k })}${icon('heart')} <b>${lifeStr(pl.life)}</b><i class="lc-st"></i></span>`;
     $('topbar').innerHTML = `
       <span class="tb-round" title="${icon('flag').replace(/<[^>]+>/g, '')}">${icon('flag')} <bdi dir="ltr">${m.round}<small>/${maxR()}</small></bdi></span>
       ${m.rules ? `<span class="stagechip"><b>${p.stats.wins} – ${o.stats.wins}</b><span class="pips">${Array.from({ length: m.rules.winsNeeded || 2 }, (_, k) => k).map((k) => `<i class="pip ${k < p.stats.wins ? 'done' : ''}"></i>`).join('')}</span></span>`
-        : `<span class="stagechip"><span class="pips">${[1, 2, 3, 4, 5, 6, 7].map((r) => `<i class="pip ${r < m.round ? 'done' : r === m.round ? 'now' : ''} ${CFG.match.stages.some((st) => st.rounds[1] === r && r < 7) ? 'gap' : ''}"></i>`).join('')}</span></span>`}
+        : `<span class="stagechip"><span class="pips">${Array.from({ length: CFG.match.maxRounds }, (_, k) => k + 1).map((r) => `<i class="pip ${r < m.round ? 'done' : r === m.round ? 'now' : ''} ${CFG.match.stages.some((st) => st.rounds[1] === r && r < CFG.match.maxRounds) ? 'gap' : ''}"></i>`).join('')}</span></span>`}
       <span class="timer">${S.paused ? icon('pause') : left}</span>
       <span class="tb-spacer"></span>
       ${lc(p, myAvatar(p, 0), 'tb0', true)}${lc(o, HEROES[o.heroId], 'tb1', false)}
       <span class="res gold" data-act="info" data-k="interest" title="الفايدة">${icon('gold')} ${p.gold}${m.rules ? '' : (() => { const E0 = CFG.economy, rich = m.weekly === 'richInterest', n = Math.min(rich ? E0.interestMax + 2 : E0.interestMax, Math.floor(p.gold / (rich ? E0.interestPer - 2 : E0.interestPer))); return n ? `<small class="int-n">+${n}</small>` : ''; })()}</span>
       <span class="res ess">${icon('essence')} ${avail}/${p.essence}</span>
-      <span class="lvl">${icon('crown')} <b>${p.level}</b> <span class="xpbar"><i style="width:${need ? (p.xp / need) * 100 : 100}%"></i></span></span>
+      <span class="lvl" title="مستوى المتجر">${icon('crown')} <b>${p.level}</b> <span class="lvstars">${'★'.repeat(p.level)}</span></span>
       <button class="btn small mob-only ibtn2" data-act="panels">${S.panels ? '✕' : icon('crown')}</button>
       <button class="btn small ibtn2" data-act="pause">${S.paused ? icon('play') : icon('pause')}</button>
       ${soundBtn()}
@@ -6066,7 +6199,7 @@ AMB.IMAGES = {
   function pieceHTML(u, o) {
     const def = UNITS[u.defId];
     const same = me().bench.concat(Object.values(me().board)).filter((x) => x && x.defId === u.defId && x.star === u.star).length;
-    return cardHTML(def, { size: 'mini', star: u.star, items: u.items, sel: o && o.sel, k: u.uid, prog: same >= 2 && u.star < 3 ? same + '/' + CFG.stars.copiesPerStar : '', cls: S.pop && S.pop.uid === u.uid ? (S.pop.merged ? 'pop merged' : 'pop') : '',
+    return cardHTML(def, { size: 'mini', star: u.star, items: u.items, sel: o && o.sel, k: u.uid, prog: same >= 2 && u.star < CFG.stars.maxStar ? same + '/' + CFG.stars.copiesPerStar : '', cls: S.pop && S.pop.uid === u.uid ? (S.pop.merged ? 'pop merged' : 'pop') : '',
       attrs: `draggable="true" data-drag="unit:${u.uid}" title="${esc(def.name)} ${'★'.repeat(u.star)} — ${ROLES[def.role].name} / ${WORLDS[def.world].name}"` });
   }
   function heroPieceHTML(p) {
@@ -6100,8 +6233,10 @@ AMB.IMAGES = {
     const bigCards = p.shop.map((id, i) => {
       if (!id) return `<div class="sc empty"><i class="sc-frame"></i></div>`;
       const d = UNITS[id], ok = m.canBuy(S.v, i).ok, ow = owned[id], st = cardStats(d, 1), rc = (RAR[d.rarity || 'common'] || RAR.common).color;
+      const isNew = p.shopNew && p.shopNew[i], stars = '★'.repeat(d.tier);
       const dots = ow && ow.s1 ? `<span class="sc-dots">${'●'.repeat(Math.min(2, ow.s1))}${'○'.repeat(Math.max(1, 3 - Math.min(2, ow.s1)))}</span>` : '';
-      return `<div class="sc ${ok ? '' : 'cant'}" data-act="buy" data-idx="${i}" style="--rc:${rc};--wc:${WORLDS[d.world].color}" title="${esc(d.name)}: ${esc(d.skill.name)}">
+      return `<div class="sc r${d.tier} ${ok ? '' : 'cant'} ${isNew ? 'newstar' : ''} ${ow && ow.s1 ? 'owned' : ''}" data-act="buy" data-idx="${i}" style="--rc:${rc};--wc:${WORLDS[d.world].color}" title="${esc(d.name)}: ${esc(d.skill.name)}">
+        ${isNew ? `<span class="sc-new">جديد!</span>` : ''}<span class="sc-stars">${stars}</span>
         <span class="sc-art">${portrait(d, { bare: true, k: 'sca' + i })}</span><i class="sc-frame"></i>
         <span class="sc-gem"></span><b class="sc-cost">${d.cost}</b><b class="sc-hp">${st.hp}</b><b class="sc-atk">${st.atk}</b>
         <span class="sc-role">${icon(ART.ROLE_ICON[d.role] || 'star')}</span>${dots}
@@ -6113,7 +6248,7 @@ AMB.IMAGES = {
       const ok = m.canBuy(S.v, i).ok;
       const ow = owned[id];
       const pair = ow && ow.s1 >= 2;
-      return cardHTML(d, { cls: `${ok ? '' : 'cant'} ${pair ? 'pair' : ''}`, k: 'sh' + i,
+      return cardHTML(d, { cls: `${ok ? '' : 'cant'} ${pair ? 'pair' : ''} ${p.shopNew && p.shopNew[i] ? 'newstar' : ''}`, k: 'sh' + i,
         own: ow ? { n: ow.n, pair, s1: ow.s1 } : null,
         attrs: `data-act="buy" data-idx="${i}" title="${esc(d.skill.name)}: ${esc(d.skill.text)}"` });
     }).join('');
@@ -6122,7 +6257,8 @@ AMB.IMAGES = {
       const it = ITEMS[id];
       return itemCardHTML(it, { cls: p.gold >= it.cost ? '' : 'cant', attrs: `data-act="buyItem" data-idx="${i}"` });
     }).join('');
-    const freeR = p.freeRerolls > 0, maxed = p.level >= E.maxLevel, need = m.xpNeeded(p);
+    const freeR = p.freeRerolls > 0, maxed = p.level >= E.maxLevel, upC = m.upgradeCost(p);
+    const lvStrip = `<div class="lv-strip" data-act="shopInfo"><span class="ls-lv">${icon('crown')} مستوى المتجر <b>${p.level}</b></span><span class="ls-st">أعلى نجمة <b>${'★'.repeat(p.level)}</b></span>${maxed ? '<span class="ls-up">أعلى مستوى</span>' : `<span class="ls-up ${p.gold >= upC ? 'ok' : ''}">الترقية ${icon('gold')}<b>${upC}</b>${upC < E.upgradeCost[p.level + 1] ? ` <s>${E.upgradeCost[p.level + 1]}</s>` : ''}</span>`}</div>`;
     const rCost = freeR ? 0 : E.rerollCost;
     const price = (n, ok) => `<span class="pr ${ok ? '' : 'no'}">${icon('gold')}<b>${n}</b></span>`;
     // UI v2 dock: «جاهز» next to your hero, then round icon buttons (refresh / lock / XP / upgrades) with their prices
@@ -6134,18 +6270,18 @@ AMB.IMAGES = {
         <span class="dock-sp"></span>
         <button class="sb-ic" data-act="reroll" title="تحديث المتجر (D)" aria-label="تحديث المتجر">${icon('refresh')}${price(rCost, p.gold >= rCost)}<span class="sb-lb">تحديث</span></button>
         <button class="sb-ic ${p.shopLocked ? 'on' : ''}" data-act="lock" title="${p.shopLocked ? 'المتجر مثبّت' : 'ثبّت المتجر للجولة الجاية'}" aria-label="تثبيت المتجر">${icon(p.shopLocked ? 'lock' : 'unlock')}<span class="sb-lb">تثبيت</span></button>
-        <button class="sb-ic xp" data-act="xp" ${maxed ? 'disabled' : ''} title="اشتر خبرة (F)" aria-label="اشتر خبرة">${icon('up')}${maxed ? '' : price(E.xpCost, p.gold >= E.xpCost)}<i class="xpm"><i style="transform:scaleX(${need ? Math.min(1, p.xp / need) : 1})"></i></i><span class="sb-lb">خبرة</span></button>
+        <button class="sb-ic xp" data-act="xp" ${maxed ? 'disabled' : ''} title="ترقية المتجر (F)" aria-label="ترقية المتجر">${icon('up')}${maxed ? '' : price(upC, p.gold >= upC)}<i class="xpm lvpips">${Array.from({ length: E.maxLevel }, (_, k) => `<i class="${k < p.level ? 'on' : ''}"></i>`).join('')}</i><span class="sb-lb">${maxed ? 'الأعلى' : 'ترقية'}</span></button>
         <button class="sb-ic" data-act="upgrades" title="شاشة التطوير" aria-label="شاشة التطوير">${icon('star')}<span class="sb-lb">تطوير</span></button>
       </div>
-      <div class="shop-row"><div class="shop-cards">${cards}</div>
+      <div class="shop-row">${lvStrip}<div class="shop-cards">${cards}</div>
       <div class="item-cards">${items}</div></div>
       <div class="shop-drawer ${S.shopOpen ? 'open' : ''}">
         <button class="sd-handle" data-act="shopToggle" aria-label="سكّر المتجر"><i></i></button>
-        <div class="sd-cards">${bigCards}</div>
+        ${lvStrip}<div class="sd-cards">${bigCards}</div>
         <div class="sd-row"><div class="sd-items">${p.itemShop.map((id, i) => id ? `<button class="sd-eq ${p.gold >= ITEMS[id].cost ? '' : 'cant'}" data-act="buyItem" data-idx="${i}" title="${esc(ITEMS[id].name)}: ${esc(ITEMS[id].text)}">${icon(ITEMS[id].icon)}<b>${ITEMS[id].cost}</b><small>${esc(ITEMS[id].name)}</small></button>` : '<span class="sd-eq empty"></span>').join('')}</div>
           <button class="sd-btn" data-act="reroll" aria-label="تحديث المتجر">${icon('refresh')}<b>${rCost}</b><small>تحديث</small></button>
           <button class="sd-btn ${p.shopLocked ? 'on' : ''}" data-act="lock" aria-label="تثبيت المتجر">${icon(p.shopLocked ? 'lock' : 'unlock')}<small>تثبيت</small></button>
-          <button class="sd-btn" data-act="xp" ${maxed ? 'disabled' : ''} aria-label="اشتر خبرة">${icon('up')}${maxed ? '' : `<b>${E.xpCost}</b>`}<small>خبرة</small></button>
+          <button class="sd-btn ${!maxed && p.gold >= upC ? 'can' : ''}" data-act="xp" ${maxed ? 'disabled' : ''} aria-label="ترقية المتجر">${icon('up')}${maxed ? '' : `<b>${upC}</b>`}<small>${maxed ? 'الأعلى' : 'ترقية'}</small></button>
           <button class="sd-btn" data-act="upgrades" aria-label="شاشة التطوير">${icon('star')}<small>تطوير</small></button></div>
       </div>`;
     // the drawer sits right above the dock (its height depends on the phone)
@@ -6189,7 +6325,7 @@ AMB.IMAGES = {
     const guard = heroFront || front === 0 ? `<button class="guard risk" data-act="info" data-k="guard">${icon('warn')}</button>` : `<button class="guard safe" data-act="info" data-k="guard">${icon('shield')}<b>${front}</b></button>`;
     $('panel-left').innerHTML = `
       <section class="rail-guard">${guard}</section>
-      <section><div class="rail-title">${icon('star')}<small>${board.length}/${p.level}</small></div>
+      <section><div class="rail-title">${icon('star')}<small>${board.length}/${m.boardCap(p)}</small></div>
         <div class="synchips"><button class="schip ${ev.resonance ? 'on' : ''}" style="--sc:${hw.color}" data-act="info" data-k="syn">${icon(ART.WORLD_ICON[HEROES[p.heroId].world])}<b>${ev.resonance}</b><small>♥</small></button></div>
         ${synergyHTML(ev.list)}</section>
       <section><div class="rail-title">${icon('skull')}</div>
@@ -6253,7 +6389,7 @@ AMB.IMAGES = {
   // one row under the field: your selection's actions, or a default row with auto-arrange
   function prepBarHTML() {
     const m = S.match, p = me(), sel = S.sel, E = CFG.economy;
-    const cnt = `${Object.keys(p.board).length}/${p.level}`;
+    const cnt = `${Object.keys(p.board).length}/${S.match.boardCap(p)}`;
     if (sel && sel.kind === 'unit') {
       const u = m.findUnit(p, sel.uid);
       if (u) {
@@ -6338,8 +6474,8 @@ AMB.IMAGES = {
     const p = m.players[0];
     let everSummoned = p.summoned; try { everSummoned = everSummoned || m.summary(0).summoned; } catch (e) { /* ignore */ }
     if (!everSummoned) return 'نزّل بطلك 👑 لما تكون حياتك زينة، يقاتل معك ويقوّي فريقك';
-    if (p.gold >= 10) return 'لا تخلي الذهب يتجمع: اشترِ وحدات أو خبرة عشان تنزّل وحدات أكثر';
-    if (p.level < 5) return 'اشترِ خبرة ⬆ عشان يرتفع مستواك وتنزّل وحدات أكثر في الساحة';
+    if (p.gold >= 10) return 'لا تخلي الذهب يتجمع: اشترِ وحدات أو رقِّ المتجر عشان تنزّل وحدات أقوى وأكثر';
+    if (p.level < 5) return 'رقِّ المتجر ⬆ عشان تظهر بطاقات بنجمة أعلى وتنزّل وحدات أكثر في الساحة';
     return 'حط الحراس والمقاتلين قدّام، والقناصة والسحرة ورا';
   }
   function renderCombatCtrl() {
@@ -6387,7 +6523,7 @@ AMB.IMAGES = {
       <div class="skillbox"><b>المهارة — ${sk.name}:</b> ${sk.text}
         ${skRows ? `<table><tr><th></th><th>★</th><th>★★</th><th>★★★</th></tr>${skRows}</table>` : ''}</div>
       ${(d.traits && d.traits.length) || d.sig ? `<div class="skillbox rar-box"><b>صفات ${AMB.ECONOMY.rarities[d.rarity] ? AMB.ECONOMY.rarities[d.rarity].name : ''}:</b>${(d.traits || []).map((id) => `<div>• ${AMB.DATA.TRAITS[id].name}: ${AMB.DATA.TRAITS[id].text}</div>`).join('')}${d.sig ? `<div class="sig-line">★ <b>${AMB.DATA.SIGS[d.sig].name}</b>: ${AMB.DATA.SIGS[d.sig].text}</div>` : ''}</div>` : `<div class="hint">عادي: يسوي دور ${ROLES[d.role].name} الأساسي بدون صفات إضافية.</div>`}
-      <div class="hint"><b>التطوير:</b> ${CFG.stars.copiesPerStar} نسخ ★ = ★★ ، و ${CFG.stars.copiesPerStar} نسخ ★★ = ★★★ (الحد الأقصى). الصحة والهجوم ×${SM[2]} ثم ×${SM[3]}؛ السرعة والمدى ما تتغير عشان ما تصير وحدة واحدة ما أحد يقدر عليها.</div>
+      <div class="hint"><b>الدمج:</b> ${CFG.stars.copiesPerStar} نسخ ★ = بطاقة مطوّرة واحدة بإطار ذهبي، الصحة والهجوم ×${SM[2]}؛ السرعة والمدى ما تتغير. تندمج مرة وحدة فقط.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
         <div><span class="wtag" style="--w:${W.color}">${SYNERGIES[d.world].name}</span>${synOf(d.world)}</div>
         <div><b>${SYNERGIES[d.role].name}</b>${synOf(d.role)}</div></div>
@@ -6436,19 +6572,19 @@ AMB.IMAGES = {
   AMB.TIPS.interest = () => { const E0 = CFG.economy, p = S.match && me(); const n = p ? Math.min(E0.interestMax, Math.floor(p.gold / E0.interestPer)) : 0;
     return { title: 'الفايدة على الذهب', html: `<p>كل ${E0.interestPer} ذهب تخليها معك = +1 ذهب زيادة في الجولة الجاية، لين ${E0.interestMax}.</p>${p ? `<p>معك <b>${p.gold}</b> ذهب، يعني فايدتك الجاية <b>+${n}</b>.</p>` : ''}` }; };
   const GLOSSARY = [['ذهب', 'تشتري فيه الوحدات والخبرة. يجيك كل جولة.'], ['جوهر', 'تشغّل فيه قدرات بطلك وقت القتال.'], ['شظايا 💎', 'عملة برا المباراة: تفتح فيها الباكجات.'],
-    ['مستوى', 'كم وحدة تقدر تحط في الساحة. ترفعه بالخبرة.'], ['تآزر', 'وحدات من نفس العالم أو نفس الدور مع بعض = قوة زيادة.'], ['رنين', 'وحدات من عالم بطلك تاخذ قوة زيادة.'],
+    ['مستوى المتجر', 'من ١ إلى ٥: كل مستوى يفتح بطاقات بنجمة زيادة ويكبّر الساحة. ترفعه بزر الترقية.'], ['تآزر', 'وحدات من نفس العالم أو نفس الدور مع بعض = قوة زيادة.'], ['رنين', 'وحدات من عالم بطلك تاخذ قوة زيادة.'],
     ['نجمة ★', 'نسخ متطابقة تندمج وتصير الوحدة أقوى.'], ['الغضب', 'بعد وقت من القتال الكل يضرب أقوى، عشان القتال يخلص.'], ['إنزال البطل 👑', 'بطلك يقاتل في الساحة ويقوّي فريقك، بس ممكن يخسر حياة.']];
   function howto(fromMenu) {
     modal(`<h2>كيف ألعب؟</h2>${fromMenu && AMB.TutorialUI ? '<p><button class="btn primary" data-act="tutReplay">🎓 جرّب الدرس</button></p>' : ''}
       <details class="glossary"><summary>📖 قاموس الكلمات</summary>${GLOSSARY.map(([w, d]) => `<p><b>${w}:</b> ${d}</p>`).join('')}</details>
       <div class="skillbox"><b>الهدف:</b> نزّل حياة بطل الخصم لين تصير صفر. كل جولة: موارد ← شراء وتطوير ← ترتيب وقدرات ← قتال تلقائي ← نتيجة.</div>
-      <div class="skillbox"><b>المتجر:</b> اشتر الوحدات بالذهب، وحدّث العروض (${CFG.economy.rerollCost} ذهب)، واشتر خبرة عشان ترفع المستوى (المستوى = عدد الوحدات اللي تحطها في الساحة). والفايدة: +1 عن كل ${CFG.economy.interestPer} ذهب موفّر (لين ${CFG.economy.interestMax}). وسلسلة الفوز أو الخسارة تعطيك ذهب زيادة.</div>
-      <div class="skillbox"><b>التطوير:</b> ${CFG.stars.copiesPerStar} نسخ متطابقة = نجمة زيادة، وتنحسب لحالها.</div>
+      <div class="skillbox"><b>المتجر:</b> اشتر الوحدات بالذهب، وحدّث العروض (${CFG.economy.rerollCost} ذهب)، ورقِّ المتجر (من ١ إلى ٥): المستوى N يبيع بطاقات من ١ إلى N نجوم، وسعر البطاقة = نجومها. الترقية تغلى مع كل مستوى وتنزل 1 كل جولة ما رقّيت فيها. والفايدة: +1 عن كل ${CFG.economy.interestPer} ذهب موفّر (لين ${CFG.economy.interestMax}). وسلسلة الفوز أو الخسارة تعطيك ذهب زيادة.</div>
+      <div class="skillbox"><b>الدمج:</b> ${CFG.stars.copiesPerStar} نسخ متطابقة (في الفريق أو الاحتياط) تندمج في بطاقة واحدة مطوّرة بإطار ذهبي وقوة ×${CFG.stars.mult[2]}، وتاخذ هدية: اختيار بطاقة من ${CFG.stars.mergeChoices} نجومها أعلى من مستوى متجرك بنجمة. البطاقة المطوّرة ما تندمج مرة ثانية.</div>
       <div class="skillbox"><b>الساحة:</b> صف أمامي (خط الدفاع) وصف خلفي. الحراس والمقاتلين قدّام، والسحرة والقناصة والدعم ورا. القتلة يقفزون للصف الخلفي عند العدو.</div>
       <div class="skillbox"><b>البطل:</b> يبقى خلف صفوفك وما أحد يقدر يضربه طول ما عندك أي وحدة حية على الساحة. وإذا سقطت كلها ينكشف. تقدر تنزّله الساحة يقاتل بنفسه، وهذا مكسب كبير بس فيه مخاطرة.</div>
       <div class="skillbox"><b>القدرات:</b> جهّز قدرات البطل واختر متى تشتغل (بداية القتال، بعد 5 ثواني، لما يسقط أول واحد من فريقك، أو لما ينكشف البطل). وتخسّر جوهر.</div>
       <div class="skillbox"><b>التآزر:</b> وحدات من نفس العالم أو نفس الدور تعطيك مكافآت. ووحدات عالم بطلك تاخذ رنين. وإذا جمعت 3 أو 4 عوالم مختلفة يشتغل «تقارب العوالم» عشان التشكيلة المختلطة ما تكون أضعف.</div>
-      <div class="skillbox"><b>المراحل والمكافآت:</b> المباراة ${CFG.match.maxRounds} جولات في 4 مراحل: ${CFG.match.stages.map((x) => x.name + ' (' + (x.rounds[0] === x.rounds[1] ? 'الجولة ' + x.rounds[0] : 'الجولتان ' + x.rounds[0] + '–' + x.rounds[1]) + ')').join('، ')}. بعد كل مرحلة (عدا الأخيرة) تختار <b>مكافأة من 3</b>: وحدة مجانية، ذهب، خبرة، جوهر، معدة، <b>بركة دائمة</b> للفريق، أو شفاء للبطل. جولة الحسم تضاعف خسارة الحياة ×${CFG.match.finaleLossMult}. وإذا ما سقط أي بطل قبلها يفوز اللي حياته أعلى. وداخل القتال الضرر يزيد بعد ${CFG.combat.furyStart} ثانية (الغضب).</div>`);
+      <div class="skillbox"><b>المراحل والمكافآت:</b> المباراة ${CFG.match.maxRounds} جولات في 4 مراحل: ${CFG.match.stages.map((x) => x.name + ' (' + (x.rounds[0] === x.rounds[1] ? 'الجولة ' + x.rounds[0] : 'الجولتان ' + x.rounds[0] + '–' + x.rounds[1]) + ')').join('، ')}. بعد كل مرحلة (عدا الأخيرة) تختار <b>مكافأة من 3</b>: وحدة مجانية، ذهب، تخفيض الترقية، جوهر، معدة، <b>بركة دائمة</b> للفريق، أو شفاء للبطل. جولة الحسم تضاعف خسارة الحياة ×${CFG.match.finaleLossMult}. وإذا ما سقط أي بطل قبلها يفوز اللي حياته أعلى. وداخل القتال الضرر يزيد بعد ${CFG.combat.furyStart} ثانية (الغضب).</div>`);
   }
 
   function matchMenu() {
@@ -6684,11 +6820,7 @@ AMB.IMAGES = {
       if (res(r)) {
         sfx('buy');
         if (r.merged && r.merged.length) {
-          r.merged.forEach((u) => toast(`🎉 تطورت! ${UNITS[u.defId].name} ${'★'.repeat(u.star)}`, 'good'));
-          S.pop = { uid: r.merged[r.merged.length - 1].uid, merged: true };
-          // kid #6: a bigger party for a merge: confetti on the evolved unit once it is drawn
-          const muid = r.merged[r.merged.length - 1].uid;
-          setTimeout(() => { const el = document.querySelector(`[data-drag="unit:${muid}"]`); if (el) ['#ff5aa0', '#5fe3ff'].forEach((c) => burst(el, c, 14, { r: 90, s: 6 })); }, 80);
+          mergeFx(r.merged[r.merged.length - 1].uid, r.merged);
         } else {
           S.pop = { uid: r.unit.uid };
           const have = m0.allUnits(m0.players[S.v]).filter((x) => x.defId === r.unit.defId && x.star === 1).length;
@@ -6701,16 +6833,37 @@ AMB.IMAGES = {
         if (pe) { if (S.pop.merged) { burst(pe, '#ffd24a', 26, { r: 60, s: 7 }); burst(pe, '#ffffff', 10, { r: 40 }); banner(`${icon('star')}${icon('up')}`, 'merge'); } else burst(pe, '#ffffff', 6, { r: 26 }); }
         setTimeout(() => { S.pop = null; }, 800);
       }
+      mergePickIfAny();
     },
-    buyFromUpg: (d) => { const r = S.match.buy(S.v, +d.idx); if (res(r) && r.merged && r.merged.length) toast(`تطوير! ${UNITS[r.merged[r.merged.length - 1].defId].name} ${'★'.repeat(r.merged[r.merged.length - 1].star)}`, 'good'); renderMatch(); upgradesModal(); },
+    buyFromUpg: (d) => { const r = S.match.buy(S.v, +d.idx); if (res(r) && r.merged && r.merged.length) mergeFx(r.merged[r.merged.length - 1].uid, r.merged); renderMatch(); if (me().mergePick) mergePickIfAny(); else upgradesModal(); },
     buyItem: (d) => { if (prepActive() && res(S.match.buyItem(S.v, +d.idx))) renderMatch(); },
     reroll: () => { if (prepActive() && res(S.match.reroll(S.v))) { sfx('reroll'); renderMatch(); } },
     rotate: () => rotateScreen(),
     sound: () => { SND.on = !SND.on; try { localStorage.setItem('amb_sound', SND.on ? '1' : '0'); } catch (e) { /* ignore */ } if (SND.on) sfx('click'); document.querySelectorAll('[data-act="sound"]').forEach((b) => { if (b.id === 'menu-sound') b.querySelector('.mt-ic').textContent = SND.on ? '🔊' : '🔇'; else b.textContent = SND.on ? '🔊' : '🔇'; }); },
-    xp: () => { if (prepActive()) { const lv = me().level; if (res(S.match.buyXp(S.v))) { if (me().level > lv) toast(`المستوى ${me().level}! تقدر تحط ${me().level} وحدات`, 'good'); renderMatch(); } } },
+    xp: () => {
+      if (!prepActive()) return;
+      const lv = me().level;
+      if (!res(S.match.upgradeShop(S.v))) return;
+      sfx('levelup'); const nl = me().level;
+      S.lvFx = nl; renderMatch(); S.lvFx = 0;
+      toast(`المتجر صار مستوى ${nl}: تظهر فيه بطاقات حتى ${'★'.repeat(nl)} · الساحة ${S.match.boardCap(me())} وحدات`, 'good');
+      const btn = document.querySelector('.dock-hero') || document.querySelector('.shop-dock');
+      if (btn) { burst(btn, '#ffd24a', 22, { r: 70, s: 7, up: true }); burst(btn, '#ffffff', 10, { r: 40 }); }
+      banner(`${icon('crown')} ${nl}`, 'merge');
+      const fl = document.createElement('div'); fl.className = 'lv-flash'; document.body.appendChild(fl); setTimeout(() => fl.remove(), 900);
+    },
+    pickMerge: (d) => {
+      const r = S.match.claimMerge(S.v, +d.idx);
+      if (!res(r)) return;
+      closeModal(); sfx('buy');
+      toast(`أخذت «${UNITS[r.defId].name}» ${'★'.repeat(UNITS[r.defId].tier)} هدية الدمج`, 'good');
+      if (r.merged && r.merged.length) mergeFx(r.merged[r.merged.length - 1].uid, r.merged);
+      renderMatch(); mergePickIfAny();
+    },
     lock: () => { if (prepActive()) { S.match.toggleLock(S.v); renderMatch(); } },
     ready: () => {
       if (!prepActive()) return;
+      if (me().mergePick) { mergePickIfAny(); return; }   // pick the merge gift first
       // a new player's most common mistake: pressing "ready" with gold still in the pocket
       const m = S.match, p = me();
       if (S.mode !== 'tutorial' && S.mode !== 'hotseat' && S.warnedRound !== m.round + ':' + S.v) {
@@ -6737,7 +6890,7 @@ AMB.IMAGES = {
       const u = m.findUnit(p, S.sel.uid); if (!u) return;
       const sd = ROLES[UNITS[u.defId].role].side, F = ['f1', 'f2', 'f0', 'f3'], B = ['b1', 'b2', 'b0', 'b3'];
       const order = (sd === 'back' ? B.concat(F) : sd === 'front' ? F.concat(B) : F.concat(B)).filter((x) => !p.board[x] && !(p.summoned && p.heroSlot === x));
-      if (!order.length || Object.keys(p.board).length >= p.level) { toast(`الساحة ممتلئة (${p.level}/${p.level}). اضغط وحدة في الساحة تبدّل معها، أو بع وحدة، أو ارفع مستواك`, 'err'); return; }
+      if (!order.length || Object.keys(p.board).length >= S.match.boardCap(p)) { toast(`الساحة ممتلئة (${S.match.boardCap(p)}/${S.match.boardCap(p)}). اضغط وحدة في الساحة تبدّل معها، أو بع وحدة، أو رقِّ المتجر`, 'err'); return; }
       if (res(m.move(S.v, u.uid, { zone: 'board', slot: order[0] }))) { S.sel = null; renderMatch(); }
     },
     sell: () => { if (prepActive() && S.sel && S.sel.kind === 'unit' && res(S.match.sell(S.v, S.sel.uid))) { S.sel = null; renderMatch(); } },
@@ -6753,7 +6906,7 @@ AMB.IMAGES = {
       const syn = lp && lp.synergies.length ? lp.synergies.map((id) => SYNERGIES[id].name).join('، ') : '—';
       const hunt = me0.hunt || 'back';
       modal(`<h2>🔍 ${esc(o.name)}</h2>
-        <div class="kv"><span>المستوى (وحداته في الساحة)</span><b>${o.level}</b></div>
+        <div class="kv"><span>مستوى المتجر</span><b>${o.level}</b></div>
         <div class="kv"><span>ذهبه الحين</span><b>${o.gold}</b></div>
         <div class="kv"><span>تآزره الجولة اللي فاتت</span><b>${syn}</b></div>
         <div class="kv"><span>بطله الجولة اللي فاتت</span><b>${lp ? (lp.summoned ? '👑 نزل الساحة' : 'ما نزل') : '—'}</b></div>
@@ -8658,7 +8811,7 @@ AMB.IMAGES = {
     { id: 'reroll', say: 'جرّب تحدّث المتجر 🔄', round: 2, bar: [G('gold'), G('refresh')], target: () => reroll(), done: () => P().stats.rerolls >= 1 },
     { id: 'ready2', say: 'يلا للقتال!', round: 2, bar: [G('sword'), G('check')], target: () => ready(), done: () => UI().S.phase === 'combat' || UI().S.match.round > 2 },
     // round 3: the two things that decide real matches: spend gold on levels (more units on the board), and send the hero in
-    { id: 'xp', say: 'اشترِ خبرة، كل ما زاد مستواك تنزّل وحدات أكثر', round: 3, bar: [G('gold'), ARR, G('up')], target: () => q('#shopbar [data-act="xp"]') || q('[data-act="xp"]'), done: () => xpBase != null && P().level * 1000 + P().xp > xpBase },   // the round's free XP does not count: only a bought level-up
+    { id: 'xp', say: 'ارفع مستوى المتجر: بطاقات أقوى ووحدات أكثر في الساحة', round: 3, bar: [G('gold'), ARR, G('up')], target: () => q('#shopbar [data-act="xp"]') || q('[data-act="xp"]'), done: () => xpBase != null && P().level > xpBase },   // only a bought shop upgrade counts
     { id: 'summon', say: 'نزّلني الساحة! 👑 أقاتل معك', round: 3, bar: [G('crown'), ARR, G('sword')], target: () => q('[data-act="summon"]'), done: () => P().summoned },
     { id: 'ready3', say: 'آخر جولة، يلا نفوز!', round: 3, bar: [G('sword'), G('check')], target: () => ready(), done: () => UI().S.phase === 'combat' },
   ];
@@ -8709,7 +8862,7 @@ AMB.IMAGES = {
     while (STEPS[idx] && STEPS[idx].done && STEPS[idx].round === m.round && STEPS[idx].done()) { idx++; lastKey = ''; }
     const st = STEPS[idx];
     if (!st || st.round !== m.round) { hide(); return; }
-    if (st.id === 'xp' && xpBase == null) xpBase = P().level * 1000 + P().xp;
+    if (st.id === 'xp' && xpBase == null) xpBase = P().level;
     mount(); document.body.classList.add('tut-on');
     bar.style.display = 'flex'; ring.style.display = 'block'; hand.style.display = 'block';
     const key = idx + ':' + (sel() ? sel().kind : '') + ':' + m.round;

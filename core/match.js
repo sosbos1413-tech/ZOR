@@ -16,7 +16,7 @@
       index: i, name: opts.name || `لاعب ${i + 1}`, heroId: hero.id, isAI: !!opts.isAI,
       aiStyle: opts.aiStyle || 'balanced', difficulty: opts.difficulty || 'normal',
       life: AMB.CONFIG.match.heroLife + Math.max(0, (opts.heroLevel || 1) - 1) * (AMB.CONFIG.match.heroLifePerLevel || 0), maxLife: AMB.CONFIG.match.heroLife + Math.max(0, (opts.heroLevel || 1) - 1) * (AMB.CONFIG.match.heroLifePerLevel || 0),
-      gold: 0, xp: 0, level: E.startLevel, essence: E.essenceStart,
+      gold: 0, level: E.startLevel, idle: 0, upgradeDiscount: 0, shownRanks: [], shopNew: [], mergePick: null, essence: E.essenceStart,
       bench: new Array(E.benchSize).fill(null),
       board: {},            // slot -> unit
       items: [],            // owned item ids (equipment not yet equipped + unarmed spells)
@@ -78,6 +78,7 @@
     startRound() {
       const E = AMB.CONFIG.economy;
       if (this.rewardPending && AMB.AI && AMB.AI.claimRewards) AMB.AI.claimRewards(this);   // never leave a draft open
+      this.players.forEach((_, i) => this.autoPickMerge(i));   // a merge reward nobody picked is picked for them
       this.round++;
       this.phase = 'resources';
       // short-match start gold/level go in BEFORE the first shop is rolled (the first shop used to be rolled at level 3 whatever the start level was)
@@ -94,10 +95,11 @@
         // catch-up (PvP-style modes only; campaign/tower/events are tuned separately): far behind on life -> a little extra gold, so a bad start is not a lost game
         const foe = this.players[1 - this.players.indexOf(p)], cu = E.catchUp;
         const help = cu && foe && ['ai', 'hotseat', 'online', 'sim'].includes(this.mode) && this.round > 2 && foe.life - p.life >= cu.gap ? cu.gold : 0;
-        const income = (this.round === 1 ? E.baseIncome : E.baseIncome + interest + streakBonus + win + help) + dataStream;
-        p.lastIncome = { base: E.baseIncome, interest: this.round === 1 ? 0 : interest, streak: this.round === 1 ? 0 : streakBonus, win, help, total: income };
+        const base = E.income[Math.min(this.round, E.income.length) - 1];
+        const income = (this.round === 1 ? base : base + interest + streakBonus + win + help) + dataStream;
+        p.lastIncome = { base, interest: this.round === 1 ? 0 : interest, streak: this.round === 1 ? 0 : streakBonus, win, help, total: income };
         p.gold += income;
-        if (this.round > 1) this._gainXp(p, E.xpPerRound);
+        if (this.round > 1) p.idle++;   // one more round without a shop upgrade: the next upgrade gets cheaper
         const essGain = E.essencePerRound + (AMB.DATA.HEROES[p.heroId].passive.id === 'deep_reserve' ? 2 : 0);
         if (this.round > 1) p.essence = Math.max(p.essence, Math.min(E.essenceMax, p.essence + essGain));   // a 'pure essence' reward above the cap is kept (never clamped away)
         p.freeRerolls = (AMB.DATA.HEROES[p.heroId].passive.id === 'free_reroll' ? 1 : 0) + (this.weekly === 'freeReroll' ? 1 : 0);
@@ -112,36 +114,43 @@
     // ================================================================ economy
     /** put items into the bag; the bag holds itemBenchSize (6): the rest turns into gold (+3 each, like the 'item' reward) so the limit can never be bypassed */
     _stash(p, items) { const cap = AMB.CONFIG.economy.itemBenchSize; items.forEach((it) => { if (p.items.length < cap) p.items.push(it); else p.gold += 3; }); }
-    xpNeeded(p) { return AMB.CONFIG.economy.xpToLevel[Math.max(3, p.level)] || null; }   // levels 1-2 (scripted line-ups) use the level-3 cost; null never means "free level-up"
-    _gainXp(p, n) {
+    /** board size at the player's shop level */
+    boardCap(p) { return AMB.CONFIG.economy.boardSize[Math.max(1, Math.min(p.level, AMB.CONFIG.economy.boardSize.length)) - 1]; }
+    /** price of the next shop upgrade (null at the top level): the level's base price, minus 1 per round without an upgrade, never below the minimum */
+    upgradeCost(p) {
       const E = AMB.CONFIG.economy;
-      if (p.level >= E.maxLevel) return;
-      p.xp += n;
-      while (p.level < E.maxLevel && this.xpNeeded(p) != null && p.xp >= this.xpNeeded(p)) { p.xp -= this.xpNeeded(p); p.level++; }
-      if (p.level >= E.maxLevel) p.xp = 0;
+      if (p.level >= E.maxLevel) return null;
+      const base = E.upgradeCost[p.level + 1];
+      return Math.max(E.upgradeMin, base - (p.idle || 0) * E.upgradeDecay - (p.upgradeDiscount || 0));
     }
+    xpNeeded() { return null; }
 
-    _drawUnit(p, fresh) {
-      const odds = AMB.CONFIG.economy.tierOdds[Math.max(3, p.level)];
-      const tier = this._rng(p).weighted(odds.map((w, i) => [i + 1, w]).filter((e) => e[1] > 0));
-      const mine = (u) => !p.allowed || p.allowed.has(u.id);   // progression: only units the player owns
-      // shop focus: a unit you already hold (and can still upgrade) shows up more often, so stars are a goal you can chase
-      const SC = AMB.CONFIG.stars, focus = (fresh || !SC.focusFreshOnly ? SC.ownedShopWeight : 1) || 1, held = {};
-      if (focus !== 1) this.allUnits(p).forEach((u) => { if (u.star < AMB.CONFIG.stars.maxStar) held[u.defId] = (held[u.defId] || 0) + this.copiesOf(u); });
-      const minHeld = AMB.CONFIG.stars.focusMinCopies || 1;
-      let entries = Object.values(AMB.DATA.UNITS).filter((u) => u.tier === tier && mine(u)).map((u) => [u.id, this._pool(p)[u.id] * (held[u.id] >= minHeld ? focus : 1)]);
-      let pick = this._rng(p).weighted(entries);
-      if (!pick) { // tier exhausted (or none owned in it): fall back to any available unit you own
-        entries = Object.values(AMB.DATA.UNITS).filter(mine).map((u) => [u.id, this._pool(p)[u.id]]);
-        pick = this._rng(p).weighted(entries);
+    _cardsOfRank(p, rank, needPool) {
+      const mine = (u) => !p.allowed || p.allowed.has(u.id);   // progression: only cards the player owns
+      return Object.values(AMB.DATA.UNITS).filter((u) => u.tier === rank && mine(u) && (!needPool || this._pool(p)[u.id] > 0));
+    }
+    /** draw a card for the shop: first the star by the level's odds, then a card of that star. Never a card above the shop level. */
+    _drawUnit(p) {
+      const E = AMB.CONFIG.economy, lvl = Math.max(1, Math.min(p.level, E.maxLevel));
+      const odds = E.shopOdds[lvl];
+      const rng = this._rng(p);
+      let rank = rng.weighted(odds.map((w, i) => [i + 1, w]).filter((e) => e[1] > 0 && e[0] <= lvl));
+      for (let r = rank; r >= 1; r--) {   // that star is sold out (or none owned): the next lower star
+        const list = this._cardsOfRank(p, r, true);
+        if (list.length) return rng.weighted(list.map((u) => [u.id, this._pool(p)[u.id]]));
       }
-      return pick;
+      return null;
     }
 
     _rollShop(p, fresh) {
       const E = AMB.CONFIG.economy;
-      p.shop = [];
-      for (let i = 0; i < E.shopSlots; i++) p.shop.push(this._drawUnit(p, fresh));
+      p.shop = []; p.shopNew = [];
+      for (let i = 0; i < E.shopSlots; i++) {
+        const id = this._drawUnit(p, fresh); p.shop.push(id);
+        const r = id ? AMB.DATA.UNITS[id].tier : 0;
+        p.shopNew.push(!!(r > 1 && !p.shownRanks.includes(r)));   // the first time a star shows up in this player's shop it gets a special frame
+        if (r && !p.shownRanks.includes(r)) p.shownRanks.push(r);
+      }
       const items = Object.keys(AMB.DATA.ITEMS);
       p.itemShop = [];
       for (let i = 0; i < E.itemShopSlots; i++) p.itemShop.push(this._rng(p).pick(items));
@@ -158,15 +167,16 @@
       return { ok: true };
     }
 
-    buyXp(pi) {
-      const p = this.players[pi];
-      const E = AMB.CONFIG.economy;
-      if (p.level >= E.maxLevel) return this._fail('وصلت لأعلى مستوى');
-      if (p.gold < E.xpCost) return this._fail('ما عندك ذهب يكفي');
-      p.gold -= E.xpCost; p.stats.goldSpent += E.xpCost;
-      this._gainXp(p, E.xpPerBuy);
-      return { ok: true };
+    /** buy the next shop level: more card stars in the shop, a bigger board */
+    upgradeShop(pi) {
+      const p = this.players[pi], cost = this.upgradeCost(p);
+      if (cost == null) return this._fail('المتجر وصل لأعلى مستوى');
+      if (p.gold < cost) return this._fail('ما عندك ذهب يكفي للترقية');
+      p.gold -= cost; p.stats.goldSpent += cost;
+      p.level++; p.idle = 0; p.upgradeDiscount = 0;
+      return { ok: true, level: p.level, cost };
     }
+    buyXp(pi) { return this.upgradeShop(pi); }   // old name (online move log, UI shortcut)
 
     toggleLock(pi) { const p = this.players[pi]; p.shopLocked = !p.shopLocked; return { ok: true }; }
 
@@ -239,7 +249,41 @@
       if (p._overflow) { // could not merge after all — refund
         p.gold += AMB.DATA.UNITS[p._overflow.defId].cost; this._pool(p)[p._overflow.defId]++; p._overflow = null;
       }
+      if (merges.length && !p.lineup) this._offerMerge(p);
       return merges;
+    }
+
+    /** the merge reward: 3 cards, each one star above the shop level (max 5). The player picks one with claimMerge. */
+    _offerMerge(p) {
+      if (p.mergePick) return;   // one reward at a time
+      const E = AMB.CONFIG.economy, want = AMB.CONFIG.stars.mergeChoices || 3, rank = Math.min(E.maxLevel, p.level + 1), rng = this._rng(p);
+      const options = [];
+      for (let r = rank; r >= 1 && options.length < want; r--) {
+        const list = this._cardsOfRank(p, r, true).filter((u) => !options.includes(u.id));
+        while (list.length && options.length < want) options.push(list.splice(rng.int(list.length), 1)[0].id);
+      }
+      if (options.length) p.mergePick = { rank, options };
+    }
+    claimMerge(pi, idx) {
+      const p = this.players[pi], mp = p.mergePick;
+      if (!mp) return this._fail('ما فيه مكافأة دمج');
+      const defId = mp.options[idx];
+      if (!defId) return this._fail('هذا الخيار مو صحيح');
+      p.mergePick = null;
+      this._pool(p)[defId]--;
+      const unit = { uid: this._uid(p), defId, star: 1, items: [] };
+      const bi = p.bench.indexOf(null);
+      if (bi >= 0) p.bench[bi] = unit; else this._placeAnywhere(p, unit);
+      const merged = this._merge(p, unit);
+      return { ok: true, unit, merged, defId };
+    }
+    /** when nobody picked (timer, AI, a new round): the first option is taken */
+    autoPickMerge(pi) {
+      const p = this.players[pi]; let guard = 0;
+      while (p.mergePick && guard++ < 4) {
+        const o = p.mergePick.options, W = AMB.AI && AMB.AI.pickMerge ? AMB.AI.pickMerge(this, pi) : 0;
+        this.claimMerge(pi, W >= 0 && W < o.length ? W : 0);
+      }
     }
 
     _placeAnywhere(p, u) {
@@ -301,7 +345,7 @@
           p.heroSlot = from.slot; delete p.board[from.slot]; p.board[dest.slot] = u; return { ok: true };
         }
         const other = p.board[dest.slot] || null;
-        if (from.zone === 'bench' && !other && this.boardCount(p) >= p.level) return this._fail(`الساحة ممتلئة (${p.level}/${p.level}). بدّل مع وحدة في الساحة، أو بع وحدة، أو ارفع مستواك بزر «خبرة»`);
+        if (from.zone === 'bench' && !other && this.boardCount(p) >= this.boardCap(p)) return this._fail(`الساحة ممتلئة (${this.boardCap(p)}/${this.boardCap(p)}). بدّل مع وحدة في الساحة، أو بع وحدة، أو ارفع مستوى المتجر`);
         this._remove(p, u);
         if (other) { this._remove(p, other); this._put(p, other, from); }
         p.board[dest.slot] = u;
@@ -446,7 +490,7 @@
       const p = this.players[pi], U = AMB.DATA.UNITS, R = AMB.DATA.ROLES;
       const pw = (u) => (AMB.AI && AMB.AI.power ? AMB.AI.power(u) : U[u.defId].tier * AMB.CONFIG.stars.mult[u.star]);
       const all = this.allUnits(p).slice().sort((a, b) => pw(b) - pw(a));
-      const want = all.slice(0, p.level);
+      const want = all.slice(0, this.boardCap(p));
       let front = want.filter((u) => R[U[u.defId].role].side === 'front');
       let back = want.filter((u) => R[U[u.defId].role].side === 'back');
       const any = want.filter((u) => R[U[u.defId].role].side === 'any');
@@ -477,7 +521,7 @@
       const bench = p.bench.map((u, i) => [u, i]).filter((e) => e[0]);
       bench.sort((a, b) => b[0].star - a[0].star || AMB.DATA.UNITS[b[0].defId].tier - AMB.DATA.UNITS[a[0].defId].tier);
       for (const [u] of bench) {
-        if (this.boardCount(p) >= p.level) break;
+        if (this.boardCount(p) >= this.boardCap(p)) break;
         const role = AMB.DATA.UNITS[u.defId].role;
         const pref = ['guardian', 'fighter'].includes(role) ? 'f' : 'b';
         const fs = free();
@@ -486,7 +530,7 @@
         this.move(pi, u.uid, { zone: 'board', slot });
       }
       // too many units on board (e.g. never possible, but be safe)
-      while (this.boardCount(p) > p.level) {
+      while (this.boardCount(p) > this.boardCap(p)) {
         const s = Object.keys(p.board).pop();
         const bi = p.bench.indexOf(null);
         if (bi < 0) { this.sell(pi, p.board[s].uid); } else this.move(pi, p.board[s].uid, { zone: 'bench', idx: bi });
@@ -517,7 +561,7 @@
 
     createCombat(record) {
       this.phase = 'combat';
-      this.players.forEach((_, i) => this.autoFill(i));
+      this.players.forEach((_, i) => { this.autoPickMerge(i); this.autoFill(i); });
       const specs = [this.buildCombatSpec(0), this.buildCombatSpec(1)];
       this.scout = specs.map((s) => JSON.parse(JSON.stringify(s)));
       this._combatSpecs = specs;
@@ -631,7 +675,7 @@
       switch (id) {
         case 'gold': p.gold += R.n[st]; break;
         case 'invest': p.invest = (p.invest || 0) + R.n[st]; break;
-        case 'xp': this._gainXp(p, R.n[st]); break;
+        case 'xp': p.upgradeDiscount = (p.upgradeDiscount || 0) + R.n[st]; break;
         case 'essence': p.essence = Math.min(AMB.CONFIG.economy.essenceMax + 3, p.essence + R.n[st]); break;
         case 'heal': p.life = Math.min(p.maxLife, p.life + R.n[st]); break;
         case 'item': { const ids = Object.keys(AMB.DATA.ITEMS); const pick = this._rng(p).pick(ids), pick2 = this._rng(p).pick(ids); this._stash(p, [pick, pick2]); out.item = pick; break; }
@@ -684,9 +728,9 @@
       p.board = {}; p.bench = p.bench.map(() => null); p.shop = []; p.itemShop = [];
       L.units.forEach(([defId, star, slot, from], k) => {
         if ((from || 1) > this.round) return;
-        p.board[slot] = { uid: 'e' + k + defId, defId, star: star || 1, items: [] };
+        p.board[slot] = { uid: 'e' + k + defId, defId, star: Math.min(star || 1, AMB.CONFIG.stars.maxStar), items: [] };
       });
-      p.level = Math.max(1, Object.keys(p.board).length);
+      { const n = Object.keys(p.board).length, bs = AMB.CONFIG.economy.boardSize; p.level = Math.max(1, bs.findIndex((x) => x >= n) + 1 || bs.length); }
       p.summoned = !!L.summon; if (L.summon) p.heroSlot = L.summon;
       p.blessings = Object.assign({ atkPct: 0, hpPct: 0, asPct: 0 }, L.blessings || {});
       p.essence = 99; p.abilities = {};

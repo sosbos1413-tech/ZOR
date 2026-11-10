@@ -46,7 +46,7 @@
     { id: 'reroll', say: 'جرّب تحدّث المتجر 🔄', round: 2, bar: [G('gold'), G('refresh')], target: () => reroll(), done: () => P().stats.rerolls >= 1 },
     { id: 'ready2', say: 'يلا للقتال!', round: 2, bar: [G('sword'), G('check')], target: () => ready(), done: () => UI().S.phase === 'combat' || UI().S.match.round > 2 },
     // round 3: the two things that decide real matches: spend gold on levels (more units on the board), and send the hero in
-    { id: 'xp', say: 'اشترِ خبرة، كل ما زاد مستواك تنزّل وحدات أكثر', round: 3, bar: [G('gold'), ARR, G('up')], target: () => q('#shopbar [data-act="xp"]') || q('[data-act="xp"]'), done: () => xpBase != null && P().level * 1000 + P().xp > xpBase },   // the round's free XP does not count: only a bought level-up
+    { id: 'xp', say: 'ارفع مستوى المتجر: بطاقات أقوى ووحدات أكثر في الساحة', round: 3, bar: [G('gold'), ARR, G('up')], target: () => q('#shopbar [data-act="xp"]') || q('[data-act="xp"]'), done: () => xpBase != null && P().level > xpBase },   // only a bought shop upgrade counts
     { id: 'summon', say: 'نزّلني الساحة! 👑 أقاتل معك', round: 3, bar: [G('crown'), ARR, G('sword')], target: () => q('[data-act="summon"]'), done: () => P().summoned },
     { id: 'ready3', say: 'آخر جولة، يلا نفوز!', round: 3, bar: [G('sword'), G('check')], target: () => ready(), done: () => UI().S.phase === 'combat' },
   ];
@@ -97,7 +97,7 @@
     while (STEPS[idx] && STEPS[idx].done && STEPS[idx].round === m.round && STEPS[idx].done()) { idx++; lastKey = ''; }
     const st = STEPS[idx];
     if (!st || st.round !== m.round) { hide(); return; }
-    if (st.id === 'xp' && xpBase == null) xpBase = P().level * 1000 + P().xp;
+    if (st.id === 'xp' && xpBase == null) xpBase = P().level;
     mount(); document.body.classList.add('tut-on');
     bar.style.display = 'flex'; ring.style.display = 'block'; hand.style.display = 'block';
     const key = idx + ':' + (sel() ? sel().kind : '') + ':' + m.round;

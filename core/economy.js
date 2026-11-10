@@ -44,8 +44,8 @@
     tower: {
       floors: 30, bossEvery: 5,
       unlock: { campaignLevel: 'l1' },                 // finish campaign level 1 first
-      power: [1.18,1.31,1.36,1.34,0.97,1.28,1.24,0.98,1.08,0.88,1.04,1.02,1.28,0.81,1.26,1.73,0.82,1.09,1.23,0.63,1.27,0.96,1.04,1.18,0.82,1.01,0.64,1.16,1.31,0.99],   // per floor, from tools/tune-tower.js
-      start: [{ from: 1, gold: 8, level: 5 }, { from: 15, gold: 12, level: 6 }, { from: 25, gold: 14, level: 7 }],
+      power: [1.52,1.63,1.73,1.67,1.28,1.74,1.61,1.83,1.41,1.14,1.36,1.36,1.73,1.57,1.29,1.87,1.16,1.21,1.38,1.37,1.52,1.22,1.18,1.02,0.87,1.31,0.99,0.97,1.18,1.59],   // per floor, from tools/tune-tower.js
+      start: [{ from: 1, gold: 8, level: 3 }, { from: 15, gold: 12, level: 4 }, { from: 25, gold: 14, level: 5 }],
       rewards: { shardsFirst: 20, shardsLast: 50, passXp: 10, passXpBoss: 30, bossPack: 'basic', finalCard: 'epic' },   // first clear only
     },
     // Weekly event: a special 3-stage level (best-of-3 fights vs generated line-ups, the last is the event boss) that
@@ -56,12 +56,12 @@
       epoch: [2026, 0, 5],                                   // a Monday: week 0
       unlock: { campaignLevel: 'l1' },
       stages: [{ n: 10 }, { n: 18 }, { n: 24, boss: true }],   // difficulty position (1..30, like tower floors)
-      start: [{ gold: 10, level: 5 }, { gold: 12, level: 6 }, { gold: 14, level: 7 }],
+      start: [{ gold: 10, level: 3 }, { gold: 12, level: 4 }, { gold: 14, level: 5 }],
       rewards: [{ shards: 40, passXp: 10 }, { shards: 60, passXp: 20, pack: 'basic' }, { shards: 100, passXp: 50, exclusive: true }],
-      power: { ember: [1.04, 1.52, 0.8], tide: [0.95, 1.22, 1.14], neon: [1.14, 1.25, 0.8], sylvan: [0.96, 1.48, 0.92] },
+      power: {ember: [1.41, 1.21, 0.93], tide: [1.38, 1.34, 1.34], neon: [1.64, 1.57, 0.97], sylvan: [1.18, 1.58, 1.03]},
     },
     // Guided first match: a fixed weak enemy (2 units, the 2nd joins in round 2), a little extra gold/level, a reward once
-    tutorial: { start: { gold: 10, level: 4 }, enemy: [['thorn_fox', 1, 'f1', 1], ['pixel_sniper', 1, 'b1', 2], ['moss_warden', 1, 'f2', 3]], reward: { shards: 50 } },   // 3 rounds: 1 buy+place, 2 merge+refresh, 3 level up + send the hero
+    tutorial: { start: { gold: 10, level: 1 }, enemy: [['thorn_fox', 1, 'f1', 1], ['pixel_sniper', 1, 'b1', 2], ['moss_warden', 1, 'f2', 3]], reward: { shards: 50 } },   // 3 rounds: 1 buy+place, 2 merge+refresh, 3 level up + send the hero
     // album: own all 5 units of a world -> its reward (once); own all 20 -> the grand reward
     album: {
       worlds: {

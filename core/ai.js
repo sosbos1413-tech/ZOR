@@ -16,7 +16,7 @@
 
   function power(u) {
     const def = AMB.DATA.UNITS[u.defId];
-    return (1 + (def.tier - 1) * 0.5) * AMB.CONFIG.stars.mult[u.star] + u.items.length * 0.35;
+    return AMB.SHOP.statMult[def.tier] * AMB.CONFIG.stars.mult[u.star] + u.items.length * 0.35;
   }
 
   function wantScore(match, p, defId) {
@@ -28,7 +28,7 @@
     const sameStar1 = owned.filter((u) => u.defId === defId && u.star === 1).length;
     const sameAny = owned.filter((u) => u.defId === defId).length;
     const sameStar2 = owned.filter((u) => u.defId === defId && u.star === 2).length;
-    s += sameStar1 * 2.6 + sameStar2 * 2.4 + (sameAny - sameStar1 - sameStar2) * 0.3;   // a copy toward ★★★ is worth chasing too
+    s += sameStar1 * 2.6 + (sameAny - sameStar1 - sameStar2) * 0.3;   // copies toward the 3-card merge are worth chasing
     const style = p.aiStyle;
     if (def.world === hero.world) s += style === 'mono' ? 3 : style === 'balanced' ? 1.4 : 0.4;
     const roles = {};
@@ -37,7 +37,7 @@
     if (!roles[def.role]) s += style === 'mixed' ? 2 : 1;
     if (def.role === 'guardian' && (roles.guardian || 0) < 2) s += 1.2;
     if (style === 'mixed' && !worlds.has(def.world)) s += 1.2;
-    s += def.tier * (p.level >= 6 ? 0.9 : 0.5);
+    s += def.tier * 0.55;
     if (match.round <= 3) s += 1.5; // early: any body helps
     return s;
   }
@@ -57,11 +57,11 @@
     const chosen = [];
     const seen = new Set();
     for (const u of ranked) {
-      if (chosen.length >= p.level) break;
+      if (chosen.length >= match.boardCap(p)) break;
       if (seen.has(u.defId) && ranked.some((x) => !seen.has(x.defId) && !chosen.includes(x) && power(x) >= power(u) * 0.7)) continue;
       chosen.push(u); seen.add(u.defId);
     }
-    for (const u of ranked) { if (chosen.length >= p.level) break; if (!chosen.includes(u)) chosen.push(u); }
+    for (const u of ranked) { if (chosen.length >= match.boardCap(p)) break; if (!chosen.includes(u)) chosen.push(u); }
 
     const front = chosen.filter((u) => ['guardian', 'fighter', 'assassin'].includes(UNITS[u.defId].role));
     const back = chosen.filter((u) => !front.includes(u));
@@ -120,11 +120,11 @@
     // --- leveling
     const reserve = cfg.reserveCap && match.round > 4 ? Math.min(cfg.reserveCap, reserveTarget(match, p)) : reserveTarget(match, p);
     let guard = 0;
-    while (guard++ < 6 && p.level < (cfg.maxLevel || E.maxLevel) && match.round >= 2) {
-      const boardFull = match.boardCount(p) >= p.level || match.allUnits(p).length > p.level;
-      const surplus = p.gold - E.xpCost - reserve * (1 / cfg.levelAggro);
-      const almost = match.xpNeeded(p) - p.xp <= E.xpPerBuy;
-      if (boardFull && (surplus >= 0 || (almost && p.gold - E.xpCost >= reserve * 0.5))) match.buyXp(pi); else break;
+    // the AI follows a level plan by round (levelAggro stretches it): it buys the next shop level when the plan says so and the price leaves it a little reserve
+    const want = Math.min(cfg.maxLevel || E.maxLevel, 1 + Math.floor((match.round - 1) * 0.62 * cfg.levelAggro + 0.5));
+    while (guard++ < 4 && p.level < (cfg.maxLevel || E.maxLevel) && match.round >= 2) {
+      const cost = match.upgradeCost(p);
+      if (p.level < want && p.gold - cost >= Math.min(2, reserve * 0.2)) match.buyXp(pi); else break;
     }
 
     // --- equipment first: it stays on the unit (and moves with it on a merge), so one piece every other round is a sound buy
@@ -150,19 +150,21 @@
         const sc = wantScore(match, p, id) + rng.next() * 0.5;
         if (sc > bestScore) { bestScore = sc; best = i; }
       });
-      const roomForMore = match.allUnits(p).length < p.level + E.benchSize - 1;
+      const roomForMore = match.allUnits(p).length < match.boardCap(p) + E.benchSize - 1;
       const threshold = match.round <= 2 ? 1 : 3.2;
       if (best >= 0 && bestScore >= threshold && roomForMore) {
         const cost = AMB.DATA.UNITS[p.shop[best]].cost;
         const mustHave = bestScore >= 5.5;
         if (p.gold - cost >= reserve || mustHave) {
-          if (rng.chance(cfg.mistakes * 0.3)) { p.shop[best] = p.shop[best]; } else { match.buy(pi, best); continue; }
+          if (rng.chance(cfg.mistakes * 0.3)) { p.shop[best] = p.shop[best]; } else { match.buy(pi, best); match.autoPickMerge(pi); continue; }
         }
       }
       const canReroll = p.freeRerolls > 0 || p.gold - E.rerollCost >= reserve + 2;
       if (canReroll && rerolls < 6 && rng.chance(cfg.rerollGreed) && match.round >= 2) { match.reroll(pi); rerolls++; continue; }
       break;
     }
+
+    match.autoPickMerge(pi);
 
     // --- items: spells only with spare gold (they last one combat)
     const foe = match.players[1 - pi], hasAssassin = match.allUnits(p).some((u) => AMB.DATA.UNITS[u.defId].role === 'assassin');
@@ -179,7 +181,7 @@
     // --- hero summon decision (before arranging so a slot is kept)
     const aggressive = hero.id === 'kagira';
     const wantSummon = !cfg.noSummon && match.round >= (cfg.summonFrom || (aggressive ? 3 : 5)) && p.life - AMB.CONFIG.combat.summonKnockout >= (cfg.summonMinLife ? cfg.summonMinLife - AMB.CONFIG.combat.summonKnockout : aggressive ? 30 : 45);
-    p.summoned = wantSummon && match.allUnits(p).length >= Math.min(p.level, 3) && p.level < 8;
+    p.summoned = wantSummon && match.allUnits(p).length >= Math.min(match.boardCap(p), 3);
 
     arrange(match, p, rng, cfg);
 
@@ -234,7 +236,14 @@
     o.options.forEach((id, i) => { const sc = score(id); if (sc > bs) { bs = sc; best = i; } });
     return match.claimReward(pi, best);
   }
+  /** the merge reward: the AI takes the card it wants most */
+  function pickMerge(match, pi) {
+    const p = match.players[pi]; if (!p.mergePick) return 0;
+    let best = 0, bs = -Infinity;
+    p.mergePick.options.forEach((id, i) => { const sc = wantScore(match, p, id) + AMB.DATA.UNITS[id].tier * 0.4; if (sc > bs) { bs = sc; best = i; } });
+    return best;
+  }
   function claimRewards(match) { match.players.forEach((_, i) => { if (match.players[i].rewardOffer && !match.players[i].rewardOffer.claimed) claimReward(match, i); }); }
 
-  AMB.AI = { prep, power, claimReward, claimRewards };
+  AMB.AI = { prep, power, claimReward, claimRewards, pickMerge };
 })();

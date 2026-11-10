@@ -16,7 +16,7 @@
 (function () {
   const AMB = (globalThis.AMB = globalThis.AMB || {});
   // every call a player can make during prep or the reward draft
-  const OPS = ['buy', 'reroll', 'buyXp', 'toggleLock', 'sell', 'move', 'buyItem', 'equip', 'unequip', 'sellItem', 'armSpell', 'disarmSpell', 'setAbility', 'toggleSummon', 'moveHero', 'autoArrange', 'claimReward', 'setWager', 'setHunt'];
+  const OPS = ['buy', 'reroll', 'buyXp', 'toggleLock', 'sell', 'move', 'buyItem', 'equip', 'unequip', 'sellItem', 'armSpell', 'disarmSpell', 'setAbility', 'toggleSummon', 'moveHero', 'autoArrange', 'claimReward', 'claimMerge', 'setWager', 'setHunt'];
 
   function record(match, idx) {
     const ops = []; let depth = 0;
@@ -48,7 +48,7 @@
   const ARGS = {
     buy: ['int'], reroll: [], buyXp: [], toggleLock: [], sell: ['uid'], move: ['uid', 'dest'], buyItem: ['int'],
     equip: ['int', 'uid'], unequip: ['uid'], sellItem: ['int'], armSpell: ['int'], disarmSpell: ['int'],
-    setAbility: ['id', 'trig?'], toggleSummon: ['slot?'], moveHero: ['slot'], autoArrange: [], claimReward: ['int'], setWager: ['bool'], setHunt: ['id'],
+    setAbility: ['id', 'trig?'], toggleSummon: ['slot?'], moveHero: ['slot'], autoArrange: [], claimReward: ['int'], claimMerge: ['int'], setWager: ['bool'], setHunt: ['id'],
   };
   const isInt = (v) => Number.isInteger(v) && v >= -1000 && v <= 1000;
   const isStr = (v, max) => typeof v === 'string' && v.length > 0 && v.length <= max;
@@ -93,7 +93,7 @@
   // a short fingerprint of everything that matters, to check both phones are still identical
   function hash(match) {
     const snap = match.players.map((p) => ({
-      g: p.gold, l: p.life, lv: p.level, xp: p.xp, ess: p.essence, shop: p.shop, bench: p.bench.map((u) => u && [u.uid, u.defId, u.star, u.items]),
+      g: p.gold, l: p.life, lv: p.level, idle: p.idle, mp: p.mergePick && p.mergePick.options, ess: p.essence, shop: p.shop, bench: p.bench.map((u) => u && [u.uid, u.defId, u.star, u.items]),
       board: Object.keys(p.board).sort().map((k) => [k, p.board[k].uid, p.board[k].defId, p.board[k].star, p.board[k].items]), items: p.items,
       spells: p.armedSpells, ab: p.abilities, sum: p.summoned, hs: p.heroSlot, bl: p.blessings,
       pool: match.isolated ? p.pool : null,   // each phone's own unit pool (online): a pool drift changes future shops, so it must be part of the fingerprint
