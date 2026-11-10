@@ -3202,3 +3202,31 @@ body.reduce-motion .lv-flash, body.reduce-motion .merge-flash, body.reduce-motio
   .fr4 .fr4-pw, #scr-match.prep-focus .sc .sc-pw { direction: ltr; }
   .fr4 .fr4-role svg, #scr-match.prep-focus .sc .sc-role svg { color: var(--nc) !important; }
 }
+
+/* ===== shop theme v2 (phones): dark glass + neon lines, to match the neon card frames ===== */
+@media (max-width: 860px) and (orientation: portrait) {
+  #scr-match.prep-focus .shop-drawer { background: radial-gradient(120% 90% at 50% 0%, #1b1140 0%, #0b0719 62%, #07040f 100%); border: 1.5px solid #9a8cff; border-radius: 16px; margin: 0 4px 4px; width: auto; box-shadow: 0 0 10px #8a7dffaa, inset 0 0 22px #6a5cff2e; }
+  #scr-match.prep-focus .sd-title b { color: #fff; letter-spacing: 2px; text-shadow: 0 0 6px #9a8cff, 0 0 14px #6a5cff; }
+  #scr-match.prep-focus .sd-lv { color: #cfc8ff; opacity: 1; } #scr-match.prep-focus .sd-stars { color: #7df9ff; text-shadow: 0 0 6px #33d6ff; }
+  /* buttons: neon outline circles with the line icon inside */
+  #scr-match.prep-focus .sd-head .sd-btn, #scr-match.prep-focus .sd-head .sd-btn.up, #scr-match.prep-focus .sd-head .sd-btn.rr, #scr-match.prep-focus .sd-head .sd-btn.lk, #scr-match.prep-focus .sd-head .sd-btn[disabled] { background: #0a061acc; background-image: none; border: 1.8px solid currentColor; border-radius: 50%; width: 42px; height: 42px; filter: none; box-shadow: 0 0 8px currentColor, inset 0 0 8px color-mix(in srgb, currentColor 35%, transparent); }
+  #scr-match.prep-focus .sd-head .sd-btn svg { display: block; width: 20px; height: 20px; filter: drop-shadow(0 0 3px currentColor); }
+  #scr-match.prep-focus .sd-head .sd-btn.up { color: #7dffa0; width: 46px; height: 46px; } #scr-match.prep-focus .sd-head .sd-btn.rr { color: #4aa8ff; } #scr-match.prep-focus .sd-head .sd-btn.lk { color: #f29bff; }
+  #scr-match.prep-focus .sd-head .sd-btn.lk:not(.on) { filter: none; opacity: .6; } #scr-match.prep-focus .sd-head .sd-btn.on { box-shadow: 0 0 12px currentColor, inset 0 0 10px currentColor; }
+  #scr-match.prep-focus .sd-head .sd-btn[disabled] { color: #8d8a99; box-shadow: none; opacity: .5; }
+  #scr-match.prep-focus .sd-head .sd-btn b { background: #07040f; color: #ffe08a; border: 1px solid #ffd24a; box-shadow: 0 0 5px #ffd24a99; bottom: -8px; }
+  #scr-match.prep-focus .sd-head .sd-eq { background: #0a061acc; border: 1.6px solid #ffd24a; border-radius: 9px; color: #ffe08a; filter: none; box-shadow: 0 0 6px #ffd24a88, inset 0 0 6px #ffd24a33; }
+  #scr-match.prep-focus .sd-head .sd-eq b { background: #07040f; color: #ffe08a; border: 1px solid #ffd24a; }
+  #scr-match.prep-focus .sd-head .sd-eq.cant { filter: grayscale(.8) brightness(.7); } #scr-match.prep-focus .sd-head .sd-eq.empty { opacity: .25; box-shadow: none; }
+  /* dock */
+  #scr-match.prep-focus #shopbar { background: #07040f; }
+  #scr-match.prep-focus #shopbar .shop-dock { background: none; border-top: 0; }
+  #scr-match.prep-focus #shopbar .ready-btn { background: linear-gradient(#ff3d6a55, #ff3d6a22) !important; border: 2px solid #ff5a7a !important; border-radius: 999px; color: #fff; text-shadow: 0 0 8px #ff5a7a; box-shadow: 0 0 12px #ff5a7aaa, inset 0 0 10px #ff5a7a55 !important; filter: none; transform: none; }
+  #scr-match.prep-focus .dock-hero { box-shadow: 0 0 0 1.6px #9a8cff, 0 0 10px #8a7dffaa; }
+  #scr-match.prep-focus #shopbar .sb-ic[data-act="upgrades"] { background: #0a061acc; border: 1.6px solid #ffd24a; color: #ffe08a; box-shadow: 0 0 8px #ffd24a88; }
+  #scr-match.prep-focus .sc.owned::after { box-shadow: inset 0 0 0 1.5px #7dffa0, 0 0 8px #7dffa088; }
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  #scr-match.prep-focus .sd-cards .sc { width: calc(var(--scw, 70px) - 5px); }
+  #scr-match.prep-focus #bench .bslot { background: #0a061acc; border: 1.6px solid #9a8cff; box-shadow: 0 0 7px #8a7dff99, inset 0 0 8px #6a5cff33; }
+}
