@@ -5631,6 +5631,7 @@ AMB.IMAGES = {
     const x = document.querySelector('#modal .x'); if (x) x.style.display = 'none';   // the choice is part of the merge: no closing without picking
   }
   // card frame v5 (phones): the approved gold frame with a rarity-coloured side strip. The overlay carries the power, the role socket, the rarity word and the card's star level.
+  const artVar = (id) => (AMB.IMAGES && AMB.IMAGES[id] ? `--artimg:url('${AMB.IMAGES[id]}');` : '');   // the card's own picture, used as a blurred fill behind the whole (uncropped) portrait
   const powerOf = (hp, atk) => Math.round(hp / 8 + atk * 2);
   function fr4HTML(def, atk, hp) {
     const RA = AMB.ECONOMY && AMB.ECONOMY.rarities[def.rarity], ro = ROLES[def.role];
@@ -5664,7 +5665,7 @@ AMB.IMAGES = {
     if (o.size === 'mini') {
       const items = (o.items || []).map((it) => `<i title="${esc(ITEMS[it].name)}">${icon(ITEMS[it].icon)}</i>`).join('');
       const mid = o.live ? `<div class="hc-bar"><div class="hpb"><b></b><i></i></div>${isHero ? '' : '<div class="mpb"><i></i></div>'}</div>` : (items ? `<div class="hc-its">${items}</div>` : '');
-      return `<div class="tcard hc cv3 mini fr-${def.world} ${tier}${sc}${sel} r-${def.rarity || 'common'} ${isHero ? '' : 'fr4'} ${o.cls || ''}" style="--wc:${W.color}" title="${esc(def.name)}" ${attrs}>
+      return `<div class="tcard hc cv3 mini fr-${def.world} ${tier}${sc}${sel} r-${def.rarity || 'common'} ${isHero ? '' : 'fr4'} ${o.cls || ''}" style="--wc:${W.color};${isHero ? '' : artVar(def.id)}" title="${esc(def.name)}" ${attrs}>
         <i class="hc-halo"></i><div class="hc-frame"></div><div class="hc-art">${portrait(def, { bare: true, k: o.k })}<i class="sheen"></i></div><div class="hc-ring"></div>
         ${roleD}${isHero ? '' : stars(star)}${o.prog ? `<span class="hc-prog" title="نسخ متطابقة: واحدة إضافية وتترقى">${o.prog}</span>` : ''}<i class="hc-sbar"></i>${atkBd}${hpBd}${mid}${isHero ? '' : fr4HTML(def, atk, hp)}</div>`;
     }
@@ -6253,7 +6254,7 @@ AMB.IMAGES = {
       const d = UNITS[id], ok = m.canBuy(S.v, i).ok, ow = owned[id], st = cardStats(d, 1), rc = (RAR[d.rarity || 'common'] || RAR.common).color;
       const isNew = p.shopNew && p.shopNew[i], stars = '★'.repeat(d.tier);
       const dots = ow && ow.s1 ? `<span class="sc-dots">${'●'.repeat(Math.min(2, ow.s1))}${'○'.repeat(Math.max(1, 3 - Math.min(2, ow.s1)))}</span>` : '';
-      return `<div class="sc r${d.tier} rc-${d.rarity || 'common'} ${ok ? '' : 'cant'} ${isNew ? 'newstar' : ''} ${ow && ow.s1 ? 'owned' : ''}" data-act="buy" data-idx="${i}" style="--rc:${rc};--wc:${WORLDS[d.world].color}" title="${esc(d.name)}: ${esc(d.skill.name)}">
+      return `<div class="sc r${d.tier} rc-${d.rarity || 'common'} ${ok ? '' : 'cant'} ${isNew ? 'newstar' : ''} ${ow && ow.s1 ? 'owned' : ''}" data-act="buy" data-idx="${i}" style="--rc:${rc};--wc:${WORLDS[d.world].color};${artVar(d.id)}" title="${esc(d.name)}: ${esc(d.skill.name)}">
         ${isNew ? `<span class="sc-new">جديد!</span>` : ''}<span class="sc-stars">${stars}</span><span class="sc-pw">${powerOf(st.hp, st.atk)}</span><span class="sc-rar">${(RAR[d.rarity || 'common'] || RAR.common).name}</span>
         <span class="sc-art">${portrait(d, { bare: true, k: 'sca' + i })}</span><i class="sc-frame"></i>
         <span class="sc-gem"></span><b class="sc-cost">${d.cost}</b><b class="sc-hp">${st.hp}</b><b class="sc-atk">${st.atk}</b>

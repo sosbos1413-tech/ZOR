@@ -3099,3 +3099,11 @@ body.reduce-motion .lv-flash, body.reduce-motion .merge-flash, body.reduce-motio
   .tcard.hc.cv3.mini.fr4 .hc-hp, .tcard.hc.cv3.mini.fr4 .hc-atk { z-index: 7 !important; }
   .fr4 .fr4-pw, .fr4 .fr4-role, .fr4 .fr4-st, .fr4 .fr4-rar { z-index: 7 !important; }
 }
+/* whole picture, nothing hidden: the square portrait fits the frame window by its width; a blurred copy of the same picture fills the rest */
+@media (max-width: 860px) and (orientation: portrait) {
+  .tcard.hc.cv3.mini.fr4 .hc-art, #scr-match.prep-focus .sc .sc-art { background: #120b26 var(--artimg, none) center / cover no-repeat; overflow: hidden; }
+  .tcard.hc.cv3.mini.fr4 .hc-art::before, #scr-match.prep-focus .sc .sc-art::before { content: ''; position: absolute; inset: -12%; background: inherit; filter: blur(6px) brightness(.85) saturate(1.2); }
+  .tcard.hc.cv3.mini.fr4 .hc-art::after { display: none; }
+  .tcard.hc.cv3.mini.fr4 .hc-art svg.portrait, #scr-match.prep-focus .sc .sc-art svg.portrait { position: absolute; left: 0; top: 34%; transform: translateY(-50%); width: 100%; height: auto; aspect-ratio: 1; z-index: 1; }
+  #scr-match.prep-focus .sc .sc-art .portrait { height: auto; }
+}
