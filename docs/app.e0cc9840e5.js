@@ -2783,7 +2783,7 @@
       stages: [{ n: 10 }, { n: 18 }, { n: 24, boss: true }],   // difficulty position (1..30, like tower floors)
       start: [{ gold: 10, level: 3 }, { gold: 12, level: 4 }, { gold: 14, level: 5 }],
       rewards: [{ shards: 40, passXp: 10 }, { shards: 60, passXp: 20, pack: 'basic' }, { shards: 100, passXp: 50, exclusive: true }],
-      power: {ember: [1.41, 1.21, 0.93], tide: [1.38, 1.34, 1.34], neon: [1.64, 1.57, 0.97], sylvan: [1.18, 1.58, 1.03]},
+      power: {ember: [1.72, 1.48, 1.46], tide: [1.99, 2.17, 1.68], neon: [1.71, 2.66, 1.44], sylvan: [1.71, 2.07, 1.54]},
     },
     // Guided first match: a fixed weak enemy (2 units, the 2nd joins in round 2), a little extra gold/level, a reward once
     tutorial: { start: { gold: 10, level: 1 }, enemy: [['thorn_fox', 1, 'f1', 1], ['pixel_sniper', 1, 'b1', 2], ['moss_warden', 1, 'f2', 3]], reward: { shards: 50 } },   // 3 rounds: 1 buy+place, 2 merge+refresh, 3 level up + send the hero
