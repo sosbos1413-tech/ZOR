@@ -33,7 +33,7 @@
     },
 
     // price to buy level N (key = the level you are buying)
-    upgradeCost: { 2: 6, 3: 9, 4: 12, 5: 15 },
+    upgradeCost: { 2: 5, 3: 8, 4: 10, 5: 13 },
     upgradeDecay: 1,              // price drops by this much for every round that passes without an upgrade
     upgradeMin: 3,                // ...but never below this
 

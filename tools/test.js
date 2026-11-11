@@ -656,7 +656,7 @@ t('short match: best of 3, scripted enemy line-up grows by round, boss on board 
   AMB.AI.prep(m, 1); eq(e.shop.length, 0, 'scripted enemy never shops');
   m.resolveCombat(m.createCombat(false).runToEnd());
   if (!m.isOver) { m.startRound(); eq(Object.keys(e.board).length, f.units.filter((u) => u[3] <= 2).length, 'round-2 units'); }
-  for (let s = 1; s <= 15; s++) { const r = runFight(prof, 'l1f2', 'orath', s); ok(r.round <= 3, 'max 3 rounds'); ok(r.winner === null || Math.max(...r.players.map((p) => p.stats.wins)) >= 1); if (r.winner != null && r.round < 3) eq(r.players[r.winner].stats.wins, 2); }
+  for (let s = 1; s <= 15; s++) { const r = runFight(prof, 'l1f2', 'orath', s); ok(r.round <= 8, 'max 8 rounds'); ok(r.winner === null || Math.max(...r.players.map((p) => p.stats.wins)) >= 1); if (r.winner != null && r.round < 3) eq(r.players[r.winner].stats.wins, 2); }
 });
 t('campaign match uses the collection: card power + owned units; enemy power from the level', () => {
   const prof = AMB.Profile.boot(MEM());
@@ -881,9 +881,9 @@ t('adult #21: a quick match rebuilt from its recorded moves is identical (contin
 });
 t('adult #22-#28, senior #39: short match mode, daily quick-match shards cap, wish hero from the guarantee, mission swap, undo snapshot', () => {
   // short match: 4 rounds, its own pass mode
-  const sh = new AMB.Match({ mode: 'short', players: [{ heroId: 'orath', name: 'a', isAI: true, difficulty: 'normal' }, { heroId: 'merin', name: 'b', isAI: true, difficulty: 'normal' }], rules: { maxRounds: 4, winsNeeded: 3, start: { gold: 8, level: 2 } } });
+  const sh = new AMB.Match({ mode: 'short', players: [{ heroId: 'orath', name: 'a', isAI: true, difficulty: 'normal' }, { heroId: 'merin', name: 'b', isAI: true, difficulty: 'normal' }], rules: { maxRounds: 8, winsNeeded: 8, start: { gold: 8, level: 2 } } });
   while (!sh.isOver) { sh.startRound(); AMB.AI.prep(sh, 0); AMB.AI.prep(sh, 1); sh.resolveCombat(sh.createCombat(false).runToEnd()); }
-  ok(sh.round <= 4, 'over within 4 rounds'); eq(sh.summary(0).mode, 'short');
+  ok(sh.round <= 8, 'over within 8 rounds'); eq(sh.summary(0).mode, 'short');
   // quick-match shards: +10/+5, 60 a day
   const prof = AMB.Profile.boot(AMB.Save.memoryStorage()), dp = prof.dayPay;
   let paid = 0; for (let i = 0; i < 10; i++) paid += dp.quickMatch(true);
@@ -904,7 +904,7 @@ t('adult #22-#28, senior #39: short match mode, daily quick-match shards cap, wi
   m.restore(0, snap); eq(p0.gold, g0); eq(p0.shop[0], id0); eq(m._pool(p0)[id0], pool0); ok(!p0.bench.some(Boolean), 'bench back to empty');
 });
 t('undo in a progression match (allowed-units Set, scripted lineup) never breaks the next round', () => {
-  const m = new AMB.Match({ mode: 'campaign', seed: 11, progression: true, rules: { maxRounds: 3, winsNeeded: 2, start: { gold: 10, level: 1 } },
+  const m = new AMB.Match({ mode: 'campaign', seed: 11, progression: true, rules: { maxRounds: 8, winsNeeded: 8, start: { gold: 10, level: 1 } },
     players: [{ heroId: 'orath', name: 'a', allowedUnits: new Set(Object.keys(AMB.DATA.UNITS).slice(0, 20)) }, { heroId: 'merin', name: 'b', isAI: true }] });
   m.startRound(); const snap = m.snapshot(0); for (let i = 0; i < 5; i++) if (m.canBuy(0, i).ok) { m.buy(0, i); break; }
   m.restore(0, snap); ok(m.players[0].allowed instanceof Set, 'the allowed-units Set survives an undo');
@@ -1104,7 +1104,7 @@ t('tower: match options use your cards and owned units; a floor plays end to end
   ok(o.progression && o.mode === 'tower'); ok(o.players[0].allowedUnits.every((id) => prof.collection.owned(id)));
   const m = new AMB.Match(o); m.players[0].isAI = true;
   while (!m.isOver) { m.startRound(); AMB.AI.prep(m, 0); AMB.AI.prep(m, 1); m.resolveCombat(m.createCombat(false).runToEnd()); }
-  ok(m.round <= 3); eq(m.summary(0).mode, 'campaign', 'short-match summary');
+  ok(m.round <= 8); eq(m.summary(0).mode, 'campaign', 'short-match summary');
   const r = tw.recordResult(1, Object.assign(m.summary(0), { won: true })); ok(r.first);
 });
 t('tower: missions count tower fights and new floors (event bus)', () => {
@@ -1190,7 +1190,7 @@ t('event: a stage plays end to end and weekly-event fights feed the missions', (
   const o = prof.weekly.matchOptions(1, 'orath', 4); ok(o.progression && o.mode === 'event');
   const m = new AMB.Match(o); m.players[0].isAI = true;
   while (!m.isOver) { m.startRound(); AMB.AI.prep(m, 0); AMB.AI.prep(m, 1); m.resolveCombat(m.createCombat(false).runToEnd()); }
-  ok(m.round <= 3);
+  ok(m.round <= 8);
   const w0 = pass.state().weekly.p.event_cleared || 0, f0 = pass.state().daily.p.fights_won || 0;
   prof.weekly.recordResult(1, { won: true }); ok((pass.state().daily.p.fights_won || 0) >= f0 + 1); eq(pass.state().weekly.p.event_cleared || 0, w0, 'only the boss counts as finishing');
   prof.weekly.recordResult(2, { won: true }); prof.weekly.recordResult(3, { won: true }); eq(pass.state().weekly.p.event_cleared, w0 + 1);
@@ -1546,8 +1546,8 @@ t('auto-arrange: never loses a unit, however often it is pressed, with or withou
 
 t('boss fights: best of 7 with a growing enemy, and every star pays its own prize once', () => {
   const prof = AMB.Profile.boot(MEM()), C = prof.campaign, R = AMB.LEVELS.CAMPAIGN.rewards, BR = AMB.LEVELS.CAMPAIGN.bossRules;
-  const o = C.matchOptions('l1boss', 'orath', 3); eq(o.rules.maxRounds, 7); eq(o.rules.winsNeeded, 4); ok(o.players[1].lineup.growth > 0);
-  const o2 = C.matchOptions('l1f1', 'orath', 3); eq(o2.rules.maxRounds, 3, 'normal fights stay best of 3'); ok(!o2.players[1].lineup.growth);
+  const o = C.matchOptions('l1boss', 'orath', 3); eq(o.rules.maxRounds, 8); eq(o.rules.winsNeeded, 8); ok(o.players[1].lineup.growth > 0);
+  const o2 = C.matchOptions('l1f1', 'orath', 3); eq(o2.rules.maxRounds, 8, 'every fight plays 8 rounds'); ok(o2.players[1].lineup.growth > 0, 'the enemy grows every round in every fight');
   // the enemy really grows: same boss, round 1 vs round 5
   const m = new AMB.Match(o); m.startRound(); const p1 = m.buildCombatSpec(1).units[0].power;
   for (let i = 0; i < 4; i++) { m.round++; } m.applyLineup(1); const p5 = m.buildCombatSpec(1).units[0].power;
@@ -1614,12 +1614,12 @@ t('practice (hero trial): short best-of-3 vs an easy computer, any hero, no card
   const prof = AMB.Profile.boot(MEM());
   Object.keys(AMB.DATA.HEROES).forEach((h, k) => {
     const o = prof.tutorial.practiceOptions(h, 11 + k);
-    eq(o.mode, 'practice'); ok(o.practice && !o.progression); eq(o.rules.maxRounds, 3);
+    eq(o.mode, 'practice'); ok(o.practice && !o.progression); eq(o.rules.maxRounds, 8);
     ok(o.players[1].heroId !== h, 'enemy hero differs'); eq(o.players[1].difficulty, 'easy');
     ok(!o.players[0].cardPower && !o.players[0].heroLevel, 'no progression power in a trial');
     const m = new AMB.Match(o);
     while (!m.isOver) { m.startRound(); AMB.AI.prep(m, 0); AMB.AI.prep(m, 1); m.resolveCombat(m.createCombat(false).runToEnd()); }
-    ok(m.round <= 3, 'at most 3 rounds'); ok(m.winner === 0 || m.winner === 1 || m.winner === null);
+    ok(m.round <= 8, 'at most 8 rounds'); ok(m.winner === 0 || m.winner === 1 || m.winner === null);
     ok(!m.rewardPending, 'no reward draft');
   });
   eq(AMB.Tutorial.practiceOptions('orath', 3).players[0].heroId, 'orath', 'static helper');

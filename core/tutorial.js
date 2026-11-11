@@ -21,7 +21,7 @@
     const others = Object.keys(AMB.DATA.HEROES).filter((h) => h !== heroId);
     return {
       mode: 'practice', practice: true, seed: s, progression: false,
-      rules: { maxRounds: 3, winsNeeded: 2, start: T().start },
+      rules: { maxRounds: 8, winsNeeded: 8, start: T().start },
       players: [{ heroId, name: 'أنت' }, { heroId: others[s % others.length], name: 'تدريب', isAI: true, aiStyle: 'balanced', difficulty: 'easy' }],
     };
   }
