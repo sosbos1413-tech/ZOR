@@ -15,8 +15,7 @@
   /** stars for one result: 0 = loss, 1 = win, 2 = no round lost, 3 = no round lost and full hero life */
   function rate(res) {
     if (!res || !res.won) return 0;
-    const clean = (res.roundsLost || 0) === 0;
-    return 1 + (clean ? 1 : 0) + (clean && (res.lifeLeft || 0) >= (res.maxLife || AMB.CONFIG.match.heroLife) ? 1 : 0);
+    return 1;   // a fight is worth one star: a win (8-round fights made 'no round lost' stars unfair)
   }
   const blank = () => ({ cleared: {}, levelsDone: {}, stats: {}, stars: {}, chests: [], bossPaid: {} });
   // a guaranteed card one tier lower (easy) or higher (hard)
@@ -97,10 +96,10 @@
       /** first unlocked fight not yet cleared on this difficulty (or null when everything is done) */
       next(d) { for (const l of levels()) for (const f of l.fights) if (api.isUnlocked(f.id, d) && !P(d).cleared[f.id]) return f.id; return null; },
       stats: (fightId, d) => P(d).stats[fightId] || { attempts: 0, wins: 0, best: null },
-      stars: (fightId, d) => P(d).stars[fightId] || 0,
+      stars: (fightId, d) => Math.min(1, P(d).stars[fightId] || 0),
       levelStars(levelId, d) { const l = levels().find((x) => x.id === levelId); return l.fights.reduce((a, f) => a + api.stars(f.id, d), 0); },
       totalStars(d) { return levels().reduce((a, l) => a + api.levelStars(l.id, d), 0); },
-      maxStars() { return levels().reduce((a, l) => a + l.fights.length * 3, 0); },
+      maxStars() { return levels().reduce((a, l) => a + l.fights.length, 0); },
       /** chests with state 'claimed' | 'ready' | 'locked'; rewards already scaled for the difficulty */
       chests(d) { d = dd(d); const tot = api.totalStars(d); return LV().CAMPAIGN.stars.chests.map((c) => Object.assign({}, c, { reward: scaled(c.reward, d), state: P(d).chests.includes(c.id) ? 'claimed' : tot >= c.need ? 'ready' : 'locked' })); },
       readyChests: (d) => api.chests(d).filter((c) => c.state === 'ready').length,

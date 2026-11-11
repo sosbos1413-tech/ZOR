@@ -22,27 +22,22 @@
       replay: { shards: 5 },
       // boss fights: EVERY star pays its own prize, once (the first time you reach that star)
       bossStars: [
-        { shards: 60, passXp: 40 },
-        { shards: 100, passXp: 30, packs: 1 },
-        { shards: 150, passXp: 40, card: 'rare' },
+        { shards: 310, passXp: 110, packs: 1, card: 'rare' },   // the boss's one star pays everything at once, once
       ],
     },
-    // star rating per fight (best result is kept): 1 = win, 2 = win without losing a round,
-    // 3 = that, and your hero ended at full life. Star totals open chests (each once).
+    // star per fight: 1 = a win. Star totals open chests (each once).
     stars: {
       rules: [
         { n: 1, text: 'فوز' },
-        { n: 2, text: 'فوز بدون ما تخسر جولة' },
-        { n: 3, text: 'فوز بدون ما تخسر جولة، وبطلك حياته كاملة' },
       ],
       chests: [
-        { id: 'ch10', need: 10, name: 'صندوق برونزي', reward: { shards: 100 } },
-        { id: 'ch25', need: 25, name: 'صندوق فضي', reward: { packs: 1 } },
-        { id: 'ch40', need: 40, name: 'صندوق ذهبي', reward: { packs: 2 } },
-        { id: 'ch60', need: 60, name: 'صندوق الصدع', reward: { card: 'epic' } },   // one guaranteed card of this rarity or rarer
-        { id: 'ch80', need: 80, name: 'صندوق الأتون الملكي', reward: { shards: 200, packs: 1 } },
-        { id: 'ch100', need: 100, name: 'صندوق الزعماء', reward: { packs: 2, card: 'epic' } },
-        { id: 'ch120', need: 120, name: 'صندوق الأسطورة', reward: { shards: 400, card: 'legendary' } },
+        { id: 'ch10', need: 3, name: 'صندوق برونزي', reward: { shards: 100 } },
+        { id: 'ch25', need: 8, name: 'صندوق فضي', reward: { packs: 1 } },
+        { id: 'ch40', need: 13, name: 'صندوق ذهبي', reward: { packs: 2 } },
+        { id: 'ch60', need: 20, name: 'صندوق الصدع', reward: { card: 'epic' } },   // one guaranteed card of this rarity or rarer
+        { id: 'ch80', need: 27, name: 'صندوق الأتون الملكي', reward: { shards: 200, packs: 1 } },
+        { id: 'ch100', need: 33, name: 'صندوق الزعماء', reward: { packs: 2, card: 'epic' } },
+        { id: 'ch120', need: 40, name: 'صندوق الأسطورة', reward: { shards: 400, card: 'legendary' } },
       ],
     },
   };

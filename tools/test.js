@@ -683,8 +683,8 @@ t('campaign: unlock order, first-win rewards, replay rewards, level bonus pack, 
   ok(!cam.isUnlocked('l2f1'), 'next level locked until the boss falls');
   const before = prof.packs.stats().opened;
   const boss = cam.recordResult('l1boss', { won: true });
-  ok(boss.boss && boss.levelComplete && boss.pack && boss.pack.cards.length === 5); eq(boss.stars, 2); eq(boss.shards, R.bossStars[0].shards + R.bossStars[1].shards, 'a 2-star boss win pays the prizes of star 1 and 2'); eq(boss.packs.length, 1, 'star 2 prize pack');
-  eq(prof.packs.stats().opened, before + 2, 'level pack + the star-2 pack opened for free');
+  ok(boss.boss && boss.levelComplete && boss.pack && boss.pack.cards.length === 5); eq(boss.stars, 1); eq(boss.shards, R.bossStars[0].shards, 'a boss win pays its one prize'); eq(boss.packs.length, 1, 'the boss prize pack');
+  eq(prof.packs.stats().opened, before + 2, 'level pack + the boss prize pack opened for free');
   const refunds = (boss.pack.refund || 0) + boss.packs.reduce((a, pk) => a + (pk.refund || 0), 0);
   eq(prof.wallet.balance('shards'), sh0 + R.fight.shards * 4 + R.replay.shards + boss.shards + refunds);
   ok(cam.levelDone('l1') && cam.isUnlocked('l2f1')); eq(cam.next(), 'l2f1');
@@ -701,34 +701,32 @@ t('a real campaign fight runs end to end and pays out', () => {
 
 console.log('stars & chests');
 const camOf = (prof, rng) => AMB.Campaign(prof.save, { wallet: prof.wallet, packs: prof.packs, collection: prof.collection, events: prof.events, rng });
-t('stars: 1 win, 2 no round lost, 3 also full hero life; loss = 0', () => {
+t('stars: a win is one star, however it was won; a loss is none', () => {
   const r = AMB.Campaign(AMB.Save.create(MEM())).rate;
-  eq(r({ won: false }), 0); eq(r({ won: true, roundsLost: 1, lifeLeft: 100 }), 1);
-  eq(r({ won: true, roundsLost: 0, lifeLeft: 92 }), 2); eq(r({ won: true, roundsLost: 0, lifeLeft: 100 }), 3);
-  eq(r({ won: true, roundsLost: 0, lifeLeft: 50, maxLife: 50 }), 3);
+  eq(r({ won: false }), 0); eq(r({ won: true, roundsLost: 7, lifeLeft: 5 }), 1);
+  eq(r({ won: true, roundsLost: 0, lifeLeft: 100 }), 1);
 });
-t('stars: best result is kept, replays only add the difference, totals per level', () => {
+t('stars: one per fight, replays add nothing, totals per level', () => {
   const prof = AMB.Profile.boot(MEM()), cam = camOf(prof);
-  let o = cam.recordResult('l1f1', { won: true, roundsLost: 1, lifeLeft: 70 }); eq(o.stars, 1); ok(o.newBest);
-  o = cam.recordResult('l1f1', { won: true, roundsLost: 0, lifeLeft: 100 }); eq(o.stars, 3); eq(o.prevStars, 1); ok(o.newBest);
-  o = cam.recordResult('l1f1', { won: true, roundsLost: 1, lifeLeft: 10 }); ok(!o.newBest); eq(cam.stars('l1f1'), 3, 'worse replay keeps best');
+  let o = cam.recordResult('l1f1', { won: true, roundsLost: 4, lifeLeft: 70 }); eq(o.stars, 1); ok(o.newBest);
+  o = cam.recordResult('l1f1', { won: true, roundsLost: 0, lifeLeft: 100 }); eq(o.stars, 1); ok(!o.newBest, 'a replay never adds a star'); eq(cam.stars('l1f1'), 1);
   cam.recordResult('l1f2', { won: false }); eq(cam.stars('l1f2'), 0);
-  cam.recordResult('l1f2', { won: true, roundsLost: 0, lifeLeft: 90 });
-  eq(cam.levelStars('l1'), 5); eq(cam.totalStars(), 5); eq(cam.maxStars(), 120);
+  cam.recordResult('l1f2', { won: true, roundsLost: 5, lifeLeft: 90 });
+  eq(cam.levelStars('l1'), 2); eq(cam.totalStars(), 2); eq(cam.maxStars(), 40);
 });
-t('chests: open at 10/25/40/60/80/100/120 stars, once each, with their rewards', () => {
+t('chests: open at 3/8/13/20/27/33/40 stars, once each, with their rewards', () => {
   const prof = AMB.Profile.boot(MEM()), cam = camOf(prof, AMB.util.RNG(4));
   const C = AMB.LEVELS.CAMPAIGN.stars.chests;
-  eq(C.map((c) => c.need).join(), '10,25,40,60,80,100,120'); eq(cam.readyChests(), 0);
+  eq(C.map((c) => c.need).join(), '3,8,13,20,27,33,40'); eq(cam.readyChests(), 0);
   eq(cam.claimChest('ch10'), null, 'locked chest');
   const all = AMB.LEVELS.LEVELS.flatMap((l) => l.fights.map((f) => f.id));
-  all.slice(0, 4).forEach((id) => cam.recordResult(id, { won: true, roundsLost: 0, lifeLeft: 100 }));   // 12 stars
-  eq(cam.totalStars(), 12); eq(cam.readyChests(), 1);
+  all.slice(0, 4).forEach((id) => cam.recordResult(id, { won: true, roundsLost: 0, lifeLeft: 100 }));   // 4 stars
+  eq(cam.totalStars(), 4); eq(cam.readyChests(), 1);
   const sh = prof.wallet.balance('shards');
   const c1 = cam.claimChest('ch10'); eq(c1.shards, 100); eq(prof.wallet.balance('shards'), sh + 100);
   eq(cam.claimChest('ch10'), null, 'only once');
   all.forEach((id) => cam.recordResult(id, { won: true, roundsLost: 0, lifeLeft: 100 }));
-  eq(cam.totalStars(), 120); eq(cam.readyChests(), 6);
+  eq(cam.totalStars(), 40); eq(cam.readyChests(), 6);
   const opened = prof.packs.stats().opened;
   eq(cam.claimChest('ch25').packs.length, 1); eq(cam.claimChest('ch40').packs.length, 2); eq(prof.packs.stats().opened, opened + 3);
   const c4 = cam.claimChest('ch60'); ok(['epic', 'legendary'].includes(c4.card.rarity), c4.card.rarity); ok(prof.collection.owned(c4.card.id));
@@ -743,7 +741,7 @@ t('stars: saves from before stars get rated from their best results (migration)'
   sv.set('campaign', { cleared: { l1f1: true, l1f2: true }, levelsDone: {}, stats: { l1f1: { attempts: 1, wins: 1, best: { lifeLeft: 100, roundsLost: 0 } }, l1f2: { attempts: 2, wins: 1, best: null } } });
   const raw = JSON.parse(mem.getItem(AMB.Save.KEY)); raw.sysV.campaign = 1; mem.setItem(AMB.Save.KEY, JSON.stringify(raw));
   const cam = AMB.Profile.boot(mem).campaign;
-  eq(cam.stars('l1f1'), 3); eq(cam.stars('l1f2'), 1); eq(cam.totalStars(), 4); ok(Array.isArray(cam.chests()));
+  eq(cam.stars('l1f1'), 1); eq(cam.stars('l1f2'), 1); eq(cam.totalStars(), 2); ok(Array.isArray(cam.chests()));
 });
 
 console.log('daily missions & login calendar');
@@ -772,8 +770,8 @@ t('missions count campaign fights, card upgrades, packs and new stars (event bus
   prof.packs.open('basic'); eq(p().packs, 1);
   const cam = AMB.Campaign(prof.save, { events: prof.events, wallet: prof.wallet, packs: prof.packs, collection: prof.collection });
   cam.recordResult('l1f1', { won: true, roundsLost: 0, lifeLeft: 100, roundsWon: 2, buys: 4 });
-  eq(p().campaign, 1); eq(p().fights_won, 1); eq(p().wins, 1); eq(p().matches, 1); eq(p().stars, 3); eq(p().buys, 4);
-  cam.recordResult('l1f1', { won: true, roundsLost: 0, lifeLeft: 100 }); eq(p().stars, 3, 'replaying a 3-star fight gives no new stars');
+  eq(p().campaign, 1); eq(p().fights_won, 1); eq(p().wins, 1); eq(p().matches, 1); eq(p().stars, 1); eq(p().buys, 4);
+  cam.recordResult('l1f1', { won: true, roundsLost: 0, lifeLeft: 100 }); eq(p().stars, 1, 'replaying a won fight gives no new stars');
   cam.recordResult('l1f2', { won: false }); eq(p().campaign, 3); eq(p().fights_won, 2);
   eq(pass.state().weekly.p.campaign, 3, 'weekly counts too');
 });
@@ -1559,8 +1557,7 @@ t('boss fights: best of 7 with a growing enemy, and every star pays its own priz
   eq(a.stars, 1); eq(a.prizes.length, 1); ok(a.shards >= R.bossStars[0].shards);
   const a2 = C.recordResult('l1boss', { won: true, roundsLost: 2, lifeLeft: 40 });    // nothing new: only the small replay reward
   eq(a2.prizes.length, 0); eq(a2.shards, R.replay.shards);
-  const b = C.recordResult('l1boss', { won: true, roundsLost: 0, lifeLeft: 100, maxLife: 100 });   // now 3 stars: prizes of star 2 and 3
-  eq(b.stars, 3); eq(b.prizes.map((x) => x.star).join(), '2,3'); ok(b.card && b.packs.length === 1, 'pack + card prizes');
+  ok(a.card && a.packs.length === 1, 'the one boss prize carries the pack and the card');
   const c = C.recordResult('l1boss', { won: true, roundsLost: 0, lifeLeft: 100, maxLife: 100 });
   eq(c.prizes.length, 0, 'every prize is paid once'); ok(C.bossPrizes('l1boss').every((x) => x.state === 'paid'));
 });
@@ -1583,8 +1580,8 @@ t('difficulties: separate progress, scaled enemies and prizes, hard needs medium
   const h = C.recordResult('l1f1', { won: true }, 'hard'); eq(h.shards, Math.round(R.fight.shards * X.hard.shards)); eq(h.passXp, Math.round(R.fight.passXp * X.hard.xp));
   ['l1f2', 'l1f3', 'l1f4'].forEach((id) => C.recordResult(id, { won: true }, 'hard'));
   const hb = C.recordResult('l1boss', { won: true, roundsLost: 0, lifeLeft: 100 }, 'hard');
-  eq(hb.levelPacks.length, X.hard.levelPacks, 'two free level packs on hard'); eq(hb.packs.length, Math.floor(R.bossStars[1].packs * X.hard.packs) , 'boss star-2 pack x2 on hard');
-  eq(hb.card.rarity === 'rare' || hb.card.rarity === 'epic' || hb.card.rarity === 'legendary', true); ok(hb.shards > R.bossStars[0].shards * 2, 'hard boss pays more');
+  eq(hb.levelPacks.length, X.hard.levelPacks, 'two free level packs on hard'); eq(hb.packs.length, Math.floor(R.bossStars[0].packs * X.hard.packs), 'boss pack x2 on hard');
+  eq(hb.card.rarity === 'rare' || hb.card.rarity === 'epic' || hb.card.rarity === 'legendary', true); ok(hb.shards >= R.bossStars[0].shards * 2, 'hard boss pays more');
   // easy: no packs, bonus shards for finishing a level
   ['l1f2', 'l1f3', 'l1f4'].forEach((id) => C.recordResult(id, { won: true }, 'easy'));
   const eb = C.recordResult('l1boss', { won: true, roundsLost: 0, lifeLeft: 100 }, 'easy');
@@ -1597,16 +1594,16 @@ t('difficulties: separate progress, scaled enemies and prizes, hard needs medium
   sv.set('campaign', { cleared: { l1f1: true }, levelsDone: {}, stats: { l1f1: { attempts: 1, wins: 1, best: { lifeLeft: 100, roundsLost: 0 } } }, stars: { l1f1: 3 }, chests: ['ch10'] });
   const raw = JSON.parse(mem.getItem(AMB.Save.KEY)); raw.sysV.campaign = 2; mem.setItem(AMB.Save.KEY, JSON.stringify(raw));
   const old = AMB.Profile.boot(mem).campaign;
-  eq(old.diff(), 'normal'); ok(old.isCleared('l1f1', 'normal') && !old.isCleared('l1f1', 'easy')); eq(old.stars('l1f1', 'normal'), 3);
+  eq(old.diff(), 'normal'); ok(old.isCleared('l1f1', 'normal') && !old.isCleared('l1f1', 'easy')); eq(old.stars('l1f1', 'normal'), 1);
   ok(old.chests('normal').find((c) => c.id === 'ch10').state === 'claimed', 'claimed chest kept');
   // A4: an old boss win was already paid (= star 1): not paid again, and the stars are not re-rated down by the migration
   const mem2 = MEM(), sv2 = AMB.Save.create(mem2);
   sv2.set('campaign', { cleared: { l1boss: true }, levelsDone: {}, stats: { l1boss: { attempts: 1, wins: 1, best: { lifeLeft: 60, roundsLost: 1 } } }, stars: { l1boss: 3 }, chests: [] });
   const raw2 = JSON.parse(mem2.getItem(AMB.Save.KEY)); raw2.sysV.campaign = 2; mem2.setItem(AMB.Save.KEY, JSON.stringify(raw2));
   const prof2 = AMB.Profile.boot(mem2), c2 = prof2.campaign;
-  eq(c2.stars('l1boss', 'normal'), 3, 'stars kept, not re-rated'); eq(c2.bossPaid('l1boss', 'normal'), 1, 'star-1 prize counts as already paid');
+  eq(c2.stars('l1boss', 'normal'), 1, 'stars kept (capped at 1)'); eq(c2.bossPaid('l1boss', 'normal'), 1, 'star-1 prize counts as already paid');
   const r2 = c2.recordResult('l1boss', { won: true, roundsLost: 0, lifeLeft: 100, maxLife: 100 }, 'normal');
-  eq(r2.prizes.map((p) => p.star).join(), '2,3', 'only the stars not paid before pay now');
+  eq(r2.prizes.length, 0, 'the boss prize was paid before: nothing is paid twice');
 });
 
 console.log('practice fight + settings');

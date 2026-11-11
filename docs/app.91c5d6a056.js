@@ -3171,27 +3171,22 @@
       replay: { shards: 5 },
       // boss fights: EVERY star pays its own prize, once (the first time you reach that star)
       bossStars: [
-        { shards: 60, passXp: 40 },
-        { shards: 100, passXp: 30, packs: 1 },
-        { shards: 150, passXp: 40, card: 'rare' },
+        { shards: 310, passXp: 110, packs: 1, card: 'rare' },   // the boss's one star pays everything at once, once
       ],
     },
-    // star rating per fight (best result is kept): 1 = win, 2 = win without losing a round,
-    // 3 = that, and your hero ended at full life. Star totals open chests (each once).
+    // star per fight: 1 = a win. Star totals open chests (each once).
     stars: {
       rules: [
         { n: 1, text: 'فوز' },
-        { n: 2, text: 'فوز بدون ما تخسر جولة' },
-        { n: 3, text: 'فوز بدون ما تخسر جولة، وبطلك حياته كاملة' },
       ],
       chests: [
-        { id: 'ch10', need: 10, name: 'صندوق برونزي', reward: { shards: 100 } },
-        { id: 'ch25', need: 25, name: 'صندوق فضي', reward: { packs: 1 } },
-        { id: 'ch40', need: 40, name: 'صندوق ذهبي', reward: { packs: 2 } },
-        { id: 'ch60', need: 60, name: 'صندوق الصدع', reward: { card: 'epic' } },   // one guaranteed card of this rarity or rarer
-        { id: 'ch80', need: 80, name: 'صندوق الأتون الملكي', reward: { shards: 200, packs: 1 } },
-        { id: 'ch100', need: 100, name: 'صندوق الزعماء', reward: { packs: 2, card: 'epic' } },
-        { id: 'ch120', need: 120, name: 'صندوق الأسطورة', reward: { shards: 400, card: 'legendary' } },
+        { id: 'ch10', need: 3, name: 'صندوق برونزي', reward: { shards: 100 } },
+        { id: 'ch25', need: 8, name: 'صندوق فضي', reward: { packs: 1 } },
+        { id: 'ch40', need: 13, name: 'صندوق ذهبي', reward: { packs: 2 } },
+        { id: 'ch60', need: 20, name: 'صندوق الصدع', reward: { card: 'epic' } },   // one guaranteed card of this rarity or rarer
+        { id: 'ch80', need: 27, name: 'صندوق الأتون الملكي', reward: { shards: 200, packs: 1 } },
+        { id: 'ch100', need: 33, name: 'صندوق الزعماء', reward: { packs: 2, card: 'epic' } },
+        { id: 'ch120', need: 40, name: 'صندوق الأسطورة', reward: { shards: 400, card: 'legendary' } },
       ],
     },
   };
@@ -3300,8 +3295,7 @@
   /** stars for one result: 0 = loss, 1 = win, 2 = no round lost, 3 = no round lost and full hero life */
   function rate(res) {
     if (!res || !res.won) return 0;
-    const clean = (res.roundsLost || 0) === 0;
-    return 1 + (clean ? 1 : 0) + (clean && (res.lifeLeft || 0) >= (res.maxLife || AMB.CONFIG.match.heroLife) ? 1 : 0);
+    return 1;   // a fight is worth one star: a win (8-round fights made 'no round lost' stars unfair)
   }
   const blank = () => ({ cleared: {}, levelsDone: {}, stats: {}, stars: {}, chests: [], bossPaid: {} });
   // a guaranteed card one tier lower (easy) or higher (hard)
@@ -3382,10 +3376,10 @@
       /** first unlocked fight not yet cleared on this difficulty (or null when everything is done) */
       next(d) { for (const l of levels()) for (const f of l.fights) if (api.isUnlocked(f.id, d) && !P(d).cleared[f.id]) return f.id; return null; },
       stats: (fightId, d) => P(d).stats[fightId] || { attempts: 0, wins: 0, best: null },
-      stars: (fightId, d) => P(d).stars[fightId] || 0,
+      stars: (fightId, d) => Math.min(1, P(d).stars[fightId] || 0),
       levelStars(levelId, d) { const l = levels().find((x) => x.id === levelId); return l.fights.reduce((a, f) => a + api.stars(f.id, d), 0); },
       totalStars(d) { return levels().reduce((a, l) => a + api.levelStars(l.id, d), 0); },
-      maxStars() { return levels().reduce((a, l) => a + l.fights.length * 3, 0); },
+      maxStars() { return levels().reduce((a, l) => a + l.fights.length, 0); },
       /** chests with state 'claimed' | 'ready' | 'locked'; rewards already scaled for the difficulty */
       chests(d) { d = dd(d); const tot = api.totalStars(d); return LV().CAMPAIGN.stars.chests.map((c) => Object.assign({}, c, { reward: scaled(c.reward, d), state: P(d).chests.includes(c.id) ? 'claimed' : tot >= c.need ? 'ready' : 'locked' })); },
       readyChests: (d) => api.chests(d).filter((c) => c.state === 'ready').length,
@@ -7446,12 +7440,12 @@ AMB.IMAGES = {
     return (hero = C.starterHero() && owned.includes(C.starterHero()) ? C.starterHero() : owned[0] || null);
   };
 
-  const starRow = (n, cls) => `<span class="cstars ${cls || ''}">${[1, 2, 3].map((k) => `<i class="${k <= n ? 'on' : ''}">★</i>`).join('')}</span>`;
+  const starRow = (n, cls) => `<span class="cstars ${cls || ''}">${[1].map((k) => `<i class="${k <= n ? 'on' : ''}">★</i>`).join('')}</span>`;
 
   function chestsHTML() {
     const tot = CAM.totalStars(), max = CAM.maxStars();
     // chests keep a minimum gap so the low thresholds (10★, 25★) never overlap: position = the real share, pushed right just enough
-    let lastAt = -100; const MIN = 12;
+    let lastAt = -100; const MIN = 14;
     const items = CAM.chests().map((c) => { let at = (100 * c.need) / max; if (at < lastAt + MIN) at = lastAt + MIN; lastAt = at; c._at = Math.min(at, 100); return c; }).map((c) => `<button class="chest ${c.state}" style="--at:${c._at}%" ${c.state === 'ready' ? `data-act="camChest" data-id="${c.id}"` : 'disabled'} title="${esc(c.name)}: ${rewardText(c.reward)}">
         <span class="ch-ic">${c.state === 'claimed' ? '✓' : '🎁'}</span><b>${c.need}★</b></button>`).join('');
     return `<div class="cam-chests"><div class="cc-top"><span class="cc-total">★ <bdi dir="ltr">${tot}<small>/${max}</small></bdi></span>
@@ -7486,7 +7480,7 @@ AMB.IMAGES = {
     }
     AMB.TIPS = AMB.TIPS || {};
     AMB.TIPS.caminfo = () => ({ title: 'كيف تشتغل الحملة', html: `<p>كل قتال <b>تلعب 8 جولات ويفوز اللي يكسب جولات أكثر</b> ضد تشكيلة ثابتة. مستويات بطاقاتك وندرتها <b>تنحسب هنا</b>، والمتجر يعرض الوحدات اللي تملكها فقط.</p>
-      <p>الفوز الأول: ${icon('gem')} ${R.fight.shards} + ${R.fight.passXp} خبرة ممر<br><b>3 صعوبات:</b> سهل (أضعف وجوائز أصغر)، متوسط، صعب (أقوى وجوائز مضاعفة، ينفتح بعد ما تخلص المستوى في متوسط). لكل صعوبة تقدمها ونجومها وصناديقها.<br>الزعيم (أفضل من 7 جولات): <b>كل نجمة لها جائزة</b> مرة وحدة: ★ ${icon('gem')} ${R.bossStars[0].shards} · ★★ ${icon('gem')} ${R.bossStars[1].shards} + باكج · ★★★ ${icon('gem')} ${R.bossStars[2].shards} + بطاقة نادرة أو أعلى<br>إنهاء المستوى: باكج مجاني<br>الإعادة: ${icon('gem')} ${R.replay.shards}</p>
+      <p>الفوز الأول: ${icon('gem')} ${R.fight.shards} + ${R.fight.passXp} خبرة ممر<br><b>3 صعوبات:</b> سهل (أضعف وجوائز أصغر)، متوسط، صعب (أقوى وجوائز مضاعفة، ينفتح بعد ما تخلص المستوى في متوسط). لكل صعوبة تقدمها ونجومها وصناديقها.<br>الزعيم: <b>جائزة وحدة كبيرة</b> أول مرة تفوز فيه: ${icon('gem')} ${R.bossStars[0].shards} + باكج + بطاقة نادرة أو أعلى<br>إنهاء المستوى: باكج مجاني<br>الإعادة: ${icon('gem')} ${R.replay.shards}</p>
       <h4>النجوم</h4>${LV.CAMPAIGN.stars.rules.map((r) => `<div>${'★'.repeat(r.n)} ${r.text}</div>`).join('')}` });
     const DF = LV.DIFFICULTY, cd = CAM.diff();
     const tabs = `<div class="cam-diff">${CAM.DIFFS.map((k) => `<button class="cd ${k === cd ? 'on' : ''}" style="--dc:${DF[k].color}" data-act="camDiff" data-v="${k}"><b>${DF[k].name}</b><small>★ ${CAM.totalStars(k)}/${CAM.maxStars()}</small></button>`).join('')}</div>
@@ -7499,7 +7493,7 @@ AMB.IMAGES = {
     if (!camWorld) {
       const arm = (w, pos) => {
         const ls = worldLevels(w), wd = W(w), total = ls.reduce((n, x) => n + x.l.fights.length, 0), cleared = ls.reduce((n, x) => n + CAM.progress(x.l.id).cleared, 0);
-        const stars = ls.reduce((n, x) => n + CAM.levelStars(x.l.id), 0), maxS = total * 3, open = ls.some((x) => CAM.levelUnlocked(x.li)), here = nextF && nextF.level.world === w;
+        const stars = ls.reduce((n, x) => n + CAM.levelStars(x.l.id), 0), maxS = total, open = ls.some((x) => CAM.levelUnlocked(x.li)), here = nextF && nextF.level.world === w;
         return `<button class="wm-arm wm-${pos} ${open ? '' : 'locked'} ${here ? 'here' : ''} ${cleared >= total ? 'done' : ''}" style="--wc:${wd.color}" data-act="camWorld" data-w="${w}" aria-label="${esc(wd.name)}">
           <span class="wm-ic">${icon(AMB.art.WORLD_ICON[w])}</span><b>${esc(wd.name)}</b><small><bdi dir="ltr">${cleared}/${total}</bdi> · ★ <bdi dir="ltr">${stars}/${maxS}</bdi></small>${open ? '' : '<i class="wm-lock">🔒</i>'}${here ? '<i class="wm-go">▶ كمّل</i>' : ''}</button>`;
       };
@@ -7511,13 +7505,13 @@ AMB.IMAGES = {
       refreshMenu(); return;
     }
     const wd = W(camWorld);
-    root.innerHTML = tabs + `<div class="wm-back"><button class="btn small ghost" data-act="camWorld" data-w="">‹ خريطة العوالم</button><b style="color:${wd.color}">${icon(AMB.art.WORLD_ICON[camWorld])} ${esc(wd.name)}</b></div>` + `<div class="cam-note">⚔️ 8 جولات في كل قتال (يفوز اللي يكسب جولات أكثر) · ⭐ النجوم تفتح صناديق · 👑 كل نجمة زعيم لها جائزة <button class="ibtn" data-act="info" data-k="caminfo" title="شرح">ⓘ</button></div>
+    root.innerHTML = tabs + `<div class="wm-back"><button class="btn small ghost" data-act="camWorld" data-w="">‹ خريطة العوالم</button><b style="color:${wd.color}">${icon(AMB.art.WORLD_ICON[camWorld])} ${esc(wd.name)}</b></div>` + `<div class="cam-note">⚔️ 8 جولات في كل قتال (يفوز اللي يكسب جولات أكثر) · ⭐ كل فوز نجمة، والنجوم تفتح صناديق · 👑 الزعيم له جائزة كبيرة <button class="ibtn" data-act="info" data-k="caminfo" title="شرح">ⓘ</button></div>
       ${chestsHTML()}
       <div class="cam-levels">${LV.LEVELS.map((l, li) => ({ l, li })).filter((x) => x.l.world === camWorld).map(({ l, li }) => {
         const pr = CAM.progress(l.id), unlocked = CAM.levelUnlocked(li);
         const lockMsg = cd === 'hard' && !CAM.levelDone(l.id, 'normal') ? '🔒 خلّصه في «متوسط» أول' : '🔒 خلّص المستوى اللي قبله';
         return `<section class="cam-level ${unlocked ? '' : 'locked'} ${CAM.levelDone(l.id, cd) ? 'done' : ''}" style="--wc:${W(l.world).color}">
-          <header><span class="cl-n">${li + 1}</span><div><h3>${esc(l.name)}</h3><small>${W(l.world).name} · ${pr.cleared}/${pr.total} · ★ ${CAM.levelStars(l.id)}/${l.fights.length * 3}${CAM.levelDone(l.id, cd) ? ' · ✓ مكتمل' : ''}</small></div>
+          <header><span class="cl-n">${li + 1}</span><div><h3>${esc(l.name)}</h3><small>${W(l.world).name} · ${pr.cleared}/${pr.total} · ★ ${CAM.levelStars(l.id)}/${l.fights.length}${CAM.levelDone(l.id, cd) ? ' · ✓ مكتمل' : ''}</small></div>
           ${unlocked ? '' : `<span class="cl-lock">${lockMsg}</span>`}</header>
           ${(() => { const hd = AMB.DATA.HEROES[l.hero], dd = CAM.levelDiffs(l.id), has = AMB.collection && AMB.collection.owned(l.hero); return hd ? `<div class="cl-hero ${has ? 'got' : ''}" style="--wc:${W(l.world).color}"><span class="clh-p">${UI().portrait(hd, { k: 'clh' + l.id })}</span><div><b>${has ? '✓ ' : '🔒 '}${esc(hd.name)}</b><small>${has ? 'عندك هذا البطل' : 'جائزة المستوى: خلّص كل قتالاته على الثلاث صعوبات'}</small></div><span class="clh-d">${CAM.DIFFS.map((x) => `<i class="${dd[x] ? 'on' : ''}" style="--dc:${LV.DIFFICULTY[x].color}" title="${LV.DIFFICULTY[x].name}">${LV.DIFFICULTY[x].name}${dd[x] ? ' ✓' : ''}</i>`).join('')}</span></div>` : ''; })()}
           <div class="cpath">${l.fights.map((f, i) => node(l, f, i)).join('<i class="cline"></i>')}</div></section>`;
@@ -7551,7 +7545,7 @@ AMB.IMAGES = {
     const heroes = C.ownedHeroes().map((id) => `<button class="hchip ${id === h ? 'on' : ''}" data-act="camHero" data-id="${id}" data-f="${fightId}">${ui.portrait(AMB.DATA.HEROES[id], { k: 'cph' + id })}<span>${AMB.DATA.HEROES[id].name}</span></button>`).join('');
     const prizeTxt = (p) => [p.shards ? `${icon('gem')} ${p.shards}` : '', p.passXp ? `+${p.passXp} خبرة` : '', p.packs ? '📦 باكج' : '', p.card ? `🃏 بطاقة ${AMB.ECONOMY.rarities[p.card].name}+` : ''].filter(Boolean).join(' · ');
     const reward = pay.boss
-      ? `<div class="hint" style="margin-bottom:4px">قتال طويل: 8 جولات والزعيم يقوى كل جولة. كل نجمة لها جائزتها، وتنصرف مرة وحدة.</div>${pay.prizes.map((p) => `<div class="bp ${p.state}"><span class="bp-s">${'★'.repeat(p.star)}</span><span>${prizeTxt(p)}</span><i>${p.state === 'paid' ? '✓ استلمتها' : ''}</i></div>`).join('')}${levelHint(pay)}`
+      ? `<div class="hint" style="margin-bottom:4px">قتال طويل: 8 جولات والزعيم يقوى كل جولة. جائزة الزعيم تنصرف مرة وحدة عند أول فوز.</div>${pay.prizes.map((p) => `<div class="bp ${p.state}"><span class="bp-s">${'★'.repeat(p.star)}</span><span>${prizeTxt(p)}</span><i>${p.state === 'paid' ? '✓ استلمتها' : ''}</i></div>`).join('')}${levelHint(pay)}`
       : pay.replay ? `إعادة: ${icon('gem')} ${pay.shards}` : `${icon('gem')} ${pay.shards} شظية · +${pay.passXp} خبرة ممر${levelHint(pay, true)}`;
     ui.modal(`<div class="cam-pv" style="--wc:${W(l.world).color}">
       <h2>${f.boss ? '👑 ' : ''}${esc(f.name)}</h2><div class="hint">${esc(l.name)} · ${x.fi + 1}/${l.fights.length}</div>
@@ -7581,7 +7575,7 @@ AMB.IMAGES = {
     const r = S.camResult, won = r.won, next = CAM.next(), nx = next && CAM.find(next);
     // why the 3rd star was missed: the hero loses life in a round you win too (the front line fell, or a drawn round), and the star needs it full
     const lifePct = Math.round(100 * m.players[0].life / m.players[0].maxLife);
-    const whyNo3 = won && r.stars === 2 && lifePct < 100 ? `<p class="hint">فاتتك النجمة الثالثة: ما خسرت ولا جولة، بس حياة بطلك نزلت لـ${lifePct}٪ (العدو يضرب بطلك لما يسقط خط الدفاع حتى لو كسبت الجولة، وكذلك لو تعادلت جولة).</p>` : '';
+    const whyNo3 = '';
     const score = `${m.players[0].stats.wins} – ${m.players[1].stats.wins}`;
     const pay = won ? [r.shards ? `${icon('gem')} +${r.shards} شظية` : '', r.passXp ? `+${r.passXp} خبرة ممر` : ''].filter(Boolean).join(' · ') : '';
     const bossPrizes = won && r.boss && r.prizes && r.prizes.length ? `<div class="cam-pack"><b>🏆 جوائز النجوم:</b>${r.prizes.map((p) => `<div class="bp paid"><span class="bp-s">${'★'.repeat(p.star)}</span><span>${[p.shards ? `${icon('gem')} ${p.shards}` : '', p.passXp ? `+${p.passXp} خبرة` : '', p.packs ? '📦 باكج مجاني' : '', p.card ? '🃏 بطاقة ' + AMB.ECONOMY.rarities[p.card].name + ' أو أندر' : ''].filter(Boolean).join(' · ')}</span></div>`).join('')}
@@ -7593,8 +7587,8 @@ AMB.IMAGES = {
         <div class="res-hero">${ui.portrait(AMB.DATA.HEROES[m.players[0].heroId], { bare: true, k: 'crh' })}<i class="sheen"></i></div>
         <div class="res-hname">${esc(x.fight.name)}</div></div>
       <div class="res-banner"><h1>${won ? (x.fight.boss ? 'هزمت الزعيم!' : 'فوز!') : m.players[0].stats.wins ? 'قربت! جرّب مرة ثانية' : 'هالمرة صعبة، جرّب مرة ثانية'}</h1><p class="hint">النتيجة ${score} · ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')} دقيقة</p>
-        ${won ? `<div class="res-stars">${[1, 2, 3].map((k) => `<i class="${k <= r.stars ? 'on' : ''}" style="--d:${0.3 + k * 0.35}s">★</i>`).join('')}</div>
-          <p class="hint">${r.newBest ? (r.prevStars ? `رقم جديد! من ${r.prevStars} لين ${r.stars} نجوم` : `${r.stars} من 3 نجوم`) : `أفضل نتيجة لك هنا: ${CAM.stars(fightId)} نجوم`}${r.stars < 3 ? ' · ' + LV.CAMPAIGN.stars.rules[r.stars].text + ' = ★' : ''}</p>${whyNo3}` : ''}
+        ${won ? `<div class="res-stars">${[1].map((k) => `<i class="${k <= r.stars ? 'on' : ''}" style="--d:${0.3 + k * 0.35}s">★</i>`).join('')}</div>
+          <p class="hint">${r.newBest ? 'نجمة جديدة!' : 'خلّصت هالقتال من قبل'}</p>` : ''}
         ${r.chestsReady > r.chestsBefore ? '<button class="btn primary" data-act="go" data-to="campaign">🎁 صندوق نجوم جاهز! افتحه من خريطة الحملة</button>' : ''}
         ${won ? `<p class="cam-pay">${r.first ? pay : `إعادة: ${pay || 'بدون جائزة'}`}</p>` : `<p class="res-tip">💡 ${UI().lossTip ? UI().lossTip(m) : 'طوّر بطاقاتك وجرّب مرة ثانية'}</p>`}</div>
       ${heroWon}${bossPrizes}${pack}
