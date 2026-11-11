@@ -48,7 +48,7 @@
   }
 
   // after an update: say so once
-  if (ss.get('zor_upd') === mine) { ss.del('zor_upd'); window.addEventListener('load', () => setTimeout(() => UI() && UI().toast('تم تحديث اللعبة ✓', 'good'), 800)); }
+  if (ss.get('zor_upd') === mine) { ss.del('zor_upd'); window.addEventListener('load', () => setTimeout(() => UI() && UI().toast('حدّثنا اللعبة ✓', 'good'), 800)); }
   // installable app: register the service worker (offline play + the "install app" prompt); updates still arrive through version.json
   // files this page loaded before the worker took over (first visit) are handed to it, so the game also starts offline next time
   if ('serviceWorker' in navigator) {

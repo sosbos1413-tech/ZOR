@@ -17,7 +17,7 @@
     UI().overlay(`<div class="rv-wrap"><h2>🎁 هدية البداية</h2>
       <p class="gift-sub">٥ باكجات هدية تبني منها تشكيلتك الأولى</p>
       <div class="gift-packs">${[1, 2, 3, 4, 5].map((i) => `<div class="gift-pack" style="--d:${i * 0.12}s"><b>ZOR</b><small>${i}</small></div>`).join('')}</div>
-      <p class="hint">كل باكج فيه 5 وحدات. مضمون إن عندك كل الأدوار وكل العوالم عشان تقدر تبني ديك.</p>
+      <p class="hint">كل باكج فيه 5 وحدات. مضمون إن عندك كل الأدوار وكل العوالم عشان تقدر تبني تشكيلة.</p>
       <div class="rv-btns"><button class="btn primary big" data-act="giftOpen">افتح الباكج الأول</button></div></div>`);
   }
 
@@ -28,7 +28,7 @@
         <div class="rv-in"><div class="rv-back"><span>ZOR</span></div><div class="rv-front">${ui.cardHTML(C.def(c.id), { k: 'gf' + i + k + c.id, lvl: c.level })}${tag(c)}</div></div></div>`).join('');
     ui.overlay(`<div class="rv-wrap best-${best.rarity}"><h2>🎁 هدية ${i + 1} من ${results.length}</h2><div class="rv-row">${cards}</div>
       <div class="gift-dots">${results.map((_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('')}</div>
-      <div class="rv-btns">${i + 1 < results.length ? '<button class="btn primary big" data-act="giftNext">الباكج التالي</button>' : '<button class="btn primary big" data-act="giftNext">خلصت! رتّب ديكك</button>'}
+      <div class="rv-btns">${i + 1 < results.length ? '<button class="btn primary big" data-act="giftNext">الباكج التالي</button>' : '<button class="btn primary big" data-act="giftNext">خلصت! رتّب تشكيلتك</button>'}
         <button class="btn ghost" data-act="giftNext" data-all="1">افتح الباقي</button></div></div>`);
     res.cards.forEach((c, k) => setTimeout(() => {
       if (!$('overlay').classList.contains('on')) return;
@@ -41,15 +41,15 @@
   function summary() {
     const ui = UI(), deck = C.autoBuild(), rc = C.roleCounts(deck);
     const ROLE = AMB.DATA.ROLES;
-    ui.overlay(`<div class="rv-wrap"><h2>🃏 ديكك الأول جاهز</h2><p class="gift-sub">رتبت لك ${deck.length} وحدات متوازنة من اللي طلع لك</p>
+    ui.overlay(`<div class="rv-wrap"><h2>🃏 تشكيلتك الأولى جاهزة</h2><p class="gift-sub">رتبت لك ${deck.length} وحدات متوازنة من اللي طلع لك</p>
       <div class="deck-mini">${deck.map((id, i) => `<div class="dm" title="${C.def(id).name}">${ui.portrait(C.def(id), { k: 'gd' + i + id })}</div>`).join('')}</div>
       <div class="deck-roles">${Object.entries(rc).map(([r, n]) => `<span>${icon(AMB.art.ROLE_ICON[r])}${ROLE[r].name} ${n}</span>`).join('')}</div>
-      <p class="hint">الديك هو الوحدات اللي تطلع لك في متجر الحملة والبرج والأحداث. عدّله من «مجموعتي» متى ما بغيت.</p>
-      <div class="rv-btns"><button class="btn primary big" data-act="giftDone">${after ? 'ابدأ أول قتال' : 'تمام'}</button><button class="btn" data-act="giftDeck">عدّل الديك</button></div></div>`);
+      <p class="hint">التشكيلة هي الوحدات اللي تطلع لك في متجر الحملة والبرج والأحداث. عدّله من «مجموعتي» متى ما بغيت.</p>
+      <div class="rv-btns"><button class="btn primary big" data-act="giftDone">${after ? 'ابدأ أول قتال' : 'تمام'}</button><button class="btn" data-act="giftDeck">عدّل التشكيلة</button></div></div>`);
   }
 
   function offer() {   // old saves: the gift is waiting
-    UI().overlay(`<div class="rv-wrap"><h2>🎁 هدية للجميع</h2><p class="gift-sub">٥ باكجات هدية وديك يتحكم في وحداتك بالحملة</p>
+    UI().overlay(`<div class="rv-wrap"><h2>🎁 هدية للجميع</h2><p class="gift-sub">٥ باكجات هدية وتشكيلة تتحكم في وحداتك بالحملة</p>
       <p class="hint">بطاقاتك الحالية كلها باقية، والباكجات تنضاف لها.</p>
       <div class="rv-btns"><button class="btn primary big" data-act="giftStart">استلم الهدية</button><button class="btn ghost" data-act="giftLater">لاحقًا</button></div></div>`);
   }

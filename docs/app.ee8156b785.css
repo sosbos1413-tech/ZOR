@@ -2967,3 +2967,35 @@ body.reduce-motion .lv-flash, body.reduce-motion .merge-flash, body.reduce-motio
 @media (max-width: 860px) and (orientation: portrait) {
   #scr-match.prep-focus .sd-cards .sc { width: calc(var(--scw, 70px) - 5px); }
   #scr-match.prep-focus #bench .bslot { background: #0a061acc; border: 1.6px solid #9a8cff; box-shadow: 0 0 7px #8a7dff99, inset 0 0 8px #6a5cff33; }}
+
+/* ===== neon dialogs (all screens): dark glass panels with neon lines instead of paper ===== */
+.overlay { background-color: #07040fee; background-image: radial-gradient(70% 55% at 50% 40%, #2a1a6a55, transparent 70%); }
+.modal-back { background: #07040fe0; }
+.ov-card, .modal {
+  --ink: #f3ecff; --text: #f3ecff; --muted: #b7acec; --paper: #120b2c; --paper2: #1b1240; --paper3: #3a2f7a; --hard: 0 0 0 transparent; --hard-sm: 0 0 8px #8a7dff66;
+  background: radial-gradient(120% 90% at 50% 0%, #1d1248 0%, #0d0820 65%, #08051a 100%); background-image: radial-gradient(120% 90% at 50% 0%, #1d1248 0%, #0d0820 65%, #08051a 100%);
+  border: 1.6px solid #9a8cff; border-radius: 18px; box-shadow: 0 0 14px #8a7dffaa, 0 0 40px #5b4bff44, inset 0 0 24px #6a5cff2e; color: #f3ecff; clip-path: none;
+}
+.modal h2, .ov-card h2, .modal h3, .ov-card h3 { color: #fff; text-shadow: 0 0 8px #9a8cff, 0 0 18px #6a5cff88; }
+.modal .hint, .ov-card .hint { color: #b7acec; }
+.modal th, .ov-card th { background: #2a1f6a; color: #e8e0ff; }
+.modal td, .ov-card td { border-bottom: 1px solid #3a2f7a; color: #f3ecff; }
+.modal .btn, .ov-card .btn, .overlay .btn { background: #0a061acc; color: #e8e0ff; border: 1.6px solid #9a8cff; border-radius: 999px; clip-path: none; box-shadow: 0 0 8px #8a7dff88, inset 0 0 8px #6a5cff33; }
+.modal .btn:hover:not(:disabled), .ov-card .btn:hover:not(:disabled), .overlay .btn:hover:not(:disabled) { background: #1d1248; color: #fff; }
+.modal .btn.primary, .ov-card .btn.primary, .overlay .btn.primary { background: linear-gradient(#ff3d6a55, #ff3d6a22); border-color: #ff5a7a; color: #fff; text-shadow: 0 0 8px #ff5a7a; box-shadow: 0 0 12px #ff5a7aaa, inset 0 0 10px #ff5a7a55; }
+.modal .btn.ghost, .ov-card .btn.ghost, .overlay .btn.ghost { background: transparent; color: #cfc8ff; }
+.modal .btn.danger { border-color: #ff5a7a; color: #ffb3bb; }
+.modal .x { border-radius: 50%; min-width: 34px; padding: 4px 9px; }
+.modal .tip-body, .modal .skillbox, .modal .rar-box { color: #f3ecff; }
+.modal .skillbox, .modal .hint-box, .ov-card .skillbox { background: #ffffff0d; border: 1px solid #3a2f7a; color: #f3ecff; }
+.mp-sub { color: #cfc8ff !important; }
+.mp-row { gap: 10px; }
+.mp-card .tcard.mini.fr4 { width: min(28vw, 118px); }
+.mp-st { background: #07040f; color: #ffe08a; border: 1px solid #ffd24a99; box-shadow: 0 0 8px #ffd24a66; }
+.mp-card:active .tcard, .mp-card:hover .tcard { transform: none; filter: drop-shadow(0 0 12px #ffd24a); }
+.modal .seg, .ov-card .seg { border: 1.5px solid #9a8cff; border-radius: 999px; overflow: hidden; box-shadow: 0 0 8px #8a7dff66; }
+.modal .seg button, .ov-card .seg button { border-left: 1px solid #3a2f7a; color: #e8e0ff; }
+.modal .seg button.on, .ov-card .seg button.on { background: #2a1f6a; color: #ffd24a; text-shadow: 0 0 6px #ffd24a88; }
+.modal .upg-row, .ov-card .upg-row { background: #ffffff0a; border: 1px solid #3a2f7a; border-radius: 12px; color: #f3ecff; }
+.modal .upg-row b, .modal .upg-row .hint { color: inherit; }
+.modal .prog { background: #0a061a; border: 1px solid #3a2f7a; }

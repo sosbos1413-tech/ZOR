@@ -21,8 +21,8 @@
       return { ic: AMB.art.WORLD_ICON[d.world], title: d.name, color: D.WORLDS[d.world].color, html: parts.map((c) => `<div class="tp-sec"><div class="tp-sh">${icon(c.ic)}<b>${esc(c.title)}</b></div>${c.html.replace(/<div class="tp-s">التآزر[^<]*<\/div>/, '')}</div>`).join('') };
     }
     switch (k) {
-      case 'world': { const W = D.WORLDS[d.world]; return { ic: AMB.art.WORLD_ICON[d.world], title: W.name, color: W.color, html: `<div class="tp-s">التآزر: كل ما جمعت وحدات أكثر من هالعالم يقوون:</div>${synLines(d.world)}` }; }
-      case 'role': { const R = D.ROLES[d.role]; return { ic: AMB.art.ROLE_ICON[d.role], title: R.name, html: `<div class="tp-l">${esc(R.desc)}</div><div class="tp-s">تُوضع: <b>${esc(R.place)}</b></div>${synLines(d.role)}` }; }
+      case 'world': { const W = D.WORLDS[d.world]; return { ic: AMB.art.WORLD_ICON[d.world], title: W.name, color: W.color, html: `<div class="tp-s">التآزر: كل ما جمعت وحدات أكثر من هالعالم يقوّون:</div>${synLines(d.world)}` }; }
+      case 'role': { const R = D.ROLES[d.role]; return { ic: AMB.art.ROLE_ICON[d.role], title: R.name, html: `<div class="tp-l">${esc(R.desc)}</div><div class="tp-s">مكانه: <b>${esc(R.place)}</b></div>${synLines(d.role)}` }; }
       case 'herorole': return { ic: 'crown', title: 'بطل', html: `<div class="tp-l"><b>${esc(d.passive.name)}</b>: ${esc(d.passive.text)}</div><div class="tp-s">هو قائدك: حياته هي حياتك، وإذا سقط تخسر.</div>` };
       case 'skill': {
         const s = d.skill, st = +x || 1, rows = [];

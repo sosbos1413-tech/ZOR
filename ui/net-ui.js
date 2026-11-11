@@ -194,7 +194,7 @@
       <div class="net-code" dir="ltr">${N.showCode(code)}</div>
       <div class="net-btns"><button class="btn" data-act="netCopy">نسخ الرمز</button><button class="btn" data-act="netShare">إرسال</button><button class="btn ghost" data-act="netCancel">إلغاء</button></div>
       <div class="net-btns"><button class="btn small" data-act="netDiag">فحص الاتصال</button></div><div class="hint" id="net-diag" dir="rtl" style="text-align:right"></div>
-      <p class="hint" id="net-status">ينتظر صاحبك… <b>لا تطفّي الشاشة ولا تطلع من اللعبة</b> لين يدخل</p>`);
+      <p class="hint" id="net-status">ننتظر صاحبك… <b>لا تطفّي الشاشة ولا تطلع من اللعبة</b> لين يدخل</p>`);
     const myRoom = room;
     myRoom.linked.then((link) => { if (room !== myRoom) { link.close(); return; } room = null; connected(0, link); });
   }
@@ -268,7 +268,7 @@
     n.myHero = hero;
     // online matches are always equal: card power and hero level are never sent or applied (progress is for the campaign/tower/events only)
     n.link.send({ t: 'hero', hero, ver: buildOf() });
-    waiting('ينتظر صاحبك يختار بطله…');
+    waiting('ننتظر صاحبك يختار بطله…');
     tryStart();
   }
   function tryStart() {
@@ -314,14 +314,14 @@
     n.link.send({ t: 'ready', round: m.round, ops });
     S.phase = 'waiting';
     ui().renderMatch(true);
-    if (!n.peerReady || n.peerReady.round !== m.round) waiting('جاهز! ينتظر صاحبك…', 150000);
+    if (!n.peerReady || n.peerReady.round !== m.round) waiting('جاهز! ننتظر صاحبك…', 150000);
     pump();
   }
   function rewardClaimed() {
     const S = ui().S, n = S.net, m = S.match;
     n.iClaimed = true;
     n.link.send({ t: 'reward', round: m.round, ops: n.rec.take() });
-    if (!n.peerReward || n.peerReward.round !== m.round) waiting('ينتظر صاحبك يختار مكافأته…', 150000);
+    if (!n.peerReward || n.peerReward.round !== m.round) waiting('ننتظر صاحبك يختار مكافأته…', 150000);
     pump();
   }
   // the two phones disagree (bad message, different versions): end the match cleanly instead of hanging on "waiting for your friend"

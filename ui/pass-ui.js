@@ -176,7 +176,7 @@
         got.forEach((g) => { const r = g.reward; if (r.type !== 'perk' && pass.equipped(r.type) === (r.type === 'avatar' ? null : 'default')) pass.equip(r.type, r.id); });
         UI().sfx('merge'); toast(`استلمت ${got.length} مكافأة`, 'good'); after();
       },
-      passEquipReward: (d) => { const r = pass.reward(+d.level, d.track); if (r && pass.equip(r.type, r.id)) { UI().sfx('click'); toast(`تم تجهيز: ${pass.rewardName(r)}`, 'good'); after(); } },
+      passEquipReward: (d) => { const r = pass.reward(+d.level, d.track); if (r && pass.equip(r.type, r.id)) { UI().sfx('click'); toast(`جهّزت: ${pass.rewardName(r)}`, 'good'); after(); } },
       passEquip: (d) => { if (pass.equip(d.type, d.id === '' ? null : d.id)) { UI().sfx('click'); after(); } },
       passClaimMission: (d) => { const r = pass.claimMission(d.id); if (r) { UI().sfx('merge'); toast(`+${r.xp} خبرة${r.shards ? ` و +${r.shards} شظية` : ''}${r.levelUp ? ' — ارتفع مستواك!' : ''}`, 'good'); after(); } },
       passPremium: () => toast('المسار المميز قريب · والمجاني متاح لك كله', ''),

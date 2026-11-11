@@ -30,7 +30,7 @@
     if (C.needsStarter()) { root.innerHTML = '<div class="cam-note">اختر بطلك الأول من «الحملة» أول.</div>'; return; }
     if (!WK.unlocked()) { const c0 = WK.current(), ev0 = c0.event, ex0 = AMB.DATA.UNITS[ev0.exclusive];
       root.innerHTML = `<div class="cam-note">🔒 الحدث الأسبوعي يفتح بعد ما تخلّص <b>المستوى الأول من الحملة</b>.</div>
-        <div class="ev-peek"><h3>حدث هذا الأسبوع: ${esc(ev0.name)}</h3><p class="hint">زعيم بقدرتين، وبطاقة حصرية ما تطلع من الباكجات: <b>${esc(ex0.name)}</b></p>
+        <div class="ev-peek"><h3>حدث هالأسبوع: ${esc(ev0.name)}</h3><p class="hint">زعيم بقدرتين، وبطاقة حصرية ما تطلع من الباكجات: <b>${esc(ex0.name)}</b></p>
         <div class="ev-peek-card">${UI().cardHTML(ex0, { k: 'evp', cls: 'unowned', attrs: `data-act="detail" data-id="${ev0.exclusive}"` })}</div></div>`; return; }
     const c = WK.current(), ev = c.event, ex = AMB.DATA.UNITS[ev.exclusive], owned = C.owned(ev.exclusive), next = WK.nextEvent();
     const card = UI().cardHTML(ex, { k: 'evx', lvl: owned ? C.level(ev.exclusive) : 0, cls: owned ? '' : 'unowned', attrs: `data-act="detail" data-id="${ev.exclusive}"` });
@@ -38,7 +38,7 @@
     root.innerHTML = `<div class="ev-banner" style="--wc:${W(ev.world).color}"><div class="ev-world">${W(ev.world).name}</div><h3>${esc(ev.name)}</h3>
         <div class="ev-time">⏳ باقي <b id="ev-left">${left(c.msLeft)}</b> · القادم: ${esc(next.name)}</div></div>
       <div class="ev-prize"><div class="ev-card">${card}</div><div class="ev-ptxt"><b>🌟 الجائزة الحصرية</b><p>${esc(ex.name)} <small>${esc(ex.en)}</small></p>
-        <div class="hint">${owned ? '✓ تملكها (تعيد الحدث وتاخذ نسخة تطوير)' : 'ما تطلع من الباكجات، فقط من هذا الحدث'} <button class="ibtn" data-act="info" data-k="evinfo" title="شرح">ⓘ</button></div>
+        <div class="hint">${owned ? '✓ تملكها (تعيد الحدث وتاخذ نسخة تطوير)' : 'ما تطلع من الباكجات، بس من هالحدث'} <button class="ibtn" data-act="info" data-k="evinfo" title="شرح">ⓘ</button></div>
         ${c.done ? '<div class="ev-done">✓ خلّصت حدث هذا الأسبوع</div>' : ''}</div></div>
       <div class="twlist">${rows.join('')}</div>`;
     refreshMenu();
@@ -55,7 +55,7 @@
     const ui = UI(), c = WK.current(), L = WK.lineupFor(c.event.id, stage), h = pickHero(), R = WK.rewardsFor(stage), first = stage === c.stage + 1;
     const units = L.units.map(([id, star, , from], k) => `<div class="cu">${ui.portrait(AMB.DATA.UNITS[id], { k: 'evp' + k + id })}${ui.stars(star)}${from > 1 ? `<small>من الجولة ${from}</small>` : ''}</div>`).join('');
     const heroes = C.ownedHeroes().map((id) => `<button class="hchip ${id === h ? 'on' : ''}" data-act="evHero" data-id="${id}" data-n="${stage}">${ui.portrait(AMB.DATA.HEROES[id], { k: 'evh' + id })}<span>${AMB.DATA.HEROES[id].name}</span></button>`).join('');
-    const reward = first ? `${icon('gem')} ${R.shards} شظية · +${R.passXp} خبرة ممر${R.pack ? ' · <b>باكج مجاني</b>' : ''}${R.exclusive ? ` · <b>🌟 ${esc(AMB.DATA.UNITS[c.event.exclusive].name)} (حصرية)</b>` : ''}` : 'خلّصت هالمرحلة هذا الأسبوع: تدريب بدون جائزة';
+    const reward = first ? `${icon('gem')} ${R.shards} شظية · +${R.passXp} خبرة ممر${R.pack ? ' · <b>باكج مجاني</b>' : ''}${R.exclusive ? ` · <b>🌟 ${esc(AMB.DATA.UNITS[c.event.exclusive].name)} (حصرية)</b>` : ''}` : 'خلّصت هالمرحلة هالأسبوع: تدريب بدون جائزة';
     ui.modal(`<div class="cam-pv" style="--wc:${W(c.event.world).color}"><h2>${L.boss ? '👑 ' : ''}${esc(L.name)}</h2><div class="hint">${esc(c.event.name)} · تكسب جولتين من 3</div>
       ${L.boss ? `<div class="boss-box">${ui.portrait(AMB.DATA.HEROES[L.heroId], { k: 'evb' })}<div><b>قدرة الزعيم: ${esc(L.special.name)}</b><p>${esc(L.special.text)}</p></div></div>` : ''}
       <h4>تشكيلة الخصم</h4><div class="cam-units">${units}</div><h4>الجائزة</h4><div class="cam-reward">${reward}</div>

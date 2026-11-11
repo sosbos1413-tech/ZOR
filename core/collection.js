@@ -106,7 +106,7 @@
         if (!AMB.DATA.UNITS[id] || !api.owned(id)) return { ok: false, reason: 'ما تملك هالوحدة' };
         const cur = api.deck();
         if (cur.includes(id)) { api.setDeck(cur.filter((x) => x !== id)); return { ok: true, in: false }; }
-        if (cur.length >= EC().deck.size) return { ok: false, reason: `الديك ممتلئ (${EC().deck.size})` };
+        if (cur.length >= EC().deck.size) return { ok: false, reason: `التشكيلة ممتلئة (${EC().deck.size})` };
         api.setDeck(cur.concat([id])); return { ok: true, in: true };
       },
       /** a balanced deck from what you own: role quotas first (strongest cards), then the best remaining, leaning on your two strongest worlds */

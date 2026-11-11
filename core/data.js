@@ -377,7 +377,7 @@
    */
   const HEROES = {
     kagira: {
-      id: 'kagira', name: 'سراج', title: 'الجمر الهادئ', world: 'ember', style: 'هجومي: هادي وحسّابه، وإذا هجم ينفجر. ضغط من البداية وضرر قوي.',
+      id: 'kagira', name: 'سراج', title: 'الجمر الهادئ', world: 'ember', style: 'هجومي: هادي ويحسبها زين، وإذا هجم ينفجر. ضغط من البداية وضرر قوي.',
       board: { atk: 85, as: 0.8, range: 1, def: 0.2, crit: 0.1 },
       vanguard: { name: 'الهجوم الكاسح', text: 'لما ينزل الساحة: الفريق +8.8% هجوم، وهو يضرب أقوى (+4% هجوم، +2.4% فرصة حرجة).', allyAtk: 0.22, heroAtk: 0.1, heroCrit: 0.06 },
       passive: { id: 'blazing_will', name: 'إرادة متقدة', text: 'لما يسقط الصف الأمامي، الفريق ياخذ +45% هجوم.' },
@@ -558,7 +558,7 @@
    * values are per stage [stage 1, stage 2, stage 3]. kind -> effect in core/match.js (claimReward).
    */
   const REWARDS = {
-    unit:     { id: 'unit', icon: 'crown', name: 'مجنّد مجاني', tiers: [2, 3, 4], text: (v, st) => `وحدة ${v.tiers[st]} نجوم مجانًا (من عالم بطلك غالبًا)` },
+    unit:     { id: 'unit', icon: 'crown', name: 'مجنّد مجاني', tiers: [2, 3, 4], text: (v, st) => `وحدة بـ${['','نجمة','نجمتين','3 نجوم','4 نجوم','5 نجوم'][v.tiers[st]]} مجانًا (من عالم بطلك غالبًا)` },
     gold:     { id: 'gold', icon: 'coin', name: 'كنز', n: [5, 6, 8], text: (v, st) => `+${v.n[st]} ذهب فورًا` },
     xp:       { id: 'xp', icon: 'star', name: 'تخفيض الترقية', n: [2, 3, 4], text: (v, st) => `ترقية المتجر القادمة أرخص بـ${v.n[st]} ذهب` },
     essence:  { id: 'essence', icon: 'essence', name: 'جوهر نقي', n: [4, 4, 5], text: (v, st) => `+${v.n[st]} جوهر لقدرات البطل` },

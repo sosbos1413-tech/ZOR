@@ -158,7 +158,7 @@
   function rotateScreen() {
     const land = innerWidth > innerHeight;
     const want = land ? 'portrait' : 'landscape';
-    const done = () => { try { toast(want === 'landscape' ? 'تم التدوير للعرض' : 'رجعت للطول', 'good'); } catch (e) { /* ignore */ } };
+    const done = () => { try { toast(want === 'landscape' ? 'دوّرت لك الشاشة عرضي' : 'رجعت للطول', 'good'); } catch (e) { /* ignore */ } };
     const lock = () => screen.orientation.lock(want).then(done).catch(() => toast('جوالك ما يسمح بالتدوير من اللعبة، دوّره بنفسك أو شغّل التدوير التلقائي', 'err'));
     try {
       if (!(screen.orientation && screen.orientation.lock)) throw new Error('no lock');
@@ -517,7 +517,7 @@
     const p = S.match && S.match.players[S.v];
     if (!p || !p.mergePick || !prepActive()) return;
     const mp = p.mergePick;
-    const cards = mp.options.map((id, i) => `<button class="mp-card" data-act="pickMerge" data-idx="${i}">${cardHTML(UNITS[id], { k: 'mp' + i })}<span class="mp-st">${'★'.repeat(UNITS[id].tier)}</span></button>`).join('');
+    const cards = mp.options.map((id, i) => `<button class="mp-card" data-act="pickMerge" data-idx="${i}">${cardHTML(UNITS[id], { size: 'mini', k: 'mp' + i })}<span class="mp-st">${'★'.repeat(UNITS[id].tier)}</span></button>`).join('');
     modal(`<h2>🎉 دمج! اختر هديتك</h2><p class="mp-sub">اختر بطاقة وحدة من ${mp.options.length}، نجومها ${'★'.repeat(mp.rank)} (أعلى من مستوى متجرك بنجمة)</p><div class="mp-row">${cards}</div>`);
     const x = document.querySelector('#modal .x'); if (x) x.style.display = 'none';   // the choice is part of the merge: no closing without picking
   }
@@ -1415,7 +1415,7 @@
     if (S.match) {
       const p = me();
       const ow = S.match.allUnits(p).filter((u) => u.defId === id);
-      match = `<div class="hint">في هذه المباراة: تملك ${ow.length ? ow.map((u) => '★'.repeat(u.star)).join(' ، ') : 'لا شيء'} · المتبقي في المخزون المشترك: ${S.match._pool(me())[id]}/${CFG.economy.poolSize[d.tier]}</div>`;
+      match = `<div class="hint">في هالمباراة عندك: ${ow.length ? ow.map((u) => '★'.repeat(u.star)).join(' ، ') : 'ولا وحدة'} · المتبقي في المخزون المشترك: ${S.match._pool(me())[id]}/${CFG.economy.poolSize[d.tier]}</div>`;
     }
     modal(`<div class="detail-head">${portrait(d, { k: 'md' })}<div><h2>${d.name} ${star ? stars(star) : ''}</h2><div class="hint" style="direction:ltr;text-align:right">${d.en}</div>
       <span class="pill" style="--pc:${W.color}">${W.name}</span><span class="pill">${R.name}</span><span class="pill" style="--pc:var(--t${d.tier})">فئة ${d.tier} · تكلفة ${d.cost}</span>
@@ -1473,7 +1473,7 @@
   AMB.TIPS = AMB.TIPS || {};
   AMB.TIPS.interest = () => { const E0 = CFG.economy, p = S.match && me(); const n = p ? Math.min(E0.interestMax, Math.floor(p.gold / E0.interestPer)) : 0;
     return { title: 'الفايدة على الذهب', html: `<p>كل ${E0.interestPer} ذهب تخليها معك = +1 ذهب زيادة في الجولة الجاية، لين ${E0.interestMax}.</p>${p ? `<p>معك <b>${p.gold}</b> ذهب، يعني فايدتك الجاية <b>+${n}</b>.</p>` : ''}` }; };
-  const GLOSSARY = [['ذهب', 'تشتري فيه الوحدات والخبرة. يجيك كل جولة.'], ['جوهر', 'تشغّل فيه قدرات بطلك وقت القتال.'], ['شظايا 💎', 'عملة برا المباراة: تفتح فيها الباكجات.'],
+  const GLOSSARY = [['ذهب', 'تشتري فيه البطاقات وترقّي فيه المتجر. يجيك كل جولة.'], ['جوهر', 'تشغّل فيه قدرات بطلك وقت القتال.'], ['شظايا 💎', 'عملة برا المباراة: تفتح فيها الباكجات.'],
     ['مستوى المتجر', 'من ١ إلى ٥: كل مستوى يفتح بطاقات بنجمة زيادة ويكبّر الساحة. ترفعه بزر الترقية.'], ['تآزر', 'وحدات من نفس العالم أو نفس الدور مع بعض = قوة زيادة.'], ['رنين', 'وحدات من عالم بطلك تاخذ قوة زيادة.'],
     ['نجمة ★', 'نسخ متطابقة تندمج وتصير الوحدة أقوى.'], ['الغضب', 'بعد وقت من القتال الكل يضرب أقوى، عشان القتال يخلص.'], ['إنزال البطل 👑', 'بطلك يقاتل في الساحة ويقوّي فريقك، بس ممكن يخسر حياة.']];
   function howto(fromMenu) {
@@ -1653,7 +1653,7 @@
     const heroHere = p.summoned && p.heroSlot === slot;
     const sel = S.sel;
     if (sel && sel.kind === 'item') {
-      if (occ && res(m.equip(v, sel.idx, occ.uid))) { toast('تم التجهيز', 'good'); S.sel = null; }
+      if (occ && res(m.equip(v, sel.idx, occ.uid))) { toast('جهّزتها', 'good'); S.sel = null; }
       else if (!occ) toast('اختر وحدة تجهّزها', 'err');
     } else if (sel && sel.kind === 'unit') {
       if (occ && occ.uid === sel.uid) S.sel = null;
@@ -1671,7 +1671,7 @@
     const occ = p.bench[idx];
     const sel = S.sel;
     if (sel && sel.kind === 'item') {
-      if (occ && res(m.equip(v, sel.idx, occ.uid))) { toast('تم التجهيز', 'good'); S.sel = null; }
+      if (occ && res(m.equip(v, sel.idx, occ.uid))) { toast('جهّزتها', 'good'); S.sel = null; }
     } else if (sel && sel.kind === 'unit') {
       if (occ && occ.uid === sel.uid) S.sel = null;
       else if (res(m.move(v, sel.uid, { zone: 'bench', idx }))) S.sel = null;
@@ -1694,7 +1694,7 @@
     pickHero: (d, el, e) => {
       if (e.target.closest('[data-act="heroInfo"], [data-act="heroTry"]')) return;
       if (S.mode === 'online' && AMB.NetUI && AMB.NetUI.usedInSeries(d.id)) { toast('لعبت بهالبطل في السلسلة، اختر غيره', 'err'); return; }
-      if (heroLocked(d.id)) { toast('هذا البطل مقفل: تفتحه لما تخلّص مستواه في الحملة بالثلاث صعوبات', 'err'); return; }
+      if (heroLocked(d.id)) { toast('هالبطل مقفل: تفتحه لما تخلّص مستواه في الحملة بالثلاث صعوبات', 'err'); return; }
       S.picks[S.pickIdx] = d.id; renderHeroSelect();
     },
     heroInfo: (d, el, e) => { e.stopPropagation(); heroDetail(d.id); },

@@ -33,7 +33,7 @@
       : `<span class="cp-need">تحتاج ${need - have} نسخة ${need - have === 1 ? 'زيادة' : 'زيادة'} من الباكجات</span>`;
     const bonus = Math.round((C.power(id) - 1) * 100);
     const inDeck = d.role && owned && C.inDeck(id);
-    const dk = d.role && owned ? `<button class="btn small dk ${inDeck ? 'on' : ''}" data-act="colDeck" data-id="${id}">${inDeck ? '✓ في الديك' : '＋ للديك'}</button>` : '';
+    const dk = d.role && owned ? `<button class="btn small dk ${inDeck ? 'on' : ''}" data-act="colDeck" data-id="${id}">${inDeck ? '✓ في التشكيلة' : '＋ للتشكيلة'}</button>` : '';
     return `<div class="cp-tile ${inDeck ? 'indeck' : ''}" data-card="${id}">${card}${owned ? bar : ''}<div class="cp-foot">${btn}<span class="cp-pow" title="قوة البطاقة في الحملة والبرج">${bonus > 0 ? '+' + bonus + '%' : '±0%'}</span></div>${dk ? `<div class="cp-foot">${dk}</div>` : ''}</div>`;
   }
 
@@ -46,14 +46,14 @@
     const L = C.deckLimits(), deck = C.deck(), rc = C.roleCounts(deck), ROLE = AMB.DATA.ROLES, ui = UI();
     const slots = []; for (let i = 0; i < L.size; i++) slots.push(deck[i] ? `<button class="dslot" data-act="colDeck" data-id="${deck[i]}" title="${C.def(deck[i]).name}: اضغط للإزالة">${ui.portrait(C.def(deck[i]), { k: 'dk' + i + deck[i] })}</button>` : `<i class="dslot empty"></i>`);
     const ok = deck.length >= L.min;
-    return `<div class="deck-bar ${ok ? '' : 'bad'}"><div class="db-top"><b>🃏 ديكك <span>${deck.length}/${L.size}</span></b>
+    return `<div class="deck-bar ${ok ? '' : 'bad'}"><div class="db-top"><b>🃏 تشكيلتك <span>${deck.length}/${L.size}</span></b>
         <span class="db-btns"><button class="btn small primary" data-act="colAuto">ترتيب تلقائي</button><button class="btn small ghost" data-act="colClear">تفريغ</button><button class="ibtn" data-act="info" data-k="deckinfo" title="شرح">ⓘ</button></span></div>
       <div class="db-slots">${slots.join('')}</div>
       <div class="db-roles">${Object.entries(rc).map(([r, n]) => `<span class="${n ? '' : 'z'}">${icon(AMB.art.ROLE_ICON[r])}${ROLE[r].name} ${n}</span>`).join('')}</div>
-      ${ok ? '' : `<div class="db-warn">تحتاج ${L.min} وحدات على الأقل في الديك (وإلا تدخل بكل وحداتك)</div>`}</div>`;
+      ${ok ? '' : `<div class="db-warn">تحتاج ${L.min} وحدات على الأقل في التشكيلة (وإلا تدخل بكل وحداتك)</div>`}</div>`;
   }
-  AMB.TIPS.deckinfo = () => ({ title: 'الديك', html: `<p>الديك هو <b>الوحدات اللي تطلع لك في المتجر</b> أثناء الحملة والبرج والأحداث (حتى ${C.deckLimits().size} وحدة، والحد الأدنى ${C.deckLimits().min}). اختر الأدوار والعوالم اللي تكمّل بعض عشان التآزر.</p>
-    <p>المباراة السريعة وعلى نفس الجهاز ما تستخدم الديك: الكل يلعب بكل الوحدات. والأبطال خارج الديك.</p><p>«ترتيب تلقائي» يختار لك ديك متوازن من أقوى بطاقاتك.</p>` });
+  AMB.TIPS.deckinfo = () => ({ title: 'التشكيلة', html: `<p>التشكيلة هي <b>الوحدات اللي تطلع لك في المتجر</b> أثناء الحملة والبرج والأحداث (حتى ${C.deckLimits().size} وحدة، والحد الأدنى ${C.deckLimits().min}). اختر الأدوار والعوالم اللي تكمّل بعض عشان التآزر.</p>
+    <p>المباراة السريعة وعلى نفس الجهاز ما تستخدم التشكيلة: الكل يلعب بكل الوحدات. والأبطال خارج التشكيلة.</p><p>«ترتيب تلقائي» تختار لك تشكيلة متوازنة من أقوى بطاقاتك.</p>` });
   const WORLDS = AMB.DATA.WORLDS;
   // collection world map: four arms; each shows how many of that world's cards you own
   function worldHub() {
@@ -80,7 +80,7 @@
     const isOpen = (k) => !(ST ? ST.folded(k, !firstVisit) : false);
     const L = C.deckLimits(), dn = C.deck().length;
     root.innerHTML = `<div class="col-head">
-        ${C.needsStarter() ? '' : `<details class="col-fold" data-fold="colDeck" ${isOpen('colDeck') ? 'open' : ''}><summary><b>🃏 ديكك <span class="${dn >= L.min ? '' : 'bad'}">${dn}/${L.size}</span></b><small>للحملة والبرج والأحداث</small></summary>${deckBar()}</details>`}
+        ${C.needsStarter() ? '' : `<details class="col-fold" data-fold="colDeck" ${isOpen('colDeck') ? 'open' : ''}><summary><b>🃏 تشكيلتك <span class="${dn >= L.min ? '' : 'bad'}">${dn}/${L.size}</span></b><small>للحملة والبرج والأحداث</small></summary>${deckBar()}</details>`}
         ${C.needsStarter() ? '<div class="col-starter">ما اخترت بطلك الأول للحين: اضغط «العب» واختر واحد من الأربعة.</div>' : ''}
         <div>${(() => { const at = AMB.album ? AMB.album.total() : null, hs = Object.keys(AMB.DATA.HEROES), ho = hs.filter((h) => C.owned(h)).length; return at ? `<b>${at.owned} / ${at.total}</b> وحدة · <b>${ho} / ${hs.length}</b> أبطال` : `<b>${C.ownedCount()} / ${C.ids().length}</b> بطاقة`; })()} · ${ready ? `<span class="col-ready">${ready} جاهزة للتطوير</span>` : 'ما فيه ترقيات جاهزة'}</div>
         <details class="col-fold" data-fold="colHow" ${isOpen('colHow') ? 'open' : ''}><summary><b>كيف أطوّر بطاقاتي؟</b>${ready ? `<small class="col-ready">⬆ ${ready} جاهزة</small>` : ''}</summary>
@@ -89,10 +89,10 @@
         <div class="rar-legend">${Object.entries(RAR).map(([k, r]) => `<span class="rl r-${k}"><i></i>${r.name} <small>+${Math.round((r.power - 1) * 100)}%</small></span>`).join('')}</div>
         <button class="btn primary small" data-act="go" data-to="packs">افتح باكجات للحصول على نسخ</button></details>
         ${hub ? '' : `<div class="filters">${fb('', 'الكل')}${Object.entries(RAR).map(([k, r]) => fb(k, r.name, r.color)).join('')}</div>
-        <div class="filters"><button class="btn small ${roleF === '' && !deckOnly && !upOnly ? 'on' : ''}" data-act="colRole" data-v="">كل الأدوار</button><button class="btn small ${upOnly ? 'on' : ''}" data-act="colRole" data-v="up">⬆ جاهزة للتطوير</button><button class="btn small ${deckOnly ? 'on' : ''}" data-act="colRole" data-v="deck">الديك فقط</button>${Object.entries(AMB.DATA.ROLES).map(([k, r]) => `<button class="btn small ${roleF === k ? 'on' : ''}" data-act="colRole" data-v="${k}">${r.name}</button>`).join('')}</div>
+        <div class="filters"><button class="btn small ${roleF === '' && !deckOnly && !upOnly ? 'on' : ''}" data-act="colRole" data-v="">كل الأدوار</button><button class="btn small ${upOnly ? 'on' : ''}" data-act="colRole" data-v="up">⬆ جاهزة للتطوير</button><button class="btn small ${deckOnly ? 'on' : ''}" data-act="colRole" data-v="deck">التشكيلة فقط</button>${Object.entries(AMB.DATA.ROLES).map(([k, r]) => `<button class="btn small ${roleF === k ? 'on' : ''}" data-act="colRole" data-v="${k}">${r.name}</button>`).join('')}</div>
 `}
       </div>
-      ${hub ? worldHub() : `<div class="wm-back"><button class="btn small ghost" data-act="colWorld" data-w="">‹ خريطة العوالم</button><b style="color:${worldF ? WORLDS[worldF].color : 'inherit'}">${worldF ? `${AMB.art.icon(AMB.art.WORLD_ICON[worldF])} ${WORLDS[worldF].name}` : deckOnly ? '🃏 الديك' : upOnly ? '⬆ جاهزة للتطوير' : 'البطاقات'}</b></div><div class="col-grid">${ids.map(tile).join('')}</div>`}`;
+      ${hub ? worldHub() : `<div class="wm-back"><button class="btn small ghost" data-act="colWorld" data-w="">‹ خريطة العوالم</button><b style="color:${worldF ? WORLDS[worldF].color : 'inherit'}">${worldF ? `${AMB.art.icon(AMB.art.WORLD_ICON[worldF])} ${WORLDS[worldF].name}` : deckOnly ? '🃏 التشكيلة' : upOnly ? '⬆ جاهزة للتطوير' : 'البطاقات'}</b></div><div class="col-grid">${ids.map(tile).join('')}</div>`}`;
     refreshMenu();
   }
 
@@ -109,7 +109,7 @@
       colFilter: (d) => { justUp = ''; filter = d.v || ''; render(); },
       colRole: (d) => { justUp = ''; deckOnly = d.v === 'deck'; upOnly = d.v === 'up'; roleF = deckOnly || upOnly ? '' : (d.v || ''); render(); },
       colDeck: (d) => { const r = C.toggleDeck(d.id); if (!r.ok) { ui.toast(r.reason, 'err'); return; } ui.sfx('click'); const y = window.scrollY; render(); window.scrollTo(0, y); },
-      colAuto: () => { C.autoBuild(); ui.sfx('merge'); ui.toast('تم ترتيب ديك متوازن', 'good'); render(); },
+      colAuto: () => { C.autoBuild(); ui.sfx('merge'); ui.toast('رتبت لك تشكيلة متوازنة', 'good'); render(); },
       colClear: () => { C.setDeck([]); render(); },
       deckEdit: () => { ui.closeModal(); ui.show('cards'); },
       colUpgrade: (d) => {
@@ -133,8 +133,8 @@
 
   // used before a progression fight: no valid deck -> build one for you; and a one-line summary for the fight previews
   AMB.DeckGate = {
-    ensure() { if (!C.deckValid()) { C.autoBuild(); if (UI()) UI().toast('رتبت لك ديك تلقائي', 'good'); } return true; },
-    line() { const L = C.deckLimits(), n = C.deck().length; return `<div class="deck-line ${n >= L.min ? '' : 'bad'}">🃏 ديكك: <b>${n}/${L.size}</b>${n >= L.min ? '' : ' (ناقص: يرتّب لك تلقائيًا)'} <button class="btn small" data-act="deckEdit">عدّل</button></div>`; },
+    ensure() { if (!C.deckValid()) { C.autoBuild(); if (UI()) UI().toast('رتبت لك تشكيلة تلقائيًا', 'good'); } return true; },
+    line() { const L = C.deckLimits(), n = C.deck().length; return `<div class="deck-line ${n >= L.min ? '' : 'bad'}">🃏 تشكيلتك: <b>${n}/${L.size}</b>${n >= L.min ? '' : ' (ناقص: يرتّب لك تلقائيًا)'} <button class="btn small" data-act="deckEdit">عدّل</button></div>`; },
   };
   // remember each folded section (the toggle event does not bubble: listen in the capture phase)
   document.addEventListener('toggle', (e) => { const d = e.target; if (d && d.dataset && d.dataset.fold && AMB.settings) AMB.settings.setFolded(d.dataset.fold, !d.open); }, true);

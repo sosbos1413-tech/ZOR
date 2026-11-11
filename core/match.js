@@ -270,7 +270,7 @@
       const p = this.players[pi], mp = p.mergePick;
       if (!mp) return this._fail('ما فيه مكافأة دمج');
       const defId = mp.options[idx];
-      if (!defId) return this._fail('هذا الخيار مو صحيح');
+      if (!defId) return this._fail('هالخيار مو صحيح');
       p.mergePick = null;
       this._pool(p)[defId]--;
       const unit = { uid: this._uid(p), defId, star: 1, items: [] };
@@ -672,7 +672,7 @@
     claimReward(pi, idx) {
       const p = this.players[pi], o = p.rewardOffer;
       if (!o || o.claimed) return this._fail('ما فيه مكافأة');
-      const id = o.options[idx]; if (!id) return this._fail('هذا الخيار مو صحيح');
+      const id = o.options[idx]; if (!id) return this._fail('هالخيار مو صحيح');
       const R = AMB.DATA.REWARDS[id], st = o.stage, out = { ok: true, id, text: R.name + ' — ' + this.rewardText(id, st) };
       switch (id) {
         case 'gold': p.gold += R.n[st]; break;

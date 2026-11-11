@@ -566,7 +566,7 @@
    */
   const HEROES = {
     kagira: {
-      id: 'kagira', name: 'سراج', title: 'الجمر الهادئ', world: 'ember', style: 'هجومي: هادي وحسّابه، وإذا هجم ينفجر. ضغط من البداية وضرر قوي.',
+      id: 'kagira', name: 'سراج', title: 'الجمر الهادئ', world: 'ember', style: 'هجومي: هادي ويحسبها زين، وإذا هجم ينفجر. ضغط من البداية وضرر قوي.',
       board: { atk: 85, as: 0.8, range: 1, def: 0.2, crit: 0.1 },
       vanguard: { name: 'الهجوم الكاسح', text: 'لما ينزل الساحة: الفريق +8.8% هجوم، وهو يضرب أقوى (+4% هجوم، +2.4% فرصة حرجة).', allyAtk: 0.22, heroAtk: 0.1, heroCrit: 0.06 },
       passive: { id: 'blazing_will', name: 'إرادة متقدة', text: 'لما يسقط الصف الأمامي، الفريق ياخذ +45% هجوم.' },
@@ -747,7 +747,7 @@
    * values are per stage [stage 1, stage 2, stage 3]. kind -> effect in core/match.js (claimReward).
    */
   const REWARDS = {
-    unit:     { id: 'unit', icon: 'crown', name: 'مجنّد مجاني', tiers: [2, 3, 4], text: (v, st) => `وحدة ${v.tiers[st]} نجوم مجانًا (من عالم بطلك غالبًا)` },
+    unit:     { id: 'unit', icon: 'crown', name: 'مجنّد مجاني', tiers: [2, 3, 4], text: (v, st) => `وحدة بـ${['','نجمة','نجمتين','3 نجوم','4 نجوم','5 نجوم'][v.tiers[st]]} مجانًا (من عالم بطلك غالبًا)` },
     gold:     { id: 'gold', icon: 'coin', name: 'كنز', n: [5, 6, 8], text: (v, st) => `+${v.n[st]} ذهب فورًا` },
     xp:       { id: 'xp', icon: 'star', name: 'تخفيض الترقية', n: [2, 3, 4], text: (v, st) => `ترقية المتجر القادمة أرخص بـ${v.n[st]} ذهب` },
     essence:  { id: 'essence', icon: 'essence', name: 'جوهر نقي', n: [4, 4, 5], text: (v, st) => `+${v.n[st]} جوهر لقدرات البطل` },
@@ -1766,7 +1766,7 @@
       const p = this.players[pi], mp = p.mergePick;
       if (!mp) return this._fail('ما فيه مكافأة دمج');
       const defId = mp.options[idx];
-      if (!defId) return this._fail('هذا الخيار مو صحيح');
+      if (!defId) return this._fail('هالخيار مو صحيح');
       p.mergePick = null;
       this._pool(p)[defId]--;
       const unit = { uid: this._uid(p), defId, star: 1, items: [] };
@@ -2168,7 +2168,7 @@
     claimReward(pi, idx) {
       const p = this.players[pi], o = p.rewardOffer;
       if (!o || o.claimed) return this._fail('ما فيه مكافأة');
-      const id = o.options[idx]; if (!id) return this._fail('هذا الخيار مو صحيح');
+      const id = o.options[idx]; if (!id) return this._fail('هالخيار مو صحيح');
       const R = AMB.DATA.REWARDS[id], st = o.stage, out = { ok: true, id, text: R.name + ' — ' + this.rewardText(id, st) };
       switch (id) {
         case 'gold': p.gold += R.n[st]; break;
@@ -2976,7 +2976,7 @@
         if (!AMB.DATA.UNITS[id] || !api.owned(id)) return { ok: false, reason: 'ما تملك هالوحدة' };
         const cur = api.deck();
         if (cur.includes(id)) { api.setDeck(cur.filter((x) => x !== id)); return { ok: true, in: false }; }
-        if (cur.length >= EC().deck.size) return { ok: false, reason: `الديك ممتلئ (${EC().deck.size})` };
+        if (cur.length >= EC().deck.size) return { ok: false, reason: `التشكيلة ممتلئة (${EC().deck.size})` };
         api.setDeck(cur.concat([id])); return { ok: true, in: true };
       },
       /** a balanced deck from what you own: role quotas first (strongest cards), then the best remaining, leaning on your two strongest worlds */
@@ -4968,7 +4968,7 @@ AMB.IMAGES = {
   function rotateScreen() {
     const land = innerWidth > innerHeight;
     const want = land ? 'portrait' : 'landscape';
-    const done = () => { try { toast(want === 'landscape' ? 'تم التدوير للعرض' : 'رجعت للطول', 'good'); } catch (e) { /* ignore */ } };
+    const done = () => { try { toast(want === 'landscape' ? 'دوّرت لك الشاشة عرضي' : 'رجعت للطول', 'good'); } catch (e) { /* ignore */ } };
     const lock = () => screen.orientation.lock(want).then(done).catch(() => toast('جوالك ما يسمح بالتدوير من اللعبة، دوّره بنفسك أو شغّل التدوير التلقائي', 'err'));
     try {
       if (!(screen.orientation && screen.orientation.lock)) throw new Error('no lock');
@@ -5327,7 +5327,7 @@ AMB.IMAGES = {
     const p = S.match && S.match.players[S.v];
     if (!p || !p.mergePick || !prepActive()) return;
     const mp = p.mergePick;
-    const cards = mp.options.map((id, i) => `<button class="mp-card" data-act="pickMerge" data-idx="${i}">${cardHTML(UNITS[id], { k: 'mp' + i })}<span class="mp-st">${'★'.repeat(UNITS[id].tier)}</span></button>`).join('');
+    const cards = mp.options.map((id, i) => `<button class="mp-card" data-act="pickMerge" data-idx="${i}">${cardHTML(UNITS[id], { size: 'mini', k: 'mp' + i })}<span class="mp-st">${'★'.repeat(UNITS[id].tier)}</span></button>`).join('');
     modal(`<h2>🎉 دمج! اختر هديتك</h2><p class="mp-sub">اختر بطاقة وحدة من ${mp.options.length}، نجومها ${'★'.repeat(mp.rank)} (أعلى من مستوى متجرك بنجمة)</p><div class="mp-row">${cards}</div>`);
     const x = document.querySelector('#modal .x'); if (x) x.style.display = 'none';   // the choice is part of the merge: no closing without picking
   }
@@ -6225,7 +6225,7 @@ AMB.IMAGES = {
     if (S.match) {
       const p = me();
       const ow = S.match.allUnits(p).filter((u) => u.defId === id);
-      match = `<div class="hint">في هذه المباراة: تملك ${ow.length ? ow.map((u) => '★'.repeat(u.star)).join(' ، ') : 'لا شيء'} · المتبقي في المخزون المشترك: ${S.match._pool(me())[id]}/${CFG.economy.poolSize[d.tier]}</div>`;
+      match = `<div class="hint">في هالمباراة عندك: ${ow.length ? ow.map((u) => '★'.repeat(u.star)).join(' ، ') : 'ولا وحدة'} · المتبقي في المخزون المشترك: ${S.match._pool(me())[id]}/${CFG.economy.poolSize[d.tier]}</div>`;
     }
     modal(`<div class="detail-head">${portrait(d, { k: 'md' })}<div><h2>${d.name} ${star ? stars(star) : ''}</h2><div class="hint" style="direction:ltr;text-align:right">${d.en}</div>
       <span class="pill" style="--pc:${W.color}">${W.name}</span><span class="pill">${R.name}</span><span class="pill" style="--pc:var(--t${d.tier})">فئة ${d.tier} · تكلفة ${d.cost}</span>
@@ -6283,7 +6283,7 @@ AMB.IMAGES = {
   AMB.TIPS = AMB.TIPS || {};
   AMB.TIPS.interest = () => { const E0 = CFG.economy, p = S.match && me(); const n = p ? Math.min(E0.interestMax, Math.floor(p.gold / E0.interestPer)) : 0;
     return { title: 'الفايدة على الذهب', html: `<p>كل ${E0.interestPer} ذهب تخليها معك = +1 ذهب زيادة في الجولة الجاية، لين ${E0.interestMax}.</p>${p ? `<p>معك <b>${p.gold}</b> ذهب، يعني فايدتك الجاية <b>+${n}</b>.</p>` : ''}` }; };
-  const GLOSSARY = [['ذهب', 'تشتري فيه الوحدات والخبرة. يجيك كل جولة.'], ['جوهر', 'تشغّل فيه قدرات بطلك وقت القتال.'], ['شظايا 💎', 'عملة برا المباراة: تفتح فيها الباكجات.'],
+  const GLOSSARY = [['ذهب', 'تشتري فيه البطاقات وترقّي فيه المتجر. يجيك كل جولة.'], ['جوهر', 'تشغّل فيه قدرات بطلك وقت القتال.'], ['شظايا 💎', 'عملة برا المباراة: تفتح فيها الباكجات.'],
     ['مستوى المتجر', 'من ١ إلى ٥: كل مستوى يفتح بطاقات بنجمة زيادة ويكبّر الساحة. ترفعه بزر الترقية.'], ['تآزر', 'وحدات من نفس العالم أو نفس الدور مع بعض = قوة زيادة.'], ['رنين', 'وحدات من عالم بطلك تاخذ قوة زيادة.'],
     ['نجمة ★', 'نسخ متطابقة تندمج وتصير الوحدة أقوى.'], ['الغضب', 'بعد وقت من القتال الكل يضرب أقوى، عشان القتال يخلص.'], ['إنزال البطل 👑', 'بطلك يقاتل في الساحة ويقوّي فريقك، بس ممكن يخسر حياة.']];
   function howto(fromMenu) {
@@ -6463,7 +6463,7 @@ AMB.IMAGES = {
     const heroHere = p.summoned && p.heroSlot === slot;
     const sel = S.sel;
     if (sel && sel.kind === 'item') {
-      if (occ && res(m.equip(v, sel.idx, occ.uid))) { toast('تم التجهيز', 'good'); S.sel = null; }
+      if (occ && res(m.equip(v, sel.idx, occ.uid))) { toast('جهّزتها', 'good'); S.sel = null; }
       else if (!occ) toast('اختر وحدة تجهّزها', 'err');
     } else if (sel && sel.kind === 'unit') {
       if (occ && occ.uid === sel.uid) S.sel = null;
@@ -6481,7 +6481,7 @@ AMB.IMAGES = {
     const occ = p.bench[idx];
     const sel = S.sel;
     if (sel && sel.kind === 'item') {
-      if (occ && res(m.equip(v, sel.idx, occ.uid))) { toast('تم التجهيز', 'good'); S.sel = null; }
+      if (occ && res(m.equip(v, sel.idx, occ.uid))) { toast('جهّزتها', 'good'); S.sel = null; }
     } else if (sel && sel.kind === 'unit') {
       if (occ && occ.uid === sel.uid) S.sel = null;
       else if (res(m.move(v, sel.uid, { zone: 'bench', idx }))) S.sel = null;
@@ -6504,7 +6504,7 @@ AMB.IMAGES = {
     pickHero: (d, el, e) => {
       if (e.target.closest('[data-act="heroInfo"], [data-act="heroTry"]')) return;
       if (S.mode === 'online' && AMB.NetUI && AMB.NetUI.usedInSeries(d.id)) { toast('لعبت بهالبطل في السلسلة، اختر غيره', 'err'); return; }
-      if (heroLocked(d.id)) { toast('هذا البطل مقفل: تفتحه لما تخلّص مستواه في الحملة بالثلاث صعوبات', 'err'); return; }
+      if (heroLocked(d.id)) { toast('هالبطل مقفل: تفتحه لما تخلّص مستواه في الحملة بالثلاث صعوبات', 'err'); return; }
       S.picks[S.pickIdx] = d.id; renderHeroSelect();
     },
     heroInfo: (d, el, e) => { e.stopPropagation(); heroDetail(d.id); },
@@ -7112,7 +7112,7 @@ AMB.IMAGES = {
         got.forEach((g) => { const r = g.reward; if (r.type !== 'perk' && pass.equipped(r.type) === (r.type === 'avatar' ? null : 'default')) pass.equip(r.type, r.id); });
         UI().sfx('merge'); toast(`استلمت ${got.length} مكافأة`, 'good'); after();
       },
-      passEquipReward: (d) => { const r = pass.reward(+d.level, d.track); if (r && pass.equip(r.type, r.id)) { UI().sfx('click'); toast(`تم تجهيز: ${pass.rewardName(r)}`, 'good'); after(); } },
+      passEquipReward: (d) => { const r = pass.reward(+d.level, d.track); if (r && pass.equip(r.type, r.id)) { UI().sfx('click'); toast(`جهّزت: ${pass.rewardName(r)}`, 'good'); after(); } },
       passEquip: (d) => { if (pass.equip(d.type, d.id === '' ? null : d.id)) { UI().sfx('click'); after(); } },
       passClaimMission: (d) => { const r = pass.claimMission(d.id); if (r) { UI().sfx('merge'); toast(`+${r.xp} خبرة${r.shards ? ` و +${r.shards} شظية` : ''}${r.levelUp ? ' — ارتفع مستواك!' : ''}`, 'good'); after(); } },
       passPremium: () => toast('المسار المميز قريب · والمجاني متاح لك كله', ''),
@@ -7162,7 +7162,7 @@ AMB.IMAGES = {
       : `<span class="cp-need">تحتاج ${need - have} نسخة ${need - have === 1 ? 'زيادة' : 'زيادة'} من الباكجات</span>`;
     const bonus = Math.round((C.power(id) - 1) * 100);
     const inDeck = d.role && owned && C.inDeck(id);
-    const dk = d.role && owned ? `<button class="btn small dk ${inDeck ? 'on' : ''}" data-act="colDeck" data-id="${id}">${inDeck ? '✓ في الديك' : '＋ للديك'}</button>` : '';
+    const dk = d.role && owned ? `<button class="btn small dk ${inDeck ? 'on' : ''}" data-act="colDeck" data-id="${id}">${inDeck ? '✓ في التشكيلة' : '＋ للتشكيلة'}</button>` : '';
     return `<div class="cp-tile ${inDeck ? 'indeck' : ''}" data-card="${id}">${card}${owned ? bar : ''}<div class="cp-foot">${btn}<span class="cp-pow" title="قوة البطاقة في الحملة والبرج">${bonus > 0 ? '+' + bonus + '%' : '±0%'}</span></div>${dk ? `<div class="cp-foot">${dk}</div>` : ''}</div>`;
   }
 
@@ -7175,14 +7175,14 @@ AMB.IMAGES = {
     const L = C.deckLimits(), deck = C.deck(), rc = C.roleCounts(deck), ROLE = AMB.DATA.ROLES, ui = UI();
     const slots = []; for (let i = 0; i < L.size; i++) slots.push(deck[i] ? `<button class="dslot" data-act="colDeck" data-id="${deck[i]}" title="${C.def(deck[i]).name}: اضغط للإزالة">${ui.portrait(C.def(deck[i]), { k: 'dk' + i + deck[i] })}</button>` : `<i class="dslot empty"></i>`);
     const ok = deck.length >= L.min;
-    return `<div class="deck-bar ${ok ? '' : 'bad'}"><div class="db-top"><b>🃏 ديكك <span>${deck.length}/${L.size}</span></b>
+    return `<div class="deck-bar ${ok ? '' : 'bad'}"><div class="db-top"><b>🃏 تشكيلتك <span>${deck.length}/${L.size}</span></b>
         <span class="db-btns"><button class="btn small primary" data-act="colAuto">ترتيب تلقائي</button><button class="btn small ghost" data-act="colClear">تفريغ</button><button class="ibtn" data-act="info" data-k="deckinfo" title="شرح">ⓘ</button></span></div>
       <div class="db-slots">${slots.join('')}</div>
       <div class="db-roles">${Object.entries(rc).map(([r, n]) => `<span class="${n ? '' : 'z'}">${icon(AMB.art.ROLE_ICON[r])}${ROLE[r].name} ${n}</span>`).join('')}</div>
-      ${ok ? '' : `<div class="db-warn">تحتاج ${L.min} وحدات على الأقل في الديك (وإلا تدخل بكل وحداتك)</div>`}</div>`;
+      ${ok ? '' : `<div class="db-warn">تحتاج ${L.min} وحدات على الأقل في التشكيلة (وإلا تدخل بكل وحداتك)</div>`}</div>`;
   }
-  AMB.TIPS.deckinfo = () => ({ title: 'الديك', html: `<p>الديك هو <b>الوحدات اللي تطلع لك في المتجر</b> أثناء الحملة والبرج والأحداث (حتى ${C.deckLimits().size} وحدة، والحد الأدنى ${C.deckLimits().min}). اختر الأدوار والعوالم اللي تكمّل بعض عشان التآزر.</p>
-    <p>المباراة السريعة وعلى نفس الجهاز ما تستخدم الديك: الكل يلعب بكل الوحدات. والأبطال خارج الديك.</p><p>«ترتيب تلقائي» يختار لك ديك متوازن من أقوى بطاقاتك.</p>` });
+  AMB.TIPS.deckinfo = () => ({ title: 'التشكيلة', html: `<p>التشكيلة هي <b>الوحدات اللي تطلع لك في المتجر</b> أثناء الحملة والبرج والأحداث (حتى ${C.deckLimits().size} وحدة، والحد الأدنى ${C.deckLimits().min}). اختر الأدوار والعوالم اللي تكمّل بعض عشان التآزر.</p>
+    <p>المباراة السريعة وعلى نفس الجهاز ما تستخدم التشكيلة: الكل يلعب بكل الوحدات. والأبطال خارج التشكيلة.</p><p>«ترتيب تلقائي» تختار لك تشكيلة متوازنة من أقوى بطاقاتك.</p>` });
   const WORLDS = AMB.DATA.WORLDS;
   // collection world map: four arms; each shows how many of that world's cards you own
   function worldHub() {
@@ -7209,7 +7209,7 @@ AMB.IMAGES = {
     const isOpen = (k) => !(ST ? ST.folded(k, !firstVisit) : false);
     const L = C.deckLimits(), dn = C.deck().length;
     root.innerHTML = `<div class="col-head">
-        ${C.needsStarter() ? '' : `<details class="col-fold" data-fold="colDeck" ${isOpen('colDeck') ? 'open' : ''}><summary><b>🃏 ديكك <span class="${dn >= L.min ? '' : 'bad'}">${dn}/${L.size}</span></b><small>للحملة والبرج والأحداث</small></summary>${deckBar()}</details>`}
+        ${C.needsStarter() ? '' : `<details class="col-fold" data-fold="colDeck" ${isOpen('colDeck') ? 'open' : ''}><summary><b>🃏 تشكيلتك <span class="${dn >= L.min ? '' : 'bad'}">${dn}/${L.size}</span></b><small>للحملة والبرج والأحداث</small></summary>${deckBar()}</details>`}
         ${C.needsStarter() ? '<div class="col-starter">ما اخترت بطلك الأول للحين: اضغط «العب» واختر واحد من الأربعة.</div>' : ''}
         <div>${(() => { const at = AMB.album ? AMB.album.total() : null, hs = Object.keys(AMB.DATA.HEROES), ho = hs.filter((h) => C.owned(h)).length; return at ? `<b>${at.owned} / ${at.total}</b> وحدة · <b>${ho} / ${hs.length}</b> أبطال` : `<b>${C.ownedCount()} / ${C.ids().length}</b> بطاقة`; })()} · ${ready ? `<span class="col-ready">${ready} جاهزة للتطوير</span>` : 'ما فيه ترقيات جاهزة'}</div>
         <details class="col-fold" data-fold="colHow" ${isOpen('colHow') ? 'open' : ''}><summary><b>كيف أطوّر بطاقاتي؟</b>${ready ? `<small class="col-ready">⬆ ${ready} جاهزة</small>` : ''}</summary>
@@ -7218,10 +7218,10 @@ AMB.IMAGES = {
         <div class="rar-legend">${Object.entries(RAR).map(([k, r]) => `<span class="rl r-${k}"><i></i>${r.name} <small>+${Math.round((r.power - 1) * 100)}%</small></span>`).join('')}</div>
         <button class="btn primary small" data-act="go" data-to="packs">افتح باكجات للحصول على نسخ</button></details>
         ${hub ? '' : `<div class="filters">${fb('', 'الكل')}${Object.entries(RAR).map(([k, r]) => fb(k, r.name, r.color)).join('')}</div>
-        <div class="filters"><button class="btn small ${roleF === '' && !deckOnly && !upOnly ? 'on' : ''}" data-act="colRole" data-v="">كل الأدوار</button><button class="btn small ${upOnly ? 'on' : ''}" data-act="colRole" data-v="up">⬆ جاهزة للتطوير</button><button class="btn small ${deckOnly ? 'on' : ''}" data-act="colRole" data-v="deck">الديك فقط</button>${Object.entries(AMB.DATA.ROLES).map(([k, r]) => `<button class="btn small ${roleF === k ? 'on' : ''}" data-act="colRole" data-v="${k}">${r.name}</button>`).join('')}</div>
+        <div class="filters"><button class="btn small ${roleF === '' && !deckOnly && !upOnly ? 'on' : ''}" data-act="colRole" data-v="">كل الأدوار</button><button class="btn small ${upOnly ? 'on' : ''}" data-act="colRole" data-v="up">⬆ جاهزة للتطوير</button><button class="btn small ${deckOnly ? 'on' : ''}" data-act="colRole" data-v="deck">التشكيلة فقط</button>${Object.entries(AMB.DATA.ROLES).map(([k, r]) => `<button class="btn small ${roleF === k ? 'on' : ''}" data-act="colRole" data-v="${k}">${r.name}</button>`).join('')}</div>
 `}
       </div>
-      ${hub ? worldHub() : `<div class="wm-back"><button class="btn small ghost" data-act="colWorld" data-w="">‹ خريطة العوالم</button><b style="color:${worldF ? WORLDS[worldF].color : 'inherit'}">${worldF ? `${AMB.art.icon(AMB.art.WORLD_ICON[worldF])} ${WORLDS[worldF].name}` : deckOnly ? '🃏 الديك' : upOnly ? '⬆ جاهزة للتطوير' : 'البطاقات'}</b></div><div class="col-grid">${ids.map(tile).join('')}</div>`}`;
+      ${hub ? worldHub() : `<div class="wm-back"><button class="btn small ghost" data-act="colWorld" data-w="">‹ خريطة العوالم</button><b style="color:${worldF ? WORLDS[worldF].color : 'inherit'}">${worldF ? `${AMB.art.icon(AMB.art.WORLD_ICON[worldF])} ${WORLDS[worldF].name}` : deckOnly ? '🃏 التشكيلة' : upOnly ? '⬆ جاهزة للتطوير' : 'البطاقات'}</b></div><div class="col-grid">${ids.map(tile).join('')}</div>`}`;
     refreshMenu();
   }
 
@@ -7238,7 +7238,7 @@ AMB.IMAGES = {
       colFilter: (d) => { justUp = ''; filter = d.v || ''; render(); },
       colRole: (d) => { justUp = ''; deckOnly = d.v === 'deck'; upOnly = d.v === 'up'; roleF = deckOnly || upOnly ? '' : (d.v || ''); render(); },
       colDeck: (d) => { const r = C.toggleDeck(d.id); if (!r.ok) { ui.toast(r.reason, 'err'); return; } ui.sfx('click'); const y = window.scrollY; render(); window.scrollTo(0, y); },
-      colAuto: () => { C.autoBuild(); ui.sfx('merge'); ui.toast('تم ترتيب ديك متوازن', 'good'); render(); },
+      colAuto: () => { C.autoBuild(); ui.sfx('merge'); ui.toast('رتبت لك تشكيلة متوازنة', 'good'); render(); },
       colClear: () => { C.setDeck([]); render(); },
       deckEdit: () => { ui.closeModal(); ui.show('cards'); },
       colUpgrade: (d) => {
@@ -7262,8 +7262,8 @@ AMB.IMAGES = {
 
   // used before a progression fight: no valid deck -> build one for you; and a one-line summary for the fight previews
   AMB.DeckGate = {
-    ensure() { if (!C.deckValid()) { C.autoBuild(); if (UI()) UI().toast('رتبت لك ديك تلقائي', 'good'); } return true; },
-    line() { const L = C.deckLimits(), n = C.deck().length; return `<div class="deck-line ${n >= L.min ? '' : 'bad'}">🃏 ديكك: <b>${n}/${L.size}</b>${n >= L.min ? '' : ' (ناقص: يرتّب لك تلقائيًا)'} <button class="btn small" data-act="deckEdit">عدّل</button></div>`; },
+    ensure() { if (!C.deckValid()) { C.autoBuild(); if (UI()) UI().toast('رتبت لك تشكيلة تلقائيًا', 'good'); } return true; },
+    line() { const L = C.deckLimits(), n = C.deck().length; return `<div class="deck-line ${n >= L.min ? '' : 'bad'}">🃏 تشكيلتك: <b>${n}/${L.size}</b>${n >= L.min ? '' : ' (ناقص: يرتّب لك تلقائيًا)'} <button class="btn small" data-act="deckEdit">عدّل</button></div>`; },
   };
   // remember each folded section (the toggle event does not bubble: listen in the capture phase)
   document.addEventListener('toggle', (e) => { const d = e.target; if (d && d.dataset && d.dataset.fold && AMB.settings) AMB.settings.setFolded(d.dataset.fold, !d.open); }, true);
@@ -8041,7 +8041,7 @@ AMB.IMAGES = {
       <div class="net-code" dir="ltr">${N.showCode(code)}</div>
       <div class="net-btns"><button class="btn" data-act="netCopy">نسخ الرمز</button><button class="btn" data-act="netShare">إرسال</button><button class="btn ghost" data-act="netCancel">إلغاء</button></div>
       <div class="net-btns"><button class="btn small" data-act="netDiag">فحص الاتصال</button></div><div class="hint" id="net-diag" dir="rtl" style="text-align:right"></div>
-      <p class="hint" id="net-status">ينتظر صاحبك… <b>لا تطفّي الشاشة ولا تطلع من اللعبة</b> لين يدخل</p>`);
+      <p class="hint" id="net-status">ننتظر صاحبك… <b>لا تطفّي الشاشة ولا تطلع من اللعبة</b> لين يدخل</p>`);
     const myRoom = room;
     myRoom.linked.then((link) => { if (room !== myRoom) { link.close(); return; } room = null; connected(0, link); });
   }
@@ -8115,7 +8115,7 @@ AMB.IMAGES = {
     n.myHero = hero;
     // online matches are always equal: card power and hero level are never sent or applied (progress is for the campaign/tower/events only)
     n.link.send({ t: 'hero', hero, ver: buildOf() });
-    waiting('ينتظر صاحبك يختار بطله…');
+    waiting('ننتظر صاحبك يختار بطله…');
     tryStart();
   }
   function tryStart() {
@@ -8161,14 +8161,14 @@ AMB.IMAGES = {
     n.link.send({ t: 'ready', round: m.round, ops });
     S.phase = 'waiting';
     ui().renderMatch(true);
-    if (!n.peerReady || n.peerReady.round !== m.round) waiting('جاهز! ينتظر صاحبك…', 150000);
+    if (!n.peerReady || n.peerReady.round !== m.round) waiting('جاهز! ننتظر صاحبك…', 150000);
     pump();
   }
   function rewardClaimed() {
     const S = ui().S, n = S.net, m = S.match;
     n.iClaimed = true;
     n.link.send({ t: 'reward', round: m.round, ops: n.rec.take() });
-    if (!n.peerReward || n.peerReward.round !== m.round) waiting('ينتظر صاحبك يختار مكافأته…', 150000);
+    if (!n.peerReward || n.peerReward.round !== m.round) waiting('ننتظر صاحبك يختار مكافأته…', 150000);
     pump();
   }
   // the two phones disagree (bad message, different versions): end the match cleanly instead of hanging on "waiting for your friend"
@@ -8340,8 +8340,8 @@ AMB.IMAGES = {
       return { ic: AMB.art.WORLD_ICON[d.world], title: d.name, color: D.WORLDS[d.world].color, html: parts.map((c) => `<div class="tp-sec"><div class="tp-sh">${icon(c.ic)}<b>${esc(c.title)}</b></div>${c.html.replace(/<div class="tp-s">التآزر[^<]*<\/div>/, '')}</div>`).join('') };
     }
     switch (k) {
-      case 'world': { const W = D.WORLDS[d.world]; return { ic: AMB.art.WORLD_ICON[d.world], title: W.name, color: W.color, html: `<div class="tp-s">التآزر: كل ما جمعت وحدات أكثر من هالعالم يقوون:</div>${synLines(d.world)}` }; }
-      case 'role': { const R = D.ROLES[d.role]; return { ic: AMB.art.ROLE_ICON[d.role], title: R.name, html: `<div class="tp-l">${esc(R.desc)}</div><div class="tp-s">تُوضع: <b>${esc(R.place)}</b></div>${synLines(d.role)}` }; }
+      case 'world': { const W = D.WORLDS[d.world]; return { ic: AMB.art.WORLD_ICON[d.world], title: W.name, color: W.color, html: `<div class="tp-s">التآزر: كل ما جمعت وحدات أكثر من هالعالم يقوّون:</div>${synLines(d.world)}` }; }
+      case 'role': { const R = D.ROLES[d.role]; return { ic: AMB.art.ROLE_ICON[d.role], title: R.name, html: `<div class="tp-l">${esc(R.desc)}</div><div class="tp-s">مكانه: <b>${esc(R.place)}</b></div>${synLines(d.role)}` }; }
       case 'herorole': return { ic: 'crown', title: 'بطل', html: `<div class="tp-l"><b>${esc(d.passive.name)}</b>: ${esc(d.passive.text)}</div><div class="tp-s">هو قائدك: حياته هي حياتك، وإذا سقط تخسر.</div>` };
       case 'skill': {
         const s = d.skill, st = +x || 1, rows = [];
@@ -8409,7 +8409,7 @@ AMB.IMAGES = {
     UI().overlay(`<div class="rv-wrap"><h2>🎁 هدية البداية</h2>
       <p class="gift-sub">٥ باكجات هدية تبني منها تشكيلتك الأولى</p>
       <div class="gift-packs">${[1, 2, 3, 4, 5].map((i) => `<div class="gift-pack" style="--d:${i * 0.12}s"><b>ZOR</b><small>${i}</small></div>`).join('')}</div>
-      <p class="hint">كل باكج فيه 5 وحدات. مضمون إن عندك كل الأدوار وكل العوالم عشان تقدر تبني ديك.</p>
+      <p class="hint">كل باكج فيه 5 وحدات. مضمون إن عندك كل الأدوار وكل العوالم عشان تقدر تبني تشكيلة.</p>
       <div class="rv-btns"><button class="btn primary big" data-act="giftOpen">افتح الباكج الأول</button></div></div>`);
   }
 
@@ -8420,7 +8420,7 @@ AMB.IMAGES = {
         <div class="rv-in"><div class="rv-back"><span>ZOR</span></div><div class="rv-front">${ui.cardHTML(C.def(c.id), { k: 'gf' + i + k + c.id, lvl: c.level })}${tag(c)}</div></div></div>`).join('');
     ui.overlay(`<div class="rv-wrap best-${best.rarity}"><h2>🎁 هدية ${i + 1} من ${results.length}</h2><div class="rv-row">${cards}</div>
       <div class="gift-dots">${results.map((_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('')}</div>
-      <div class="rv-btns">${i + 1 < results.length ? '<button class="btn primary big" data-act="giftNext">الباكج التالي</button>' : '<button class="btn primary big" data-act="giftNext">خلصت! رتّب ديكك</button>'}
+      <div class="rv-btns">${i + 1 < results.length ? '<button class="btn primary big" data-act="giftNext">الباكج التالي</button>' : '<button class="btn primary big" data-act="giftNext">خلصت! رتّب تشكيلتك</button>'}
         <button class="btn ghost" data-act="giftNext" data-all="1">افتح الباقي</button></div></div>`);
     res.cards.forEach((c, k) => setTimeout(() => {
       if (!$('overlay').classList.contains('on')) return;
@@ -8433,15 +8433,15 @@ AMB.IMAGES = {
   function summary() {
     const ui = UI(), deck = C.autoBuild(), rc = C.roleCounts(deck);
     const ROLE = AMB.DATA.ROLES;
-    ui.overlay(`<div class="rv-wrap"><h2>🃏 ديكك الأول جاهز</h2><p class="gift-sub">رتبت لك ${deck.length} وحدات متوازنة من اللي طلع لك</p>
+    ui.overlay(`<div class="rv-wrap"><h2>🃏 تشكيلتك الأولى جاهزة</h2><p class="gift-sub">رتبت لك ${deck.length} وحدات متوازنة من اللي طلع لك</p>
       <div class="deck-mini">${deck.map((id, i) => `<div class="dm" title="${C.def(id).name}">${ui.portrait(C.def(id), { k: 'gd' + i + id })}</div>`).join('')}</div>
       <div class="deck-roles">${Object.entries(rc).map(([r, n]) => `<span>${icon(AMB.art.ROLE_ICON[r])}${ROLE[r].name} ${n}</span>`).join('')}</div>
-      <p class="hint">الديك هو الوحدات اللي تطلع لك في متجر الحملة والبرج والأحداث. عدّله من «مجموعتي» متى ما بغيت.</p>
-      <div class="rv-btns"><button class="btn primary big" data-act="giftDone">${after ? 'ابدأ أول قتال' : 'تمام'}</button><button class="btn" data-act="giftDeck">عدّل الديك</button></div></div>`);
+      <p class="hint">التشكيلة هي الوحدات اللي تطلع لك في متجر الحملة والبرج والأحداث. عدّله من «مجموعتي» متى ما بغيت.</p>
+      <div class="rv-btns"><button class="btn primary big" data-act="giftDone">${after ? 'ابدأ أول قتال' : 'تمام'}</button><button class="btn" data-act="giftDeck">عدّل التشكيلة</button></div></div>`);
   }
 
   function offer() {   // old saves: the gift is waiting
-    UI().overlay(`<div class="rv-wrap"><h2>🎁 هدية للجميع</h2><p class="gift-sub">٥ باكجات هدية وديك يتحكم في وحداتك بالحملة</p>
+    UI().overlay(`<div class="rv-wrap"><h2>🎁 هدية للجميع</h2><p class="gift-sub">٥ باكجات هدية وتشكيلة تتحكم في وحداتك بالحملة</p>
       <p class="hint">بطاقاتك الحالية كلها باقية، والباكجات تنضاف لها.</p>
       <div class="rv-btns"><button class="btn primary big" data-act="giftStart">استلم الهدية</button><button class="btn ghost" data-act="giftLater">لاحقًا</button></div></div>`);
   }
@@ -8884,7 +8884,7 @@ AMB.IMAGES = {
     const ui = UI(), L = TW.lineupFor(n), h = pickHero(), R = TW.rewardsFor(n), first = n > TW.best();
     const units = L.units.map(([id, star, , from], k) => `<div class="cu">${ui.portrait(AMB.DATA.UNITS[id], { k: 'twp' + k + id })}${ui.stars(star)}${from > 1 ? `<small>من الجولة ${from}</small>` : ''}</div>`).join('');
     const heroes = C.ownedHeroes().map((id) => `<button class="hchip ${id === h ? 'on' : ''}" data-act="towHero" data-id="${id}" data-n="${n}">${ui.portrait(AMB.DATA.HEROES[id], { k: 'twh' + id })}<span>${AMB.DATA.HEROES[id].name}</span></button>`).join('');
-    const reward = first ? `${icon('gem')} ${R.shards} شظية · +${R.passXp} خبرة ممر${R.pack ? ' · <b>باكج مجاني</b>' : ''}${R.card ? ' · <b>بطاقة ملحمي أو أندر مضمونة</b>' : ''}` : 'خلّصت هالطابق: بدون جائزة (تدريب)';
+    const reward = first ? `${icon('gem')} ${R.shards} شظية · +${R.passXp} خبرة ممر${R.pack ? ' · <b>باكج مجاني</b>' : ''}${R.card ? ' · <b>بطاقة ملحمية أو أندر مضمونة</b>' : ''}` : 'خلّصت هالطابق: بدون جائزة (تدريب)';
     ui.modal(`<div class="cam-pv" style="--wc:${W(L.world).color}"><h2>${L.boss ? '👑 ' : ''}${esc(L.name)}</h2><div class="hint">${W(L.world).name} · تكسب جولتين من 3${TW.attempts(n) ? ' · محاولات: ' + TW.attempts(n) : ''}</div>
       ${L.boss ? `<div class="boss-box">${ui.portrait(AMB.DATA.HEROES[L.heroId], { k: 'twb' })}<div><b>قدرة الزعيم: ${esc(L.special.name)}</b><p>${esc(L.special.text)}</p></div></div>` : ''}
       <h4>تشكيلة الخصم</h4><div class="cam-units">${units}</div>
@@ -8925,7 +8925,7 @@ AMB.IMAGES = {
 
   AMB.TIPS = AMB.TIPS || {};
   AMB.TIPS.towinfo = () => { const R = AMB.ECONOMY.tower.rewards; return { title: 'برج التحدي', html: `<p>${TW.floors()} طابقًا، كل طابق قتال <b>تكسب جولتين من 3</b> ضد تشكيلة تصعب كل ما صعدت. كل 5 طوابق زعيم بقدرة خاصة.</p>
-    <p>أول مرة تعدّي طابق: ${icon('gem')} ${R.shardsFirst}–${R.shardsLast} شظية + خبرة ممر. الزعيم: باكج مجاني. الطابق ${TW.floors()}: بطاقة ملحمي أو أندر مضمونة.</p>
+    <p>أول مرة تعدّي طابق: ${icon('gem')} ${R.shardsFirst}–${R.shardsLast} شظية + خبرة ممر. الزعيم: باكج مجاني. الطابق ${TW.floors()}: بطاقة ملحمية أو أندر مضمونة.</p>
     <p>لو خسرت تعيد نفس الطابق بدون أي عقوبة، وأعلى طابق وصلت له محفوظ. مستويات بطاقاتك تنحسب هنا، وتقدر تعيد أي طابق سابق للتدريب بدون جائزة.</p>` }; };
 
   function installActions() {
@@ -8976,7 +8976,7 @@ AMB.IMAGES = {
     if (C.needsStarter()) { root.innerHTML = '<div class="cam-note">اختر بطلك الأول من «الحملة» أول.</div>'; return; }
     if (!WK.unlocked()) { const c0 = WK.current(), ev0 = c0.event, ex0 = AMB.DATA.UNITS[ev0.exclusive];
       root.innerHTML = `<div class="cam-note">🔒 الحدث الأسبوعي يفتح بعد ما تخلّص <b>المستوى الأول من الحملة</b>.</div>
-        <div class="ev-peek"><h3>حدث هذا الأسبوع: ${esc(ev0.name)}</h3><p class="hint">زعيم بقدرتين، وبطاقة حصرية ما تطلع من الباكجات: <b>${esc(ex0.name)}</b></p>
+        <div class="ev-peek"><h3>حدث هالأسبوع: ${esc(ev0.name)}</h3><p class="hint">زعيم بقدرتين، وبطاقة حصرية ما تطلع من الباكجات: <b>${esc(ex0.name)}</b></p>
         <div class="ev-peek-card">${UI().cardHTML(ex0, { k: 'evp', cls: 'unowned', attrs: `data-act="detail" data-id="${ev0.exclusive}"` })}</div></div>`; return; }
     const c = WK.current(), ev = c.event, ex = AMB.DATA.UNITS[ev.exclusive], owned = C.owned(ev.exclusive), next = WK.nextEvent();
     const card = UI().cardHTML(ex, { k: 'evx', lvl: owned ? C.level(ev.exclusive) : 0, cls: owned ? '' : 'unowned', attrs: `data-act="detail" data-id="${ev.exclusive}"` });
@@ -8984,7 +8984,7 @@ AMB.IMAGES = {
     root.innerHTML = `<div class="ev-banner" style="--wc:${W(ev.world).color}"><div class="ev-world">${W(ev.world).name}</div><h3>${esc(ev.name)}</h3>
         <div class="ev-time">⏳ باقي <b id="ev-left">${left(c.msLeft)}</b> · القادم: ${esc(next.name)}</div></div>
       <div class="ev-prize"><div class="ev-card">${card}</div><div class="ev-ptxt"><b>🌟 الجائزة الحصرية</b><p>${esc(ex.name)} <small>${esc(ex.en)}</small></p>
-        <div class="hint">${owned ? '✓ تملكها (تعيد الحدث وتاخذ نسخة تطوير)' : 'ما تطلع من الباكجات، فقط من هذا الحدث'} <button class="ibtn" data-act="info" data-k="evinfo" title="شرح">ⓘ</button></div>
+        <div class="hint">${owned ? '✓ تملكها (تعيد الحدث وتاخذ نسخة تطوير)' : 'ما تطلع من الباكجات، بس من هالحدث'} <button class="ibtn" data-act="info" data-k="evinfo" title="شرح">ⓘ</button></div>
         ${c.done ? '<div class="ev-done">✓ خلّصت حدث هذا الأسبوع</div>' : ''}</div></div>
       <div class="twlist">${rows.join('')}</div>`;
     refreshMenu();
@@ -9001,7 +9001,7 @@ AMB.IMAGES = {
     const ui = UI(), c = WK.current(), L = WK.lineupFor(c.event.id, stage), h = pickHero(), R = WK.rewardsFor(stage), first = stage === c.stage + 1;
     const units = L.units.map(([id, star, , from], k) => `<div class="cu">${ui.portrait(AMB.DATA.UNITS[id], { k: 'evp' + k + id })}${ui.stars(star)}${from > 1 ? `<small>من الجولة ${from}</small>` : ''}</div>`).join('');
     const heroes = C.ownedHeroes().map((id) => `<button class="hchip ${id === h ? 'on' : ''}" data-act="evHero" data-id="${id}" data-n="${stage}">${ui.portrait(AMB.DATA.HEROES[id], { k: 'evh' + id })}<span>${AMB.DATA.HEROES[id].name}</span></button>`).join('');
-    const reward = first ? `${icon('gem')} ${R.shards} شظية · +${R.passXp} خبرة ممر${R.pack ? ' · <b>باكج مجاني</b>' : ''}${R.exclusive ? ` · <b>🌟 ${esc(AMB.DATA.UNITS[c.event.exclusive].name)} (حصرية)</b>` : ''}` : 'خلّصت هالمرحلة هذا الأسبوع: تدريب بدون جائزة';
+    const reward = first ? `${icon('gem')} ${R.shards} شظية · +${R.passXp} خبرة ممر${R.pack ? ' · <b>باكج مجاني</b>' : ''}${R.exclusive ? ` · <b>🌟 ${esc(AMB.DATA.UNITS[c.event.exclusive].name)} (حصرية)</b>` : ''}` : 'خلّصت هالمرحلة هالأسبوع: تدريب بدون جائزة';
     ui.modal(`<div class="cam-pv" style="--wc:${W(c.event.world).color}"><h2>${L.boss ? '👑 ' : ''}${esc(L.name)}</h2><div class="hint">${esc(c.event.name)} · تكسب جولتين من 3</div>
       ${L.boss ? `<div class="boss-box">${ui.portrait(AMB.DATA.HEROES[L.heroId], { k: 'evb' })}<div><b>قدرة الزعيم: ${esc(L.special.name)}</b><p>${esc(L.special.text)}</p></div></div>` : ''}
       <h4>تشكيلة الخصم</h4><div class="cam-units">${units}</div><h4>الجائزة</h4><div class="cam-reward">${reward}</div>
@@ -9187,7 +9187,7 @@ AMB.IMAGES = {
   }
 
   // after an update: say so once
-  if (ss.get('zor_upd') === mine) { ss.del('zor_upd'); window.addEventListener('load', () => setTimeout(() => UI() && UI().toast('تم تحديث اللعبة ✓', 'good'), 800)); }
+  if (ss.get('zor_upd') === mine) { ss.del('zor_upd'); window.addEventListener('load', () => setTimeout(() => UI() && UI().toast('حدّثنا اللعبة ✓', 'good'), 800)); }
   // installable app: register the service worker (offline play + the "install app" prompt); updates still arrive through version.json
   // files this page loaded before the worker took over (first visit) are handed to it, so the game also starts offline next time
   if ('serviceWorker' in navigator) {
