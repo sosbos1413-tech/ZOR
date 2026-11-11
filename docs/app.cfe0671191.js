@@ -329,6 +329,9 @@
   unit('root_shaman', 'شامان الجذور', 'Root Shaman', 'sylvan', 'mage', 3, 90,
     { type: 'stunAoe', name: 'قبضة الجذور', dmg: [220, 370, 650], stun: [1.2, 1.5, 2], radius: 1.6,
       text: 'جذور تمسك الأعداء في المنطقة وتضرّهم.' });
+  unit('zafir', 'ظافر', 'Zafir', 'sylvan', 'marksman', 2, 80,
+    { type: 'multishot', name: 'وابل الأوراق', dmg: [130, 220, 380], count: 3,
+      text: 'يرمي ثلاثة سهام على أقرب ثلاثة أعداء.' });
   unit('wild_stalker', 'المتربّص البري', 'Wild Stalker', 'sylvan', 'assassin', 3, 60,
     { type: 'execute', name: 'انقضاض', dmg: [300, 520, 900],
       text: 'انقضاض يتضاعف ضرره على اللي صحته قليلة.' });
@@ -390,6 +393,15 @@
   unit('reiji', 'جاسر', 'Reiji', 'neon', 'mage', 2, 90,
     { type: 'aoe', name: 'ختم الرموز', dmg: [280, 460, 780], radius: 1.6,
       text: 'انفجار يضرب المنطقة حول الهدف.' });
+  unit('hissa', 'حصّة', 'Hissa', 'neon', 'guardian', 2, 80,
+    { type: 'shieldSelf', name: 'جلد الدوائر', shield: [460, 740, 1200],
+      text: 'ياخذ درع قوي.' });
+  unit('nawaf', 'نواف', 'Nawaf', 'neon', 'guardian', 1, 90,
+    { type: 'taunt', name: 'تحدّي الفولاذ', shield: [200, 350, 600], radius: 2.2, dur: 3,
+      text: 'يخلّي الأعداء القريبين منه يهجمون عليه هو، ويجيه درع.' });
+  unit('lama', 'لمى', 'Lama', 'neon', 'assassin', 1, 60,
+    { type: 'nuke', name: 'نصلا البرق', dmg: [150, 260, 450],
+      text: 'طعنة سريعة بضرر عالي على الهدف.' });
   unit('mitsuki', 'نور', 'Mitsuki', 'neon', 'support', 1, 60,
     { type: 'healLowest', name: 'بلّورة الشفاء', heal: [230, 380, 640],
       text: 'يعالج أضعف واحد في فريقه.' });
@@ -416,6 +428,9 @@
   unit('natsuki', 'شروق', 'Natsuki', 'ember', 'mage', 2, 80,
     { type: 'aoe', name: 'موجة الحمم', dmg: [280, 460, 780], radius: 1.6,
       text: 'انفجار يضرب المنطقة حول الهدف.' });
+  unit('shafaq', 'شفق', 'Shafaq', 'ember', 'assassin', 2, 60,
+    { type: 'nuke', name: 'نصلا اللهب', dmg: [180, 310, 540],
+      text: 'طعنة سريعة بضرر عالي على الهدف.' });
   unit('shiro', 'وضّاح', 'Shiro', 'ember', 'mage', 1, 75,
     { type: 'aoe', name: 'شرارة مبتدئ', dmg: [290, 470, 800], radius: 1.5,
       text: 'انفجار يضرب المنطقة حول الهدف.' });
@@ -484,8 +499,8 @@
    * and ~7% less base power to pay for it. Text is added to the skill description automatically.
    */
   const TWISTS = {
-    daigo: 'thorns', kinoko: 'haste', mitsuki: 'barrier', tsubaki: 'cleanse', tomoe: 'thorns', ibara: 'sunder',
-    kagemaru: 'bleed', mizuki: 'vampiric', kota: 'sunder', kaminari: 'rally', ryuji: 'bleed',
+    daigo: 'thorns', nawaf: 'chill', kinoko: 'haste', mitsuki: 'barrier', tsubaki: 'cleanse', tomoe: 'thorns', ibara: 'sunder',
+    kagemaru: 'bleed', lama: 'slow', mizuki: 'vampiric', kota: 'sunder', kaminari: 'rally', ryuji: 'bleed',
     kogetsu: 'sunder', goka: 'rally', ryujin: 'vampiric', mugen: 'slow', juzo: 'bleed', momo: 'bolster',
     reiji: 'bleed', natsuki: 'sunder', haruka: 'charge', yozora: 'barrier', otohime: 'bolster', kodama: 'cleanse',
     yuta: 'slow', godo: 'wall', daikai: 'bash',
@@ -4590,6 +4605,7 @@ AMB.IMAGES = {
   "haruka": "assets/characters/haruka.d69b8da8c8.webp",
   "hayate": "assets/characters/hayate.b7c7d089e4.webp",
   "hinotori": "assets/characters/hinotori.b7e884eda4.webp",
+  "hissa": "assets/characters/hissa.7bc8ff617d.webp",
   "hisui": "assets/characters/hisui.8c9f0da55a.webp",
   "ibara": "assets/characters/ibara.dac124e21d.webp",
   "juzo": "assets/characters/juzo.ada3fc8f86.webp",
@@ -4605,6 +4621,7 @@ AMB.IMAGES = {
   "kogetsu": "assets/characters/kogetsu.f348c1f57a.webp",
   "kota": "assets/characters/kota.906dd3b782.webp",
   "kurenai": "assets/characters/kurenai.cc51bf83d4.webp",
+  "lama": "assets/characters/lama.5b910764c1.webp",
   "lunar_blade": "assets/characters/lunar_blade.126fa30053.jpg",
   "merin": "assets/characters/merin.ebcfd77e4e.jpg",
   "mikazuki": "assets/characters/mikazuki.0f892aed18.webp",
@@ -4616,6 +4633,7 @@ AMB.IMAGES = {
   "moss_warden": "assets/characters/moss_warden.e168290347.jpg",
   "mugen": "assets/characters/mugen.407cdaacec.webp",
   "natsuki": "assets/characters/natsuki.a6d680522b.webp",
+  "nawaf": "assets/characters/nawaf.e91ad9fbd8.webp",
   "nayako": "assets/characters/nayako.79b1dbfc41.webp",
   "orath": "assets/characters/orath.6416dc3076.jpg",
   "otohime": "assets/characters/otohime.a1e3855475.webp",
@@ -4627,6 +4645,7 @@ AMB.IMAGES = {
   "ryuji": "assets/characters/ryuji.42eab13134.webp",
   "ryujin": "assets/characters/ryujin.6b329f2366.webp",
   "seiji": "assets/characters/seiji.b67cac30bb.webp",
+  "shafaq": "assets/characters/shafaq.3d5f1b187f.webp",
   "shiori": "assets/characters/shiori.002cfc272d.webp",
   "shirayuki": "assets/characters/shirayuki.88cba58a04.webp",
   "shiro": "assets/characters/shiro.1b01e151e3.webp",
@@ -4645,6 +4664,7 @@ AMB.IMAGES = {
   "yoshino": "assets/characters/yoshino.377a38f2f3.webp",
   "yozora": "assets/characters/yozora.8c147f95e6.webp",
   "yuta": "assets/characters/yuta.25492bcded.webp",
+  "zafir": "assets/characters/zafir.3554883f0c.webp",
   "zerokai": "assets/characters/zerokai.0a7cf4d51e.jpg"
 };
 

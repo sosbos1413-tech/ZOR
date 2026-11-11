@@ -140,6 +140,9 @@
   unit('root_shaman', 'شامان الجذور', 'Root Shaman', 'sylvan', 'mage', 3, 90,
     { type: 'stunAoe', name: 'قبضة الجذور', dmg: [220, 370, 650], stun: [1.2, 1.5, 2], radius: 1.6,
       text: 'جذور تمسك الأعداء في المنطقة وتضرّهم.' });
+  unit('zafir', 'ظافر', 'Zafir', 'sylvan', 'marksman', 2, 80,
+    { type: 'multishot', name: 'وابل الأوراق', dmg: [130, 220, 380], count: 3,
+      text: 'يرمي ثلاثة سهام على أقرب ثلاثة أعداء.' });
   unit('wild_stalker', 'المتربّص البري', 'Wild Stalker', 'sylvan', 'assassin', 3, 60,
     { type: 'execute', name: 'انقضاض', dmg: [300, 520, 900],
       text: 'انقضاض يتضاعف ضرره على اللي صحته قليلة.' });
@@ -201,6 +204,15 @@
   unit('reiji', 'جاسر', 'Reiji', 'neon', 'mage', 2, 90,
     { type: 'aoe', name: 'ختم الرموز', dmg: [280, 460, 780], radius: 1.6,
       text: 'انفجار يضرب المنطقة حول الهدف.' });
+  unit('hissa', 'حصّة', 'Hissa', 'neon', 'guardian', 2, 80,
+    { type: 'shieldSelf', name: 'جلد الدوائر', shield: [460, 740, 1200],
+      text: 'ياخذ درع قوي.' });
+  unit('nawaf', 'نواف', 'Nawaf', 'neon', 'guardian', 1, 90,
+    { type: 'taunt', name: 'تحدّي الفولاذ', shield: [200, 350, 600], radius: 2.2, dur: 3,
+      text: 'يخلّي الأعداء القريبين منه يهجمون عليه هو، ويجيه درع.' });
+  unit('lama', 'لمى', 'Lama', 'neon', 'assassin', 1, 60,
+    { type: 'nuke', name: 'نصلا البرق', dmg: [150, 260, 450],
+      text: 'طعنة سريعة بضرر عالي على الهدف.' });
   unit('mitsuki', 'نور', 'Mitsuki', 'neon', 'support', 1, 60,
     { type: 'healLowest', name: 'بلّورة الشفاء', heal: [230, 380, 640],
       text: 'يعالج أضعف واحد في فريقه.' });
@@ -227,6 +239,9 @@
   unit('natsuki', 'شروق', 'Natsuki', 'ember', 'mage', 2, 80,
     { type: 'aoe', name: 'موجة الحمم', dmg: [280, 460, 780], radius: 1.6,
       text: 'انفجار يضرب المنطقة حول الهدف.' });
+  unit('shafaq', 'شفق', 'Shafaq', 'ember', 'assassin', 2, 60,
+    { type: 'nuke', name: 'نصلا اللهب', dmg: [180, 310, 540],
+      text: 'طعنة سريعة بضرر عالي على الهدف.' });
   unit('shiro', 'وضّاح', 'Shiro', 'ember', 'mage', 1, 75,
     { type: 'aoe', name: 'شرارة مبتدئ', dmg: [290, 470, 800], radius: 1.5,
       text: 'انفجار يضرب المنطقة حول الهدف.' });
@@ -295,8 +310,8 @@
    * and ~7% less base power to pay for it. Text is added to the skill description automatically.
    */
   const TWISTS = {
-    daigo: 'thorns', kinoko: 'haste', mitsuki: 'barrier', tsubaki: 'cleanse', tomoe: 'thorns', ibara: 'sunder',
-    kagemaru: 'bleed', mizuki: 'vampiric', kota: 'sunder', kaminari: 'rally', ryuji: 'bleed',
+    daigo: 'thorns', nawaf: 'chill', kinoko: 'haste', mitsuki: 'barrier', tsubaki: 'cleanse', tomoe: 'thorns', ibara: 'sunder',
+    kagemaru: 'bleed', lama: 'slow', mizuki: 'vampiric', kota: 'sunder', kaminari: 'rally', ryuji: 'bleed',
     kogetsu: 'sunder', goka: 'rally', ryujin: 'vampiric', mugen: 'slow', juzo: 'bleed', momo: 'bolster',
     reiji: 'bleed', natsuki: 'sunder', haruka: 'charge', yozora: 'barrier', otohime: 'bolster', kodama: 'cleanse',
     yuta: 'slow', godo: 'wall', daikai: 'bash',

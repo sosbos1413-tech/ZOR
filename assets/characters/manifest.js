@@ -17,6 +17,7 @@ AMB.IMAGES = {
   "haruka": "assets/characters/haruka.webp",
   "hayate": "assets/characters/hayate.webp",
   "hinotori": "assets/characters/hinotori.webp",
+  "hissa": "assets/characters/hissa.webp",
   "hisui": "assets/characters/hisui.webp",
   "ibara": "assets/characters/ibara.webp",
   "juzo": "assets/characters/juzo.webp",
@@ -32,6 +33,7 @@ AMB.IMAGES = {
   "kogetsu": "assets/characters/kogetsu.webp",
   "kota": "assets/characters/kota.webp",
   "kurenai": "assets/characters/kurenai.webp",
+  "lama": "assets/characters/lama.webp",
   "lunar_blade": "assets/characters/lunar_blade.jpg",
   "merin": "assets/characters/merin.jpg",
   "mikazuki": "assets/characters/mikazuki.webp",
@@ -43,6 +45,7 @@ AMB.IMAGES = {
   "moss_warden": "assets/characters/moss_warden.jpg",
   "mugen": "assets/characters/mugen.webp",
   "natsuki": "assets/characters/natsuki.webp",
+  "nawaf": "assets/characters/nawaf.webp",
   "nayako": "assets/characters/nayako.webp",
   "orath": "assets/characters/orath.jpg",
   "otohime": "assets/characters/otohime.webp",
@@ -54,6 +57,7 @@ AMB.IMAGES = {
   "ryuji": "assets/characters/ryuji.webp",
   "ryujin": "assets/characters/ryujin.webp",
   "seiji": "assets/characters/seiji.webp",
+  "shafaq": "assets/characters/shafaq.webp",
   "shiori": "assets/characters/shiori.webp",
   "shirayuki": "assets/characters/shirayuki.webp",
   "shiro": "assets/characters/shiro.webp",
@@ -72,5 +76,6 @@ AMB.IMAGES = {
   "yoshino": "assets/characters/yoshino.webp",
   "yozora": "assets/characters/yozora.webp",
   "yuta": "assets/characters/yuta.webp",
+  "zafir": "assets/characters/zafir.webp",
   "zerokai": "assets/characters/zerokai.jpg"
 };
