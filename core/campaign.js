@@ -83,16 +83,9 @@
       },
       levelDone: (levelId, d) => (d ? !!P(d).levelsDone[levelId] : anyDiff((x) => !!P(x).levelsDone[levelId])),
       progress(levelId, d) { const l = levels().find((x) => x.id === levelId); return { cleared: l.fights.filter((f) => P(d).cleared[f.id]).length, total: l.fights.length }; },
-      levelUnlocked(li, d) {
-        d = dd(d);
-        const prev = li === 0 || !!P(d).levelsDone[levels()[li - 1].id];
-        return d === 'hard' ? prev && !!P('normal').levelsDone[levels()[li].id] : prev;
-      },
-      isUnlocked(fightId, d) {
-        const f = find(fightId); if (!f) return false;
-        if (!api.levelUnlocked(f.li, d)) return false;
-        return f.fi === 0 || !!P(d).cleared[f.level.fights[f.fi - 1].id];
-      },
+      // everything is open from the start: any level, any fight (boss included), any difficulty, in any order
+      levelUnlocked() { return true; },
+      isUnlocked(fightId) { return !!find(fightId); },
       /** first unlocked fight not yet cleared on this difficulty (or null when everything is done) */
       next(d) { for (const l of levels()) for (const f of l.fights) if (api.isUnlocked(f.id, d) && !P(d).cleared[f.id]) return f.id; return null; },
       stats: (fightId, d) => P(d).stats[fightId] || { attempts: 0, wins: 0, best: null },

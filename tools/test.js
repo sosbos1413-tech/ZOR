@@ -670,7 +670,7 @@ t('campaign: unlock order, first-win rewards, replay rewards, level bonus pack, 
   const mem = MEM(); let xp = 0;
   const prof = AMB.Profile.boot(mem); const C = prof.campaign;
   const cam = AMB.Campaign(prof.save, { wallet: prof.wallet, packs: prof.packs, collection: prof.collection, events: prof.events, addPassXp: (n) => (xp += n) });
-  ok(cam.isUnlocked('l1f1')); ok(!cam.isUnlocked('l1f2')); ok(!cam.isUnlocked('l2f1')); eq(cam.next(), 'l1f1');
+  ok(cam.isUnlocked('l1f1') && cam.isUnlocked('l1f2') && cam.isUnlocked('l2f1') && cam.isUnlocked('l8boss'), 'every fight is open from the start'); eq(cam.next(), 'l1f1');
   const sh0 = prof.wallet.balance('shards');
   const lost = cam.recordResult('l1f1', { won: false }); ok(!lost.won && !lost.shards); ok(!cam.isCleared('l1f1'));
   const R = AMB.LEVELS.CAMPAIGN.rewards;
@@ -680,7 +680,6 @@ t('campaign: unlock order, first-win rewards, replay rewards, level bonus pack, 
   ok(!again.first); eq(again.shards, R.replay.shards); eq(xp, R.fight.passXp, 'no pass xp on replays');
   eq(cam.stats('l1f1').attempts, 3); eq(cam.stats('l1f1').best.lifeLeft, 95);
   ['l1f2', 'l1f3', 'l1f4'].forEach((id) => { ok(cam.isUnlocked(id), id); cam.recordResult(id, { won: true }); });
-  ok(!cam.isUnlocked('l2f1'), 'next level locked until the boss falls');
   const before = prof.packs.stats().opened;
   const boss = cam.recordResult('l1boss', { won: true });
   ok(boss.boss && boss.levelComplete && boss.pack && boss.pack.cards.length === 5); eq(boss.stars, 1); eq(boss.shards, R.bossStars[0].shards, 'a boss win pays its one prize'); eq(boss.packs.length, 1, 'the boss prize pack');
@@ -1571,11 +1570,11 @@ t('difficulties: separate progress, scaled enemies and prizes, hard needs medium
   // progress is separate
   const e = C.recordResult('l1f1', { won: true }, 'easy'); eq(e.difficulty, 'easy'); eq(e.shards, Math.round(R.fight.shards * X.easy.shards));
   ok(C.isCleared('l1f1', 'easy') && !C.isCleared('l1f1', 'normal') && C.isCleared('l1f1'), 'cleared only on easy, but "any difficulty" is true');
-  eq(C.stars('l1f1', 'normal'), 0); ok(C.isUnlocked('l1f2', 'easy') && !C.isUnlocked('l1f2', 'normal'));
+  eq(C.stars('l1f1', 'normal'), 0); ok(C.isUnlocked('l1f2', 'easy') && C.isUnlocked('l1f2', 'normal'));
   // hard needs the level done on medium
-  ok(!C.levelUnlocked(0, 'hard'), 'hard locked before medium is done');
+  ok(C.levelUnlocked(0, 'hard'), 'hard is open from the start too');
   ['l1f1', 'l1f2', 'l1f3', 'l1f4', 'l1boss'].forEach((id) => C.recordResult(id, { won: true, roundsLost: 0, lifeLeft: 100 }, 'normal'));
-  ok(C.levelUnlocked(0, 'hard') && !C.levelUnlocked(1, 'hard'), 'hard level 1 opens, level 2 still needs hard level 1');
+  ok(C.levelUnlocked(0, 'hard') && C.levelUnlocked(1, 'hard'), 'every level is open on every difficulty');
   // bigger prizes on hard
   const h = C.recordResult('l1f1', { won: true }, 'hard'); eq(h.shards, Math.round(R.fight.shards * X.hard.shards)); eq(h.passXp, Math.round(R.fight.passXp * X.hard.xp));
   ['l1f2', 'l1f3', 'l1f4'].forEach((id) => C.recordResult(id, { won: true }, 'hard'));
