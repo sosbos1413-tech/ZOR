@@ -44,7 +44,7 @@
     tower: {
       floors: 30, bossEvery: 5,
       unlock: { campaignLevel: 'l1' },                 // finish campaign level 1 first
-      power: [1.52,1.63,1.73,1.67,1.28,1.74,1.61,1.83,1.41,1.14,1.36,1.36,1.73,1.57,1.29,1.87,1.16,1.21,1.38,1.37,1.52,1.22,1.18,1.02,0.87,1.31,0.99,0.97,1.18,1.59],   // per floor, from tools/tune-tower.js
+      power: [1.76,2.24,1.91,2.31,1.36,1.99,1.94,2.09,1.74,1.51,1.89,1.69,2.04,1.81,1.61,2.61,1.46,1.46,1.94,1.31,1.44,1.34,1.14,1.14,0.96,1.91,0.89,1.19,1.56,2.04],   // per floor, from tools/tune-tower.js
       start: [{ from: 1, gold: 8, level: 3 }, { from: 15, gold: 12, level: 4 }, { from: 25, gold: 14, level: 5 }],
       rewards: { shardsFirst: 20, shardsLast: 50, passXp: 10, passXpBoss: 30, bossPack: 'basic', finalCard: 'epic' },   // first clear only
     },

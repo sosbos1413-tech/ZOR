@@ -42,11 +42,12 @@ if (mode === 'check') {
 }
 // every floor's line-up is generated once and fixed, so each floor gets its own power value (bisection on win rate)
 const out = [];
-for (let n = 1; n <= AMB.ECONOMY.tower.floors; n++) {
+const F0 = +(process.env.FROM || 1), F1 = +(process.env.TO || AMB.ECONOMY.tower.floors);
+for (let n = F0; n <= F1; n++) {
   const boss = AMB.Tower.lineupFor(n).boss, tgt = Math.max(0.15, target(n) - (boss ? 0.12 : 0));
   let lo = 0.3, hi = 3.5;
-  for (let it = 0; it < 8; it++) { const mid = (lo + hi) / 2; if (rate(n, mid) > tgt) lo = mid; else hi = mid; }
+  for (let it = 0; it < 7; it++) { const mid = (lo + hi) / 2; if (rate(n, mid) > tgt) lo = mid; else hi = mid; }
   const pw = +(((lo + hi) / 2)).toFixed(2); out.push(pw);
   console.error('floor', n, boss ? '(boss)' : '', 'target', Math.round(tgt * 100) + '%', 'power', pw);
 }
-console.log('power: ' + JSON.stringify(out));
+console.log('floors ' + F0 + '-' + F1 + ' power: ' + JSON.stringify(out));
