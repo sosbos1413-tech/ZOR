@@ -193,7 +193,7 @@
       : S.mode === 'practice' ? new AMB.Match(AMB.Tutorial.practiceOptions(S.picks[0]))
       : S.mode === 'online' ? AMB.NetUI.makeMatch()
       // adult #22: a short match: 4 rounds, first to 3 round wins, starts at shop level 2 with more gold (about 3 minutes)
-      : S.mode === 'short' ? new AMB.Match({ mode: 'short', players, rules: { maxRounds: 8, winsNeeded: 8, start: { gold: 8, level: 2 } } })
+      : S.mode === 'short' ? new AMB.Match({ mode: 'short', players, rules: { maxRounds: 8, winsNeeded: 5, start: { gold: 8, level: 2 } } })
       : new AMB.Match({ mode: S.mode, players, seed: S.mode === 'ai' && S.challenge ? S.challenge.s : undefined, weekly: S.mode === 'ai' && S.challenge ? (AMB.Match.WEEKLY[S.challenge.w] ? S.challenge.w : null) : S.mode === 'ai' || S.mode === 'hotseat' ? AMB.Match.weeklyNow() : null });
     // same hero on both sides (e.g. your Kiro vs the Ember boss Kiro): the enemy becomes its "shadow"
     const mirror = S.match.players[0].heroId === S.match.players[1].heroId;
@@ -258,7 +258,7 @@
       ['shield', 'ضعها في الساحة', '<b>حارس ومقاتل</b> قدّام · <b>ساحر وقناص ودعم</b> ورا'],
       ['star', 'غيّر رأيك', 'اضغط الوحدة: بيع أو تبديل'],
       ['burst', 'الترقية ★', '٣ نسخ متطابقة = نجمة'],
-      ['sword', 'جاهز', 'القتال تلقائي · ' + (S.match && S.match.rules ? '٨ جولات' : '٨ جولات')],
+      ['sword', 'جاهز', 'القتال تلقائي · ' + (S.match && S.match.rules ? 'لين ٨ جولات' : '٨ جولات')],
     ];
     modal(`<h2>دليل سريع</h2><div class="tut">${steps.map((st, i) => `<div class="tut-step"><span class="tut-n">${i + 1}</span><span class="tut-ic">${icon(st[0])}</span><div><b>${st[1]}</b><p>${st[2]}</p></div></div>`).join('')}</div>
       <p class="hint" style="text-align:center;margin:8px 0 0">لو احتجت شرح أكثر اضغط ⓘ في أي مكان</p>
@@ -518,7 +518,7 @@
     if (!p || !p.mergePick || !prepActive()) return;
     const mp = p.mergePick;
     const cards = mp.options.map((id, i) => `<button class="mp-card" data-act="pickMerge" data-idx="${i}">${cardHTML(UNITS[id], { size: 'mini', k: 'mp' + i })}<span class="mp-st">${'★'.repeat(UNITS[id].tier)}</span></button>`).join('');
-    modal(`<h2>🎉 دمج! اختر هديتك</h2><p class="mp-sub">اختر بطاقة وحدة من ${mp.options.length}، نجومها ${'★'.repeat(mp.rank)} (أعلى من مستوى متجرك بنجمة)</p><div class="mp-row">${cards}</div>`);
+    modal(`<h2>🎉 دمج! اختر هديتك</h2><p class="mp-sub">اختر بطاقة تنضاف لفريقك، والبطاقة المطوّرة تبقى معك. نجومها ${'★'.repeat(mp.rank)} (أعلى من مستوى متجرك بنجمة). الهدية مرة وحدة بكل جولة.</p><div class="mp-row">${cards}</div>`);
     const x = document.querySelector('#modal .x'); if (x) x.style.display = 'none';   // the choice is part of the merge: no closing without picking
   }
   // card frame v5 (phones): the approved gold frame with a rarity-coloured side strip. The overlay carries the power, the role socket, the rarity word and the card's star level.
@@ -526,7 +526,7 @@
   const powerOf = (hp, atk) => Math.round(hp / 8 + atk * 2);
   function fr4HTML(def, atk, hp) {
     const RA = AMB.ECONOMY && AMB.ECONOMY.rarities[def.rarity], ro = ROLES[def.role];
-    return `<i class="fr4-img"></i><span class="fr4-pw" title="القوة">${powerOf(hp, atk)}</span><span class="fr4-role" title="${esc(ro.name)}">${icon(ART.ROLE_ICON[def.role])}</span><span class="fr4-rar">${RA ? RA.name : ''}</span><span class="fr4-st" title="نجوم البطاقة">${def.tier}</span>`;
+    return `<i class="fr4-img"></i><span class="fr4-pw" title="القوة">${powerOf(hp, atk)}</span><span class="fr4-role" title="${esc(ro.name)}">${icon(ART.ROLE_ICON[def.role])}</span><span class="fr4-rar">${RA ? RA.name : ''}</span><span class="fr4-st" title="نجوم البطاقة">${def.tier}</span><span class="fr4-rt">${esc(ro.name)}</span>`;
   }
   function cardHTML(def, o) {
     o = o || {};
@@ -1146,7 +1146,7 @@
       const isNew = p.shopNew && p.shopNew[i], stars = '★'.repeat(d.tier);
       const dots = ow && ow.s1 ? `<span class="sc-dots">${'●'.repeat(Math.min(2, ow.s1))}${'○'.repeat(Math.max(1, 3 - Math.min(2, ow.s1)))}</span>` : '';
       return `<div class="sc r${d.tier} rc-${d.rarity || 'common'} ${ok ? '' : 'cant'} ${isNew ? 'newstar' : ''} ${ow && ow.s1 ? 'owned' : ''}" data-act="buy" data-idx="${i}" style="--rc:${rc};--wc:${WORLDS[d.world].color};${artVar(d.id)}" title="${esc(d.name)}: ${esc(d.skill.name)}">
-        ${isNew ? `<span class="sc-new">جديد!</span>` : ''}<span class="sc-stars">${stars}</span><span class="sc-pw">${powerOf(st.hp, st.atk)}</span><span class="sc-rar">${(RAR[d.rarity || 'common'] || RAR.common).name}</span>
+        ${isNew ? `<span class="sc-new">جديد!</span>` : ''}<span class="sc-stars">${stars}</span><span class="sc-pw">${powerOf(st.hp, st.atk)}</span><span class="sc-price" title="السعر بالذهب">${icon('gold')}<b>${d.cost}</b></span><span class="sc-rt">${esc(ROLES[d.role].name)}</span><span class="sc-rar">${(RAR[d.rarity || 'common'] || RAR.common).name}</span>
         <span class="sc-art">${portrait(d, { bare: true, k: 'sca' + i })}</span><i class="sc-frame"></i>
         <span class="sc-gem"></span><b class="sc-cost">${d.cost}</b><b class="sc-hp">${st.hp}</b><b class="sc-atk">${st.atk}</b>
         <span class="sc-role">${icon(ART.ROLE_ICON[d.role] || 'star')}</span>${dots}

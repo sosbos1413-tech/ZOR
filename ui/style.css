@@ -2988,3 +2988,12 @@ body.reduce-motion .lv-flash, body.reduce-motion .merge-flash, body.reduce-motio
 .modal .upg-row, .ov-card .upg-row { background: #ffffff0a; border: 1px solid #3a2f7a; border-radius: 12px; color: #f3ecff; }
 .modal .upg-row b, .modal .upg-row .hint { color: inherit; }
 .modal .prog { background: #0a061a; border: 1px solid #3a2f7a; }
+
+/* clearer cards: gold price coin and the role's name on shop cards, role name on field cards, a plain "i" button */
+@media (max-width: 860px) and (orientation: portrait) {
+  #scr-match.prep-focus .sc .sc-price { position: absolute; left: 4%; top: 71%; z-index: 5; display: flex; align-items: center; gap: 2px; padding: 1px 5px 1px 3px; border-radius: 999px; background: linear-gradient(#f6d66a, #b9851a); border: 1px solid #5b3d06; color: #2a1a00; font: 900 9.5px var(--display); box-shadow: 0 1px 3px #000a; }
+  #scr-match.prep-focus .sc .sc-price .icon { width: 9px; height: 9px; } #scr-match.prep-focus .sc .sc-price b { font-weight: 900; }
+  #scr-match.prep-focus .sc .sc-rt, .fr4 .fr4-rt { position: absolute; left: 50%; transform: translateX(-50%); bottom: 22%; z-index: 5; padding: 0 6px; border-radius: 999px; background: #07040fcc; border: 1px solid var(--nc); color: #fff; font: 800 7.5px var(--display); white-space: nowrap; text-shadow: 0 0 4px var(--nc); pointer-events: none; }
+  .fr4 .fr4-rt { bottom: 21%; font-size: 7.4cqw; padding: 0 2.6cqw; left: 41%; }
+  #scr-match.prep-focus .sc .sc-info { width: 17px; height: 17px; right: 4%; top: 13.5%; background: #07040fdd; border: 1.4px solid #7df9ff; color: #7df9ff; font: 900 11px var(--display); opacity: 1; box-shadow: 0 0 6px #33d6ff99; }
+}

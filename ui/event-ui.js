@@ -56,7 +56,7 @@
     const units = L.units.map(([id, star, , from], k) => `<div class="cu">${ui.portrait(AMB.DATA.UNITS[id], { k: 'evp' + k + id })}${ui.stars(star)}${from > 1 ? `<small>من الجولة ${from}</small>` : ''}</div>`).join('');
     const heroes = C.ownedHeroes().map((id) => `<button class="hchip ${id === h ? 'on' : ''}" data-act="evHero" data-id="${id}" data-n="${stage}">${ui.portrait(AMB.DATA.HEROES[id], { k: 'evh' + id })}<span>${AMB.DATA.HEROES[id].name}</span></button>`).join('');
     const reward = first ? `${icon('gem')} ${R.shards} شظية · +${R.passXp} خبرة ممر${R.pack ? ' · <b>باكج مجاني</b>' : ''}${R.exclusive ? ` · <b>🌟 ${esc(AMB.DATA.UNITS[c.event.exclusive].name)} (حصرية)</b>` : ''}` : 'خلّصت هالمرحلة هالأسبوع: تدريب بدون جائزة';
-    ui.modal(`<div class="cam-pv" style="--wc:${W(c.event.world).color}"><h2>${L.boss ? '👑 ' : ''}${esc(L.name)}</h2><div class="hint">${esc(c.event.name)} · تلعب 8 جولات ويفوز اللي يكسب جولات أكثر</div>
+    ui.modal(`<div class="cam-pv" style="--wc:${W(c.event.world).color}"><h2>${L.boss ? '👑 ' : ''}${esc(L.name)}</h2><div class="hint">${esc(c.event.name)} · لين 8 جولات، واللي يكسب 5 جولات أول يفوز</div>
       ${L.boss ? `<div class="boss-box">${ui.portrait(AMB.DATA.HEROES[L.heroId], { k: 'evb' })}<div><b>قدرة الزعيم: ${esc(L.special.name)}</b><p>${esc(L.special.text)}</p></div></div>` : ''}
       <h4>تشكيلة الخصم</h4><div class="cam-units">${units}</div><h4>الجائزة</h4><div class="cam-reward">${reward}</div>
       <h4>بطلك</h4><div class="hchips">${heroes}</div>${AMB.DeckGate ? AMB.DeckGate.line() : ''}
@@ -91,7 +91,7 @@
   }
 
   AMB.TIPS = AMB.TIPS || {};
-  AMB.TIPS.evinfo = () => { const R = AMB.ECONOMY.events.rewards; return { title: 'الحدث الأسبوعي', html: `<p>كل أسبوع (من الاثنين للأحد) حدث جديد من عالم مختلف: <b>${WK.stageCount()} مراحل</b> تلعب 8 جولات ويفوز اللي يكسب جولات أكثر، والأخيرة زعيم الحدث بقدرتين.</p>
+  AMB.TIPS.evinfo = () => { const R = AMB.ECONOMY.events.rewards; return { title: 'الحدث الأسبوعي', html: `<p>كل أسبوع (من الاثنين للأحد) حدث جديد من عالم مختلف: <b>${WK.stageCount()} مراحل</b> لين 8 جولات، واللي يكسب 5 جولات أول يفوز، والأخيرة زعيم الحدث بقدرتين.</p>
     <p>كل مرحلة تعطي شظايا وخبرة ممر (والثانية باكج مجاني) مرة واحدة في الأسبوع. هزيمة الزعيم تعطيك <b>بطاقة حصرية</b> ما تطلع في الباكجات ولا تضيع بعد انتهاء الحدث.</p>
     <p>الأحداث الأربعة تدور، فلو فاتك حدث يرجع بعد 4 أسابيع (وتاخذ نسخة تطوير إضافية للبطاقة لو عندك). الخسارة بدون عقوبة وتقدر تعيد.</p>` }; };
 

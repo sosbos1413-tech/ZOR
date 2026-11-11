@@ -257,7 +257,8 @@
 
     /** the merge reward: 3 cards, each one star above the shop level (max 5). The player picks one with claimMerge. */
     _offerMerge(p) {
-      if (p.mergePick) return;   // one reward at a time
+      if (p.mergePick || p.giftRound === this.round) return;   // one reward at a time, and only the first merge of a round gives one (no snowball)
+      p.giftRound = this.round;
       const E = AMB.CONFIG.economy, want = AMB.CONFIG.stars.mergeChoices || 3, rank = Math.min(E.maxLevel, p.level + 1), rng = this._rng(p);
       const options = [];
       for (let r = rank; r >= 1 && options.length < want; r--) {

@@ -878,7 +878,7 @@ t('adult #21: a quick match rebuilt from its recorded moves is identical (contin
 });
 t('adult #22-#28, senior #39: short match mode, daily quick-match shards cap, wish hero from the guarantee, mission swap, undo snapshot', () => {
   // short match: 4 rounds, its own pass mode
-  const sh = new AMB.Match({ mode: 'short', players: [{ heroId: 'orath', name: 'a', isAI: true, difficulty: 'normal' }, { heroId: 'merin', name: 'b', isAI: true, difficulty: 'normal' }], rules: { maxRounds: 8, winsNeeded: 8, start: { gold: 8, level: 2 } } });
+  const sh = new AMB.Match({ mode: 'short', players: [{ heroId: 'orath', name: 'a', isAI: true, difficulty: 'normal' }, { heroId: 'merin', name: 'b', isAI: true, difficulty: 'normal' }], rules: { maxRounds: 8, winsNeeded: 5, start: { gold: 8, level: 2 } } });
   while (!sh.isOver) { sh.startRound(); AMB.AI.prep(sh, 0); AMB.AI.prep(sh, 1); sh.resolveCombat(sh.createCombat(false).runToEnd()); }
   ok(sh.round <= 8, 'over within 8 rounds'); eq(sh.summary(0).mode, 'short');
   // quick-match shards: +10/+5, 60 a day
@@ -901,7 +901,7 @@ t('adult #22-#28, senior #39: short match mode, daily quick-match shards cap, wi
   m.restore(0, snap); eq(p0.gold, g0); eq(p0.shop[0], id0); eq(m._pool(p0)[id0], pool0); ok(!p0.bench.some(Boolean), 'bench back to empty');
 });
 t('undo in a progression match (allowed-units Set, scripted lineup) never breaks the next round', () => {
-  const m = new AMB.Match({ mode: 'campaign', seed: 11, progression: true, rules: { maxRounds: 8, winsNeeded: 8, start: { gold: 10, level: 1 } },
+  const m = new AMB.Match({ mode: 'campaign', seed: 11, progression: true, rules: { maxRounds: 8, winsNeeded: 5, start: { gold: 10, level: 1 } },
     players: [{ heroId: 'orath', name: 'a', allowedUnits: new Set(Object.keys(AMB.DATA.UNITS).slice(0, 20)) }, { heroId: 'merin', name: 'b', isAI: true }] });
   m.startRound(); const snap = m.snapshot(0); for (let i = 0; i < 5; i++) if (m.canBuy(0, i).ok) { m.buy(0, i); break; }
   m.restore(0, snap); ok(m.players[0].allowed instanceof Set, 'the allowed-units Set survives an undo');
@@ -1543,8 +1543,8 @@ t('auto-arrange: never loses a unit, however often it is pressed, with or withou
 
 t('boss fights: best of 7 with a growing enemy, and every star pays its own prize once', () => {
   const prof = AMB.Profile.boot(MEM()), C = prof.campaign, R = AMB.LEVELS.CAMPAIGN.rewards, BR = AMB.LEVELS.CAMPAIGN.bossRules;
-  const o = C.matchOptions('l1boss', 'orath', 3); eq(o.rules.maxRounds, 8); eq(o.rules.winsNeeded, 8); ok(o.players[1].lineup.growth > 0);
-  const o2 = C.matchOptions('l1f1', 'orath', 3); eq(o2.rules.maxRounds, 8, 'every fight plays 8 rounds'); ok(o2.players[1].lineup.growth > 0, 'the enemy grows every round in every fight');
+  const o = C.matchOptions('l1boss', 'orath', 3); eq(o.rules.maxRounds, 8); eq(o.rules.winsNeeded, 5); ok(o.players[1].lineup.growth > 0);
+  const o2 = C.matchOptions('l1f1', 'orath', 3); eq(o2.rules.maxRounds, 8, 'every fight is up to 8 rounds'); ok(o2.players[1].lineup.growth > 0, 'the enemy grows every round in every fight');
   // the enemy really grows: same boss, round 1 vs round 5
   const m = new AMB.Match(o); m.startRound(); const p1 = m.buildCombatSpec(1).units[0].power;
   for (let i = 0; i < 4; i++) { m.round++; } m.applyLineup(1); const p5 = m.buildCombatSpec(1).units[0].power;
@@ -1698,6 +1698,13 @@ t('a small owned deck never leaves shop slots empty (only ★2 cards owned at sh
   m.startRound(); const p = m.players[0]; p.level = 2;
   for (let i = 0; i < 40; i++) { m._rollShop(p); p.shop.forEach((id) => { ok(id && owned.includes(id), 'empty or foreign slot'); }); }
   p.level = 1; m._rollShop(p); ok(p.shop.every((id) => !id), 'at level 1 nothing owned is sold (no card above the level)');
+});
+t('merge gift: only the first merge of a round gives a reward (no snowball); a new round gives one again', () => {
+  const m = new AMB.Match({ seed: 5, players: [{ heroId: 'orath' }, { heroId: 'merin' }] }); m.startRound(); const p = m.players[0]; p.gold = 99; p.level = 2;
+  for (let i = 0; i < 3; i++) { p.shop[0] = 'ash_ronin'; m.buy(0, 0); } ok(p.mergePick, 'first merge: gift'); m.claimMerge(0, 0);
+  for (let i = 0; i < 3; i++) { p.shop[0] = 'kota'; m.buy(0, 0); } eq(p.mergePick, null, 'second merge in the same round: no gift');
+  eq(m.allUnits(p).filter((u) => u.star === 2).length, 2, 'but it still merges');
+  m.startRound(); p.gold = 99; for (let i = 0; i < 3; i++) { p.shop[0] = 'mizuki'; m.buy(0, 0); } ok(p.mergePick, 'next round: gift again');
 });
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

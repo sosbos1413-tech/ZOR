@@ -1753,7 +1753,8 @@
 
     /** the merge reward: 3 cards, each one star above the shop level (max 5). The player picks one with claimMerge. */
     _offerMerge(p) {
-      if (p.mergePick) return;   // one reward at a time
+      if (p.mergePick || p.giftRound === this.round) return;   // one reward at a time, and only the first merge of a round gives one (no snowball)
+      p.giftRound = this.round;
       const E = AMB.CONFIG.economy, want = AMB.CONFIG.stars.mergeChoices || 3, rank = Math.min(E.maxLevel, p.level + 1), rng = this._rng(p);
       const options = [];
       for (let r = rank; r >= 1 && options.length < want; r--) {
@@ -3161,9 +3162,9 @@
   const AMB = globalThis.AMB;
 
   const CAMPAIGN = {
-    rules: { maxRounds: 8, winsNeeded: 8 },          // every fight plays all 8 rounds (the winner is whoever wins more rounds, then has more life)
+    rules: { maxRounds: 8, winsNeeded: 5 },          // up to 8 rounds: first to 5 round wins takes the fight (4-4 after 8: more life)
     // boss fights are long: best of 7 rounds. The boss line-up keeps growing (extra units join later, and everything gets `growth` stronger each round)
-    bossRules: { maxRounds: 8, winsNeeded: 8, growth: 0.07 },
+    bossRules: { maxRounds: 8, winsNeeded: 5, growth: 0.07 },
     rewards: {
       fight: { shards: 20, passXp: 20 },
       boss: { shards: 60, passXp: 40 },
@@ -3795,7 +3796,7 @@
     const others = Object.keys(AMB.DATA.HEROES).filter((h) => h !== heroId);
     return {
       mode: 'practice', practice: true, seed: s, progression: false,
-      rules: { maxRounds: 8, winsNeeded: 8, start: T().start },
+      rules: { maxRounds: 8, winsNeeded: 5, start: T().start },
       players: [{ heroId, name: 'أنت' }, { heroId: others[s % others.length], name: 'تدريب', isAI: true, aiStyle: 'balanced', difficulty: 'easy' }],
     };
   }
@@ -4990,7 +4991,7 @@ AMB.IMAGES = {
       : S.mode === 'practice' ? new AMB.Match(AMB.Tutorial.practiceOptions(S.picks[0]))
       : S.mode === 'online' ? AMB.NetUI.makeMatch()
       // adult #22: a short match: 4 rounds, first to 3 round wins, starts at shop level 2 with more gold (about 3 minutes)
-      : S.mode === 'short' ? new AMB.Match({ mode: 'short', players, rules: { maxRounds: 8, winsNeeded: 8, start: { gold: 8, level: 2 } } })
+      : S.mode === 'short' ? new AMB.Match({ mode: 'short', players, rules: { maxRounds: 8, winsNeeded: 5, start: { gold: 8, level: 2 } } })
       : new AMB.Match({ mode: S.mode, players, seed: S.mode === 'ai' && S.challenge ? S.challenge.s : undefined, weekly: S.mode === 'ai' && S.challenge ? (AMB.Match.WEEKLY[S.challenge.w] ? S.challenge.w : null) : S.mode === 'ai' || S.mode === 'hotseat' ? AMB.Match.weeklyNow() : null });
     // same hero on both sides (e.g. your Kiro vs the Ember boss Kiro): the enemy becomes its "shadow"
     const mirror = S.match.players[0].heroId === S.match.players[1].heroId;
@@ -5055,7 +5056,7 @@ AMB.IMAGES = {
       ['shield', 'ضعها في الساحة', '<b>حارس ومقاتل</b> قدّام · <b>ساحر وقناص ودعم</b> ورا'],
       ['star', 'غيّر رأيك', 'اضغط الوحدة: بيع أو تبديل'],
       ['burst', 'الترقية ★', '٣ نسخ متطابقة = نجمة'],
-      ['sword', 'جاهز', 'القتال تلقائي · ' + (S.match && S.match.rules ? '٨ جولات' : '٨ جولات')],
+      ['sword', 'جاهز', 'القتال تلقائي · ' + (S.match && S.match.rules ? 'لين ٨ جولات' : '٨ جولات')],
     ];
     modal(`<h2>دليل سريع</h2><div class="tut">${steps.map((st, i) => `<div class="tut-step"><span class="tut-n">${i + 1}</span><span class="tut-ic">${icon(st[0])}</span><div><b>${st[1]}</b><p>${st[2]}</p></div></div>`).join('')}</div>
       <p class="hint" style="text-align:center;margin:8px 0 0">لو احتجت شرح أكثر اضغط ⓘ في أي مكان</p>
@@ -5315,7 +5316,7 @@ AMB.IMAGES = {
     if (!p || !p.mergePick || !prepActive()) return;
     const mp = p.mergePick;
     const cards = mp.options.map((id, i) => `<button class="mp-card" data-act="pickMerge" data-idx="${i}">${cardHTML(UNITS[id], { size: 'mini', k: 'mp' + i })}<span class="mp-st">${'★'.repeat(UNITS[id].tier)}</span></button>`).join('');
-    modal(`<h2>🎉 دمج! اختر هديتك</h2><p class="mp-sub">اختر بطاقة وحدة من ${mp.options.length}، نجومها ${'★'.repeat(mp.rank)} (أعلى من مستوى متجرك بنجمة)</p><div class="mp-row">${cards}</div>`);
+    modal(`<h2>🎉 دمج! اختر هديتك</h2><p class="mp-sub">اختر بطاقة تنضاف لفريقك، والبطاقة المطوّرة تبقى معك. نجومها ${'★'.repeat(mp.rank)} (أعلى من مستوى متجرك بنجمة). الهدية مرة وحدة بكل جولة.</p><div class="mp-row">${cards}</div>`);
     const x = document.querySelector('#modal .x'); if (x) x.style.display = 'none';   // the choice is part of the merge: no closing without picking
   }
   // card frame v5 (phones): the approved gold frame with a rarity-coloured side strip. The overlay carries the power, the role socket, the rarity word and the card's star level.
@@ -5323,7 +5324,7 @@ AMB.IMAGES = {
   const powerOf = (hp, atk) => Math.round(hp / 8 + atk * 2);
   function fr4HTML(def, atk, hp) {
     const RA = AMB.ECONOMY && AMB.ECONOMY.rarities[def.rarity], ro = ROLES[def.role];
-    return `<i class="fr4-img"></i><span class="fr4-pw" title="القوة">${powerOf(hp, atk)}</span><span class="fr4-role" title="${esc(ro.name)}">${icon(ART.ROLE_ICON[def.role])}</span><span class="fr4-rar">${RA ? RA.name : ''}</span><span class="fr4-st" title="نجوم البطاقة">${def.tier}</span>`;
+    return `<i class="fr4-img"></i><span class="fr4-pw" title="القوة">${powerOf(hp, atk)}</span><span class="fr4-role" title="${esc(ro.name)}">${icon(ART.ROLE_ICON[def.role])}</span><span class="fr4-rar">${RA ? RA.name : ''}</span><span class="fr4-st" title="نجوم البطاقة">${def.tier}</span><span class="fr4-rt">${esc(ro.name)}</span>`;
   }
   function cardHTML(def, o) {
     o = o || {};
@@ -5943,7 +5944,7 @@ AMB.IMAGES = {
       const isNew = p.shopNew && p.shopNew[i], stars = '★'.repeat(d.tier);
       const dots = ow && ow.s1 ? `<span class="sc-dots">${'●'.repeat(Math.min(2, ow.s1))}${'○'.repeat(Math.max(1, 3 - Math.min(2, ow.s1)))}</span>` : '';
       return `<div class="sc r${d.tier} rc-${d.rarity || 'common'} ${ok ? '' : 'cant'} ${isNew ? 'newstar' : ''} ${ow && ow.s1 ? 'owned' : ''}" data-act="buy" data-idx="${i}" style="--rc:${rc};--wc:${WORLDS[d.world].color};${artVar(d.id)}" title="${esc(d.name)}: ${esc(d.skill.name)}">
-        ${isNew ? `<span class="sc-new">جديد!</span>` : ''}<span class="sc-stars">${stars}</span><span class="sc-pw">${powerOf(st.hp, st.atk)}</span><span class="sc-rar">${(RAR[d.rarity || 'common'] || RAR.common).name}</span>
+        ${isNew ? `<span class="sc-new">جديد!</span>` : ''}<span class="sc-stars">${stars}</span><span class="sc-pw">${powerOf(st.hp, st.atk)}</span><span class="sc-price" title="السعر بالذهب">${icon('gold')}<b>${d.cost}</b></span><span class="sc-rt">${esc(ROLES[d.role].name)}</span><span class="sc-rar">${(RAR[d.rarity || 'common'] || RAR.common).name}</span>
         <span class="sc-art">${portrait(d, { bare: true, k: 'sca' + i })}</span><i class="sc-frame"></i>
         <span class="sc-gem"></span><b class="sc-cost">${d.cost}</b><b class="sc-hp">${st.hp}</b><b class="sc-atk">${st.atk}</b>
         <span class="sc-role">${icon(ART.ROLE_ICON[d.role] || 'star')}</span>${dots}
@@ -7472,7 +7473,7 @@ AMB.IMAGES = {
       root.innerHTML = `<div class="cam-starter"><div class="tut-cta"><button class="btn primary big" data-act="tutGo">${icon('sword')} ${icon('hand')}</button></div></div>`; return;
     }
     AMB.TIPS = AMB.TIPS || {};
-    AMB.TIPS.caminfo = () => ({ title: 'كيف تشتغل الحملة', html: `<p>كل قتال <b>تلعب 8 جولات ويفوز اللي يكسب جولات أكثر</b> ضد تشكيلة ثابتة. مستويات بطاقاتك وندرتها <b>تنحسب هنا</b>، والمتجر يعرض الوحدات اللي تملكها فقط.</p>
+    AMB.TIPS.caminfo = () => ({ title: 'كيف تشتغل الحملة', html: `<p>كل قتال <b>لين 8 جولات، واللي يكسب 5 جولات أول يفوز</b> ضد تشكيلة ثابتة. مستويات بطاقاتك وندرتها <b>تنحسب هنا</b>، والمتجر يعرض الوحدات اللي تملكها فقط.</p>
       <p>الفوز الأول: ${icon('gem')} ${R.fight.shards} + ${R.fight.passXp} خبرة ممر<br><b>3 صعوبات:</b> سهل (أضعف وجوائز أصغر)، متوسط، صعب (أقوى وجوائز مضاعفة، ينفتح بعد ما تخلص المستوى في متوسط). لكل صعوبة تقدمها ونجومها وصناديقها.<br>الزعيم: <b>جائزة وحدة كبيرة</b> أول مرة تفوز فيه: ${icon('gem')} ${R.bossStars[0].shards} + باكج + بطاقة نادرة أو أعلى<br>إنهاء المستوى: باكج مجاني<br>الإعادة: ${icon('gem')} ${R.replay.shards}</p>
       <h4>النجوم</h4>${LV.CAMPAIGN.stars.rules.map((r) => `<div>${'★'.repeat(r.n)} ${r.text}</div>`).join('')}` });
     const DF = LV.DIFFICULTY, cd = CAM.diff();
@@ -7498,7 +7499,7 @@ AMB.IMAGES = {
       refreshMenu(); return;
     }
     const wd = W(camWorld);
-    root.innerHTML = tabs + `<div class="wm-back"><button class="btn small ghost" data-act="camWorld" data-w="">‹ خريطة العوالم</button><b style="color:${wd.color}">${icon(AMB.art.WORLD_ICON[camWorld])} ${esc(wd.name)}</b></div>` + `<div class="cam-note">⚔️ 8 جولات في كل قتال (يفوز اللي يكسب جولات أكثر) · ⭐ كل فوز نجمة، والنجوم تفتح صناديق · 👑 الزعيم له جائزة كبيرة <button class="ibtn" data-act="info" data-k="caminfo" title="شرح">ⓘ</button></div>
+    root.innerHTML = tabs + `<div class="wm-back"><button class="btn small ghost" data-act="camWorld" data-w="">‹ خريطة العوالم</button><b style="color:${wd.color}">${icon(AMB.art.WORLD_ICON[camWorld])} ${esc(wd.name)}</b></div>` + `<div class="cam-note">⚔️ لين 8 جولات، واللي يكسب 5 منها أول يفوز · ⭐ كل فوز نجمة، والنجوم تفتح صناديق · 👑 الزعيم له جائزة كبيرة <button class="ibtn" data-act="info" data-k="caminfo" title="شرح">ⓘ</button></div>
       ${chestsHTML()}
       <div class="cam-levels">${LV.LEVELS.map((l, li) => ({ l, li })).filter((x) => x.l.world === camWorld).map(({ l, li }) => {
         const pr = CAM.progress(l.id), unlocked = CAM.levelUnlocked(li);
@@ -7538,7 +7539,7 @@ AMB.IMAGES = {
     const heroes = C.ownedHeroes().map((id) => `<button class="hchip ${id === h ? 'on' : ''}" data-act="camHero" data-id="${id}" data-f="${fightId}">${ui.portrait(AMB.DATA.HEROES[id], { k: 'cph' + id })}<span>${AMB.DATA.HEROES[id].name}</span></button>`).join('');
     const prizeTxt = (p) => [p.shards ? `${icon('gem')} ${p.shards}` : '', p.passXp ? `+${p.passXp} خبرة` : '', p.packs ? '📦 باكج' : '', p.card ? `🃏 بطاقة ${AMB.ECONOMY.rarities[p.card].name}+` : ''].filter(Boolean).join(' · ');
     const reward = pay.boss
-      ? `<div class="hint" style="margin-bottom:4px">قتال طويل: 8 جولات والزعيم يقوى كل جولة. جائزة الزعيم تنصرف مرة وحدة عند أول فوز.</div>${pay.prizes.map((p) => `<div class="bp ${p.state}"><span class="bp-s">${'★'.repeat(p.star)}</span><span>${prizeTxt(p)}</span><i>${p.state === 'paid' ? '✓ استلمتها' : ''}</i></div>`).join('')}${levelHint(pay)}`
+      ? `<div class="hint" style="margin-bottom:4px">قتال طويل: لين 8 جولات (تكسب 5 أول) والزعيم يقوى كل جولة. جائزة الزعيم تنصرف مرة وحدة عند أول فوز.</div>${pay.prizes.map((p) => `<div class="bp ${p.state}"><span class="bp-s">${'★'.repeat(p.star)}</span><span>${prizeTxt(p)}</span><i>${p.state === 'paid' ? '✓ استلمتها' : ''}</i></div>`).join('')}${levelHint(pay)}`
       : pay.replay ? `إعادة: ${icon('gem')} ${pay.shards}` : `${icon('gem')} ${pay.shards} شظية · +${pay.passXp} خبرة ممر${levelHint(pay, true)}`;
     ui.modal(`<div class="cam-pv" style="--wc:${W(l.world).color}">
       <h2>${f.boss ? '👑 ' : ''}${esc(f.name)}</h2><div class="hint">${esc(l.name)} · ${x.fi + 1}/${l.fights.length}</div>
@@ -8872,7 +8873,7 @@ AMB.IMAGES = {
     const units = L.units.map(([id, star, , from], k) => `<div class="cu">${ui.portrait(AMB.DATA.UNITS[id], { k: 'twp' + k + id })}${ui.stars(star)}${from > 1 ? `<small>من الجولة ${from}</small>` : ''}</div>`).join('');
     const heroes = C.ownedHeroes().map((id) => `<button class="hchip ${id === h ? 'on' : ''}" data-act="towHero" data-id="${id}" data-n="${n}">${ui.portrait(AMB.DATA.HEROES[id], { k: 'twh' + id })}<span>${AMB.DATA.HEROES[id].name}</span></button>`).join('');
     const reward = first ? `${icon('gem')} ${R.shards} شظية · +${R.passXp} خبرة ممر${R.pack ? ' · <b>باكج مجاني</b>' : ''}${R.card ? ' · <b>بطاقة ملحمية أو أندر مضمونة</b>' : ''}` : 'خلّصت هالطابق: بدون جائزة (تدريب)';
-    ui.modal(`<div class="cam-pv" style="--wc:${W(L.world).color}"><h2>${L.boss ? '👑 ' : ''}${esc(L.name)}</h2><div class="hint">${W(L.world).name} · تلعب 8 جولات ويفوز اللي يكسب جولات أكثر${TW.attempts(n) ? ' · محاولات: ' + TW.attempts(n) : ''}</div>
+    ui.modal(`<div class="cam-pv" style="--wc:${W(L.world).color}"><h2>${L.boss ? '👑 ' : ''}${esc(L.name)}</h2><div class="hint">${W(L.world).name} · لين 8 جولات، واللي يكسب 5 جولات أول يفوز${TW.attempts(n) ? ' · محاولات: ' + TW.attempts(n) : ''}</div>
       ${L.boss ? `<div class="boss-box">${ui.portrait(AMB.DATA.HEROES[L.heroId], { k: 'twb' })}<div><b>قدرة الزعيم: ${esc(L.special.name)}</b><p>${esc(L.special.text)}</p></div></div>` : ''}
       <h4>تشكيلة الخصم</h4><div class="cam-units">${units}</div>
       <h4>الجائزة</h4><div class="cam-reward">${reward}</div>
@@ -8911,7 +8912,7 @@ AMB.IMAGES = {
   }
 
   AMB.TIPS = AMB.TIPS || {};
-  AMB.TIPS.towinfo = () => { const R = AMB.ECONOMY.tower.rewards; return { title: 'برج التحدي', html: `<p>${TW.floors()} طابقًا، كل طابق قتال <b>تلعب 8 جولات ويفوز اللي يكسب جولات أكثر</b> ضد تشكيلة تصعب كل ما صعدت. كل 5 طوابق زعيم بقدرة خاصة.</p>
+  AMB.TIPS.towinfo = () => { const R = AMB.ECONOMY.tower.rewards; return { title: 'برج التحدي', html: `<p>${TW.floors()} طابقًا، كل طابق قتال <b>لين 8 جولات، واللي يكسب 5 جولات أول يفوز</b> ضد تشكيلة تصعب كل ما صعدت. كل 5 طوابق زعيم بقدرة خاصة.</p>
     <p>أول مرة تعدّي طابق: ${icon('gem')} ${R.shardsFirst}–${R.shardsLast} شظية + خبرة ممر. الزعيم: باكج مجاني. الطابق ${TW.floors()}: بطاقة ملحمية أو أندر مضمونة.</p>
     <p>لو خسرت تعيد نفس الطابق بدون أي عقوبة، وأعلى طابق وصلت له محفوظ. مستويات بطاقاتك تنحسب هنا، وتقدر تعيد أي طابق سابق للتدريب بدون جائزة.</p>` }; };
 
@@ -8989,7 +8990,7 @@ AMB.IMAGES = {
     const units = L.units.map(([id, star, , from], k) => `<div class="cu">${ui.portrait(AMB.DATA.UNITS[id], { k: 'evp' + k + id })}${ui.stars(star)}${from > 1 ? `<small>من الجولة ${from}</small>` : ''}</div>`).join('');
     const heroes = C.ownedHeroes().map((id) => `<button class="hchip ${id === h ? 'on' : ''}" data-act="evHero" data-id="${id}" data-n="${stage}">${ui.portrait(AMB.DATA.HEROES[id], { k: 'evh' + id })}<span>${AMB.DATA.HEROES[id].name}</span></button>`).join('');
     const reward = first ? `${icon('gem')} ${R.shards} شظية · +${R.passXp} خبرة ممر${R.pack ? ' · <b>باكج مجاني</b>' : ''}${R.exclusive ? ` · <b>🌟 ${esc(AMB.DATA.UNITS[c.event.exclusive].name)} (حصرية)</b>` : ''}` : 'خلّصت هالمرحلة هالأسبوع: تدريب بدون جائزة';
-    ui.modal(`<div class="cam-pv" style="--wc:${W(c.event.world).color}"><h2>${L.boss ? '👑 ' : ''}${esc(L.name)}</h2><div class="hint">${esc(c.event.name)} · تلعب 8 جولات ويفوز اللي يكسب جولات أكثر</div>
+    ui.modal(`<div class="cam-pv" style="--wc:${W(c.event.world).color}"><h2>${L.boss ? '👑 ' : ''}${esc(L.name)}</h2><div class="hint">${esc(c.event.name)} · لين 8 جولات، واللي يكسب 5 جولات أول يفوز</div>
       ${L.boss ? `<div class="boss-box">${ui.portrait(AMB.DATA.HEROES[L.heroId], { k: 'evb' })}<div><b>قدرة الزعيم: ${esc(L.special.name)}</b><p>${esc(L.special.text)}</p></div></div>` : ''}
       <h4>تشكيلة الخصم</h4><div class="cam-units">${units}</div><h4>الجائزة</h4><div class="cam-reward">${reward}</div>
       <h4>بطلك</h4><div class="hchips">${heroes}</div>${AMB.DeckGate ? AMB.DeckGate.line() : ''}
@@ -9024,7 +9025,7 @@ AMB.IMAGES = {
   }
 
   AMB.TIPS = AMB.TIPS || {};
-  AMB.TIPS.evinfo = () => { const R = AMB.ECONOMY.events.rewards; return { title: 'الحدث الأسبوعي', html: `<p>كل أسبوع (من الاثنين للأحد) حدث جديد من عالم مختلف: <b>${WK.stageCount()} مراحل</b> تلعب 8 جولات ويفوز اللي يكسب جولات أكثر، والأخيرة زعيم الحدث بقدرتين.</p>
+  AMB.TIPS.evinfo = () => { const R = AMB.ECONOMY.events.rewards; return { title: 'الحدث الأسبوعي', html: `<p>كل أسبوع (من الاثنين للأحد) حدث جديد من عالم مختلف: <b>${WK.stageCount()} مراحل</b> لين 8 جولات، واللي يكسب 5 جولات أول يفوز، والأخيرة زعيم الحدث بقدرتين.</p>
     <p>كل مرحلة تعطي شظايا وخبرة ممر (والثانية باكج مجاني) مرة واحدة في الأسبوع. هزيمة الزعيم تعطيك <b>بطاقة حصرية</b> ما تطلع في الباكجات ولا تضيع بعد انتهاء الحدث.</p>
     <p>الأحداث الأربعة تدور، فلو فاتك حدث يرجع بعد 4 أسابيع (وتاخذ نسخة تطوير إضافية للبطاقة لو عندك). الخسارة بدون عقوبة وتقدر تعيد.</p>` }; };
 

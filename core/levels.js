@@ -12,9 +12,9 @@
   const AMB = globalThis.AMB;
 
   const CAMPAIGN = {
-    rules: { maxRounds: 8, winsNeeded: 8 },          // every fight plays all 8 rounds (the winner is whoever wins more rounds, then has more life)
+    rules: { maxRounds: 8, winsNeeded: 5 },          // up to 8 rounds: first to 5 round wins takes the fight (4-4 after 8: more life)
     // boss fights are long: best of 7 rounds. The boss line-up keeps growing (extra units join later, and everything gets `growth` stronger each round)
-    bossRules: { maxRounds: 8, winsNeeded: 8, growth: 0.07 },
+    bossRules: { maxRounds: 8, winsNeeded: 5, growth: 0.07 },
     rewards: {
       fight: { shards: 20, passXp: 20 },
       boss: { shards: 60, passXp: 40 },
