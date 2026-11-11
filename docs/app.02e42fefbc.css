@@ -2968,37 +2968,40 @@ body.reduce-motion .lv-flash, body.reduce-motion .merge-flash, body.reduce-motio
   #scr-match.prep-focus .sd-cards .sc { width: calc(var(--scw, 70px) - 5px); }
   #scr-match.prep-focus #bench .bslot { background: #0a061acc; border: 1.6px solid #9a8cff; box-shadow: 0 0 7px #8a7dff99, inset 0 0 8px #6a5cff33; }}
 
-/* ===== neon dialogs (all screens): dark glass panels with neon lines instead of paper ===== */
-.overlay { background-color: #07040fee; background-image: radial-gradient(70% 55% at 50% 40%, #2a1a6a55, transparent 70%); }
-.modal-back { background: #07040fe0; }
-.ov-card, .modal {
-  --ink: #f3ecff; --text: #f3ecff; --muted: #b7acec; --paper: #120b2c; --paper2: #1b1240; --paper3: #3a2f7a; --hard: 0 0 0 transparent; --hard-sm: 0 0 8px #8a7dff66;
-  background: radial-gradient(120% 90% at 50% 0%, #1d1248 0%, #0d0820 65%, #08051a 100%); background-image: radial-gradient(120% 90% at 50% 0%, #1d1248 0%, #0d0820 65%, #08051a 100%);
-  border: 1.6px solid #9a8cff; border-radius: 18px; box-shadow: 0 0 14px #8a7dffaa, 0 0 40px #5b4bff44, inset 0 0 24px #6a5cff2e; color: #f3ecff; clip-path: none;
+/* ===== theme "royal": navy panels, gold trim. Every screen outside the match and every dialog. The match (field, shop, cards) keeps its neon look ===== */
+body { background: radial-gradient(1000px 700px at 50% -10%, #27335f 0%, #0d1224 60%, #080b17 100%) fixed; }
+/* the old panels were ink-on-paper, so swapping the two INSIDE a panel keeps every text readable: paper = navy, ink = warm cream-gold.
+   Screens that were already dark (campaign, collection, packs...) keep their own colours; only their paper panels and buttons change */
+.screen:not(#scr-match) .panel, .screen:not(#scr-match) .mode-card, .screen:not(#scr-match) .box, .screen:not(#scr-match) .res-col, .ov-card, .modal {
+  --paper: #161d33; --paper2: #1e2742; --paper3: #33406b; --ink: #ecdcae; --ink2: #d8c690; --ink3: #2b3760; --text: #f3ead6; --muted: #aab2cf; --hard: 0 8px 22px #000a; --hard-sm: 0 3px 0 #0b0f1d;
+  background: linear-gradient(180deg, #222c4d 0%, #141a30 100%); border: 1.5px solid #c9a04a; border-radius: 16px; box-shadow: 0 8px 22px #000a, inset 0 1px 0 #ffffff14; color: #f3ead6; clip-path: none;
 }
-.modal h2, .ov-card h2, .modal h3, .ov-card h3 { color: #fff; text-shadow: 0 0 8px #9a8cff, 0 0 18px #6a5cff88; }
-.modal .hint, .ov-card .hint { color: #b7acec; }
-.modal th, .ov-card th { background: #2a1f6a; color: #e8e0ff; }
-.modal td, .ov-card td { border-bottom: 1px solid #3a2f7a; color: #f3ecff; }
-.modal .btn, .ov-card .btn, .overlay .btn { background: #0a061acc; color: #e8e0ff; border: 1.6px solid #9a8cff; border-radius: 999px; clip-path: none; box-shadow: 0 0 8px #8a7dff88, inset 0 0 8px #6a5cff33; }
-.modal .btn:hover:not(:disabled), .ov-card .btn:hover:not(:disabled), .overlay .btn:hover:not(:disabled) { background: #1d1248; color: #fff; }
-.modal .btn.primary, .ov-card .btn.primary, .overlay .btn.primary { background: linear-gradient(#ff3d6a55, #ff3d6a22); border-color: #ff5a7a; color: #fff; text-shadow: 0 0 8px #ff5a7a; box-shadow: 0 0 12px #ff5a7aaa, inset 0 0 10px #ff5a7a55; }
-.modal .btn.ghost, .ov-card .btn.ghost, .overlay .btn.ghost { background: transparent; color: #cfc8ff; }
-.modal .btn.danger { border-color: #ff5a7a; color: #ffb3bb; }
-.modal .x { border-radius: 50%; min-width: 34px; padding: 4px 9px; }
-.modal .tip-body, .modal .skillbox, .modal .rar-box { color: #f3ecff; }
-.modal .skillbox, .modal .hint-box, .ov-card .skillbox { background: #ffffff0d; border: 1px solid #3a2f7a; color: #f3ecff; }
-.mp-sub { color: #cfc8ff !important; }
+.overlay { background-color: #070a14ee; background-image: radial-gradient(70% 55% at 50% 40%, #27335f66, transparent 70%); }
+.modal-back { background: #070a14e6; }
+.screen:not(#scr-match) .panel h2, .screen:not(#scr-match) .panel h3, .screen:not(#scr-match) .box h3, .modal h2, .modal h3, .modal h4, .ov-card h2, .ov-card h3 { color: #ffe7a8; text-shadow: 0 2px 0 #0008; }
+.screen:not(#scr-match) .panel .hint, .modal .hint, .ov-card .hint { color: #aab2cf; }
+.screen:not(#scr-match) .btn, .modal .btn, .ov-card .btn, .overlay .btn, #more-sheet .btn { clip-path: none; border-radius: 12px; background: linear-gradient(#2b3760, #1a2240); color: #f3ead6; border: 1.5px solid #c9a04a; box-shadow: 0 3px 0 #0b0f1d, 0 6px 12px #0007; text-shadow: none; }
+.screen:not(#scr-match) .btn:hover:not(:disabled), .modal .btn:hover:not(:disabled), .overlay .btn:hover:not(:disabled) { background: linear-gradient(#35437a, #212b52); color: #fff; }
+.screen:not(#scr-match) .btn.primary, .modal .btn.primary, .ov-card .btn.primary, .overlay .btn.primary, #more-sheet .btn.primary { background: linear-gradient(#f2c552, #c98a12); color: #2a1a00; border: 1.5px solid #fff1b8; }
+.screen:not(#scr-match) .btn.ghost, .modal .btn.ghost, .overlay .btn.ghost { background: transparent; color: #cfd6ee; box-shadow: none; }
+.screen:not(#scr-match) .btn.on, .modal .btn.on { background: linear-gradient(#f2c552, #c98a12); color: #2a1a00; }
+.modal .btn.danger { border-color: #e0626a; color: #ffb3bb; }
+.modal .x { border-radius: 10px; min-width: 34px; padding: 4px 9px; }
+.modal th, .ov-card th, .screen:not(#scr-match) th { background: #2b3760; color: #ffe7a8; }
+.modal td, .ov-card td, .screen:not(#scr-match) td { border-bottom: 1px solid #33406b; color: #f3ead6; }
+.modal .skillbox, .ov-card .skillbox, .screen:not(#scr-match) .skillbox { background: #ffffff0d; border: 1px solid #33406b; color: #f3ead6; }
+.modal .seg, .ov-card .seg, .screen:not(#scr-match) .seg { border: 1.5px solid #c9a04a; border-radius: 12px; overflow: hidden; }
+.modal .seg button, .ov-card .seg button, .screen:not(#scr-match) .seg button { border-left: 1px solid #33406b; color: #f3ead6; }
+.modal .seg button.on, .ov-card .seg button.on, .screen:not(#scr-match) .seg button.on { background: linear-gradient(#f2c552, #c98a12); color: #2a1a00; }
+.modal .upg-row, .ov-card .upg-row { background: #ffffff0a; border: 1px solid #33406b; border-radius: 12px; color: #f3ead6; }
+.modal .upg-row b, .modal .upg-row .hint { color: inherit; }
+.modal .prog { background: #0b0f1d; border: 1px solid #33406b; }
+.mp-sub { color: #cfd6ee !important; }
 .mp-row { gap: 10px; }
 .mp-card .tcard.mini.fr4 { width: min(28vw, 118px); }
 .mp-st { background: #07040f; color: #ffe08a; border: 1px solid #ffd24a99; box-shadow: 0 0 8px #ffd24a66; }
 .mp-card:active .tcard, .mp-card:hover .tcard { transform: none; filter: drop-shadow(0 0 12px #ffd24a); }
-.modal .seg, .ov-card .seg { border: 1.5px solid #9a8cff; border-radius: 999px; overflow: hidden; box-shadow: 0 0 8px #8a7dff66; }
-.modal .seg button, .ov-card .seg button { border-left: 1px solid #3a2f7a; color: #e8e0ff; }
-.modal .seg button.on, .ov-card .seg button.on { background: #2a1f6a; color: #ffd24a; text-shadow: 0 0 6px #ffd24a88; }
-.modal .upg-row, .ov-card .upg-row { background: #ffffff0a; border: 1px solid #3a2f7a; border-radius: 12px; color: #f3ecff; }
-.modal .upg-row b, .modal .upg-row .hint { color: inherit; }
-.modal .prog { background: #0a061a; border: 1px solid #3a2f7a; }
+
 
 /* clearer cards: gold price coin and the role's name on shop cards, role name on field cards, a plain "i" button */
 @media (max-width: 860px) and (orientation: portrait) {
@@ -3008,3 +3011,22 @@ body.reduce-motion .lv-flash, body.reduce-motion .merge-flash, body.reduce-motio
   .fr4 .fr4-rt { bottom: 21%; font-size: 7.4cqw; padding: 0 2.6cqw; left: 41%; }
   #scr-match.prep-focus .sc .sc-info { width: 17px; height: 17px; right: 4%; top: 13.5%; background: #07040fdd; border: 1.4px solid #7df9ff; color: #7df9ff; font: 900 11px var(--display); opacity: 1; box-shadow: 0 0 6px #33d6ff99; }
 }
+
+/* theme "royal", part 2: the remaining paper islands (hero picker, pass cells, missions, profile options, login days, world map) */
+.hpick, .pcell, .mission, .opt, .lday, .pass-head, .rq {
+  --paper: #161d33; --paper2: #1e2742; --paper3: #33406b; --ink: #ecdcae; --ink2: #d8c690; --ink3: #2b3760; --text: #f3ead6; --muted: #aab2cf; --hard: 0 6px 16px #000a; --hard-sm: 0 3px 0 #0b0f1d;
+  background: linear-gradient(180deg, #222c4d 0%, #141a30 100%); border: 1.5px solid #c9a04a; border-radius: 14px; color: #f3ead6; box-shadow: 0 6px 16px #0009, inset 0 1px 0 #ffffff14;
+}
+.hpick.sel { background: linear-gradient(180deg, #3a4a86 0%, #1c2550 100%); box-shadow: 0 0 0 3px #f2c552, 0 0 18px #f2c55288; }
+.hpick .hp-info { background: linear-gradient(#2b3760, #1a2240) !important; color: #f3ead6 !important; border: 1.5px solid #c9a04a !important; border-radius: 10px; }
+.hpick h3, .hpick b { color: #ffe7a8; }
+.pass-head .ph-lv { border-radius: 10px; }
+.ptabs button { border-radius: 12px; background: linear-gradient(#2b3760, #1a2240); color: #f3ead6; border: 1.5px solid #c9a04a; }
+.ptabs button.on { background: linear-gradient(#f2c552, #c98a12); color: #2a1a00; border-color: #fff1b8; }
+.pcell[data-track=premium] { background: linear-gradient(180deg, #3a2a62, #1d1438); color: #fff; }
+.pcell.claimed { background: linear-gradient(180deg, #1f4a34, #12281d); } .pcell[data-track=premium].claimed { background: linear-gradient(180deg, #2f4a3a, #182a20); }
+.pcell.big { background: linear-gradient(180deg, #4a3d1a, #2a2210); border-color: #f2c552; } .pcell[data-track=premium].big { background: linear-gradient(180deg, #5a3a80, #2a1a48); }
+.pcell.can { border-color: #f2c552; box-shadow: 0 0 0 2px #f2c552, 0 0 14px #f2c55288; }
+.pcell.can .pc-state { color: #ffd24a; }
+.mission.done { border-color: #5ee08a; } .mission.claimed { opacity: .6; }
+.wm { background: radial-gradient(circle at 50% 50%, #2b3a70 0%, #1a2348 55%, #0f1530 100%); border: 2px solid #c9a04a; box-shadow: 0 0 0 2px #0b0f1d, inset 0 0 40px #0008; }
