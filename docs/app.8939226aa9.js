@@ -34,7 +34,7 @@
     },
 
     // price to buy level N (key = the level you are buying)
-    upgradeCost: { 2: 6, 3: 9, 4: 12, 5: 15 },
+    upgradeCost: { 2: 5, 3: 8, 4: 10, 5: 13 },
     upgradeDecay: 1,              // price drops by this much for every round that passes without an upgrade
     upgradeMin: 3,                // ...but never below this
 
@@ -3161,9 +3161,9 @@
   const AMB = globalThis.AMB;
 
   const CAMPAIGN = {
-    rules: { maxRounds: 3, winsNeeded: 2 },          // best of 3 rounds
+    rules: { maxRounds: 8, winsNeeded: 8 },          // every fight plays all 8 rounds (the winner is whoever wins more rounds, then has more life)
     // boss fights are long: best of 7 rounds. The boss line-up keeps growing (extra units join later, and everything gets `growth` stronger each round)
-    bossRules: { maxRounds: 7, winsNeeded: 4, growth: 0.07 },
+    bossRules: { maxRounds: 8, winsNeeded: 8, growth: 0.07 },
     rewards: {
       fight: { shards: 20, passXp: 20 },
       boss: { shards: 60, passXp: 40 },
@@ -3221,60 +3221,60 @@
 
   const LEVELS = [
     L('l1', 'ember', 'kagira', 'أطراف مملكة الجمر', { gold: 6, level: 2 }, [
-      F('l1f1', 'دورية الرماد', 2.07, [['ash_ronin', 1, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['pixel_sniper', 1, 'b1', 2]]),
-      F('l1f2', 'حرّاس الأتون', 1.76, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 1, 'f2', 1], ['thorn_fox', 1, 'f3', 2], ['pixel_sniper', 1, 'b1', 1]]),
-      F('l1f3', 'كمين الشرر', 1.48, [['ash_ronin', 1, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['spark_wraith', 1, 'b2', 1], ['pyre_archer', 1, 'b1', 2]]),
-      F('l1f4', 'رماة المحرقة', 1.48, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 1, 'f2', 1], ['coral_sentinel', 1, 'f3', 2], ['pyre_archer', 1, 'b1', 1], ['spark_wraith', 1, 'b2', 3]]),
-      F('l1boss', 'الزعيم: سراج', 1.06, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 2, 'f2', 1], ['pyre_archer', 1, 'b0', 1], ['caldera_seer', 1, 'b2', 2], ['spark_wraith', 1, 'b3', 4], ['forge_bulwark', 2, 'f3', 6]], { boss: true }),
+      F('l1f1', 'دورية الرماد', 2.7, [['ash_ronin', 1, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['pixel_sniper', 1, 'b1', 2]]),
+      F('l1f2', 'حرّاس الأتون', 2.12, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 1, 'f2', 1], ['thorn_fox', 1, 'f3', 2], ['pixel_sniper', 1, 'b1', 1]]),
+      F('l1f3', 'كمين الشرر', 1.83, [['ash_ronin', 1, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['spark_wraith', 1, 'b2', 1], ['pyre_archer', 1, 'b1', 2]]),
+      F('l1f4', 'رماة المحرقة', 1.63, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 1, 'f2', 1], ['coral_sentinel', 1, 'f3', 2], ['pyre_archer', 1, 'b1', 1], ['spark_wraith', 1, 'b2', 3]]),
+      F('l1boss', 'الزعيم: سراج', 1.05, [['forge_bulwark', 1, 'f1', 1], ['ash_ronin', 2, 'f2', 1], ['pyre_archer', 1, 'b0', 1], ['caldera_seer', 1, 'b2', 2], ['spark_wraith', 1, 'b3', 4], ['forge_bulwark', 2, 'f3', 6]], { boss: true }),
     ]),
     L('l2', 'tide', 'merin', 'سواحل المدّ القمري', { gold: 8, level: 3 }, [
-      F('l2f1', 'حرس المرجان', 2.27, [['coral_sentinel', 1, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['wave_caller', 1, 'b1', 1], ['pixel_sniper', 1, 'b2', 2]]),
-      F('l2f2', 'سيوف القمر', 1.93, [['coral_sentinel', 1, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['lunar_blade', 1, 'f3', 2], ['wave_caller', 1, 'b1', 1], ['mist_witch', 1, 'b2', 3]]),
-      F('l2f3', 'ضباب الساحرات', 1.3, [['coral_sentinel', 2, 'f1', 1], ['moss_warden', 1, 'f2', 1], ['mist_witch', 1, 'b1', 1], ['wave_caller', 1, 'b2', 1], ['kazehaya', 1, 'b3', 2]]),
-      F('l2f4', 'موجة المدّ', 1.06, [['coral_sentinel', 2, 'f1', 1], ['lunar_blade', 2, 'f2', 1], ['thorn_fox', 1, 'f3', 1], ['mist_witch', 1, 'b1', 1], ['wave_caller', 1, 'b2', 2], ['pixel_sniper', 1, 'b3', 3]]),
-      F('l2boss', 'الزعيم: غيث', 1.17, [['coral_sentinel', 2, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['wave_caller', 1, 'b0', 1], ['mist_witch', 1, 'b2', 1], ['tide_priest', 1, 'b3', 2], ['coral_sentinel', 2, 'f0', 4], ['lunar_blade', 2, 'f3', 6]], { boss: true }),
+      F('l2f1', 'حرس المرجان', 2.31, [['coral_sentinel', 1, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['wave_caller', 1, 'b1', 1], ['pixel_sniper', 1, 'b2', 2]]),
+      F('l2f2', 'سيوف القمر', 2.21, [['coral_sentinel', 1, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['lunar_blade', 1, 'f3', 2], ['wave_caller', 1, 'b1', 1], ['mist_witch', 1, 'b2', 3]]),
+      F('l2f3', 'ضباب الساحرات', 1.34, [['coral_sentinel', 2, 'f1', 1], ['moss_warden', 1, 'f2', 1], ['mist_witch', 1, 'b1', 1], ['wave_caller', 1, 'b2', 1], ['kazehaya', 1, 'b3', 2]]),
+      F('l2f4', 'موجة المدّ', 1.15, [['coral_sentinel', 2, 'f1', 1], ['lunar_blade', 2, 'f2', 1], ['thorn_fox', 1, 'f3', 1], ['mist_witch', 1, 'b1', 1], ['wave_caller', 1, 'b2', 2], ['pixel_sniper', 1, 'b3', 3]]),
+      F('l2boss', 'الزعيم: غيث', 1.2, [['coral_sentinel', 2, 'f1', 1], ['lunar_blade', 1, 'f2', 1], ['wave_caller', 1, 'b0', 1], ['mist_witch', 1, 'b2', 1], ['tide_priest', 1, 'b3', 2], ['coral_sentinel', 2, 'f0', 4], ['lunar_blade', 2, 'f3', 6]], { boss: true }),
     ]),
     L('l3', 'neon', 'zerokai', 'شوارع نيون-٩', { gold: 10, level: 3 }, [
-      F('l3f1', 'كلاب الشبكة', 1.32, [['firewall_unit', 1, 'f1', 1], ['grid_hound', 2, 'f2', 1], ['grid_hound', 1, 'f3', 1], ['pixel_sniper', 1, 'b1', 1], ['spectral_coder', 1, 'b2', 2]]),
-      F('l3f2', 'قنّاصو البكسل', 1.23, [['firewall_unit', 1, 'f1', 1], ['chrome_ronin', 1, 'f2', 2], ['pixel_sniper', 2, 'b1', 1], ['pixel_sniper', 1, 'b2', 1], ['spectral_coder', 1, 'b3', 1]]),
-      F('l3f3', 'جدار النار', 0.96, [['firewall_unit', 2, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 1, 'b1', 1], ['spectral_coder', 1, 'b2', 2], ['spark_wraith', 1, 'b3', 3]]),
-      F('l3f4', 'المبرمجة الطيفية', 1.08, [['firewall_unit', 2, 'f1', 1], ['chrome_ronin', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 2, 'b1', 1], ['spectral_coder', 1, 'b2', 1], ['mist_witch', 1, 'b3', 2]]),
-      F('l3boss', 'الزعيم: يزن', 0.85, [['firewall_unit', 2, 'f1', 1], ['chrome_ronin', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 2, 'b0', 1], ['spectral_coder', 1, 'b2', 2], ['pixel_sniper', 2, 'b3', 4], ['firewall_unit', 2, 'f0', 6]], { boss: true }),
+      F('l3f1', 'كلاب الشبكة', 1.87, [['firewall_unit', 1, 'f1', 1], ['grid_hound', 2, 'f2', 1], ['grid_hound', 1, 'f3', 1], ['pixel_sniper', 1, 'b1', 1], ['spectral_coder', 1, 'b2', 2]]),
+      F('l3f2', 'قنّاصو البكسل', 1.97, [['firewall_unit', 1, 'f1', 1], ['chrome_ronin', 1, 'f2', 2], ['pixel_sniper', 2, 'b1', 1], ['pixel_sniper', 1, 'b2', 1], ['spectral_coder', 1, 'b3', 1]]),
+      F('l3f3', 'جدار النار', 1.1, [['firewall_unit', 2, 'f1', 1], ['forge_bulwark', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 1, 'b1', 1], ['spectral_coder', 1, 'b2', 2], ['spark_wraith', 1, 'b3', 3]]),
+      F('l3f4', 'المبرمجة الطيفية', 1.34, [['firewall_unit', 2, 'f1', 1], ['chrome_ronin', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 2, 'b1', 1], ['spectral_coder', 1, 'b2', 1], ['mist_witch', 1, 'b3', 2]]),
+      F('l3boss', 'الزعيم: يزن', 0.95, [['firewall_unit', 2, 'f1', 1], ['chrome_ronin', 1, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['pixel_sniper', 2, 'b0', 1], ['spectral_coder', 1, 'b2', 2], ['pixel_sniper', 2, 'b3', 4], ['firewall_unit', 2, 'f0', 6]], { boss: true }),
     ]),
     L('l4', 'sylvan', 'orath', 'قلب الغابة الأزلية', { gold: 12, level: 4 }, [
-      F('l4f1', 'ثعالب الأشواك', 1.96, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['thorn_fox', 1, 'f3', 1], ['kazehaya', 1, 'b1', 1], ['wave_caller', 1, 'b2', 1], ['root_shaman', 1, 'b3', 3]]),
-      F('l4f2', 'عيون الصفصاف', 1.14, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['coral_sentinel', 2, 'f3', 1], ['kazehaya', 2, 'b1', 1], ['kazehaya', 1, 'b2', 1], ['spectral_coder', 1, 'b3', 2]]),
-      F('l4f3', 'المتربّص', 1.32, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['kazehaya', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['wave_caller', 2, 'b3', 2]]),
-      F('l4f4', 'شامان الجذور', 1.05, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['firewall_unit', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['kazehaya', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['tide_priest', 1, 'b3', 3]]),
-      F('l4boss', 'الزعيم: راشد', 0.94, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['wild_stalker', 1, 'f3', 1], ['kazehaya', 2, 'b0', 1], ['root_shaman', 2, 'b2', 1], ['tide_priest', 1, 'b3', 2], ['wild_stalker', 2, 'f2', 5]], { boss: true }),
+      F('l4f1', 'ثعالب الأشواك', 1.97, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['thorn_fox', 1, 'f3', 1], ['kazehaya', 1, 'b1', 1], ['wave_caller', 1, 'b2', 1], ['root_shaman', 1, 'b3', 3]]),
+      F('l4f2', 'عيون الصفصاف', 1.2, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['coral_sentinel', 2, 'f3', 1], ['kazehaya', 2, 'b1', 1], ['kazehaya', 1, 'b2', 1], ['spectral_coder', 1, 'b3', 2]]),
+      F('l4f3', 'المتربّص', 1.44, [['moss_warden', 2, 'f1', 1], ['thorn_fox', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['kazehaya', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['wave_caller', 2, 'b3', 2]]),
+      F('l4f4', 'شامان الجذور', 1.1, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['firewall_unit', 2, 'f2', 1], ['wild_stalker', 1, 'f3', 1], ['kazehaya', 2, 'b1', 1], ['root_shaman', 1, 'b2', 1], ['tide_priest', 1, 'b3', 3]]),
+      F('l4boss', 'الزعيم: راشد', 1, [['moss_warden', 2, 'f0', 1], ['thorn_fox', 2, 'f1', 1], ['wild_stalker', 1, 'f3', 1], ['kazehaya', 2, 'b0', 1], ['root_shaman', 2, 'b2', 1], ['tide_priest', 1, 'b3', 2], ['wild_stalker', 2, 'f2', 5]], { boss: true }),
     ]),
     L('l5', 'ember', 'rika', 'أتون الملكة', { gold: 12, level: 4 }, [
-      F('l5f1', 'عمّال المطارق', 1.64, [['goka', 1, 'f1', 1], ['forge_bulwark', 2, 'f2', 1], ['ash_ronin', 2, 'f0', 1], ['pyre_archer', 1, 'b2', 1], ['natsuki', 1, 'b0', 2]]),
-      F('l5f2', 'حرس السندان', 1.28, [['kurenai', 1, 'f1', 1], ['godo', 2, 'f2', 1], ['spark_wraith', 1, 'b3', 2], ['pyre_archer', 2, 'b1', 1], ['momo', 1, 'b2', 1]]),
-      F('l5f3', 'قنّاصة الجمر', 1.28, [['forge_bulwark', 2, 'f1', 1], ['goka', 1, 'f2', 1], ['yuta', 2, 'b0', 1], ['pyre_archer', 2, 'b1', 1], ['caldera_seer', 1, 'b2', 2], ['tsubaki', 2, 'b3', 1]]),
-      F('l5f4', 'مصهر الأتون', 0.76, [['kurenai', 2, 'f1', 1], ['goka', 2, 'f2', 1], ['godo', 2, 'f3', 1], ['natsuki', 2, 'b1', 1], ['caldera_seer', 1, 'b2', 1], ['spark_wraith', 2, 'b3', 2]]),
-      F('l5boss', 'الزعيمة: جمانة', 0.69, [['kurenai', 2, 'f1', 1], ['goka', 2, 'f2', 1], ['godo', 2, 'f0', 1], ['caldera_seer', 2, 'b0', 1], ['momo', 2, 'b2', 2], ['spark_wraith', 2, 'b3', 4], ['natsuki', 2, 'f3', 6]], { boss: true }),
+      F('l5f1', 'عمّال المطارق', 1.73, [['goka', 1, 'f1', 1], ['forge_bulwark', 2, 'f2', 1], ['ash_ronin', 2, 'f0', 1], ['pyre_archer', 1, 'b2', 1], ['natsuki', 1, 'b0', 2]]),
+      F('l5f2', 'حرس السندان', 1.29, [['kurenai', 1, 'f1', 1], ['godo', 2, 'f2', 1], ['spark_wraith', 1, 'b3', 2], ['pyre_archer', 2, 'b1', 1], ['momo', 1, 'b2', 1]]),
+      F('l5f3', 'قنّاصة الجمر', 1.34, [['forge_bulwark', 2, 'f1', 1], ['goka', 1, 'f2', 1], ['yuta', 2, 'b0', 1], ['pyre_archer', 2, 'b1', 1], ['caldera_seer', 1, 'b2', 2], ['tsubaki', 2, 'b3', 1]]),
+      F('l5f4', 'مصهر الأتون', 0.81, [['kurenai', 2, 'f1', 1], ['goka', 2, 'f2', 1], ['godo', 2, 'f3', 1], ['natsuki', 2, 'b1', 1], ['caldera_seer', 1, 'b2', 1], ['spark_wraith', 2, 'b3', 2]]),
+      F('l5boss', 'الزعيمة: جمانة', 0.71, [['kurenai', 2, 'f1', 1], ['goka', 2, 'f2', 1], ['godo', 2, 'f0', 1], ['caldera_seer', 2, 'b0', 1], ['momo', 2, 'b2', 2], ['spark_wraith', 2, 'b3', 4], ['natsuki', 2, 'f3', 6]], { boss: true }),
     ]),
     L('l6', 'tide', 'kairyu', 'عاصفة القبطان', { gold: 12, level: 4 }, [
-      F('l6f1', 'بحّارة العاصفة', 1.14, [['coral_sentinel', 2, 'f1', 1], ['ryujin', 1, 'f2', 1], ['tomoe', 2, 'f0', 1], ['kota', 2, 'b1', 1], ['wave_caller', 2, 'b2', 1]]),
-      F('l6f2', 'سيوف الموج', 1.05, [['seiji', 2, 'f1', 1], ['lunar_blade', 2, 'f2', 1], ['daikai', 1, 'f3', 1], ['haruka', 2, 'b0', 1], ['miyuki', 1, 'b2', 1], ['mizuki', 2, 'b3', 2]]),
-      F('l6f3', 'ضباب الأرخبيل', 0.83, [['daikai', 2, 'f1', 1], ['ryujin', 1, 'f2', 1], ['coral_sentinel', 2, 'f3', 1], ['mist_witch', 2, 'b1', 1], ['haruka', 2, 'b2', 1], ['tide_priest', 1, 'b3', 2]]),
-      F('l6f4', 'سفينة القمر', 0.88, [['daikai', 2, 'f1', 1], ['ryujin', 2, 'f2', 1], ['seiji', 2, 'f0', 1], ['mist_witch', 2, 'b1', 1], ['otohime', 1, 'b2', 1], ['kota', 2, 'b3', 2]]),
-      F('l6boss', 'الزعيم: سالم', 0.65, [['daikai', 2, 'f1', 1], ['ryujin', 2, 'f2', 1], ['seiji', 2, 'f0', 1], ['haruka', 2, 'b0', 1], ['otohime', 1, 'b2', 2], ['mizuki', 2, 'b3', 4], ['lunar_blade', 2, 'f3', 6]], { boss: true }),
+      F('l6f1', 'بحّارة العاصفة', 1.44, [['coral_sentinel', 2, 'f1', 1], ['ryujin', 1, 'f2', 1], ['tomoe', 2, 'f0', 1], ['kota', 2, 'b1', 1], ['wave_caller', 2, 'b2', 1]]),
+      F('l6f2', 'سيوف الموج', 1.24, [['seiji', 2, 'f1', 1], ['lunar_blade', 2, 'f2', 1], ['daikai', 1, 'f3', 1], ['haruka', 2, 'b0', 1], ['miyuki', 1, 'b2', 1], ['mizuki', 2, 'b3', 2]]),
+      F('l6f3', 'ضباب الأرخبيل', 0.95, [['daikai', 2, 'f1', 1], ['ryujin', 1, 'f2', 1], ['coral_sentinel', 2, 'f3', 1], ['mist_witch', 2, 'b1', 1], ['haruka', 2, 'b2', 1], ['tide_priest', 1, 'b3', 2]]),
+      F('l6f4', 'سفينة القمر', 0.95, [['daikai', 2, 'f1', 1], ['ryujin', 2, 'f2', 1], ['seiji', 2, 'f0', 1], ['mist_witch', 2, 'b1', 1], ['otohime', 1, 'b2', 1], ['kota', 2, 'b3', 2]]),
+      F('l6boss', 'الزعيم: سالم', 0.71, [['daikai', 2, 'f1', 1], ['ryujin', 2, 'f2', 1], ['seiji', 2, 'f0', 1], ['haruka', 2, 'b0', 1], ['otohime', 1, 'b2', 2], ['mizuki', 2, 'b3', 4], ['lunar_blade', 2, 'f3', 6]], { boss: true }),
     ]),
     L('l7', 'neon', 'nayako', 'مسرح الشبكة', { gold: 14, level: 4 }, [
-      F('l7f1', 'جمهور الهولوغرام', 1.48, [['firewall_unit', 2, 'f1', 1], ['juzo', 2, 'f2', 1], ['firewall_unit', 2, 'f0', 1], ['pixel_sniper', 2, 'b1', 1], ['mitsuki', 2, 'b2', 1]]),
-      F('l7f2', 'كلاب الخوادم', 1.41, [['kogetsu', 1, 'f1', 1], ['firewall_unit', 2, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['reiji', 2, 'b0', 1], ['spectral_coder', 2, 'b2', 1], ['grid_hound', 2, 'b3', 2]]),
-      F('l7f3', 'عازفو البكسل', 1.37, [['chrome_ronin', 1, 'f1', 1], ['firewall_unit', 2, 'f2', 1], ['firewall_unit', 2, 'f3', 1], ['mugen', 1, 'b1', 1], ['pixel_sniper', 2, 'b2', 1], ['yozora', 1, 'b3', 2]]),
-      F('l7f4', 'قلب الشبكة', 0.97, [['kogetsu', 2, 'f1', 1], ['chrome_ronin', 2, 'f2', 1], ['firewall_unit', 2, 'f0', 1], ['mugen', 2, 'b1', 1], ['spectral_coder', 2, 'b2', 1], ['reiji', 2, 'b3', 2]]),
+      F('l7f1', 'جمهور الهولوغرام', 1.58, [['firewall_unit', 2, 'f1', 1], ['juzo', 2, 'f2', 1], ['firewall_unit', 2, 'f0', 1], ['pixel_sniper', 2, 'b1', 1], ['mitsuki', 2, 'b2', 1]]),
+      F('l7f2', 'كلاب الخوادم', 1.39, [['kogetsu', 1, 'f1', 1], ['firewall_unit', 2, 'f2', 1], ['grid_hound', 2, 'f3', 1], ['reiji', 2, 'b0', 1], ['spectral_coder', 2, 'b2', 1], ['grid_hound', 2, 'b3', 2]]),
+      F('l7f3', 'عازفو البكسل', 1.49, [['chrome_ronin', 1, 'f1', 1], ['firewall_unit', 2, 'f2', 1], ['firewall_unit', 2, 'f3', 1], ['mugen', 1, 'b1', 1], ['pixel_sniper', 2, 'b2', 1], ['yozora', 1, 'b3', 2]]),
+      F('l7f4', 'قلب الشبكة', 1.05, [['kogetsu', 2, 'f1', 1], ['chrome_ronin', 2, 'f2', 1], ['firewall_unit', 2, 'f0', 1], ['mugen', 2, 'b1', 1], ['spectral_coder', 2, 'b2', 1], ['reiji', 2, 'b3', 2]]),
       F('l7boss', 'الزعيمة: نجلاء', 0.76, [['kogetsu', 2, 'f1', 1], ['chrome_ronin', 2, 'f2', 1], ['firewall_unit', 2, 'f0', 1], ['mugen', 2, 'b0', 1], ['yozora', 2, 'b2', 2], ['grid_hound', 2, 'b3', 4], ['juzo', 2, 'f3', 6]], { boss: true }),
     ]),
     L('l8', 'sylvan', 'thora', 'عرين الدب الأزلي', { gold: 14, level: 5 }, [
-      F('l8f1', 'صيّادو اللحاء', 1.26, [['taiju', 1, 'f1', 1], ['kashiwagi', 1, 'f2', 1], ['genzo', 2, 'f0', 1], ['kazehaya', 2, 'b1', 1], ['yoshino', 2, 'b2', 1]]),
-      F('l8f2', 'حرّاس الغصن', 1.1, [['genzo', 2, 'f1', 1], ['kaito', 2, 'f2', 1], ['daigo', 2, 'f3', 1], ['gensai', 2, 'b0', 1], ['takashi', 2, 'b2', 1], ['hayate', 2, 'b3', 2]]),
-      F('l8f3', 'همس الغابة', 1.06, [['taiju', 2, 'f1', 1], ['kashiwagi', 1, 'f2', 1], ['genzo', 2, 'f3', 1], ['shirayuki', 1, 'b1', 1], ['ibara', 2, 'b2', 1], ['hisui', 1, 'b3', 2]]),
-      F('l8f4', 'قبضة الجذور', 0.63, [['taiju', 2, 'f1', 1], ['kashiwagi', 2, 'f2', 1], ['genzo', 2, 'f0', 1], ['shirayuki', 2, 'b1', 1], ['root_shaman', 2, 'b2', 1], ['wild_stalker', 2, 'b3', 2]]),
-      F('l8boss', 'الزعيمة: ثريّا', 0.74, [['taiju', 2, 'f1', 1], ['kashiwagi', 2, 'f2', 1], ['genzo', 2, 'f0', 1], ['shirayuki', 2, 'b0', 1], ['hisui', 2, 'b2', 2], ['wild_stalker', 2, 'b3', 4], ['kaito', 2, 'f3', 6]], { boss: true }),
+      F('l8f1', 'صيّادو اللحاء', 1.54, [['taiju', 1, 'f1', 1], ['kashiwagi', 1, 'f2', 1], ['genzo', 2, 'f0', 1], ['kazehaya', 2, 'b1', 1], ['yoshino', 2, 'b2', 1]]),
+      F('l8f2', 'حرّاس الغصن', 1.24, [['genzo', 2, 'f1', 1], ['kaito', 2, 'f2', 1], ['daigo', 2, 'f3', 1], ['gensai', 2, 'b0', 1], ['takashi', 2, 'b2', 1], ['hayate', 2, 'b3', 2]]),
+      F('l8f3', 'همس الغابة', 1.24, [['taiju', 2, 'f1', 1], ['kashiwagi', 1, 'f2', 1], ['genzo', 2, 'f3', 1], ['shirayuki', 1, 'b1', 1], ['ibara', 2, 'b2', 1], ['hisui', 1, 'b3', 2]]),
+      F('l8f4', 'قبضة الجذور', 0.81, [['taiju', 2, 'f1', 1], ['kashiwagi', 2, 'f2', 1], ['genzo', 2, 'f0', 1], ['shirayuki', 2, 'b1', 1], ['root_shaman', 2, 'b2', 1], ['wild_stalker', 2, 'b3', 2]]),
+      F('l8boss', 'الزعيمة: ثريّا', 0.76, [['taiju', 2, 'f1', 1], ['kashiwagi', 2, 'f2', 1], ['genzo', 2, 'f0', 1], ['shirayuki', 2, 'b0', 1], ['hisui', 2, 'b2', 2], ['wild_stalker', 2, 'b3', 4], ['kaito', 2, 'f3', 6]], { boss: true }),
     ]),
   ];
 
@@ -3436,7 +3436,7 @@
           players: [
             { heroId, name: 'أنت', cardPower: C ? C.powerMap() : null, allowedUnits: C ? C.playableUnits() : null, heroLevel: (globalThis.AMB.heroes ? AMB.heroes.level(heroId) : 1) },
             { heroId: f.level.hero, name: fight.name, isAI: true, cardPower: enemyPower,
-              lineup: { units: fight.units, growth: boss ? X.growth : 0, summon: boss ? 'b1' : null, blessings: boss ? boss.blessings : null, abilities: boss ? boss.abilities : [] } },
+              lineup: { units: fight.units, growth: X.growth, summon: boss ? 'b1' : null, blessings: boss ? boss.blessings : null, abilities: boss ? boss.abilities : [] } },
           ],
         };
       },
@@ -3808,7 +3808,7 @@
     const others = Object.keys(AMB.DATA.HEROES).filter((h) => h !== heroId);
     return {
       mode: 'practice', practice: true, seed: s, progression: false,
-      rules: { maxRounds: 3, winsNeeded: 2, start: T().start },
+      rules: { maxRounds: 8, winsNeeded: 8, start: T().start },
       players: [{ heroId, name: 'أنت' }, { heroId: others[s % others.length], name: 'تدريب', isAI: true, aiStyle: 'balanced', difficulty: 'easy' }],
     };
   }
@@ -5003,7 +5003,7 @@ AMB.IMAGES = {
       : S.mode === 'practice' ? new AMB.Match(AMB.Tutorial.practiceOptions(S.picks[0]))
       : S.mode === 'online' ? AMB.NetUI.makeMatch()
       // adult #22: a short match: 4 rounds, first to 3 round wins, starts at shop level 2 with more gold (about 3 minutes)
-      : S.mode === 'short' ? new AMB.Match({ mode: 'short', players, rules: { maxRounds: 4, winsNeeded: 3, start: { gold: 8, level: 2 } } })
+      : S.mode === 'short' ? new AMB.Match({ mode: 'short', players, rules: { maxRounds: 8, winsNeeded: 8, start: { gold: 8, level: 2 } } })
       : new AMB.Match({ mode: S.mode, players, seed: S.mode === 'ai' && S.challenge ? S.challenge.s : undefined, weekly: S.mode === 'ai' && S.challenge ? (AMB.Match.WEEKLY[S.challenge.w] ? S.challenge.w : null) : S.mode === 'ai' || S.mode === 'hotseat' ? AMB.Match.weeklyNow() : null });
     // same hero on both sides (e.g. your Kiro vs the Ember boss Kiro): the enemy becomes its "shadow"
     const mirror = S.match.players[0].heroId === S.match.players[1].heroId;
@@ -5068,7 +5068,7 @@ AMB.IMAGES = {
       ['shield', 'ضعها في الساحة', '<b>حارس ومقاتل</b> قدّام · <b>ساحر وقناص ودعم</b> ورا'],
       ['star', 'غيّر رأيك', 'اضغط الوحدة: بيع أو تبديل'],
       ['burst', 'الترقية ★', '٣ نسخ متطابقة = نجمة'],
-      ['sword', 'جاهز', 'القتال تلقائي · ' + (S.match && S.match.rules ? 'جولتين من ٣ تكسب' : '٧ جولات')],
+      ['sword', 'جاهز', 'القتال تلقائي · ' + (S.match && S.match.rules ? '٨ جولات' : '٨ جولات')],
     ];
     modal(`<h2>دليل سريع</h2><div class="tut">${steps.map((st, i) => `<div class="tut-step"><span class="tut-n">${i + 1}</span><span class="tut-ic">${icon(st[0])}</span><div><b>${st[1]}</b><p>${st[2]}</p></div></div>`).join('')}</div>
       <p class="hint" style="text-align:center;margin:8px 0 0">لو احتجت شرح أكثر اضغط ⓘ في أي مكان</p>
@@ -7485,7 +7485,7 @@ AMB.IMAGES = {
       root.innerHTML = `<div class="cam-starter"><div class="tut-cta"><button class="btn primary big" data-act="tutGo">${icon('sword')} ${icon('hand')}</button></div></div>`; return;
     }
     AMB.TIPS = AMB.TIPS || {};
-    AMB.TIPS.caminfo = () => ({ title: 'كيف تشتغل الحملة', html: `<p>كل قتال <b>تكسب جولتين من 3</b> ضد تشكيلة ثابتة. مستويات بطاقاتك وندرتها <b>تنحسب هنا</b>، والمتجر يعرض الوحدات اللي تملكها فقط.</p>
+    AMB.TIPS.caminfo = () => ({ title: 'كيف تشتغل الحملة', html: `<p>كل قتال <b>تلعب 8 جولات ويفوز اللي يكسب جولات أكثر</b> ضد تشكيلة ثابتة. مستويات بطاقاتك وندرتها <b>تنحسب هنا</b>، والمتجر يعرض الوحدات اللي تملكها فقط.</p>
       <p>الفوز الأول: ${icon('gem')} ${R.fight.shards} + ${R.fight.passXp} خبرة ممر<br><b>3 صعوبات:</b> سهل (أضعف وجوائز أصغر)، متوسط، صعب (أقوى وجوائز مضاعفة، ينفتح بعد ما تخلص المستوى في متوسط). لكل صعوبة تقدمها ونجومها وصناديقها.<br>الزعيم (أفضل من 7 جولات): <b>كل نجمة لها جائزة</b> مرة وحدة: ★ ${icon('gem')} ${R.bossStars[0].shards} · ★★ ${icon('gem')} ${R.bossStars[1].shards} + باكج · ★★★ ${icon('gem')} ${R.bossStars[2].shards} + بطاقة نادرة أو أعلى<br>إنهاء المستوى: باكج مجاني<br>الإعادة: ${icon('gem')} ${R.replay.shards}</p>
       <h4>النجوم</h4>${LV.CAMPAIGN.stars.rules.map((r) => `<div>${'★'.repeat(r.n)} ${r.text}</div>`).join('')}` });
     const DF = LV.DIFFICULTY, cd = CAM.diff();
@@ -7511,7 +7511,7 @@ AMB.IMAGES = {
       refreshMenu(); return;
     }
     const wd = W(camWorld);
-    root.innerHTML = tabs + `<div class="wm-back"><button class="btn small ghost" data-act="camWorld" data-w="">‹ خريطة العوالم</button><b style="color:${wd.color}">${icon(AMB.art.WORLD_ICON[camWorld])} ${esc(wd.name)}</b></div>` + `<div class="cam-note">⚔️ جولتين من 3 تكسب (الزعيم 4 من 7) · ⭐ النجوم تفتح صناديق · 👑 كل نجمة زعيم لها جائزة <button class="ibtn" data-act="info" data-k="caminfo" title="شرح">ⓘ</button></div>
+    root.innerHTML = tabs + `<div class="wm-back"><button class="btn small ghost" data-act="camWorld" data-w="">‹ خريطة العوالم</button><b style="color:${wd.color}">${icon(AMB.art.WORLD_ICON[camWorld])} ${esc(wd.name)}</b></div>` + `<div class="cam-note">⚔️ 8 جولات في كل قتال (يفوز اللي يكسب جولات أكثر) · ⭐ النجوم تفتح صناديق · 👑 كل نجمة زعيم لها جائزة <button class="ibtn" data-act="info" data-k="caminfo" title="شرح">ⓘ</button></div>
       ${chestsHTML()}
       <div class="cam-levels">${LV.LEVELS.map((l, li) => ({ l, li })).filter((x) => x.l.world === camWorld).map(({ l, li }) => {
         const pr = CAM.progress(l.id), unlocked = CAM.levelUnlocked(li);
@@ -7551,7 +7551,7 @@ AMB.IMAGES = {
     const heroes = C.ownedHeroes().map((id) => `<button class="hchip ${id === h ? 'on' : ''}" data-act="camHero" data-id="${id}" data-f="${fightId}">${ui.portrait(AMB.DATA.HEROES[id], { k: 'cph' + id })}<span>${AMB.DATA.HEROES[id].name}</span></button>`).join('');
     const prizeTxt = (p) => [p.shards ? `${icon('gem')} ${p.shards}` : '', p.passXp ? `+${p.passXp} خبرة` : '', p.packs ? '📦 باكج' : '', p.card ? `🃏 بطاقة ${AMB.ECONOMY.rarities[p.card].name}+` : ''].filter(Boolean).join(' · ');
     const reward = pay.boss
-      ? `<div class="hint" style="margin-bottom:4px">قتال طويل: أفضل من 7 جولات (تكسب 4). كل نجمة لها جائزتها، وتنصرف مرة وحدة.</div>${pay.prizes.map((p) => `<div class="bp ${p.state}"><span class="bp-s">${'★'.repeat(p.star)}</span><span>${prizeTxt(p)}</span><i>${p.state === 'paid' ? '✓ استلمتها' : ''}</i></div>`).join('')}${levelHint(pay)}`
+      ? `<div class="hint" style="margin-bottom:4px">قتال طويل: 8 جولات والزعيم يقوى كل جولة. كل نجمة لها جائزتها، وتنصرف مرة وحدة.</div>${pay.prizes.map((p) => `<div class="bp ${p.state}"><span class="bp-s">${'★'.repeat(p.star)}</span><span>${prizeTxt(p)}</span><i>${p.state === 'paid' ? '✓ استلمتها' : ''}</i></div>`).join('')}${levelHint(pay)}`
       : pay.replay ? `إعادة: ${icon('gem')} ${pay.shards}` : `${icon('gem')} ${pay.shards} شظية · +${pay.passXp} خبرة ممر${levelHint(pay, true)}`;
     ui.modal(`<div class="cam-pv" style="--wc:${W(l.world).color}">
       <h2>${f.boss ? '👑 ' : ''}${esc(f.name)}</h2><div class="hint">${esc(l.name)} · ${x.fi + 1}/${l.fights.length}</div>
@@ -8885,7 +8885,7 @@ AMB.IMAGES = {
     const units = L.units.map(([id, star, , from], k) => `<div class="cu">${ui.portrait(AMB.DATA.UNITS[id], { k: 'twp' + k + id })}${ui.stars(star)}${from > 1 ? `<small>من الجولة ${from}</small>` : ''}</div>`).join('');
     const heroes = C.ownedHeroes().map((id) => `<button class="hchip ${id === h ? 'on' : ''}" data-act="towHero" data-id="${id}" data-n="${n}">${ui.portrait(AMB.DATA.HEROES[id], { k: 'twh' + id })}<span>${AMB.DATA.HEROES[id].name}</span></button>`).join('');
     const reward = first ? `${icon('gem')} ${R.shards} شظية · +${R.passXp} خبرة ممر${R.pack ? ' · <b>باكج مجاني</b>' : ''}${R.card ? ' · <b>بطاقة ملحمية أو أندر مضمونة</b>' : ''}` : 'خلّصت هالطابق: بدون جائزة (تدريب)';
-    ui.modal(`<div class="cam-pv" style="--wc:${W(L.world).color}"><h2>${L.boss ? '👑 ' : ''}${esc(L.name)}</h2><div class="hint">${W(L.world).name} · تكسب جولتين من 3${TW.attempts(n) ? ' · محاولات: ' + TW.attempts(n) : ''}</div>
+    ui.modal(`<div class="cam-pv" style="--wc:${W(L.world).color}"><h2>${L.boss ? '👑 ' : ''}${esc(L.name)}</h2><div class="hint">${W(L.world).name} · تلعب 8 جولات ويفوز اللي يكسب جولات أكثر${TW.attempts(n) ? ' · محاولات: ' + TW.attempts(n) : ''}</div>
       ${L.boss ? `<div class="boss-box">${ui.portrait(AMB.DATA.HEROES[L.heroId], { k: 'twb' })}<div><b>قدرة الزعيم: ${esc(L.special.name)}</b><p>${esc(L.special.text)}</p></div></div>` : ''}
       <h4>تشكيلة الخصم</h4><div class="cam-units">${units}</div>
       <h4>الجائزة</h4><div class="cam-reward">${reward}</div>
@@ -8924,7 +8924,7 @@ AMB.IMAGES = {
   }
 
   AMB.TIPS = AMB.TIPS || {};
-  AMB.TIPS.towinfo = () => { const R = AMB.ECONOMY.tower.rewards; return { title: 'برج التحدي', html: `<p>${TW.floors()} طابقًا، كل طابق قتال <b>تكسب جولتين من 3</b> ضد تشكيلة تصعب كل ما صعدت. كل 5 طوابق زعيم بقدرة خاصة.</p>
+  AMB.TIPS.towinfo = () => { const R = AMB.ECONOMY.tower.rewards; return { title: 'برج التحدي', html: `<p>${TW.floors()} طابقًا، كل طابق قتال <b>تلعب 8 جولات ويفوز اللي يكسب جولات أكثر</b> ضد تشكيلة تصعب كل ما صعدت. كل 5 طوابق زعيم بقدرة خاصة.</p>
     <p>أول مرة تعدّي طابق: ${icon('gem')} ${R.shardsFirst}–${R.shardsLast} شظية + خبرة ممر. الزعيم: باكج مجاني. الطابق ${TW.floors()}: بطاقة ملحمية أو أندر مضمونة.</p>
     <p>لو خسرت تعيد نفس الطابق بدون أي عقوبة، وأعلى طابق وصلت له محفوظ. مستويات بطاقاتك تنحسب هنا، وتقدر تعيد أي طابق سابق للتدريب بدون جائزة.</p>` }; };
 
@@ -9002,7 +9002,7 @@ AMB.IMAGES = {
     const units = L.units.map(([id, star, , from], k) => `<div class="cu">${ui.portrait(AMB.DATA.UNITS[id], { k: 'evp' + k + id })}${ui.stars(star)}${from > 1 ? `<small>من الجولة ${from}</small>` : ''}</div>`).join('');
     const heroes = C.ownedHeroes().map((id) => `<button class="hchip ${id === h ? 'on' : ''}" data-act="evHero" data-id="${id}" data-n="${stage}">${ui.portrait(AMB.DATA.HEROES[id], { k: 'evh' + id })}<span>${AMB.DATA.HEROES[id].name}</span></button>`).join('');
     const reward = first ? `${icon('gem')} ${R.shards} شظية · +${R.passXp} خبرة ممر${R.pack ? ' · <b>باكج مجاني</b>' : ''}${R.exclusive ? ` · <b>🌟 ${esc(AMB.DATA.UNITS[c.event.exclusive].name)} (حصرية)</b>` : ''}` : 'خلّصت هالمرحلة هالأسبوع: تدريب بدون جائزة';
-    ui.modal(`<div class="cam-pv" style="--wc:${W(c.event.world).color}"><h2>${L.boss ? '👑 ' : ''}${esc(L.name)}</h2><div class="hint">${esc(c.event.name)} · تكسب جولتين من 3</div>
+    ui.modal(`<div class="cam-pv" style="--wc:${W(c.event.world).color}"><h2>${L.boss ? '👑 ' : ''}${esc(L.name)}</h2><div class="hint">${esc(c.event.name)} · تلعب 8 جولات ويفوز اللي يكسب جولات أكثر</div>
       ${L.boss ? `<div class="boss-box">${ui.portrait(AMB.DATA.HEROES[L.heroId], { k: 'evb' })}<div><b>قدرة الزعيم: ${esc(L.special.name)}</b><p>${esc(L.special.text)}</p></div></div>` : ''}
       <h4>تشكيلة الخصم</h4><div class="cam-units">${units}</div><h4>الجائزة</h4><div class="cam-reward">${reward}</div>
       <h4>بطلك</h4><div class="hchips">${heroes}</div>${AMB.DeckGate ? AMB.DeckGate.line() : ''}
@@ -9037,7 +9037,7 @@ AMB.IMAGES = {
   }
 
   AMB.TIPS = AMB.TIPS || {};
-  AMB.TIPS.evinfo = () => { const R = AMB.ECONOMY.events.rewards; return { title: 'الحدث الأسبوعي', html: `<p>كل أسبوع (من الاثنين للأحد) حدث جديد من عالم مختلف: <b>${WK.stageCount()} مراحل</b> تكسب جولتين من 3، والأخيرة زعيم الحدث بقدرتين.</p>
+  AMB.TIPS.evinfo = () => { const R = AMB.ECONOMY.events.rewards; return { title: 'الحدث الأسبوعي', html: `<p>كل أسبوع (من الاثنين للأحد) حدث جديد من عالم مختلف: <b>${WK.stageCount()} مراحل</b> تلعب 8 جولات ويفوز اللي يكسب جولات أكثر، والأخيرة زعيم الحدث بقدرتين.</p>
     <p>كل مرحلة تعطي شظايا وخبرة ممر (والثانية باكج مجاني) مرة واحدة في الأسبوع. هزيمة الزعيم تعطيك <b>بطاقة حصرية</b> ما تطلع في الباكجات ولا تضيع بعد انتهاء الحدث.</p>
     <p>الأحداث الأربعة تدور، فلو فاتك حدث يرجع بعد 4 أسابيع (وتاخذ نسخة تطوير إضافية للبطاقة لو عندك). الخسارة بدون عقوبة وتقدر تعيد.</p>` }; };
 
