@@ -91,6 +91,19 @@
       wagerMult: 1.6,           // teen #15: when either player wagers on the finale, its loser loses this much more again      // life lost by the loser of the final round is multiplied
     },
 
+    // "حدث الصدع": from round 2, every round draws one event (same for both players, drawn from the match seed). Edit freely.
+    riftEvents: {
+      gold_rush:   { name: 'مطر ذهب',       text: 'الكل ياخذ +3 ذهب هالجولة', gold: 3 },
+      free_rolls:  { name: 'متجر كريم',      text: 'تحديثين مجانية للمتجر هالجولة', rerolls: 2 },
+      discount:    { name: 'تخفيض الترقية',  text: 'ترقية المتجر الجاية أرخص بـ3 ذهب', discount: 3 },
+      essence:     { name: 'ينبوع الجوهر',   text: 'الكل ياخذ +3 جوهر لقدرات البطل', essence: 3 },
+      truce:       { name: 'هدنة قصيرة',     text: 'كل بطل يستعيد 6 حياة', heal: 6 },
+      storm:       { name: 'عاصفة الصدع',    text: 'كل الوحدات أسرع +30% في هالقتال', asPct: 0.3 },
+      frenzy:      { name: 'هيجان',          text: 'كل الوحدات تضرب أقوى +25% في هالقتال', atkPct: 0.25 },
+      high_stakes: { name: 'رهان عالي',      text: 'الخاسر في هالجولة يخسر حياة أكثر ×1.5', lossMult: 1.5 },
+      bounty:      { name: 'جائزة الجولة',   text: 'اللي يفوز بهالجولة ياخذ +4 ذهب', bounty: 4 },
+    },
+
     economy: {
       baseIncome: SH.income[0],
       income: SH.income,
@@ -135,7 +148,7 @@
       focusSeconds: 4,          // "focus fire": how long the team stays on the marked enemy
       dt: 0.05,                 // simulation tick (seconds)
       timeCap: 30,              // seconds before the round is a draw
-      furyStart: 14,            // after this, all damage ramps up (anti-stall)
+      furyStart: 9,             // after this, all damage ramps up (anti-stall)
       furyPerSec: 0.18,
       assaultWindow: 4,         // seconds survivors get to hit an exposed command post
       heroHpScale: 10,          // 1 hero life = 10 battlefield HP

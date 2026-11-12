@@ -81,6 +81,10 @@
       this.players.forEach((_, i) => this.autoPickMerge(i));   // a merge reward nobody picked is picked for them
       this.round++;
       this.phase = 'resources';
+      // rift event of the round: drawn from the seed and the round only, so both phones and every replay agree
+      { const RE = AMB.CONFIG.riftEvents, ids = RE ? Object.keys(RE) : [];
+        this.event = this.round >= 2 && ids.length && this.mode !== 'tutorial' && !this.noEvents ? AMB.util.RNG((this.seed % 1000003) * 13 + this.round * 7919 + 5).pick(ids) : null; }
+      const EV = this.event ? AMB.CONFIG.riftEvents[this.event] : null;
       // short-match start gold/level go in BEFORE the first shop is rolled (the first shop used to be rolled at level 3 whatever the start level was)
       if (this.rules && this.round === 1) this.players.forEach((p) => { const st = this.rules.start; if (!p.lineup && st) { p.gold += st.gold || 0; p.level = Math.max(p.level, st.level || 0); } });
       this.players.forEach((p) => {
@@ -102,7 +106,13 @@
         if (this.round > 1) p.idle++;   // one more round without a shop upgrade: the next upgrade gets cheaper
         const essGain = E.essencePerRound + (AMB.DATA.HEROES[p.heroId].passive.id === 'deep_reserve' ? 2 : 0);
         if (this.round > 1) p.essence = Math.max(p.essence, Math.min(E.essenceMax, p.essence + essGain));   // a 'pure essence' reward above the cap is kept (never clamped away)
-        p.freeRerolls = (AMB.DATA.HEROES[p.heroId].passive.id === 'free_reroll' ? 1 : 0) + (this.weekly === 'freeReroll' ? 1 : 0);
+        p.freeRerolls = (AMB.DATA.HEROES[p.heroId].passive.id === 'free_reroll' ? 1 : 0) + (this.weekly === 'freeReroll' ? 1 : 0) + ((EV && EV.rerolls) || 0);
+        if (EV && !p.lineup) {
+          if (EV.gold) p.gold += EV.gold;
+          if (EV.discount) p.upgradeDiscount = (p.upgradeDiscount || 0) + EV.discount;
+          if (EV.essence) p.essence = Math.min(E.essenceMax + 3, p.essence + EV.essence);
+        }
+        if (EV && EV.heal) p.life = Math.min(p.maxLife, p.life + EV.heal);
         if (!p.shopLocked || !p.shop.length) this._rollShop(p, true);
         p.shopLocked = false;
         this._validateAbilities(p);
@@ -551,7 +561,7 @@
         heroPower: ((p.cardPower && p.cardPower[p.heroId]) || 1) * grow,
         heroLevel: p.heroLevel || 1,
         spells: p.armedSpells.slice(),
-        blessings: Object.assign({}, p.blessings),
+        blessings: (() => { const b = Object.assign({}, p.blessings), ev = this.event && AMB.CONFIG.riftEvents[this.event]; if (ev && ev.asPct) b.asPct = (b.asPct || 0) + ev.asPct; if (ev && ev.atkPct) b.atkPct = (b.atkPct || 0) + ev.atkPct; return b; })(),
         abilities: Object.entries(p.abilities).map(([id, trigger]) => ({ id, trigger })),
         hunt: p.hunt || 'back',
       };
@@ -587,6 +597,7 @@
         if (result.winner === 1 - i && !sr.heroKilled) {
           backlash = D.lossBase + Math.floor(this.round * D.lossPerRound) + Math.min(D.survivorCap, opp.survivors.reduce((s, u) => s + u.star * D.perSurvivor, 0));
           if (this.isFinale()) backlash = Math.round(backlash * M.finaleLossMult * (this.players.some((x) => x.wager) ? M.wagerMult : 1));   // teen #15: a finale wager raises the stakes for both
+          { const ev = this.event && AMB.CONFIG.riftEvents[this.event]; if (ev && ev.lossMult) backlash = Math.round(backlash * ev.lossMult); }
         } else if (result.winner === null) backlash = D.drawBase + Math.floor(this.round / 3);
         let collapse = 0;
         if (this.round >= M.collapseStartRound) {
@@ -603,6 +614,7 @@
         p.armedSpells = [];
         // streaks
         p.lastWon = result.winner === i;
+        { const ev = this.event && AMB.CONFIG.riftEvents[this.event]; if (ev && ev.bounty && result.winner === i && !p.lineup) p.gold += ev.bounty; }
         if (result.winner === i) { p.winStreak++; p.lossStreak = 0; p.stats.wins++; }
         else if (result.winner === 1 - i) { p.lossStreak++; p.winStreak = 0; p.stats.losses++; }
         else { p.stats.draws++; }

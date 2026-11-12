@@ -3047,3 +3047,8 @@ body.reduce-motion .cast-btn, body.reduce-motion #field [data-fid].focused { ani
 #castbar .cast-bar { background: none; pointer-events: none; } #castbar .cast-btn { pointer-events: auto; }
 #castbar:empty { display: none; }
 @media (min-width: 861px) { #castbar { bottom: 24px; } }
+.rr-go.auto { position: relative; overflow: hidden; }
+.rr-go.auto::after { content: ''; position: absolute; left: 0; bottom: 0; height: 4px; width: 100%; background: #fff9; transform-origin: left; animation: autonext var(--auto, 3s) linear forwards; }
+@keyframes autonext { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+.ev-chip { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 999px; border: 1.5px solid #ffd24a; background: #1a1206; color: #ffe08a; font: 800 12px var(--display); box-shadow: 0 0 8px #ffd24a88; cursor: pointer; white-space: nowrap; }
+.ev-chip small { font-size: 10.5px; max-width: 74px; overflow: hidden; text-overflow: ellipsis; }

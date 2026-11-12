@@ -325,6 +325,7 @@
       const ess = S.match.round > 1 ? CFG.economy.essencePerRound + (HEROES[p.heroId].passive.id === 'deep_reserve' ? 2 : 0) : 0;
       toast(`+${inc.total} ${icon('gold')}${ess ? ` &nbsp; +${ess} ${icon('essence')}` : ''}`, 'good', true);
     }
+    if (S.match.event && CFG.riftEvents[S.match.event]) { const ev = CFG.riftEvents[S.match.event]; setTimeout(() => { sfx('cast'); banner(`⚡ ${esc(ev.name)}`, 'merge'); toast(`⚡ حدث الصدع: <b>${esc(ev.name)}</b> · ${esc(ev.text)}`, 'good', true); }, 500); }
     setTimeout(() => {
       if (S.phase !== 'resources') return;
       S.phase = 'prep';
@@ -507,6 +508,13 @@
     overlay(`<div class="ov-card rr ${cls}"><div class="rr-title">${title}</div><div class="rr-big">${icon(cls === 'draw' ? 'swap' : cls === 'lose' ? 'shield' : 'crown')}</div>
       <div class="rr-row">${side(0)}<div class="rr-vs">${icon('sword')}</div>${side(1)}</div>${why}${whyTxt ? `<div class="rr-note">${whyTxt}</div>` : ''}${whyNums}${rep.finale ? `<div class="rr-why">${icon('flame')} ×${CFG.match.finaleLossMult}</div>` : ''}
       <button class="btn primary big rr-go" data-act="${over ? 'toResults' : m.rewardPending ? 'rewards' : 'nextRound'}">${over ? 'النتيجة' : m.rewardPending ? 'اختر مكافأتك' : 'الجولة الجاية'}</button></div>`);
+    // tighter pace: a plain "next round" continues by itself after a short beat (longer after a lost round, so the reason can be read)
+    clearTimeout(S._autoNext);
+    if (!over && !m.rewardPending && liveCast()) {
+      const r = m.round, wait = rep.winner === mi ? 2600 : 5200, btn = document.querySelector('#overlay .rr-go');
+      if (btn) { btn.classList.add('auto'); btn.style.setProperty('--auto', wait + 'ms'); }
+      S._autoNext = setTimeout(() => { if (S.phase === 'result' && S.match === m && m.round === r && $('overlay').classList.contains('on') && !$('modal-back').classList.contains('on')) ACT.nextRound(); }, wait);
+    }
   }
 
   // ---- card helpers shared by shop / bench / field / codex
@@ -958,7 +966,7 @@
       <span class="tb-round" title="${icon('flag').replace(/<[^>]+>/g, '')}">${icon('flag')} <bdi dir="ltr">${m.round}<small>/${maxR()}</small></bdi></span>
       ${m.rules ? `<span class="stagechip"><b>${p.stats.wins} – ${o.stats.wins}</b><span class="pips">${Array.from({ length: m.rules.winsNeeded || 2 }, (_, k) => k).map((k) => `<i class="pip ${k < p.stats.wins ? 'done' : ''}"></i>`).join('')}</span></span>`
         : `<span class="stagechip"><span class="pips">${Array.from({ length: CFG.match.maxRounds }, (_, k) => k + 1).map((r) => `<i class="pip ${r < m.round ? 'done' : r === m.round ? 'now' : ''} ${CFG.match.stages.some((st) => st.rounds[1] === r && r < CFG.match.maxRounds) ? 'gap' : ''}"></i>`).join('')}</span></span>`}
-      <span class="timer">${S.paused ? icon('pause') : left}</span>
+      <span class="timer">${S.paused ? icon('pause') : left}</span>${m.event && CFG.riftEvents[m.event] ? `<button class="ev-chip" data-act="riftEvent" aria-label="حدث الصدع">⚡<small>${esc(CFG.riftEvents[m.event].name)}</small></button>` : ''}
       <span class="tb-spacer"></span>
       ${lc(p, myAvatar(p, 0), 'tb0', true)}${lc(o, HEROES[o.heroId], 'tb1', false)}
       <span class="res gold" data-act="info" data-k="interest" title="الفايدة">${icon('gold')} ${p.gold}${m.rules ? '' : (() => { const E0 = CFG.economy, rich = m.weekly === 'richInterest', n = Math.min(rich ? E0.interestMax + 2 : E0.interestMax, Math.floor(p.gold / (rich ? E0.interestPer - 2 : E0.interestPer))); return n ? `<small class="int-n">+${n}</small>` : ''; })()}</span>
@@ -1766,6 +1774,7 @@
     },
     buyFromUpg: (d) => { const r = S.match.buy(S.v, +d.idx); if (res(r) && r.merged && r.merged.length) mergeFx(r.merged[r.merged.length - 1].uid, r.merged); renderMatch(); if (me().mergePick) mergePickIfAny(); else upgradesModal(); },
     castAb: (d) => { if (S.phase === 'combat' && S.combat && !S.paused && S.combat.castAbility(mySeat(), d.id)) { sfx('cast'); renderCastBar(); } },
+    riftEvent: () => { const ev = S.match && S.match.event && CFG.riftEvents[S.match.event]; if (ev) modal(`<h2>⚡ حدث الصدع</h2><p><b>${esc(ev.name)}</b></p><p>${esc(ev.text)}</p><p class="hint">كل جولة من الثانية لها حدث عشوائي، نفسه لك ولخصمك.</p>`); },
     buyItem: (d) => { if (prepActive() && res(S.match.buyItem(S.v, +d.idx))) renderMatch(); },
     reroll: () => { if (prepActive() && res(S.match.reroll(S.v))) { sfx('reroll'); renderMatch(); } },
     rotate: () => rotateScreen(),

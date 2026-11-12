@@ -92,6 +92,19 @@
       wagerMult: 1.6,           // teen #15: when either player wagers on the finale, its loser loses this much more again      // life lost by the loser of the final round is multiplied
     },
 
+    // "حدث الصدع": from round 2, every round draws one event (same for both players, drawn from the match seed). Edit freely.
+    riftEvents: {
+      gold_rush:   { name: 'مطر ذهب',       text: 'الكل ياخذ +3 ذهب هالجولة', gold: 3 },
+      free_rolls:  { name: 'متجر كريم',      text: 'تحديثين مجانية للمتجر هالجولة', rerolls: 2 },
+      discount:    { name: 'تخفيض الترقية',  text: 'ترقية المتجر الجاية أرخص بـ3 ذهب', discount: 3 },
+      essence:     { name: 'ينبوع الجوهر',   text: 'الكل ياخذ +3 جوهر لقدرات البطل', essence: 3 },
+      truce:       { name: 'هدنة قصيرة',     text: 'كل بطل يستعيد 6 حياة', heal: 6 },
+      storm:       { name: 'عاصفة الصدع',    text: 'كل الوحدات أسرع +30% في هالقتال', asPct: 0.3 },
+      frenzy:      { name: 'هيجان',          text: 'كل الوحدات تضرب أقوى +25% في هالقتال', atkPct: 0.25 },
+      high_stakes: { name: 'رهان عالي',      text: 'الخاسر في هالجولة يخسر حياة أكثر ×1.5', lossMult: 1.5 },
+      bounty:      { name: 'جائزة الجولة',   text: 'اللي يفوز بهالجولة ياخذ +4 ذهب', bounty: 4 },
+    },
+
     economy: {
       baseIncome: SH.income[0],
       income: SH.income,
@@ -136,7 +149,7 @@
       focusSeconds: 4,          // "focus fire": how long the team stays on the marked enemy
       dt: 0.05,                 // simulation tick (seconds)
       timeCap: 30,              // seconds before the round is a draw
-      furyStart: 14,            // after this, all damage ramps up (anti-stall)
+      furyStart: 9,             // after this, all damage ramps up (anti-stall)
       furyPerSec: 0.18,
       assaultWindow: 4,         // seconds survivors get to hit an exposed command post
       heroHpScale: 10,          // 1 hero life = 10 battlefield HP
@@ -1624,6 +1637,10 @@
       this.players.forEach((_, i) => this.autoPickMerge(i));   // a merge reward nobody picked is picked for them
       this.round++;
       this.phase = 'resources';
+      // rift event of the round: drawn from the seed and the round only, so both phones and every replay agree
+      { const RE = AMB.CONFIG.riftEvents, ids = RE ? Object.keys(RE) : [];
+        this.event = this.round >= 2 && ids.length && this.mode !== 'tutorial' && !this.noEvents ? AMB.util.RNG((this.seed % 1000003) * 13 + this.round * 7919 + 5).pick(ids) : null; }
+      const EV = this.event ? AMB.CONFIG.riftEvents[this.event] : null;
       // short-match start gold/level go in BEFORE the first shop is rolled (the first shop used to be rolled at level 3 whatever the start level was)
       if (this.rules && this.round === 1) this.players.forEach((p) => { const st = this.rules.start; if (!p.lineup && st) { p.gold += st.gold || 0; p.level = Math.max(p.level, st.level || 0); } });
       this.players.forEach((p) => {
@@ -1645,7 +1662,13 @@
         if (this.round > 1) p.idle++;   // one more round without a shop upgrade: the next upgrade gets cheaper
         const essGain = E.essencePerRound + (AMB.DATA.HEROES[p.heroId].passive.id === 'deep_reserve' ? 2 : 0);
         if (this.round > 1) p.essence = Math.max(p.essence, Math.min(E.essenceMax, p.essence + essGain));   // a 'pure essence' reward above the cap is kept (never clamped away)
-        p.freeRerolls = (AMB.DATA.HEROES[p.heroId].passive.id === 'free_reroll' ? 1 : 0) + (this.weekly === 'freeReroll' ? 1 : 0);
+        p.freeRerolls = (AMB.DATA.HEROES[p.heroId].passive.id === 'free_reroll' ? 1 : 0) + (this.weekly === 'freeReroll' ? 1 : 0) + ((EV && EV.rerolls) || 0);
+        if (EV && !p.lineup) {
+          if (EV.gold) p.gold += EV.gold;
+          if (EV.discount) p.upgradeDiscount = (p.upgradeDiscount || 0) + EV.discount;
+          if (EV.essence) p.essence = Math.min(E.essenceMax + 3, p.essence + EV.essence);
+        }
+        if (EV && EV.heal) p.life = Math.min(p.maxLife, p.life + EV.heal);
         if (!p.shopLocked || !p.shop.length) this._rollShop(p, true);
         p.shopLocked = false;
         this._validateAbilities(p);
@@ -2094,7 +2117,7 @@
         heroPower: ((p.cardPower && p.cardPower[p.heroId]) || 1) * grow,
         heroLevel: p.heroLevel || 1,
         spells: p.armedSpells.slice(),
-        blessings: Object.assign({}, p.blessings),
+        blessings: (() => { const b = Object.assign({}, p.blessings), ev = this.event && AMB.CONFIG.riftEvents[this.event]; if (ev && ev.asPct) b.asPct = (b.asPct || 0) + ev.asPct; if (ev && ev.atkPct) b.atkPct = (b.atkPct || 0) + ev.atkPct; return b; })(),
         abilities: Object.entries(p.abilities).map(([id, trigger]) => ({ id, trigger })),
         hunt: p.hunt || 'back',
       };
@@ -2130,6 +2153,7 @@
         if (result.winner === 1 - i && !sr.heroKilled) {
           backlash = D.lossBase + Math.floor(this.round * D.lossPerRound) + Math.min(D.survivorCap, opp.survivors.reduce((s, u) => s + u.star * D.perSurvivor, 0));
           if (this.isFinale()) backlash = Math.round(backlash * M.finaleLossMult * (this.players.some((x) => x.wager) ? M.wagerMult : 1));   // teen #15: a finale wager raises the stakes for both
+          { const ev = this.event && AMB.CONFIG.riftEvents[this.event]; if (ev && ev.lossMult) backlash = Math.round(backlash * ev.lossMult); }
         } else if (result.winner === null) backlash = D.drawBase + Math.floor(this.round / 3);
         let collapse = 0;
         if (this.round >= M.collapseStartRound) {
@@ -2146,6 +2170,7 @@
         p.armedSpells = [];
         // streaks
         p.lastWon = result.winner === i;
+        { const ev = this.event && AMB.CONFIG.riftEvents[this.event]; if (ev && ev.bounty && result.winner === i && !p.lineup) p.gold += ev.bounty; }
         if (result.winner === i) { p.winStreak++; p.lossStreak = 0; p.stats.wins++; }
         else if (result.winner === 1 - i) { p.lossStreak++; p.winStreak = 0; p.stats.losses++; }
         else { p.stats.draws++; }
@@ -5176,6 +5201,7 @@ AMB.IMAGES = {
       const ess = S.match.round > 1 ? CFG.economy.essencePerRound + (HEROES[p.heroId].passive.id === 'deep_reserve' ? 2 : 0) : 0;
       toast(`+${inc.total} ${icon('gold')}${ess ? ` &nbsp; +${ess} ${icon('essence')}` : ''}`, 'good', true);
     }
+    if (S.match.event && CFG.riftEvents[S.match.event]) { const ev = CFG.riftEvents[S.match.event]; setTimeout(() => { sfx('cast'); banner(`⚡ ${esc(ev.name)}`, 'merge'); toast(`⚡ حدث الصدع: <b>${esc(ev.name)}</b> · ${esc(ev.text)}`, 'good', true); }, 500); }
     setTimeout(() => {
       if (S.phase !== 'resources') return;
       S.phase = 'prep';
@@ -5358,6 +5384,13 @@ AMB.IMAGES = {
     overlay(`<div class="ov-card rr ${cls}"><div class="rr-title">${title}</div><div class="rr-big">${icon(cls === 'draw' ? 'swap' : cls === 'lose' ? 'shield' : 'crown')}</div>
       <div class="rr-row">${side(0)}<div class="rr-vs">${icon('sword')}</div>${side(1)}</div>${why}${whyTxt ? `<div class="rr-note">${whyTxt}</div>` : ''}${whyNums}${rep.finale ? `<div class="rr-why">${icon('flame')} ×${CFG.match.finaleLossMult}</div>` : ''}
       <button class="btn primary big rr-go" data-act="${over ? 'toResults' : m.rewardPending ? 'rewards' : 'nextRound'}">${over ? 'النتيجة' : m.rewardPending ? 'اختر مكافأتك' : 'الجولة الجاية'}</button></div>`);
+    // tighter pace: a plain "next round" continues by itself after a short beat (longer after a lost round, so the reason can be read)
+    clearTimeout(S._autoNext);
+    if (!over && !m.rewardPending && liveCast()) {
+      const r = m.round, wait = rep.winner === mi ? 2600 : 5200, btn = document.querySelector('#overlay .rr-go');
+      if (btn) { btn.classList.add('auto'); btn.style.setProperty('--auto', wait + 'ms'); }
+      S._autoNext = setTimeout(() => { if (S.phase === 'result' && S.match === m && m.round === r && $('overlay').classList.contains('on') && !$('modal-back').classList.contains('on')) ACT.nextRound(); }, wait);
+    }
   }
 
   // ---- card helpers shared by shop / bench / field / codex
@@ -5809,7 +5842,7 @@ AMB.IMAGES = {
       <span class="tb-round" title="${icon('flag').replace(/<[^>]+>/g, '')}">${icon('flag')} <bdi dir="ltr">${m.round}<small>/${maxR()}</small></bdi></span>
       ${m.rules ? `<span class="stagechip"><b>${p.stats.wins} – ${o.stats.wins}</b><span class="pips">${Array.from({ length: m.rules.winsNeeded || 2 }, (_, k) => k).map((k) => `<i class="pip ${k < p.stats.wins ? 'done' : ''}"></i>`).join('')}</span></span>`
         : `<span class="stagechip"><span class="pips">${Array.from({ length: CFG.match.maxRounds }, (_, k) => k + 1).map((r) => `<i class="pip ${r < m.round ? 'done' : r === m.round ? 'now' : ''} ${CFG.match.stages.some((st) => st.rounds[1] === r && r < CFG.match.maxRounds) ? 'gap' : ''}"></i>`).join('')}</span></span>`}
-      <span class="timer">${S.paused ? icon('pause') : left}</span>
+      <span class="timer">${S.paused ? icon('pause') : left}</span>${m.event && CFG.riftEvents[m.event] ? `<button class="ev-chip" data-act="riftEvent" aria-label="حدث الصدع">⚡<small>${esc(CFG.riftEvents[m.event].name)}</small></button>` : ''}
       <span class="tb-spacer"></span>
       ${lc(p, myAvatar(p, 0), 'tb0', true)}${lc(o, HEROES[o.heroId], 'tb1', false)}
       <span class="res gold" data-act="info" data-k="interest" title="الفايدة">${icon('gold')} ${p.gold}${m.rules ? '' : (() => { const E0 = CFG.economy, rich = m.weekly === 'richInterest', n = Math.min(rich ? E0.interestMax + 2 : E0.interestMax, Math.floor(p.gold / (rich ? E0.interestPer - 2 : E0.interestPer))); return n ? `<small class="int-n">+${n}</small>` : ''; })()}</span>
@@ -6617,6 +6650,7 @@ AMB.IMAGES = {
     },
     buyFromUpg: (d) => { const r = S.match.buy(S.v, +d.idx); if (res(r) && r.merged && r.merged.length) mergeFx(r.merged[r.merged.length - 1].uid, r.merged); renderMatch(); if (me().mergePick) mergePickIfAny(); else upgradesModal(); },
     castAb: (d) => { if (S.phase === 'combat' && S.combat && !S.paused && S.combat.castAbility(mySeat(), d.id)) { sfx('cast'); renderCastBar(); } },
+    riftEvent: () => { const ev = S.match && S.match.event && CFG.riftEvents[S.match.event]; if (ev) modal(`<h2>⚡ حدث الصدع</h2><p><b>${esc(ev.name)}</b></p><p>${esc(ev.text)}</p><p class="hint">كل جولة من الثانية لها حدث عشوائي، نفسه لك ولخصمك.</p>`); },
     buyItem: (d) => { if (prepActive() && res(S.match.buyItem(S.v, +d.idx))) renderMatch(); },
     reroll: () => { if (prepActive() && res(S.match.reroll(S.v))) { sfx('reroll'); renderMatch(); } },
     rotate: () => rotateScreen(),

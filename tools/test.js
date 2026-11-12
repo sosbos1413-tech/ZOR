@@ -1728,5 +1728,18 @@ t('manual trigger is for fights against the computer only: online, same-device a
   for (let sd = 1; sd <= 12; sd++) { const m = new AMB.Match({ mode: 'sim', seed: sd, players: [{ heroId: 'kagira', isAI: true, difficulty: 'easy' }, { heroId: 'merin', isAI: true, difficulty: 'easy' }] });
     for (let r = 0; r < 3; r++) { m.startRound(); AMB.AI.prep(m, 0); AMB.AI.prep(m, 1); m.players.forEach((p) => ok(!Object.values(p.abilities).includes('manual'))); m.resolveCombat(m.createCombat(false).runToEnd()); if (m.isOver) break; } }
 });
+t('rift events: one per round from round 2, same for both phones and every replay, effects applied to both players', () => {
+  const RE = AMB.CONFIG.riftEvents; ok(Object.keys(RE).length >= 8); Object.values(RE).forEach((e) => ok(e.name && e.text));
+  const mk = (seed, iso) => new AMB.Match({ mode: iso ? 'online' : 'ai', isolated: !!iso, seed, players: [{ heroId: 'orath' }, { heroId: 'merin' }] });
+  const a = mk(321), b = mk(321), c = mk(321, true), seq = (m) => { const out = []; for (let r = 0; r < 6; r++) { m.startRound(); out.push(m.event); } return out.join(); };
+  const sa = seq(a); eq(sa, seq(b), 'same seed, same events'); eq(sa, seq(c), 'online match with the same seed draws the same events'); ok(sa.startsWith(','), 'no event in round 1');
+  ok(new Set(Array.from({ length: 30 }, (_, i) => { const m = mk(1000 + i); m.startRound(); m.startRound(); return m.event; })).size >= 5, 'events vary between matches');
+  // effects
+  const eff = (id) => { for (let sd = 1; sd < 400; sd++) { const m = mk(sd); m.startRound(); const g = m.players.map((p) => p.gold); m.startRound(); if (m.event === id) return [m, g]; } throw new Error('no seed for ' + id); };
+  let [m, g] = eff('gold_rush'); ok(m.players[0].gold - g[0] >= m.players[0].lastIncome.total + 3, 'gold rush pays both'); 
+  [m] = eff('free_rolls'); ok(m.players[0].freeRerolls >= 2 && m.players[1].freeRerolls >= 2);
+  [m] = eff('storm'); ok(m.buildCombatSpec(0).blessings.asPct >= 0.3 && m.buildCombatSpec(1).blessings.asPct >= 0.3);
+  const tut = new AMB.Match({ mode: 'tutorial', seed: 5, players: [{ heroId: 'orath' }, { heroId: 'merin' }] }); tut.startRound(); tut.startRound(); eq(tut.event, null, 'the tutorial has no events');
+});
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
