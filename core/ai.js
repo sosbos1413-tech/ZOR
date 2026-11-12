@@ -205,7 +205,7 @@
     const abil = hero.abilities.slice().sort((a, b) => b.cost - a.cost);
     abil.forEach((ab) => {
       let trig = DEFAULT_TRIGGER[ab.type] || 'start';
-      if (rng.chance(cfg.mistakes)) trig = rng.pick(Object.keys(AMB.DATA.ABILITY_TRIGGERS));
+      if (rng.chance(cfg.mistakes)) trig = rng.pick(Object.keys(AMB.DATA.ABILITY_TRIGGERS).filter((k) => k !== 'manual'));
       match.setAbility(pi, ab.id, trig);
     });
     match.autoFill(pi);

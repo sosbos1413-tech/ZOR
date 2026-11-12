@@ -438,6 +438,7 @@
       const ab = hero.abilities.find((a) => a.id === abilityId);
       if (!ab) return this._fail('ما أعرف هالقدرة');
       if (!trigger) { delete p.abilities[abilityId]; return { ok: true }; }
+      if (trigger === 'manual' && (this.isolated || this.mode === 'hotseat' || p.isAI)) return this._fail('الضغط اليدوي بس ضد الكمبيوتر');   // both phones must compute the same fight
       const had = p.abilities[abilityId];
       if (!had) {
         if (this.reservedEssence(p) + this.abilityCost(p, ab) > p.essence) return this._fail('ما عندك جوهر يكفي');
@@ -562,13 +563,13 @@
       this.players[pi].hunt = mode; return { ok: true };
     }
 
-    createCombat(record) {
+    createCombat(record, extra) {
       this.phase = 'combat';
       this.players.forEach((_, i) => { this.autoPickMerge(i); this.autoFill(i); });
       const specs = [this.buildCombatSpec(0), this.buildCombatSpec(1)];
       this.scout = specs.map((s) => JSON.parse(JSON.stringify(s)));
       this._combatSpecs = specs;
-      return new AMB.Combat(specs, { seed: this.isolated ? ((this.seed * 31 + this.round * 104729) % 2147483647) : this.rng.int(2 ** 31), round: this.round, record });
+      return new AMB.Combat(specs, { seed: this.isolated ? ((this.seed * 31 + this.round * 104729) % 2147483647) : this.rng.int(2 ** 31), round: this.round, record, casts: extra && extra.casts });
     }
 
     /** Apply a finished combat result: hero damage, streaks, essence, spells. */

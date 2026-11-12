@@ -342,11 +342,29 @@
     S.sel = null;
     if (S.mode === 'online') { AMB.NetUI.iAmReady(); return; }
     if (S.mode === 'hotseat' && S.queue.length) { handoff(S.queue.shift()); return; }
+    armManual();
     if (S.rs) S.rs.cur = { aiFirst: !!S.aiFirst, prep: S.rs.rec.take() };   // adult #21: this round's moves, for "continue your match"
     if (S.mode !== 'hotseat' && !S.aiFirst) AMB.AI.prep(m, 1);
     startCombat();
   }
 
+  // ---- you play the fight: against the computer, every hero ability you did not give an automatic trigger is yours to press during combat
+  const liveCast = () => ['ai', 'short', 'friendly', 'campaign', 'tower', 'event', 'practice'].includes(S.mode);
+  function armManual() {
+    if (!liveCast()) return;
+    const m = S.match, p = m.players[S.v], hero = HEROES[p.heroId];
+    hero.abilities.forEach((ab) => { if (!p.abilities[ab.id]) m.setAbility(S.v, ab.id, 'manual'); });   // costs nothing unless pressed (unfired abilities are refunded)
+  }
+  function castBarHTML() {
+    const c = S.combat, mi = mySeat(); if (!c || S.phase !== 'combat' || !liveCast()) return '';
+    const sd = c.sides[mi], mine = sd.abilities.filter((x) => x.trigger === 'manual');
+    const btns = mine.map((x) => `<button class="cast-btn ${x.fired ? 'used' : ''}" data-act="castAb" data-id="${x.def.id}" ${x.fired ? 'disabled' : ''}>${icon(ART.SKILL_ICON[x.def.type] || 'burst')}<b>${esc(x.def.name)}</b></button>`).join('');
+    return `<div class="cast-bar">${btns}<span class="cast-focus ${sd.focusUsed ? 'used' : ''}">🎯<small>${sd.focusUsed ? 'ركّزت' : 'اضغط عدو: ركّز الهجوم'}</small></span></div>`;
+  }
+  function renderCastBar() {   // its own layer above the combat controls (the shop bar is hidden during a fight on phones)
+    let el = $('castbar'); if (!el) { el = document.createElement('div'); el.id = 'castbar'; $('scr-match').appendChild(el); }
+    el.innerHTML = S.phase === 'combat' ? castBarHTML() : '';
+  }
   // ---- senior #39: "↶ تراجع": take back the last move of this prep (buy, sell, move, items, XP, hero). Not online, not same-device, never across a reroll.
   const UNDOABLE = ['buy', 'sell', 'move', 'buyItem', 'equip', 'unequip', 'sellItem', 'buyXp', 'toggleSummon', 'moveHero', 'autoArrange', 'armSpell', 'disarmSpell', 'toggleLock', 'setAbility', 'setWager', 'setHunt'];
   function undoInstall() {
@@ -388,7 +406,7 @@
       if (AMB.NetSync.replay(m, 0, r.prep).length) return null;
       m.autoFill(0);
       if (!r.aiFirst) AMB.AI.prep(m, 1);
-      m.resolveCombat(m.createCombat(false).runToEnd());
+      m.resolveCombat(m.createCombat(false, { casts: r.casts }).runToEnd());
       if (AMB.NetSync.replay(m, 0, r.reward || []).length) return null;
       if (m.players[1].rewardOffer && !m.players[1].rewardOffer.claimed) AMB.AI.claimReward(m, 1);
       if (m.isOver) return null;
@@ -429,6 +447,7 @@
     renderMatch();
     buildTokens();
     banner(`${icon('sword')}`, 'fight');
+    renderCastBar();
     let last = performance.now(), acc = 0;
     const step = (ts) => {
       if (S.phase !== 'combat') return;
@@ -447,6 +466,7 @@
 
   function skipCombat() {
     if (S.phase !== 'combat') return;
+    if (liveCast()) S.combat.firePending(mySeat());   // whatever you armed and did not press fires now
     S.combat.runToEnd();
     S.combat.drainEvents();
     drawCombat(true);
@@ -459,6 +479,7 @@
     S.phase = 'result';
     const m = S.match;
     const rep = m.resolveCombat(S.combat.result);
+    if (S.rs && S.rs.cur) S.rs.cur.casts = S.combat.casts.slice();   // the buttons you pressed, so a reload replays the same fight
     S.lastReport = rep;
     renderMatch(true);
     const mi = mySeat();
@@ -831,6 +852,10 @@
         fx.appendChild(ln);
         requestAnimationFrame(() => (ln.style.opacity = 0));
         setTimeout(() => ln.remove(), 280);
+      } else if (e.type === 'focus') {
+        const ce = S.cardEls && S.cardEls[e.target]; if (ce && ce.el) { ce.el.classList.add('focused'); setTimeout(() => ce.el.classList.remove('focused'), 4000 / (S.speed || 1)); }
+        if (e.side === S.combatViewer) { sfx('cast'); addFloat(50, 50, '🎯 ركّزوا!', 'big'); }
+        renderCastBar();
       } else if (e.type === 'heroAbility') {
         const hh = HEROES[S.match.players[e.side].heroId];
         abilityBurst(e.name, e.side, WORLDS[hh.world].color);
@@ -1132,6 +1157,7 @@
     const m = S.match, p = me();
     const prep = S.phase === 'prep' || S.phase === 'resources';
     const E = CFG.economy;
+    renderCastBar();
     if (!prep) {
       $('shopbar').innerHTML = `<div class="shop-closed">${icon(S.phase === 'combat' ? 'sword' : 'lock')}</div>`;
       return;
@@ -1739,6 +1765,7 @@
       mergePickIfAny();
     },
     buyFromUpg: (d) => { const r = S.match.buy(S.v, +d.idx); if (res(r) && r.merged && r.merged.length) mergeFx(r.merged[r.merged.length - 1].uid, r.merged); renderMatch(); if (me().mergePick) mergePickIfAny(); else upgradesModal(); },
+    castAb: (d) => { if (S.phase === 'combat' && S.combat && !S.paused && S.combat.castAbility(mySeat(), d.id)) { sfx('cast'); renderCastBar(); } },
     buyItem: (d) => { if (prepActive() && res(S.match.buyItem(S.v, +d.idx))) renderMatch(); },
     reroll: () => { if (prepActive() && res(S.match.reroll(S.v))) { sfx('reroll'); renderMatch(); } },
     rotate: () => rotateScreen(),
@@ -1969,6 +1996,13 @@
   // touch drag (phones/tablets): hold a board/bench card, move it, drop it on a cell, the bench, or the shop to sell
   let TD = null;
   document.addEventListener('click', (e) => { if (S.noClick) { e.stopPropagation(); e.preventDefault(); } }, true);
+  // focus fire: during a fight against the computer, tap an enemy unit
+  document.addEventListener('click', (e) => {
+    if (S.phase !== 'combat' || !S.combat || S.paused || !liveCast()) return;
+    const el = e.target.closest && e.target.closest('#field [data-fid]'); if (!el) return;
+    const f = S.combat.fighters.find((x) => String(x.id) === el.dataset.fid); if (!f || f.side === mySeat()) return;
+    if (!S.combat.focus(mySeat(), f.id) && S.combat.sides[mySeat()].focusUsed) toast('التركيز مرة وحدة بكل قتال', '');
+  });
   document.addEventListener('pointerdown', (e) => {
     if (e.pointerType === 'mouse' || !prepActive()) return;
     const el = e.target.closest('[data-drag]');

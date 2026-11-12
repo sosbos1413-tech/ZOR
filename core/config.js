@@ -132,6 +132,7 @@
     },
 
     combat: {
+      focusSeconds: 4,          // "focus fire": how long the team stays on the marked enemy
       dt: 0.05,                 // simulation tick (seconds)
       timeCap: 30,              // seconds before the round is a draw
       furyStart: 14,            // after this, all damage ramps up (anti-stall)

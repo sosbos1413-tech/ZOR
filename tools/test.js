@@ -1706,5 +1706,27 @@ t('merge gift: only the first merge of a round gives a reward (no snowball); a n
   eq(m.allUnits(p).filter((u) => u.star === 2).length, 2, 'but it still merges');
   m.startRound(); p.gold = 99; for (let i = 0; i < 3; i++) { p.shop[0] = 'mizuki'; m.buy(0, 0); } ok(p.mergePick, 'next round: gift again');
 });
+console.log('you play the fight');
+t('manual abilities: pressed live, logged by tick, and a fight replayed from its log is identical; never pressed = never fired (refunded)', () => {
+  const mk = (extra) => { const m = new AMB.Match({ mode: 'ai', seed: 77, players: [{ heroId: 'kagira', name: 'a' }, { heroId: 'merin', name: 'b', isAI: true }] });
+    m.startRound(); const p = m.players[0]; p.gold = 30; p.essence = 10; for (let i = 0; i < 3; i++) if (p.shop[i]) m.buy(0, i); m.autoArrange(0);
+    ok(m.setAbility(0, 'inferno_banner', 'manual').ok); AMB.AI.prep(m, 1); return [m, m.createCombat(false, extra)]; };
+  let [m, c] = mk(); for (let i = 0; i < 40; i++) c.step();
+  ok(!c.sides[0].abilities[0].fired, 'a manual ability never fires by itself'); ok(c.castAbility(0, 'inferno_banner')); ok(!c.castAbility(0, 'inferno_banner'), 'once per fight');
+  const enemy = c.fighters.find((f) => f.side === 1 && f.alive && !f.isHero); for (let i = 0; i < 10; i++) c.step();
+  if (enemy && enemy.alive && c.targetable(enemy)) { ok(c.focus(0, enemy.id)); ok(!c.focus(0, enemy.id), 'focus once per fight'); }
+  c.runToEnd(); const log = c.casts.map((x) => x.slice()), res = JSON.stringify(c.result);
+  ok(log.length >= 1 && log[0][0] === 40, 'logged at tick 40');
+  const [, c2] = mk({ casts: log }); c2.runToEnd(); eq(JSON.stringify(c2.result), res, 'the replay from the log gives the same fight');
+  const [m3, c3] = mk(); c3.runToEnd(); ok(!c3.result.sides[0].abilitiesFired.length, 'never pressed: not fired'); const e0 = m3.players[0].essence; m3.resolveCombat(c3.result); eq(m3.players[0].essence, e0, 'and its essence is kept');
+  const [, c4] = mk(); c4.firePending(0); ok(c4.sides[0].abilities[0].fired, 'skip fires what was armed');
+});
+t('manual trigger is for fights against the computer only: online, same-device and the AI never get it', () => {
+  const on = new AMB.Match({ mode: 'online', isolated: true, seed: 5, players: [{ heroId: 'kagira' }, { heroId: 'merin' }] }); on.startRound(); on.players[0].essence = 10;
+  ok(!on.setAbility(0, 'inferno_banner', 'manual').ok);
+  const hs = new AMB.Match({ mode: 'hotseat', seed: 5, players: [{ heroId: 'kagira' }, { heroId: 'merin' }] }); hs.startRound(); hs.players[0].essence = 10; ok(!hs.setAbility(0, 'inferno_banner', 'manual').ok);
+  for (let sd = 1; sd <= 12; sd++) { const m = new AMB.Match({ mode: 'sim', seed: sd, players: [{ heroId: 'kagira', isAI: true, difficulty: 'easy' }, { heroId: 'merin', isAI: true, difficulty: 'easy' }] });
+    for (let r = 0; r < 3; r++) { m.startRound(); AMB.AI.prep(m, 0); AMB.AI.prep(m, 1); m.players.forEach((p) => ok(!Object.values(p.abilities).includes('manual'))); m.resolveCombat(m.createCombat(false).runToEnd()); if (m.isOver) break; } }
+});
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

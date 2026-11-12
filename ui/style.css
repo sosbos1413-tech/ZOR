@@ -3019,3 +3019,20 @@ body { background: radial-gradient(1000px 700px at 50% -10%, #27335f 0%, #0d1224
 .pcell.can .pc-state { color: #ffd24a; }
 .mission.done { border-color: #5ee08a; } .mission.claimed { opacity: .6; }
 .wm { background: radial-gradient(circle at 50% 50%, #2b3a70 0%, #1a2348 55%, #0f1530 100%); border: 2px solid #c9a04a; box-shadow: 0 0 0 2px #0b0f1d, inset 0 0 40px #0008; }
+
+/* ===== you play the fight: ability buttons + focus-fire hint during combat ===== */
+.cast-bar { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 10px 8px 12px; background: #07040f; }
+.cast-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 104px; min-height: 64px; padding: 6px 10px; border-radius: 16px; border: 2px solid #ffd24a; background: radial-gradient(circle at 50% 30%, #4a3a12, #1a1206); color: #ffe7a8; font-family: var(--display); cursor: pointer; box-shadow: 0 0 14px #ffd24aaa, inset 0 0 12px #ffd24a44; animation: castpulse 1.1s ease-in-out infinite; }
+.cast-btn svg { width: 26px; height: 26px; filter: drop-shadow(0 0 4px #ffd24a); } .cast-btn b { font-size: 13px; font-weight: 800; white-space: nowrap; }
+.cast-btn:active { transform: scale(.94); }
+.cast-btn.used, .cast-btn[disabled] { animation: none; opacity: .35; filter: grayscale(1); box-shadow: none; }
+@keyframes castpulse { 0%, 100% { box-shadow: 0 0 10px #ffd24a88, inset 0 0 10px #ffd24a33; } 50% { box-shadow: 0 0 22px #ffd24a, inset 0 0 16px #ffd24a66; } }
+.cast-focus { display: flex; flex-direction: column; align-items: center; font-size: 20px; color: #7df9ff; min-width: 74px; } .cast-focus small { font-size: 10px; font-weight: 700; text-align: center; line-height: 1.2; }
+.cast-focus.used { opacity: .35; filter: grayscale(1); }
+#field [data-fid].focused { outline: 3px solid #ff3d6a; outline-offset: 2px; border-radius: 10px; box-shadow: 0 0 18px #ff3d6a; animation: focusblink .5s ease-in-out infinite alternate; }
+@keyframes focusblink { from { outline-color: #ff3d6a; } to { outline-color: #ffd24a; } }
+body.reduce-motion .cast-btn, body.reduce-motion #field [data-fid].focused { animation: none; }
+#castbar { position: fixed; left: 0; right: 0; bottom: 118px; z-index: 30; pointer-events: none; }
+#castbar .cast-bar { background: none; pointer-events: none; } #castbar .cast-btn { pointer-events: auto; }
+#castbar:empty { display: none; }
+@media (min-width: 861px) { #castbar { bottom: 24px; } }

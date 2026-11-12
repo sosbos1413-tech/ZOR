@@ -39,6 +39,9 @@
       this.rng = AMB.util.RNG(opts.seed || 1);
       this.record = opts.record !== false;
       this.t = 0;
+      this.tick = 0;                                  // step counter: live actions (ability casts, focus fire) are logged by tick
+      this.casts = [];                                // [tick, side, kind ('a' ability | 'f' focus), id] in the order they happened
+      this._plan = (opts.casts || []).map((x) => x.slice());   // a recorded log to replay (continue after a reload, tests)
       this.events = [];
       this.fighters = [];
       this.sides = [0, 1].map((s) => ({
@@ -470,6 +473,30 @@
       }
     }
 
+    /** live: the player presses a hero ability (armed with the 'manual' trigger). Returns true when it fired. */
+    castAbility(s, id) {
+      const side = this.sides[s]; if (this.over || !side) return false;
+      const ab = side.abilities.find((x) => x.def.id === id && !x.fired && x.trigger === 'manual');
+      if (!ab) return false;
+      this.casts.push([this.tick, s, 'a', id]); this._fireAbility(s, ab); return true;
+    }
+    /** live: "focus fire", once per fight: the whole team targets one enemy for a few seconds (a taunt still wins) */
+    focus(s, fid) {
+      const side = this.sides[s]; if (this.over || !side || side.focusUsed) return false;
+      const tg = this.fighters.find((f) => f.id === fid && f.side !== s && f.alive);
+      if (!tg || !this.targetable(tg)) return false;
+      side.focusUsed = true; side.focus = { id: tg.id, until: this.t + (this.C.focusSeconds || 4) };
+      this.casts.push([this.tick, s, 'f', fid]); this.emit({ type: 'focus', side: s, target: tg.id }); return true;
+    }
+    _replayPlan() {
+      while (this._plan.length && this._plan[0][0] <= this.tick) {
+        const [, s, kind, id] = this._plan.shift();
+        if (kind === 'a') this.castAbility(s, id); else if (kind === 'f') this.focus(s, id);
+      }
+    }
+    /** skip / time-out: whatever the player armed as 'manual' and never pressed fires now */
+    firePending(s) { this.sides[s].abilities.filter((x) => !x.fired && x.trigger === 'manual').forEach((x) => this.castAbility(s, x.def.id)); }
+
     _triggers() {
       [0, 1].forEach((s) => {
         const side = this.sides[s];
@@ -487,6 +514,7 @@
     step() {
       if (this.over) return;
       const dt = this.C.dt;
+      this._replayPlan(); this.tick++;
       this._triggers();
 
       // assassins leap over the defence line once
@@ -538,6 +566,8 @@
         if (f.passive) continue;
         if (f.stun > 0) { f.stun -= dt; continue; }
 
+        { const fo = this.sides[f.side].focus;   // focus fire: everyone on the team goes for the marked enemy
+          if (fo && fo.until > this.t && !(f.tauntBy && f.tauntUntil > this.t)) { const ft = this.fighters.find((x) => x.id === fo.id); if (ft && ft.alive && this.targetable(ft)) f.target = ft; } }
         if (!f.target || !f.target.alive || !this.targetable(f.target) || (f.tauntBy && f.tauntUntil > this.t && f.target.id !== f.tauntBy)) {
           f.target = this.findTarget(f);
         }

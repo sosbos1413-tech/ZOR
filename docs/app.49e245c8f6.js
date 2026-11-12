@@ -133,6 +133,7 @@
     },
 
     combat: {
+      focusSeconds: 4,          // "focus fire": how long the team stays on the marked enemy
       dt: 0.05,                 // simulation tick (seconds)
       timeCap: 30,              // seconds before the round is a draw
       furyStart: 14,            // after this, all damage ramps up (anti-stall)
@@ -683,6 +684,7 @@
     t5: { id: 't5', name: 'بعد 5 ثوانٍ' },
     firstDeath: { id: 'firstDeath', name: 'عند سقوط أول حليف' },
     exposed: { id: 'exposed', name: 'عند انكشاف البطل' },
+    manual: { id: 'manual', name: 'أنا أضغطها وقت القتال' },
   };
 
   // Equipment (attached to a unit) and spells (armed for the next combat).
@@ -927,6 +929,9 @@
       this.rng = AMB.util.RNG(opts.seed || 1);
       this.record = opts.record !== false;
       this.t = 0;
+      this.tick = 0;                                  // step counter: live actions (ability casts, focus fire) are logged by tick
+      this.casts = [];                                // [tick, side, kind ('a' ability | 'f' focus), id] in the order they happened
+      this._plan = (opts.casts || []).map((x) => x.slice());   // a recorded log to replay (continue after a reload, tests)
       this.events = [];
       this.fighters = [];
       this.sides = [0, 1].map((s) => ({
@@ -1358,6 +1363,30 @@
       }
     }
 
+    /** live: the player presses a hero ability (armed with the 'manual' trigger). Returns true when it fired. */
+    castAbility(s, id) {
+      const side = this.sides[s]; if (this.over || !side) return false;
+      const ab = side.abilities.find((x) => x.def.id === id && !x.fired && x.trigger === 'manual');
+      if (!ab) return false;
+      this.casts.push([this.tick, s, 'a', id]); this._fireAbility(s, ab); return true;
+    }
+    /** live: "focus fire", once per fight: the whole team targets one enemy for a few seconds (a taunt still wins) */
+    focus(s, fid) {
+      const side = this.sides[s]; if (this.over || !side || side.focusUsed) return false;
+      const tg = this.fighters.find((f) => f.id === fid && f.side !== s && f.alive);
+      if (!tg || !this.targetable(tg)) return false;
+      side.focusUsed = true; side.focus = { id: tg.id, until: this.t + (this.C.focusSeconds || 4) };
+      this.casts.push([this.tick, s, 'f', fid]); this.emit({ type: 'focus', side: s, target: tg.id }); return true;
+    }
+    _replayPlan() {
+      while (this._plan.length && this._plan[0][0] <= this.tick) {
+        const [, s, kind, id] = this._plan.shift();
+        if (kind === 'a') this.castAbility(s, id); else if (kind === 'f') this.focus(s, id);
+      }
+    }
+    /** skip / time-out: whatever the player armed as 'manual' and never pressed fires now */
+    firePending(s) { this.sides[s].abilities.filter((x) => !x.fired && x.trigger === 'manual').forEach((x) => this.castAbility(s, x.def.id)); }
+
     _triggers() {
       [0, 1].forEach((s) => {
         const side = this.sides[s];
@@ -1375,6 +1404,7 @@
     step() {
       if (this.over) return;
       const dt = this.C.dt;
+      this._replayPlan(); this.tick++;
       this._triggers();
 
       // assassins leap over the defence line once
@@ -1426,6 +1456,8 @@
         if (f.passive) continue;
         if (f.stun > 0) { f.stun -= dt; continue; }
 
+        { const fo = this.sides[f.side].focus;   // focus fire: everyone on the team goes for the marked enemy
+          if (fo && fo.until > this.t && !(f.tauntBy && f.tauntUntil > this.t)) { const ft = this.fighters.find((x) => x.id === fo.id); if (ft && ft.alive && this.targetable(ft)) f.target = ft; } }
         if (!f.target || !f.target.alive || !this.targetable(f.target) || (f.tauntBy && f.tauntUntil > this.t && f.target.id !== f.tauntBy)) {
           f.target = this.findTarget(f);
         }
@@ -1949,6 +1981,7 @@
       const ab = hero.abilities.find((a) => a.id === abilityId);
       if (!ab) return this._fail('ما أعرف هالقدرة');
       if (!trigger) { delete p.abilities[abilityId]; return { ok: true }; }
+      if (trigger === 'manual' && (this.isolated || this.mode === 'hotseat' || p.isAI)) return this._fail('الضغط اليدوي بس ضد الكمبيوتر');   // both phones must compute the same fight
       const had = p.abilities[abilityId];
       if (!had) {
         if (this.reservedEssence(p) + this.abilityCost(p, ab) > p.essence) return this._fail('ما عندك جوهر يكفي');
@@ -2073,13 +2106,13 @@
       this.players[pi].hunt = mode; return { ok: true };
     }
 
-    createCombat(record) {
+    createCombat(record, extra) {
       this.phase = 'combat';
       this.players.forEach((_, i) => { this.autoPickMerge(i); this.autoFill(i); });
       const specs = [this.buildCombatSpec(0), this.buildCombatSpec(1)];
       this.scout = specs.map((s) => JSON.parse(JSON.stringify(s)));
       this._combatSpecs = specs;
-      return new AMB.Combat(specs, { seed: this.isolated ? ((this.seed * 31 + this.round * 104729) % 2147483647) : this.rng.int(2 ** 31), round: this.round, record });
+      return new AMB.Combat(specs, { seed: this.isolated ? ((this.seed * 31 + this.round * 104729) % 2147483647) : this.rng.int(2 ** 31), round: this.round, record, casts: extra && extra.casts });
     }
 
     /** Apply a finished combat result: hero damage, streaks, essence, spells. */
@@ -2469,7 +2502,7 @@
     const abil = hero.abilities.slice().sort((a, b) => b.cost - a.cost);
     abil.forEach((ab) => {
       let trig = DEFAULT_TRIGGER[ab.type] || 'start';
-      if (rng.chance(cfg.mistakes)) trig = rng.pick(Object.keys(AMB.DATA.ABILITY_TRIGGERS));
+      if (rng.chance(cfg.mistakes)) trig = rng.pick(Object.keys(AMB.DATA.ABILITY_TRIGGERS).filter((k) => k !== 'manual'));
       match.setAbility(pi, ab.id, trig);
     });
     match.autoFill(pi);
@@ -5160,11 +5193,29 @@ AMB.IMAGES = {
     S.sel = null;
     if (S.mode === 'online') { AMB.NetUI.iAmReady(); return; }
     if (S.mode === 'hotseat' && S.queue.length) { handoff(S.queue.shift()); return; }
+    armManual();
     if (S.rs) S.rs.cur = { aiFirst: !!S.aiFirst, prep: S.rs.rec.take() };   // adult #21: this round's moves, for "continue your match"
     if (S.mode !== 'hotseat' && !S.aiFirst) AMB.AI.prep(m, 1);
     startCombat();
   }
 
+  // ---- you play the fight: against the computer, every hero ability you did not give an automatic trigger is yours to press during combat
+  const liveCast = () => ['ai', 'short', 'friendly', 'campaign', 'tower', 'event', 'practice'].includes(S.mode);
+  function armManual() {
+    if (!liveCast()) return;
+    const m = S.match, p = m.players[S.v], hero = HEROES[p.heroId];
+    hero.abilities.forEach((ab) => { if (!p.abilities[ab.id]) m.setAbility(S.v, ab.id, 'manual'); });   // costs nothing unless pressed (unfired abilities are refunded)
+  }
+  function castBarHTML() {
+    const c = S.combat, mi = mySeat(); if (!c || S.phase !== 'combat' || !liveCast()) return '';
+    const sd = c.sides[mi], mine = sd.abilities.filter((x) => x.trigger === 'manual');
+    const btns = mine.map((x) => `<button class="cast-btn ${x.fired ? 'used' : ''}" data-act="castAb" data-id="${x.def.id}" ${x.fired ? 'disabled' : ''}>${icon(ART.SKILL_ICON[x.def.type] || 'burst')}<b>${esc(x.def.name)}</b></button>`).join('');
+    return `<div class="cast-bar">${btns}<span class="cast-focus ${sd.focusUsed ? 'used' : ''}">🎯<small>${sd.focusUsed ? 'ركّزت' : 'اضغط عدو: ركّز الهجوم'}</small></span></div>`;
+  }
+  function renderCastBar() {   // its own layer above the combat controls (the shop bar is hidden during a fight on phones)
+    let el = $('castbar'); if (!el) { el = document.createElement('div'); el.id = 'castbar'; $('scr-match').appendChild(el); }
+    el.innerHTML = S.phase === 'combat' ? castBarHTML() : '';
+  }
   // ---- senior #39: "↶ تراجع": take back the last move of this prep (buy, sell, move, items, XP, hero). Not online, not same-device, never across a reroll.
   const UNDOABLE = ['buy', 'sell', 'move', 'buyItem', 'equip', 'unequip', 'sellItem', 'buyXp', 'toggleSummon', 'moveHero', 'autoArrange', 'armSpell', 'disarmSpell', 'toggleLock', 'setAbility', 'setWager', 'setHunt'];
   function undoInstall() {
@@ -5206,7 +5257,7 @@ AMB.IMAGES = {
       if (AMB.NetSync.replay(m, 0, r.prep).length) return null;
       m.autoFill(0);
       if (!r.aiFirst) AMB.AI.prep(m, 1);
-      m.resolveCombat(m.createCombat(false).runToEnd());
+      m.resolveCombat(m.createCombat(false, { casts: r.casts }).runToEnd());
       if (AMB.NetSync.replay(m, 0, r.reward || []).length) return null;
       if (m.players[1].rewardOffer && !m.players[1].rewardOffer.claimed) AMB.AI.claimReward(m, 1);
       if (m.isOver) return null;
@@ -5247,6 +5298,7 @@ AMB.IMAGES = {
     renderMatch();
     buildTokens();
     banner(`${icon('sword')}`, 'fight');
+    renderCastBar();
     let last = performance.now(), acc = 0;
     const step = (ts) => {
       if (S.phase !== 'combat') return;
@@ -5265,6 +5317,7 @@ AMB.IMAGES = {
 
   function skipCombat() {
     if (S.phase !== 'combat') return;
+    if (liveCast()) S.combat.firePending(mySeat());   // whatever you armed and did not press fires now
     S.combat.runToEnd();
     S.combat.drainEvents();
     drawCombat(true);
@@ -5277,6 +5330,7 @@ AMB.IMAGES = {
     S.phase = 'result';
     const m = S.match;
     const rep = m.resolveCombat(S.combat.result);
+    if (S.rs && S.rs.cur) S.rs.cur.casts = S.combat.casts.slice();   // the buttons you pressed, so a reload replays the same fight
     S.lastReport = rep;
     renderMatch(true);
     const mi = mySeat();
@@ -5649,6 +5703,10 @@ AMB.IMAGES = {
         fx.appendChild(ln);
         requestAnimationFrame(() => (ln.style.opacity = 0));
         setTimeout(() => ln.remove(), 280);
+      } else if (e.type === 'focus') {
+        const ce = S.cardEls && S.cardEls[e.target]; if (ce && ce.el) { ce.el.classList.add('focused'); setTimeout(() => ce.el.classList.remove('focused'), 4000 / (S.speed || 1)); }
+        if (e.side === S.combatViewer) { sfx('cast'); addFloat(50, 50, '🎯 ركّزوا!', 'big'); }
+        renderCastBar();
       } else if (e.type === 'heroAbility') {
         const hh = HEROES[S.match.players[e.side].heroId];
         abilityBurst(e.name, e.side, WORLDS[hh.world].color);
@@ -5950,6 +6008,7 @@ AMB.IMAGES = {
     const m = S.match, p = me();
     const prep = S.phase === 'prep' || S.phase === 'resources';
     const E = CFG.economy;
+    renderCastBar();
     if (!prep) {
       $('shopbar').innerHTML = `<div class="shop-closed">${icon(S.phase === 'combat' ? 'sword' : 'lock')}</div>`;
       return;
@@ -6557,6 +6616,7 @@ AMB.IMAGES = {
       mergePickIfAny();
     },
     buyFromUpg: (d) => { const r = S.match.buy(S.v, +d.idx); if (res(r) && r.merged && r.merged.length) mergeFx(r.merged[r.merged.length - 1].uid, r.merged); renderMatch(); if (me().mergePick) mergePickIfAny(); else upgradesModal(); },
+    castAb: (d) => { if (S.phase === 'combat' && S.combat && !S.paused && S.combat.castAbility(mySeat(), d.id)) { sfx('cast'); renderCastBar(); } },
     buyItem: (d) => { if (prepActive() && res(S.match.buyItem(S.v, +d.idx))) renderMatch(); },
     reroll: () => { if (prepActive() && res(S.match.reroll(S.v))) { sfx('reroll'); renderMatch(); } },
     rotate: () => rotateScreen(),
@@ -6787,6 +6847,13 @@ AMB.IMAGES = {
   // touch drag (phones/tablets): hold a board/bench card, move it, drop it on a cell, the bench, or the shop to sell
   let TD = null;
   document.addEventListener('click', (e) => { if (S.noClick) { e.stopPropagation(); e.preventDefault(); } }, true);
+  // focus fire: during a fight against the computer, tap an enemy unit
+  document.addEventListener('click', (e) => {
+    if (S.phase !== 'combat' || !S.combat || S.paused || !liveCast()) return;
+    const el = e.target.closest && e.target.closest('#field [data-fid]'); if (!el) return;
+    const f = S.combat.fighters.find((x) => String(x.id) === el.dataset.fid); if (!f || f.side === mySeat()) return;
+    if (!S.combat.focus(mySeat(), f.id) && S.combat.sides[mySeat()].focusUsed) toast('التركيز مرة وحدة بكل قتال', '');
+  });
   document.addEventListener('pointerdown', (e) => {
     if (e.pointerType === 'mouse' || !prepActive()) return;
     const el = e.target.closest('[data-drag]');

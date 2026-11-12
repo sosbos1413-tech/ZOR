@@ -494,6 +494,7 @@
     t5: { id: 't5', name: 'بعد 5 ثوانٍ' },
     firstDeath: { id: 'firstDeath', name: 'عند سقوط أول حليف' },
     exposed: { id: 'exposed', name: 'عند انكشاف البطل' },
+    manual: { id: 'manual', name: 'أنا أضغطها وقت القتال' },
   };
 
   // Equipment (attached to a unit) and spells (armed for the next combat).
