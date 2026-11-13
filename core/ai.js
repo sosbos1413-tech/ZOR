@@ -178,6 +178,9 @@
     // --- finale wager (teen #15): a player who is behind raises the stakes, a leader never does
     if (match.isFinale(match.round) && match.setWager) { const foe1 = match.players[1 - pi]; if (foe1 && foe1.life - p.life >= 15 && !cfg.noSummon) match.setWager(pi, true); }
 
+    // --- read the opponent's last board (everyone can see it: match.scout): assassins go for the back row when it is crowded, otherwise for the weakest unit
+    if (match.setHunt && cfg.mistakes < 0.3) { const sc = match.scout && match.scout[1 - pi]; if (sc && sc.units && sc.units.length) match.setHunt(pi, sc.units.filter((u) => u.slot[0] === 'b').length >= 2 ? 'back' : 'weak'); }
+
     // --- hero summon decision (before arranging so a slot is kept)
     const aggressive = hero.id === 'kagira';
     const wantSummon = !cfg.noSummon && match.round >= (cfg.summonFrom || (aggressive ? 3 : 5)) && p.life - AMB.CONFIG.combat.summonKnockout >= (cfg.summonMinLife ? cfg.summonMinLife - AMB.CONFIG.combat.summonKnockout : aggressive ? 30 : 45);

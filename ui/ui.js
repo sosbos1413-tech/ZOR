@@ -350,6 +350,14 @@
   }
 
   // ---- you play the fight: against the computer, every hero ability you did not give an automatic trigger is yours to press during combat
+  const punchy = () => !(AMB.profile && AMB.profile.settings && AMB.profile.settings.get && AMB.profile.settings.get('motion') === false) && !document.body.classList.contains('reduce-motion');
+  // the hero slides across the screen when you press an ability
+  function cutIn(name) {
+    if (!punchy()) return; const p = me(), h = HEROES[p.heroId];
+    const el = document.createElement('div'); el.className = 'cutin'; el.style.setProperty('--wc', WORLDS[h.world].color);
+    el.innerHTML = `<span class="ci-p">${portrait(myAvatar(p, 0), { k: 'ci' })}</span><b>${esc(name)}</b>`;
+    document.body.appendChild(el); setTimeout(() => el.remove(), 1000);
+  }
   const liveCast = () => ['ai', 'short', 'friendly', 'campaign', 'tower', 'event', 'practice'].includes(S.mode);
   function armManual() {
     if (!liveCast()) return;
@@ -444,7 +452,8 @@
     S.combatViewer = mySeat();
     S.v = mySeat();
     S.combat = m.createCombat(true);
-    S.phase = 'combat';
+    S.phase = 'combat'; S.kills = 0; S.hitstop = 0;
+    document.body.classList.toggle('finale-fight', !m.rules && m.isFinale(m.round));
     renderMatch();
     buildTokens();
     banner(`${icon('sword')}`, 'fight');
@@ -454,7 +463,7 @@
       if (S.phase !== 'combat') return;
       const dt = Math.min(0.1, (ts - last) / 1000);
       last = ts;
-      if (!S.paused) {
+      if (!S.paused && !(S.hitstop && ts < S.hitstop)) {
         acc += dt * S.speed;
         while (acc >= CFG.combat.dt && !S.combat.over) { S.combat.step(); acc -= CFG.combat.dt; }
       }
@@ -477,6 +486,7 @@
     if (S.phase !== 'combat') return;
     cancelDrag();
     cancelAnimationFrame(S.raf);
+    document.body.classList.remove('finale-fight');
     S.phase = 'result';
     const m = S.match;
     const rep = m.resolveCombat(S.combat.result);
@@ -826,13 +836,15 @@
       const f = e.id != null ? byId[e.id] : null;
       const el = f ? anchorEl(f) : null;
       if (e.type === 'damage' && f && el) {
-        if (e.amount >= 4 || e.crit) floatAt(el, e.amount, e.crit ? 'crit' : e.skill ? 'skill' : '');
+        if (e.amount >= 4 || e.crit) floatAt(el, e.amount, (e.crit ? 'crit' : e.skill ? 'skill' : '') + (e.amount >= 250 ? ' huge' : ''));
         flash(el, 'hit', 110);
         if (e.amount >= 4 || e.crit) burst(el, e.crit ? '#ffd24a' : e.skill ? '#ff6b73' : '#ffffff', e.crit ? 12 : e.skill ? 8 : 3, { r: e.crit ? 34 : 22 });
         if (e.crit || f.isHero) flash($('field'), 'shake', 260);
         sfx(e.crit ? 'crit' : 'hit');
       } else if (e.type === 'death' && f && el) {
         burst(el, '#a9a9a9', 16, { r: 38, s: 7 }); burst(el, '#ff6b73', 6, { r: 30 }); sfx('death');
+        if (punchy()) { S.hitstop = performance.now() + (f.isHero ? 160 : 70); flash($('field'), 'shake', f.isHero ? 400 : 180); }
+        if (!f.isHero && f.side !== S.combatViewer) { S.kills = (S.kills || 0) + 1; const call = { 2: 'ضربة مزدوجة!', 3: 'ثلاثية!', 4: 'اكتساح!' }[Math.min(4, S.kills)]; if (call && S.kills <= 4) addFloat(50, 44, '🔥 ' + call, 'big streak'); }
         if (f.isHero) flash($('field'), 'shake', 400);
       } else if (e.type === 'heal' && f && el) {
         floatAt(el, '+' + e.amount, 'heal');
@@ -1773,7 +1785,7 @@
       mergePickIfAny();
     },
     buyFromUpg: (d) => { const r = S.match.buy(S.v, +d.idx); if (res(r) && r.merged && r.merged.length) mergeFx(r.merged[r.merged.length - 1].uid, r.merged); renderMatch(); if (me().mergePick) mergePickIfAny(); else upgradesModal(); },
-    castAb: (d) => { if (S.phase === 'combat' && S.combat && !S.paused && S.combat.castAbility(mySeat(), d.id)) { sfx('cast'); renderCastBar(); } },
+    castAb: (d) => { if (S.phase === 'combat' && S.combat && !S.paused && S.combat.castAbility(mySeat(), d.id)) { sfx('cast'); const ab = HEROES[me().heroId].abilities.find((a) => a.id === d.id); cutIn(ab ? ab.name : ''); S.hitstop = performance.now() + 220; renderCastBar(); } },
     riftEvent: () => { const ev = S.match && S.match.event && CFG.riftEvents[S.match.event]; if (ev) modal(`<h2>⚡ حدث الصدع</h2><p><b>${esc(ev.name)}</b></p><p>${esc(ev.text)}</p><p class="hint">كل جولة من الثانية لها حدث عشوائي، نفسه لك ولخصمك.</p>`); },
     buyItem: (d) => { if (prepActive() && res(S.match.buyItem(S.v, +d.idx))) renderMatch(); },
     reroll: () => { if (prepActive() && res(S.match.reroll(S.v))) { sfx('reroll'); renderMatch(); } },

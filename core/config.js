@@ -190,7 +190,7 @@
       // difficulty knobs used by core/ai.js
       // easy holds its level at 5 and never summons; hard levels hard, keeps a small bank only and summons from round 2
       easy: { mistakes: 0.35, rerollGreed: 0.4, levelAggro: 0.6, maxLevel: 4, noSummon: true },
-      normal: { mistakes: 0.12, rerollGreed: 0.7, levelAggro: 1.0 },
+      normal: { mistakes: 0.08, rerollGreed: 0.7, levelAggro: 1.0, summonFrom: 3, summonMinLife: 40 },
       hard: { mistakes: 0.0, rerollGreed: 1.0, levelAggro: 1.6, reserveCap: 10, summonFrom: 2, summonMinLife: 40 },
       // teen #14: expert plays the strongest known plan (fast levels, early hero, its world) and adapts: it levels harder against a greedy opponent
       expert: { mistakes: 0.0, rerollGreed: 1.0, levelAggro: 2.2, reserveCap: 4, summonFrom: 2, summonMinLife: 25, adaptive: true },
