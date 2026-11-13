@@ -2112,6 +2112,15 @@
       const done = list.filter((x) => x.claimed || x.done).length, claim = list.some((x) => x.done && !x.claimed);
       dg.innerHTML = list.length ? `<button class="dg-pill ${claim ? 'has' : ''}" data-act="dayGoals" aria-label="أهداف اليوم">🎯 <bdi dir="ltr">${done}/${list.length}</bdi></button>` : '';
     } catch (e) { dg.innerHTML = ''; }
+    // the pull to the next pack: shards toward one pack, and a glow when one can be opened
+    let pb = $('pack-progress');
+    if (!pb) { pb = document.createElement('button'); pb.id = 'pack-progress'; pb.dataset.act = 'go'; pb.dataset.to = 'packs'; const host2 = document.querySelector('#scr-menu .mv2') || document.querySelector('#scr-menu'); if (host2) host2.appendChild(pb); }
+    try {
+      const W0 = AMB.wallet, cost = AMB.packs.def('basic').cost.shards, have = W0.balance('shards'), n = Math.floor(have / cost), pct = Math.min(100, Math.round((100 * (have % cost)) / cost));
+      pb.className = n ? 'ready' : '';
+      pb.innerHTML = n ? `📦 <b>${n === 1 ? 'باكج جاهز تفتحه!' : n + ' باكجات جاهزة!'}</b>` : `📦 <span class="pp-bar"><i style="width:${pct}%"></i></span><small>باقي ${cost - (have % cost)} ${icon('gem')}</small>`;
+      const mp = $('menu-packs'); if (mp) mp.classList.toggle('pk-glow', n > 0);
+    } catch (e) { pb.innerHTML = ''; }
     // adult #27: the gift box on the menu
     let ib = $('inbox-btn');
     if (!ib) { ib = document.createElement('button'); ib.id = 'inbox-btn'; ib.dataset.act = 'inboxAll'; ib.setAttribute('aria-label', 'استلم كل الجوائز'); const host0 = document.querySelector('#scr-menu .mv2') || document.querySelector('#scr-menu'); if (host0) host0.appendChild(ib); }

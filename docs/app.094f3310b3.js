@@ -6991,6 +6991,15 @@ AMB.IMAGES = {
       const done = list.filter((x) => x.claimed || x.done).length, claim = list.some((x) => x.done && !x.claimed);
       dg.innerHTML = list.length ? `<button class="dg-pill ${claim ? 'has' : ''}" data-act="dayGoals" aria-label="أهداف اليوم">🎯 <bdi dir="ltr">${done}/${list.length}</bdi></button>` : '';
     } catch (e) { dg.innerHTML = ''; }
+    // the pull to the next pack: shards toward one pack, and a glow when one can be opened
+    let pb = $('pack-progress');
+    if (!pb) { pb = document.createElement('button'); pb.id = 'pack-progress'; pb.dataset.act = 'go'; pb.dataset.to = 'packs'; const host2 = document.querySelector('#scr-menu .mv2') || document.querySelector('#scr-menu'); if (host2) host2.appendChild(pb); }
+    try {
+      const W0 = AMB.wallet, cost = AMB.packs.def('basic').cost.shards, have = W0.balance('shards'), n = Math.floor(have / cost), pct = Math.min(100, Math.round((100 * (have % cost)) / cost));
+      pb.className = n ? 'ready' : '';
+      pb.innerHTML = n ? `📦 <b>${n === 1 ? 'باكج جاهز تفتحه!' : n + ' باكجات جاهزة!'}</b>` : `📦 <span class="pp-bar"><i style="width:${pct}%"></i></span><small>باقي ${cost - (have % cost)} ${icon('gem')}</small>`;
+      const mp = $('menu-packs'); if (mp) mp.classList.toggle('pk-glow', n > 0);
+    } catch (e) { pb.innerHTML = ''; }
     // adult #27: the gift box on the menu
     let ib = $('inbox-btn');
     if (!ib) { ib = document.createElement('button'); ib.id = 'inbox-btn'; ib.dataset.act = 'inboxAll'; ib.setAttribute('aria-label', 'استلم كل الجوائز'); const host0 = document.querySelector('#scr-menu .mv2') || document.querySelector('#scr-menu'); if (host0) host0.appendChild(ib); }
@@ -7409,6 +7418,7 @@ AMB.IMAGES = {
   const { icon } = AMB.art;
   const UI = () => globalThis.AMB_UI;
   const PACK = 'basic';
+  const esc = (t) => String(t).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]);
   let busy = false;
 
   const shardsHTML = (n) => `<span class="shards">${icon('gem')}<b>${n.toLocaleString('en-US')}</b></span>`;
@@ -7443,9 +7453,9 @@ AMB.IMAGES = {
     root.innerHTML = `<div class="pk-top">${shardsHTML(W.balance('shards'))}<button class="ibtn" data-act="info" data-k="shards" title="شرح">ⓘ</button></div>
       <div class="pk-main">
         <div class="pk-pack"><div class="pk-art"><span class="pk-logo">ZOR</span><span class="pk-name">${d.name}</span><span class="pk-n">${d.cards} بطاقات</span></div>
-          <button class="btn primary big" data-act="packOpen" ${W.canAfford(d.cost) ? '' : 'disabled'}>افتح · ${icon('gem')} ${cost}</button>
+          <button class="btn primary big ${W.canAfford(d.cost) ? 'pk-glow' : ''}" data-act="packOpen" ${W.canAfford(d.cost) ? '' : 'disabled'}>افتح · ${icon('gem')} ${cost}</button>
           ${W.canAfford({ shards: cost * 2 }) ? `<button class="btn" data-act="packOpen5">افتح ×${Math.min(5, Math.floor(W.balance ? W.balance('shards') / cost : 5))} مرة وحدة</button>` : ''}
-          ${W.canAfford(d.cost) ? '' : `<div class="hint">تحتاج ${cost - W.balance('shards')} شظية إضافية</div>`}</div>
+          ${W.canAfford(d.cost) ? '' : `<div class="pk-need"><span class="pp-bar"><i style="width:${Math.round((100 * W.balance('shards')) / cost)}%"></i></span><small>باقي ${cost - W.balance('shards')} ${icon('gem')}: العب الحملة والمهام اليومية</small></div>`}</div>
         <div class="pk-side">${pityHTML()}
           <div class="pk-odds"><b>نسبة ظهور كل بطاقة</b><ul>${odds}</ul>
             <button class="ibtn" data-act="info" data-k="odds" title="شرح">ⓘ</button></div>
@@ -7480,32 +7490,44 @@ AMB.IMAGES = {
     ui.overlay(`<div class="rv-wrap rv2 ${'best-' + best.rarity}"><h2>${res.forced ? 'الضمان اشتغل! ' : ''}${RAR[best.rarity].name === RAR.legendary.name ? '✨ أسطوري! ✨' : 'باكج الصدع'}</h2>
       <div class="rv-row">${cards}</div>
       ${res.refund ? `<p class="hint">نسخ بطاقات بالمستوى الأقصى تحوّلت إلى ${res.refund} شظية.</p>` : ''}
-      <div class="rv-btns"><button class="btn rv-skip" data-act="rvSkip">${icon('skip')} تخطي</button><button class="btn primary big" data-act="packDone" data-to="cards">${res.cards.some((c) => c.isNew) ? '🎉 شوف شخصياتك الجديدة' : '📚 شوف مجموعتك'}</button>
+      <div class="rv-btns"><span class="rv-hint">اضغط البطاقات واقلبها 👆</span><button class="btn rv-skip" data-act="rvSkip">${icon('skip')} اقلب الكل</button><button class="btn primary big" data-act="packDone" data-to="cards">${res.cards.some((c) => c.isNew) ? '🎉 شوف شخصياتك الجديدة' : '📚 شوف مجموعتك'}</button>
         <button class="btn ghost" data-act="packOpen" ${W.canAfford(P.def(PACK).cost) ? '' : 'disabled'}>باكج ثاني · ${icon('gem')} ${P.def(PACK).cost.shards}</button><button class="btn ghost" data-act="packDone">تم</button></div></div>`);
     const wrap = document.querySelector('.rv-wrap');
-    const timers = [];
-    const at = (fn, ms) => timers.push(setTimeout(fn, ms));
+    // you turn the cards yourself: every back already hints its rarity (glow, shake); tap to flip; the rare ones build up first
+    wrap.classList.add('rv-tap');
+    const els = [...wrap.querySelectorAll('.rv')];
+    els.forEach((el, i) => { el.style.setProperty('--deal', (i * 0.09).toFixed(2) + 's'); el.dataset.i = i; });
+    let left = order.length, busy = 0;
     const live = () => $('overlay').classList.contains('on') && wrap.isConnected;
-    order.forEach((c, i) => {
+    const flip = (i, quick) => {
+      const el = els[i], c = order[i]; if (!el || el.classList.contains('flipped')) return;
       const L = RAR[c.rarity].order;
-      if (FX && L >= 3) at(() => { if (live()) FX.charge(wrap, c.rarity); }, Math.max(0, T[i] * 1000 - (L === 4 ? 1300 : 600)));
-      at(() => {
+      el.classList.add('flipping');
+      const go = () => {
         if (!live()) return;
-        const el = wrap.querySelectorAll('.rv')[i];
+        el.classList.remove('flipping'); el.classList.add('flipped');
         if (FX) FX.reveal(el, c.rarity, wrap, c); else ui.sfx(L >= 3 ? 'merge' : 'click');
-        if (i === order.length - 1) wrap.classList.add('rv-done');
-      }, T[i] * 1000 + 300);
-    });
-    // skip: stop the remaining timers, turn every card now, and give the best card its effect once
+        left--; if (!left) wrap.classList.add('rv-done');
+        if (!quick && (c.isNew || L >= 3)) setTimeout(() => live() && showcase(c), L >= 3 ? 650 : 420);
+      };
+      if (FX && L >= 3 && !quick) { FX.charge(wrap, c.rarity); busy++; setTimeout(() => { busy--; go(); }, L === 4 ? 1300 : 650); }
+      else { ui.sfx('click'); setTimeout(go, 60); }
+    };
+    els.forEach((el, i) => el.addEventListener('click', (e) => { if (busy || el.classList.contains('flipped') || wrap.querySelector('.rv-show')) return; e.stopPropagation(); flip(i); }));
+    // the showcase: a new or rare card fills the screen, tap to put it back
+    function showcase(c) {
+      const d = C.def(c.id), R0 = RAR[c.rarity], ro = d.role ? AMB.DATA.ROLES[d.role] : null;
+      const sh = document.createElement('div'); sh.className = 'rv-show'; sh.style.setProperty('--rc', R0.color);
+      sh.innerHTML = `<i class="rs-rays"></i><div class="rs-card">${ui.portrait(d, { bare: true, k: 'rs' + c.id })}</div>
+        <div class="rs-info">${c.isNew ? '<span class="rs-new">جديدة!</span>' : ''}<b>${esc(d.name)}</b><span class="rs-rar">${R0.name}${d.tier ? ' · ' + '★'.repeat(d.tier) : ''}${ro ? ' · ' + esc(ro.name) : ''}</span></div><small class="rs-tap">اضغط للمتابعة</small>`;
+      wrap.appendChild(sh);
+      sh.addEventListener('click', (e) => { e.stopPropagation(); sh.classList.add('out'); setTimeout(() => sh.remove(), 260); });
+    }
+    // «اقلب الكل»: the rest turn in order, rarest last, a short beat apart (the best one still gets its build-up)
     wrap._skip = () => {
-      if (wrap.classList.contains('rv-done')) return;
-      timers.forEach(clearTimeout); timers.length = 0;
-      ['rv-charge-3', 'rv-charge-4'].forEach((k) => wrap.classList.remove(k));
-      wrap.classList.add('rv-skipped', 'rv-done');
-      const els = wrap.querySelectorAll('.rv');
-      els.forEach((el) => el.classList.add('hit'));
-      const bi = order.indexOf(best);
-      if (FX && els[bi]) FX.reveal(els[bi], best.rarity, wrap, best); else ui.sfx('click');
+      if (wrap.classList.contains('rv-done') || busy) return;
+      const rest = els.map((_, i) => i).filter((i) => !els[i].classList.contains('flipped'));
+      rest.forEach((i, k) => setTimeout(() => { if (live()) flip(i, k < rest.length - 1 || RAR[order[i].rarity].order < 3); }, k * 260));
     };
   }
 
